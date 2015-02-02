@@ -22,14 +22,25 @@ public abstract class BasePiece implements Piece {
    // stores the colour of the piece
    protected Colour colour;
 
-   protected BasePiece(Colour side, String name) {
-      this.colour = side;
+   protected BasePiece(Colour colour, String name) {
+      this.colour = colour;
       this.name = name;
+   }
+
+   @Override
+   public Colour getColour() {
+      return colour;
    }
 
    @Override
    public BitBoard getBitBoard() {
       return pieces;
+   }
+
+   @Override
+   public void initPosition(Square... requiredSquares) {
+      pieces = new BitBoard();
+      pieces.setBitsAt(requiredSquares);
    }
 
    @Override
@@ -43,7 +54,7 @@ public abstract class BasePiece implements Piece {
 
    @Override
    public String getFenSymbol() {
-      return colour == Colour.WHITE ? getSymbol() : getSymbol().toLowerCase();
+      return colour == Colour.White ? getSymbol() : getSymbol().toLowerCase();
    }
 
    // for test

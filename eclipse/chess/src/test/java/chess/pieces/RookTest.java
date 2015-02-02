@@ -9,7 +9,7 @@ import chess.Colour;
 
 public class RookTest {
 
-   private Rook whiteRook = new Rook(Colour.WHITE);
+   private Rook whiteRook = new Rook(Colour.White);
 
    @Test
    public void test() {

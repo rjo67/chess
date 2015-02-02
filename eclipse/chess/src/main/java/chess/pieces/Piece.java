@@ -5,12 +5,21 @@ import java.util.Set;
 
 import chess.BitBoard;
 import chess.Chessboard;
+import chess.Colour;
 import chess.Move;
 import chess.Square;
 
 public interface Piece {
 
    public BitBoard getBitBoard();
+
+   /**
+    * Initialises the positions of the pieces.
+    * 
+    * @param requiredSquares
+    *           which squares are occupied by this type of piece.
+    */
+   public void initPosition(Square... requiredSquares);
 
    /**
     * @return a string representation of the piece, used when displaying a move.
@@ -38,4 +47,6 @@ public interface Piece {
     * @return a list of moves.
     */
    List<Move> findMoves(Chessboard chessboard);
+
+   Colour getColour();
 }

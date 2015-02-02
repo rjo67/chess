@@ -17,22 +17,38 @@ public class Queen extends BasePiece {
 
    /**
     * Creates the data structures for the starting position of the queen.
+    * The queen will be placed according to the default start position.
     * 
-    * @param side
-    *           used to determine the starting position for the pieces
+    * @param colour
+    *           indicates the colour of the pieces
     */
-   public Queen(Colour side) {
-      super(side, side.toString() + " Queen");
+   public Queen(Colour colour) {
+      this(colour, new Square[0]);
+   }
 
-      pieces = new BitBoard();
-      switch (side) {
-      case WHITE:
-         pieces.setBitsAt(Square.d1);
-         break;
-      case BLACK:
-         pieces.setBitsAt(Square.d8);
-         break;
+   /**
+    * Creates the data structures for the starting position of the queen.
+    * 
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param requiredSquares
+    *           required starting position of the pieces (if empty, the standard default positions will be used)
+    */
+   public Queen(Colour colour, Square... requiredSquares) {
+      super(colour, colour.toString() + " Queen");
+      if (requiredSquares.length == 0) {
+         // use default positions
+         switch (colour) {
+         case White:
+            requiredSquares = new Square[] { Square.d1 };
+            break;
+         case Black:
+            requiredSquares = new Square[] { Square.d8 };
+            break;
+         }
       }
+      pieces = new BitBoard();
+      pieces.setBitsAt(requiredSquares);
    }
 
    @Override

@@ -17,22 +17,40 @@ public class Pawn extends BasePiece {
 
    /**
     * Creates the data structures for the starting position of the pawns.
+    * The pawns will be placed according to the default start position.
     * 
-    * @param side
-    *           used to determine the starting position, i.e. white pawns are on the 2nd rank, black pawns on the 7th.
+    * @param colour
+    *           indicates the colour of the pieces
     */
-   public Pawn(Colour side) {
-      super(side, side.toString() + " Pawn");
+   public Pawn(Colour colour) {
+      this(colour, new Square[0]);
+   }
 
-      pieces = new BitBoard();
-      switch (side) {
-      case WHITE:
-         pieces.setBitsAt(Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2);
-         break;
-      case BLACK:
-         pieces.setBitsAt(Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7, Square.h7);
-         break;
+   /**
+    * Creates the data structures for the starting position of the bishops.
+    * 
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param requiredSquares
+    *           required starting position of the pieces (if empty, the standard default positions will be used)
+    */
+   public Pawn(Colour colour, Square... requiredSquares) {
+      super(colour, colour.toString() + " Pawn");
+      if (requiredSquares.length == 0) {
+         // use default positions
+         switch (colour) {
+         case White:
+            requiredSquares = new Square[] { Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2,
+                  Square.g2, Square.h2 };
+            break;
+         case Black:
+            requiredSquares = new Square[] { Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7,
+                  Square.g7, Square.h7 };
+            break;
+         }
       }
+      pieces = new BitBoard();
+      pieces.setBitsAt(requiredSquares);
    }
 
    @Override
@@ -42,7 +60,7 @@ public class Pawn extends BasePiece {
 
    @Override
    public String getFenSymbol() {
-      return colour == Colour.WHITE ? "P" : "p";
+      return colour == Colour.White ? "P" : "p";
    }
 
    @Override

@@ -17,22 +17,40 @@ public class Rook extends BasePiece {
 
    /**
     * Creates the data structures for the starting position of the rooks.
+    * The rooks will be placed according to the default start position.
     * 
     * @param side
     *           used to determine the starting position for the pieces
     */
    public Rook(Colour side) {
-      super(side, side.toString() + " Rook");
+      this(side, new Square[0]);
+   }
 
-      pieces = new BitBoard();
-      switch (side) {
-      case WHITE:
-         pieces.setBitsAt(Square.a1, Square.h1);
-         break;
-      case BLACK:
-         pieces.setBitsAt(Square.a8, Square.h8);
-         break;
+   /**
+    * Creates the data structures for the starting position of the rooks.
+    * 
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param requiredSquares
+    *           required starting position of the pieces (if empty, the standard default positions will be used)
+    */
+   public Rook(Colour colour, Square... requiredSquares) {
+
+      super(colour, colour.toString() + " Rook");
+
+      if (requiredSquares.length == 0) {
+         // use default positions
+         switch (colour) {
+         case White:
+            requiredSquares = new Square[] { Square.a1, Square.h1 };
+            break;
+         case Black:
+            requiredSquares = new Square[] { Square.a8, Square.h8 };
+            break;
+         }
       }
+      pieces = new BitBoard();
+      pieces.setBitsAt(requiredSquares);
 
       initMoveBitBoards();
    }

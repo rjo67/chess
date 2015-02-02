@@ -1,10 +1,16 @@
 package chess;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import chess.pieces.Bishop;
+import chess.pieces.King;
+import chess.pieces.Knight;
+import chess.pieces.Pawn;
 import chess.pieces.Piece;
-import chess.pieces.Pieces;
+import chess.pieces.Queen;
+import chess.pieces.Rook;
 
 public class Chessboard {
 
@@ -20,19 +26,36 @@ public class Chessboard {
     */
    private BitBoard[] allPieces;
 
+   /**
+    * Creates a chessboard with default piece settings.
+    */
    public Chessboard() {
+      Set<Piece>[] pieces = new HashSet[Colour.values().length];
+      for (Colour col : Colour.values()) {
+         pieces[col.ordinal()] = new HashSet<Piece>(Arrays.asList(new Pawn(col), new Rook(col), new Knight(col),
+               new Bishop(col), new Queen(col), new King(col)));
+      }
+      initBoard(pieces[Colour.White.ordinal()], pieces[Colour.Black.ordinal()]);
+   }
+
+   /**
+    * Creates a chessboard with the given piece settings.
+    */
+   public Chessboard(Set<Piece> whitePieces, Set<Piece> blackPieces) {
+      initBoard(whitePieces, blackPieces);
+   }
+
+   private void initBoard(Set<Piece> whitePieces, Set<Piece> blackPieces) {
       pieces = new HashSet[Colour.values().length];
+      pieces[Colour.White.ordinal()] = whitePieces;
+      pieces[Colour.Black.ordinal()] = blackPieces;
       allPieces = new BitBoard[Colour.values().length];
       // fill the board
       for (Colour side : Colour.values()) {
          allPieces[side.ordinal()] = new BitBoard();
-         Set<Piece> set = new HashSet<>();
-         for (Pieces piece : Pieces.values()) {
-            Piece p = piece.getPieceImpl(side);
-            set.add(p);
+         for (Piece p : pieces[side.ordinal()]) {
             allPieces[side.ordinal()].getBitSet().or(p.getBitBoard().getBitSet());
          }
-         pieces[side.ordinal()] = set;
       }
    }
 
