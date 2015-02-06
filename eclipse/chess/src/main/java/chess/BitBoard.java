@@ -9,22 +9,44 @@ import java.util.BitSet;
  * Little-Endian Rank-File Mapping:
  * <ul>
  * <li>bit index 0 == bottom left of board == A1</li>
- * <li>bit index 7 == bottom right of board == A8</li>
- * <li>bit index 56 == top left of board == H1</li>
+ * <li>bit index 7 == bottom right of board == H1</li>
+ * <li>bit index 56 == top left of board == A8</li>
  * <li>bit index 63 == top right of board == H8</li>
  * </ul>
  * 
- * @author rich
- */
-/**
  * @author rich
  *
  */
 public class BitBoard {
 
+   /**
+    * all bits set apart from those on the first file i.e. the LHS.
+    */
+   public static BitBoard FILE_ONE = new BitBoard(new byte[] { (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111,
+         (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111 });
+   /**
+    * all bits set apart from those on the eigth file, i.e. the RHS.
+    */
+   public static BitBoard FILE_EIGHT = new BitBoard(new byte[] { (byte) 0b11111110, (byte) 0b11111110,
+         (byte) 0b11111110, (byte) 0b11111110, (byte) 0b11111110, (byte) 0b11111110, (byte) 0b11111110,
+         (byte) 0b11111110 });
+   /**
+    * all bits set apart from those on the 2nd rank.
+    */
+   public static BitBoard RANK_TWO = new BitBoard(new byte[] { (byte) 0b00000000, (byte) 0b11111111, (byte) 0b00000000,
+         (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000 });
+
    private BitSet bs = new BitSet(64);
 
    public BitBoard() {
+   }
+
+   public BitBoard(long lo) {
+      bs = BitSet.valueOf(new long[] { lo });
+   }
+
+   public BitBoard(BitSet bs) {
+      this.bs = bs;
    }
 
    /**
@@ -77,10 +99,26 @@ public class BitBoard {
    }
 
    /**
+    * returns a copy of the underlying BitSet.
+    * 
+    * @return a copy of the underlying bitset.
+    */
+   public BitSet cloneBitSet() {
+      return (BitSet) bs.clone();
+   }
+
+   /**
     * @return a string representation of the bitboard
     */
    public String display() {
       return display(this.bs);
+   }
+
+   /**
+    * @return the long representatation of the bitset.
+    */
+   public long toLong() {
+      return bs.toLongArray()[0];
    }
 
    /**

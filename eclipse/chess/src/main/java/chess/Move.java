@@ -16,7 +16,7 @@ public class Move {
    private Square from;
    private Square to;
 
-   private Piece piece;
+   private Piece piece; // maybe a bit heavyweight
 
    // whether this move was a capture
    private boolean capture;

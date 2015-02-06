@@ -2,6 +2,7 @@ package chess.pieces;
 
 import java.util.BitSet;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import chess.BitBoard;
@@ -12,6 +13,7 @@ public class RookTest {
    private Rook whiteRook = new Rook(Colour.White);
 
    @Test
+   @Ignore
    public void test() {
       BitBoard[][] bb = whiteRook.getMoveBitBoards();
       BitBoard b = bb[0][0];

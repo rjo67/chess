@@ -14,6 +14,11 @@ public interface Piece {
    public BitBoard getBitBoard();
 
    /**
+    * Initialises the default positions of the pieces.
+    */
+   public void initPosition();
+
+   /**
     * Initialises the positions of the pieces.
     * 
     * @param requiredSquares

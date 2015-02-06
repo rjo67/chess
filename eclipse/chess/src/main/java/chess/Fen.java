@@ -97,6 +97,11 @@ public class Fen {
       }
 
       // TODO: Active color, Castling availability, En passant target square, Halfmove clock, Fullmove number
+      fen.append(" ").append(addActiveColour(chessboard));
+      fen.append(" ").append(addCastlingRights(chessboard));
+      fen.append(" ").append(addEnpassantSquare(chessboard));
+      fen.append(" ").append(addHalfmoveClock(chessboard));
+      fen.append(" ").append(addFullmoveNumber(chessboard));
 
       return fen.toString();
    }
@@ -145,6 +150,11 @@ public class Fen {
       }
    }
 
+   private static String addActiveColour(Chessboard chessboard) {
+      // TODO Auto-generated method stub
+      return "w";
+   }
+
    /**
     * Castling availability. If neither side can castle, this is "-". Otherwise, this has one or more letters: "K"
     * (White can castle kingside), "Q" (White can castle queenside), "k" (Black can castle kingside), and/or "q" (Black
@@ -155,6 +165,11 @@ public class Fen {
    private static void parseCastlingRights(String token) {
       // TODO Auto-generated method stub
 
+   }
+
+   private static String addCastlingRights(Chessboard chessboard) {
+      // TODO Auto-generated method stub
+      return "-";
    }
 
    /**
@@ -169,6 +184,11 @@ public class Fen {
 
    }
 
+   private static String addEnpassantSquare(Chessboard chessboard) {
+      // TODO Auto-generated method stub
+      return "-";
+   }
+
    /**
     * Halfmove clock: This is the number of halfmoves since the last capture or pawn advance. This is used to
     * determine if a draw can be claimed under the fifty-move rule.
@@ -181,7 +201,11 @@ public class Fen {
       } catch (NumberFormatException x) {
          throw new IllegalArgumentException("Invalid FEN string: expected a number for field 5: halfmove clock");
       }
+   }
 
+   private static String addHalfmoveClock(Chessboard chessboard) {
+      // TODO Auto-generated method stub
+      return "0";
    }
 
    /**
@@ -195,6 +219,11 @@ public class Fen {
       } catch (NumberFormatException x) {
          throw new IllegalArgumentException("Invalid FEN string: expected a number for field 6: fullmove clock");
       }
+   }
+
+   private static String addFullmoveNumber(Chessboard chessboard) {
+      // TODO Auto-generated method stub
+      return "1";
    }
 
    private static Chessboard parsePosition(String fen) {
