@@ -45,26 +45,28 @@ public class Pawn extends Piece {
 
    @Override
    public List<Move> findMoves(Chessboard chessboard) {
+
+      // TODO: add support for black moves!
+
       List<Move> moves = new ArrayList<>();
       /*
        * 1) one square forward
        * 2) two squares forward
        * 3) capture left
        * 4) capture right
-       * 6) promotion
-       * TODO:
        * 5) enpassant
+       * 6) promotion
        */
 
       // 1) one square forward:
       // shift by 8 and check if empty square
       // 6) promotion:
       // extra check for pawns on the 8th rank
-      BitSet oneSquareForward = moveOneSquareForward(pieces.cloneBitSet());
+      BitSet oneSquareForward = BitSetHelper.oneRankNorth(pieces.cloneBitSet());
       oneSquareForward.and(chessboard.getEmptySquares().getBitSet()); // move must be to an empty square
       BitSet promotedPawns = (BitSet) oneSquareForward.clone(); // copy this bitset
-      promotedPawns.and(BitBoard.RANK_EIGHT.getBitSet()); // just the promoted pawns
-      oneSquareForward.and(BitBoard.RANK_EIGHT.flip()); // remove promoted pawns
+      promotedPawns.and(BitBoard.ONLY_RANK_EIGHT.getBitSet()); // just the promoted pawns
+      oneSquareForward.and(BitBoard.ONLY_RANK_EIGHT.flip()); // remove promoted pawns
       for (int i = oneSquareForward.nextSetBit(0); i >= 0; i = oneSquareForward.nextSetBit(i + 1)) {
          moves.add(new Move(this, Square.fromBitPosn(i - 8), Square.fromBitPosn(i)));
       }
@@ -84,10 +86,10 @@ public class Pawn extends Piece {
       // then shift by 8 and check if empty square
       // shift again by 8 and check if empty square
       BitSet twoSquaresForward = pieces.cloneBitSet();
-      twoSquaresForward.and(BitBoard.RANK_TWO.getBitSet()); // only the pawns on the 2nd rank
-      twoSquaresForward = moveOneSquareForward(twoSquaresForward);
+      twoSquaresForward.and(BitBoard.ONLY_RANK_TWO.getBitSet()); // only the pawns on the 2nd rank
+      twoSquaresForward = BitSetHelper.oneRankNorth(twoSquaresForward);
       twoSquaresForward.and(chessboard.getEmptySquares().getBitSet()); // move must be to an empty square
-      twoSquaresForward = moveOneSquareForward(twoSquaresForward);
+      twoSquaresForward = BitSetHelper.oneRankNorth(twoSquaresForward);
       twoSquaresForward.and(chessboard.getEmptySquares().getBitSet()); // move must be to an empty square
 
       for (int i = twoSquaresForward.nextSetBit(0); i >= 0; i = twoSquaresForward.nextSetBit(i + 1)) {
@@ -98,8 +100,8 @@ public class Pawn extends Piece {
       // first remove the pawns on the first file
       // then shift by 7 and AND with opposition pieces
       BitSet captureLeft = pieces.cloneBitSet();
-      captureLeft.and(BitBoard.FILE_ONE.getBitSet()); // only the pawns on the 2nd to 8th files
-      captureLeft = captureLeft(captureLeft);
+      captureLeft.and(BitBoard.NOT_FILE_ONE.getBitSet()); // only the pawns on the 2nd to 8th files
+      captureLeft = pawnCaptureLeft(captureLeft);
       // move must be a capture, therefore AND with opponent's pieces
       BitSet opponentsPieces = chessboard.getAllPieces(Colour.oppositeColour(this.colour)).cloneBitSet();
       // 5) enpassant: add in enpassant square if available
@@ -113,8 +115,8 @@ public class Pawn extends Piece {
       // first remove the pawns on the eigth file
       // then shift by 9 and AND with opposition pieces
       BitSet captureRight = pieces.cloneBitSet();
-      captureRight.and(BitBoard.FILE_EIGHT.getBitSet()); // only the pawns on the 1st to 7th files
-      captureRight = captureRight(captureRight);
+      captureRight.and(BitBoard.NOT_FILE_EIGHT.getBitSet()); // only the pawns on the 1st to 7th files
+      captureRight = pawnCaptureRight(captureRight);
       // move must be a capture, therefore AND with opponent's pieces
       opponentsPieces = chessboard.getAllPieces(Colour.oppositeColour(this.colour)).cloneBitSet();
       // 5) enpassant: add in enpassant square if available
@@ -142,16 +144,7 @@ public class Pawn extends Piece {
       }
    }
 
-   private BitSet moveOneSquareForward(BitSet startPosn) {
-      if (startPosn.isEmpty()) {
-         return startPosn;
-      }
-      long lo = startPosn.toLongArray()[0];
-      BitSet oneSquareForward = BitSet.valueOf(new long[] { (lo << 8) });
-      return oneSquareForward;
-   }
-
-   private BitSet captureLeft(BitSet startPosn) {
+   private BitSet pawnCaptureLeft(BitSet startPosn) {
       if (startPosn.isEmpty()) {
          return startPosn;
       }
@@ -160,7 +153,7 @@ public class Pawn extends Piece {
       return captureLeft;
    }
 
-   private BitSet captureRight(BitSet startPosn) {
+   private BitSet pawnCaptureRight(BitSet startPosn) {
       if (startPosn.isEmpty()) {
          return startPosn;
       }

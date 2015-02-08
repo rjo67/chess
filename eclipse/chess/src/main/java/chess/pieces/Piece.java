@@ -32,8 +32,20 @@ public abstract class Piece {
       return type.getSymbol();
    }
 
+   /**
+    * Initialises data structures to the starting position of the pieces.
+    * 
+    * @see #initPosition(Square...).
+    */
    abstract public void initPosition();
 
+   /**
+    * Finds all possible moves for this piece type on the given board.
+    * 
+    * @param chessboard
+    *           current board state.
+    * @return a list of all possible moves.
+    */
    abstract public List<Move> findMoves(Chessboard chessboard);
 
    protected Piece(Colour colour, PieceType type) {
@@ -49,6 +61,12 @@ public abstract class Piece {
       return pieces;
    }
 
+   /**
+    * Sets the start squares to the parameter(s).
+    * 
+    * @param requiredSquares
+    *           all required squares.
+    */
    public void initPosition(Square... requiredSquares) {
       pieces = new BitBoard();
       pieces.setBitsAt(requiredSquares);

@@ -2,8 +2,6 @@ package chess.pieces;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import org.junit.Before;
@@ -11,10 +9,8 @@ import org.junit.Test;
 
 import chess.Chessboard;
 import chess.Colour;
-import chess.Move;
 import chess.Square;
-
-import static org.junit.Assert.assertTrue;
+import chess.TestUtil;
 
 public class PawnTest {
 
@@ -29,7 +25,7 @@ public class PawnTest {
    public void startPosition() {
       Chessboard chessboard = new Chessboard();
       pawn.initPosition();
-      checkMoves(
+      TestUtil.checkMoves(
             pawn.findMoves(chessboard),
             new HashSet<>(Arrays.asList("a2-a3", "a2-a4", "b2-b3", "b2-b4", "c2-c3", "c2-c4", "d2-d3", "d2-d4",
                   "e2-e3", "e2-e4", "f2-f3", "f2-f4", "g2-g3", "g2-g4", "h2-h3", "h2-h4")));
@@ -41,7 +37,7 @@ public class PawnTest {
       pawn.initPosition(Square.a2, Square.a3);
       Set<Piece> blackPieces = new HashSet<>();
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
-      checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("a3-a4")));
+      TestUtil.checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("a3-a4")));
    }
 
    @Test
@@ -52,7 +48,7 @@ public class PawnTest {
       blackPawn.initPosition(Square.a3, Square.b3);
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackPawn));
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
-      checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("b2xa3")));
+      TestUtil.checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("b2xa3")));
    }
 
    @Test
@@ -63,7 +59,7 @@ public class PawnTest {
       blackPawn.initPosition(Square.a3, Square.b3);
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackPawn));
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
-      checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("a2xb3")));
+      TestUtil.checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("a2xb3")));
    }
 
    @Test
@@ -72,7 +68,8 @@ public class PawnTest {
       pawn.initPosition(Square.a7);
       Set<Piece> blackPieces = new HashSet<>();
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
-      checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("a7-a8=Q", "a7-a8=B", "a7-a8=N", "a7-a8=R")));
+      TestUtil.checkMoves(pawn.findMoves(chessboard),
+            new HashSet<>(Arrays.asList("a7-a8=Q", "a7-a8=B", "a7-a8=N", "a7-a8=R")));
    }
 
    @Test
@@ -83,7 +80,7 @@ public class PawnTest {
       Set<Piece> blackPieces = new HashSet<>();
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
       chessboard.setEnpassantSquare(Square.b6);
-      checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("a5-a6", "a5xb6")));
+      TestUtil.checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("a5-a6", "a5xb6")));
    }
 
    @Test
@@ -94,7 +91,7 @@ public class PawnTest {
       Set<Piece> blackPieces = new HashSet<>();
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
       chessboard.setEnpassantSquare(Square.a6);
-      checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("b5-b6", "b5xa6")));
+      TestUtil.checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("b5-b6", "b5xa6")));
    }
 
    @Test
@@ -105,21 +102,7 @@ public class PawnTest {
       Set<Piece> blackPieces = new HashSet<>();
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
       chessboard.setEnpassantSquare(Square.c6);
-      checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("b5-b6", "b5xc6", "d5-d6", "d5xc6")));
+      TestUtil.checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("b5-b6", "b5xc6", "d5-d6", "d5xc6")));
    }
 
-   private void checkMoves(List<Move> moves, Set<String> requiredMoves) {
-      Iterator<Move> iter = moves.iterator();
-      while (iter.hasNext()) {
-         Move m = iter.next();
-         if (requiredMoves.contains(m.toString())) {
-            requiredMoves.remove(m.toString());
-            iter.remove();
-         }
-      }
-      assertTrue("not all required moves found: " + requiredMoves
-            + (moves.isEmpty() ? "" : ". Input-Moves not processed: " + moves), requiredMoves.isEmpty());
-      // all required moves found but still some input moves left over?
-      assertTrue("extraneous moves found: " + moves, moves.isEmpty());
-   }
 }

@@ -96,7 +96,6 @@ public class Fen {
          }
       }
 
-      // TODO: Active color, Castling availability, En passant target square, Halfmove clock, Fullmove number
       fen.append(" ").append(addActiveColour(chessboard));
       fen.append(" ").append(addCastlingRights(chessboard));
       fen.append(" ").append(addEnpassantSquare(chessboard));
