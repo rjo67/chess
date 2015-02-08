@@ -60,12 +60,12 @@ public class Fen {
             board[rank][file] = ' ';
          }
       }
-      for (Piece piece : chessboard.getPieces(Colour.White)) {
+      for (Piece piece : chessboard.getPieces(Colour.WHITE)) {
          for (Square sq : piece.getLocations()) {
             board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
          }
       }
-      for (Piece piece : chessboard.getPieces(Colour.Black)) {
+      for (Piece piece : chessboard.getPieces(Colour.BLACK)) {
          for (Square sq : piece.getLocations()) {
             board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
          }
@@ -229,10 +229,10 @@ public class Fen {
    private static Chessboard parsePosition(String fen) {
       // this array is used to reference the FEN symbols for all the pieces
       // and to store the parsed positions (at the end of the routine)
-      Piece[] allPieces = new Piece[] { new Pawn(Colour.White), new Pawn(Colour.Black), new Rook(Colour.White),
-            new Rook(Colour.Black), new Knight(Colour.White), new Knight(Colour.Black), new Bishop(Colour.White),
-            new Bishop(Colour.Black), new Queen(Colour.White), new Queen(Colour.Black), new King(Colour.White),
-            new King(Colour.Black) };
+      Piece[] allPieces = new Piece[] { new Pawn(Colour.WHITE), new Pawn(Colour.BLACK), new Rook(Colour.WHITE),
+            new Rook(Colour.BLACK), new Knight(Colour.WHITE), new Knight(Colour.BLACK), new Bishop(Colour.WHITE),
+            new Bishop(Colour.BLACK), new Queen(Colour.WHITE), new Queen(Colour.BLACK), new King(Colour.WHITE),
+            new King(Colour.BLACK) };
       // this map stores the piece locations that get parsed from the FEN string
       Map<Piece, List<Square>> pieceMap = new HashMap<>();
       for (Piece piece : allPieces) {
@@ -298,7 +298,7 @@ public class Fen {
             pieces[piece.getColour().ordinal()].add(piece);
          }
       }
-      return new Chessboard(pieces[Colour.White.ordinal()], pieces[Colour.Black.ordinal()]);
+      return new Chessboard(pieces[Colour.WHITE.ordinal()], pieces[Colour.BLACK.ordinal()]);
    }
 
 }

@@ -12,7 +12,7 @@ import chess.Square;
  * 
  * @author rich
  */
-public class King extends BasePiece {
+public class King extends Piece {
 
    /**
     * Constructs the King class.
@@ -21,26 +21,21 @@ public class King extends BasePiece {
     *           used to determine the starting position for the pieces
     */
    public King(Colour colour) {
-      super(colour, colour.toString() + " King");
+      super(colour, PieceType.KING);
    }
 
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
       switch (colour) {
-      case White:
+      case WHITE:
          requiredSquares = new Square[] { Square.e1 };
          break;
-      case Black:
+      case BLACK:
          requiredSquares = new Square[] { Square.e8 };
          break;
       }
       initPosition(requiredSquares);
-   }
-
-   @Override
-   public String getSymbol() {
-      return "K";
    }
 
    @Override

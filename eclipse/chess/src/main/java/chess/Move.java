@@ -1,6 +1,7 @@
 package chess;
 
 import chess.pieces.Piece;
+import chess.pieces.PieceType;
 
 /**
  * Represents a move.
@@ -23,6 +24,9 @@ public class Move {
 
    // whether this move was a check
    private boolean check;
+
+   // if this move was a promotion, then this field indicates the piece and is not null
+   private PieceType promotionPiece;
 
    /**
     * Constructor for normal non-capture non-check moves.
@@ -76,9 +80,17 @@ public class Move {
       this.check = check;
    }
 
+   public void setPromotionPiece(PieceType type) {
+      if (piece.getType() != PieceType.PAWN) {
+         throw new IllegalArgumentException("can only specify a promotion piece for a pawn move");
+      }
+      this.promotionPiece = type;
+   }
+
    @Override
    public String toString() {
-      return piece.getSymbol() + from + (capture ? "x" : "-") + to + (check ? "+" : "");
+      return piece.getSymbol() + from + (capture ? "x" : "-") + to
+            + (promotionPiece != null ? "=" + promotionPiece.getSymbol() : "") + (check ? "+" : "");
    }
 
 }

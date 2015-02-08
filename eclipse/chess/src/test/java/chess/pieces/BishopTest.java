@@ -13,7 +13,7 @@ public class BishopTest {
 
    @Test
    public void locations() {
-      Bishop b = new Bishop(Colour.White);
+      Bishop b = new Bishop(Colour.WHITE);
       b.initPosition();
       Set<Square> set = b.getLocations();
       assertTrue(set.contains(Square.c1));

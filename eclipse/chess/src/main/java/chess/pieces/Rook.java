@@ -13,7 +13,7 @@ import chess.Square;
  * 
  * @author rich
  */
-public class Rook extends BasePiece {
+public class Rook extends Piece {
 
    /**
     * Constructs the Rook class.
@@ -22,26 +22,21 @@ public class Rook extends BasePiece {
     *           used to determine the starting position for the pieces
     */
    public Rook(Colour colour) {
-      super(colour, colour.toString() + " Rook");
+      super(colour, PieceType.ROOK);
    }
 
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
       switch (colour) {
-      case White:
+      case WHITE:
          requiredSquares = new Square[] { Square.a1, Square.h1 };
          break;
-      case Black:
+      case BLACK:
          requiredSquares = new Square[] { Square.a8, Square.h8 };
          break;
       }
       initPosition(requiredSquares);
-   }
-
-   @Override
-   public String getSymbol() {
-      return "R";
    }
 
    /** @formatter:off */

@@ -35,6 +35,12 @@ public class BitBoard {
     */
    public static BitBoard RANK_TWO = new BitBoard(new byte[] { (byte) 0b00000000, (byte) 0b11111111, (byte) 0b00000000,
          (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000 });
+   /**
+    * all bits set apart from those on the 8th rank.
+    */
+   public static BitBoard RANK_EIGHT = new BitBoard(new byte[] { (byte) 0b00000000, (byte) 0b00000000,
+         (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000, (byte) 0b00000000,
+         (byte) 0b11111111 });
 
    private BitSet bs = new BitSet(64);
 
@@ -91,6 +97,7 @@ public class BitBoard {
 
    /**
     * allow operations on the underlying BitSet.
+    * TODO: return a non-writable version of the bitset?
     * 
     * @return the bitset representing the BitBoard.
     */
@@ -138,5 +145,16 @@ public class BitBoard {
       }
       sb.append("(").append(bs.toLongArray()[0]).append("L)");
       return sb.toString();
+   }
+
+   /**
+    * Convenience method to return this BitBoard's BitSet 'flipped', i.e. each set bit is unset and v.v.
+    * 
+    * @return a new BitSet, complement of this BitBoard's BitSet.
+    */
+   public BitSet flip() {
+      BitSet bs = cloneBitSet();
+      bs.flip(0, 64);
+      return bs;
    }
 }

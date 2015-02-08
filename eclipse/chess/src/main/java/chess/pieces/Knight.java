@@ -12,7 +12,7 @@ import chess.Square;
  * 
  * @author rich
  */
-public class Knight extends BasePiece {
+public class Knight extends Piece {
 
    /**
     * Constructs the Knight class.
@@ -21,26 +21,21 @@ public class Knight extends BasePiece {
     *           indicates the colour of the pieces
     */
    public Knight(Colour colour) {
-      super(colour, colour.toString() + " Knight");
+      super(colour, PieceType.KNIGHT);
    }
 
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
       switch (colour) {
-      case White:
+      case WHITE:
          requiredSquares = new Square[] { Square.b1, Square.g1 };
          break;
-      case Black:
+      case BLACK:
          requiredSquares = new Square[] { Square.b8, Square.g8 };
          break;
       }
       initPosition(requiredSquares);
-   }
-
-   @Override
-   public String getSymbol() {
-      return "N";
    }
 
    @Override

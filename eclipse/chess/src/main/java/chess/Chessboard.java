@@ -37,6 +37,11 @@ public class Chessboard {
    private BitBoard emptySquares;
 
    /**
+    * Indicates an enpassant square; can be null.
+    */
+   private Square enpassantSquare;
+
+   /**
     * Creates a chessboard with default piece settings.
     */
    public Chessboard() {
@@ -48,7 +53,7 @@ public class Chessboard {
             piece.initPosition();
          }
       }
-      initBoard(pieces[Colour.White.ordinal()], pieces[Colour.Black.ordinal()]);
+      initBoard(pieces[Colour.WHITE.ordinal()], pieces[Colour.BLACK.ordinal()]);
    }
 
    /**
@@ -60,8 +65,8 @@ public class Chessboard {
 
    private void initBoard(Set<Piece> whitePieces, Set<Piece> blackPieces) {
       pieces = new HashSet[Colour.values().length];
-      pieces[Colour.White.ordinal()] = whitePieces;
-      pieces[Colour.Black.ordinal()] = blackPieces;
+      pieces[Colour.WHITE.ordinal()] = whitePieces;
+      pieces[Colour.BLACK.ordinal()] = blackPieces;
       allPieces = new BitBoard[Colour.values().length];
       // fill the board
       for (Colour colour : Colour.values()) {
@@ -71,8 +76,8 @@ public class Chessboard {
          }
       }
       totalPieces = new BitBoard();
-      totalPieces.getBitSet().or(allPieces[Colour.White.ordinal()].getBitSet());
-      totalPieces.getBitSet().or(allPieces[Colour.Black.ordinal()].getBitSet());
+      totalPieces.getBitSet().or(allPieces[Colour.WHITE.ordinal()].getBitSet());
+      totalPieces.getBitSet().or(allPieces[Colour.BLACK.ordinal()].getBitSet());
 
       emptySquares = new BitBoard(totalPieces.cloneBitSet());
       emptySquares.getBitSet().flip(0, 64);
@@ -115,5 +120,13 @@ public class Chessboard {
       System.out.println(emptySquares.display());
       System.out.println("---");
 
+   }
+
+   public void setEnpassantSquare(Square enpassantSquare) {
+      this.enpassantSquare = enpassantSquare;
+   }
+
+   public Square getEnpassantSquare() {
+      return enpassantSquare;
    }
 }

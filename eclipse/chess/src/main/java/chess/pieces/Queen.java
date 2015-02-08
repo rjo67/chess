@@ -12,7 +12,7 @@ import chess.Square;
  * 
  * @author rich
  */
-public class Queen extends BasePiece {
+public class Queen extends Piece {
 
    /**
     * Initialises the Queen class.
@@ -21,26 +21,21 @@ public class Queen extends BasePiece {
     *           indicates the colour of the pieces
     */
    public Queen(Colour colour) {
-      super(colour, colour.toString() + " Queen");
+      super(colour, PieceType.QUEEN);
    }
 
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
       switch (colour) {
-      case White:
+      case WHITE:
          requiredSquares = new Square[] { Square.d1 };
          break;
-      case Black:
+      case BLACK:
          requiredSquares = new Square[] { Square.d8 };
          break;
       }
       initPosition(requiredSquares);
-   }
-
-   @Override
-   public String getSymbol() {
-      return "Q";
    }
 
    @Override
