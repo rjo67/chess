@@ -1,0 +1,85 @@
+package org.rjo.chess.pieces;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.rjo.chess.Chessboard;
+import org.rjo.chess.Colour;
+import org.rjo.chess.EastMoveHelper;
+import org.rjo.chess.Move;
+import org.rjo.chess.MoveHelper;
+import org.rjo.chess.NorthMoveHelper;
+import org.rjo.chess.SouthMoveHelper;
+import org.rjo.chess.Square;
+import org.rjo.chess.WestMoveHelper;
+
+/**
+ * Stores information about the rooks (still) in the game.
+ * 
+ * @author rich
+ */
+public class Rook extends Piece {
+
+   private static MoveHelper NORTH_MOVE_HELPER = NorthMoveHelper.instance();
+   private static MoveHelper SOUTH_MOVE_HELPER = SouthMoveHelper.instance();
+   private static MoveHelper WEST_MOVE_HELPER = WestMoveHelper.instance();
+   private static MoveHelper EAST_MOVE_HELPER = EastMoveHelper.instance();
+
+   /**
+    * Constructs the Rook class with the default start squares.
+    * 
+    * @param colour
+    *           indicates the colour of the pieces
+    */
+   public Rook(Colour colour) {
+      this(colour, (Square[]) null);
+   }
+
+   /**
+    * Constructs the Rook class with the default start squares.
+    * 
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startSquares
+    *           the required starting squares of the piece(s). Can be null, in which case the default start squares are
+    *           used. (In this case see the alternative constructor {@link #Rook(Colour)}.)
+    */
+   public Rook(Colour colour, Square... startSquares) {
+      super(colour, PieceType.ROOK);
+      if (startSquares == null) {
+         initPosition();
+      } else {
+         initPosition(startSquares);
+      }
+   }
+
+   @Override
+   public void initPosition() {
+      Square[] requiredSquares = null;
+      switch (colour) {
+      case WHITE:
+         requiredSquares = new Square[] { Square.a1, Square.h1 };
+         break;
+      case BLACK:
+         requiredSquares = new Square[] { Square.a8, Square.h8 };
+         break;
+      }
+      initPosition(requiredSquares);
+   }
+
+   @Override
+   public List<Move> findMoves(Chessboard chessboard) {
+      List<Move> moves = new ArrayList<>(14);
+
+      /*
+       * search for moves in directions N, S, W, and E
+       */
+      moves.addAll(search(chessboard, NORTH_MOVE_HELPER));
+      moves.addAll(search(chessboard, SOUTH_MOVE_HELPER));
+      moves.addAll(search(chessboard, WEST_MOVE_HELPER));
+      moves.addAll(search(chessboard, EAST_MOVE_HELPER));
+
+      return moves;
+   }
+
+}
