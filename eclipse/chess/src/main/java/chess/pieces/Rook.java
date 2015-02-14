@@ -1,8 +1,9 @@
 package chess.pieces;
 
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
-import chess.BitBoard;
 import chess.Chessboard;
 import chess.Colour;
 import chess.Move;
@@ -15,14 +16,37 @@ import chess.Square;
  */
 public class Rook extends Piece {
 
+   private static MoveHelper NORTH_MOVE_HELPER = new NorthMoveHelper();
+   private static MoveHelper SOUTH_MOVE_HELPER = new SouthMoveHelper();
+   private static MoveHelper WEST_MOVE_HELPER = new WestMoveHelper();
+   private static MoveHelper EAST_MOVE_HELPER = new EastMoveHelper();
+
    /**
-    * Constructs the Rook class.
+    * Constructs the Rook class with the default start squares.
     * 
-    * @param side
-    *           used to determine the starting position for the pieces
+    * @param colour
+    *           indicates the colour of the pieces
     */
    public Rook(Colour colour) {
+      this(colour, (Square[]) null);
+   }
+
+   /**
+    * Constructs the Rook class with the default start squares.
+    * 
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startSquares
+    *           the required starting squares of the piece(s). Can be null, in which case the default start squares are
+    *           used. (In this case see the alternative constructor {@link #Rook(Colour)}.)
+    */
+   public Rook(Colour colour, Square... startSquares) {
       super(colour, PieceType.ROOK);
+      if (startSquares == null) {
+         initPosition();
+      } else {
+         initPosition(startSquares);
+      }
    }
 
    @Override
@@ -39,173 +63,130 @@ public class Rook extends Piece {
       initPosition(requiredSquares);
    }
 
-   /** @formatter:off */
-   byte[][][] b =
-      {//a1..h1
-       { //a1
-         new byte[] { (byte)0b0111_1111, (byte)0b1000_0000, (byte)0b1000_0000,  (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000,},
-         //b1
-         new byte[] { (byte)0b1011_1111, (byte)0b0100_0000, (byte)0b0100_0000,  (byte)0b0100_0000, (byte)0b0100_0000, (byte)0b0100_0000, (byte)0b0100_0000, (byte)0b0100_0000,},
-         //c1
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //d1
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //e1
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //f1
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //g1
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //h1
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 } 
-       },
-       //a2..h2
-       { //a2
-         new byte[] { (byte)0b0111_1111, (byte)0b1000_0000, (byte)0b1000_0000,  (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000,},
-         //b2
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //c2
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //d2
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //e2
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //f2
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //g2
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //h2
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 } 
-      },
-      //a3..h3
-      {  //a3
-         new byte[] { (byte)0b0111_1111, (byte)0b1000_0000, (byte)0b1000_0000,  (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000,},
-         //b3
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //c3
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //d3
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //e3
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //f3
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //g3
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //h3
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 } 
-      },
-      //a4..h4
-      {  //a4
-         new byte[] { (byte)0b0111_1111, (byte)0b1000_0000, (byte)0b1000_0000,  (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000,},
-         //b4
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //c4
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //d4
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //e4
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //f4
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //g4
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //h4
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 } 
-      },
-      //a5..h5
-      {  //a5
-         new byte[] { (byte)0b0111_1111, (byte)0b1000_0000, (byte)0b1000_0000,  (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000,},
-         //b5
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //c5
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //d5
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //e5
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //f5
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //g5
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //h5
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 } 
-      },
-      //a6..h6
-      {  //a6
-         new byte[] { (byte)0b0111_1111, (byte)0b1000_0000, (byte)0b1000_0000,  (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000,},
-         //b6
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //c6
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //d6
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //e6
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //f6
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //g6
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //h6
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 } 
-      },
-      //a7..h7
-      {  //a7
-         new byte[] { (byte)0b0111_1111, (byte)0b1000_0000, (byte)0b1000_0000,  (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000,},
-         //b7
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //c7
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //d7
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //e7
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //f7
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //g7
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //h7
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 } 
-      },
-      //a8..h8
-      {  //a8
-         new byte[] { (byte)0b0111_1111, (byte)0b1000_0000, (byte)0b1000_0000,  (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000, (byte)0b1000_0000,},
-         //b8
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //c8
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //d8
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //e8
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //f8
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //g8
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 },
-         //h8
-         new byte[] { 0, (byte) 255, 0, 0, 0, 0, 0, 0 } 
-      },
-
-   };
-   /** @formatter:on */
-
-   /**
-    * Creates for each square a bitboard containing all possible moves.
-    */
-   // TODO should be static, since is the same for white or black
-   private void initMoveBitBoards() {
-      moveBitBoards = new BitBoard[8][8];
-      for (int rank = 0; rank < 8; rank++) {
-         for (int file = 0; file < 8; file++) {
-            moveBitBoards[rank][file] = new BitBoard(b[rank][file]);
-         }
-      }
-   }
-
    @Override
    public List<Move> findMoves(Chessboard chessboard) {
-      // TODO Auto-generated method stub
-      return null;
+      List<Move> moves = new ArrayList<>(14);
+
+      /*
+       * search for moves in directions N, S, W, and E
+       */
+      moves.addAll(search(chessboard, NORTH_MOVE_HELPER));
+      moves.addAll(search(chessboard, SOUTH_MOVE_HELPER));
+      moves.addAll(search(chessboard, WEST_MOVE_HELPER));
+      moves.addAll(search(chessboard, EAST_MOVE_HELPER));
+      return moves;
    }
 
+   private List<Move> search(Chessboard chessboard, MoveHelper moveHelper) {
+      List<Move> moves = new ArrayList<>(7);
+
+      /*
+       * in each iteration, shifts the board in the required direction and checks for friendly pieces and captures,
+       */
+      BitSet shiftedBoard = pieces.getBitSet();
+      int offset = 0;
+      final int increment = moveHelper.getIncrement();
+      while (!shiftedBoard.isEmpty()) {
+         offset += increment;
+         shiftedBoard = moveHelper.shiftBoard(shiftedBoard);
+         // move must be to an empty square or a capture of an enemy piece,
+         // therefore remove squares with friendly pieces
+         shiftedBoard.andNot(chessboard.getAllPieces(getColour()).getBitSet());
+
+         /*
+          * check for captures in 'shiftedBoard'.
+          * If any found, remove from 'shiftedBoard' before next iteration.
+          */
+         BitSet captures = (BitSet) shiftedBoard.clone();
+         captures.and(chessboard.getAllPieces(Colour.oppositeColour(getColour())).getBitSet());
+         for (int i = captures.nextSetBit(0); i >= 0; i = captures.nextSetBit(i + 1)) {
+            moves.add(new Move(this, Square.fromBitPosn(i - offset), Square.fromBitPosn(i), true));
+            // remove capture square from 'shiftedBoard'
+            shiftedBoard.clear(i);
+         }
+         /*
+          * store any remaining moves.
+          */
+         for (int i = shiftedBoard.nextSetBit(0); i >= 0; i = shiftedBoard.nextSetBit(i + 1)) {
+            moves.add(new Move(this, Square.fromBitPosn(i - offset), Square.fromBitPosn(i)));
+         }
+      }
+
+      return moves;
+   }
+
+   private interface MoveHelper {
+
+      /**
+       * by how much the bitset has been shifted by a call to {@link #shiftBoard(BitSet)}.
+       * 
+       * @return the increment per call to shiftBoard.
+       */
+      int getIncrement();
+
+      /**
+       * Shifts the board in the required direction.
+       * 
+       * @param startBoard
+       *           start board
+       * @return shifted board
+       */
+      BitSet shiftBoard(BitSet startBoard);
+   }
+
+   private static class NorthMoveHelper implements MoveHelper {
+
+      @Override
+      public int getIncrement() {
+         return 8;
+      }
+
+      @Override
+      public BitSet shiftBoard(BitSet startBoard) {
+         return BitSetHelper.shiftOneNorth(startBoard);
+      }
+
+   }
+
+   private static class SouthMoveHelper implements MoveHelper {
+
+      @Override
+      public int getIncrement() {
+         return -8;
+      }
+
+      @Override
+      public BitSet shiftBoard(BitSet startBoard) {
+         return BitSetHelper.shiftOneSouth(startBoard);
+      }
+
+   }
+
+   private static class WestMoveHelper implements MoveHelper {
+
+      @Override
+      public int getIncrement() {
+         return -1;
+      }
+
+      @Override
+      public BitSet shiftBoard(BitSet startBoard) {
+         return BitSetHelper.shiftOneWest(startBoard);
+      }
+
+   }
+
+   private static class EastMoveHelper implements MoveHelper {
+
+      @Override
+      public int getIncrement() {
+         return 1;
+      }
+
+      @Override
+      public BitSet shiftBoard(BitSet startBoard) {
+         return BitSetHelper.shiftOneEast(startBoard);
+      }
+
+   }
 }

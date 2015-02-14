@@ -15,43 +15,69 @@ import java.util.BitSet;
  * </ul>
  * 
  * @author rich
- *
  */
 public class BitBoard {
 
    /**
-    * all bits set apart from those on the first file i.e. the LHS.
+    * no bits set apart from those on the first file i.e. the LHS.
     * TODO maybe store these directly as BitSets / immutable BitSets?
     */
-   public static BitBoard NOT_FILE_ONE = new BitBoard(new byte[] {
+   public static BitBoard FILE_ONE = new BitBoard(new byte[] {
          //@formatter:off
-         (byte) 0b01111111,
-         (byte) 0b01111111,
-         (byte) 0b01111111,
-         (byte) 0b01111111,
-         (byte) 0b01111111,
-         (byte) 0b01111111,
-         (byte) 0b01111111,
-         (byte) 0b01111111 });
+         (byte) 0b10000000,
+         (byte) 0b10000000,
+         (byte) 0b10000000,
+         (byte) 0b10000000,
+         (byte) 0b10000000,
+         (byte) 0b10000000,
+         (byte) 0b10000000,
+         (byte) 0b10000000 });
          //@formatter:on
+
+   /**
+    * all bits set apart from those on the first file i.e. the LHS.
+    */
+   public static BitBoard NOT_FILE_ONE = new BitBoard(BitBoard.FILE_ONE.flip());
+
    /**
     * all bits set apart from those on the eighth file, i.e. the RHS.
     */
-   public static BitBoard NOT_FILE_EIGHT = new BitBoard(new byte[] {
+   public static BitBoard FILE_EIGHT = new BitBoard(new byte[] {
          //@formatter:off
-         (byte) 0b11111110,
-         (byte) 0b11111110,
-         (byte) 0b11111110,
-         (byte) 0b11111110,
-         (byte) 0b11111110,
-         (byte) 0b11111110,
-         (byte) 0b11111110,
-         (byte) 0b11111110 });
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001 });
          //@formatter:on
+
+   /**
+    * all bits set apart from those on the eighth file i.e. the RHS.
+    */
+   public static BitBoard NOT_FILE_EIGHT = new BitBoard(BitBoard.FILE_EIGHT.flip());
+
+   /**
+    * only the 1st rank bits are set.
+    */
+   public static BitBoard RANK_ONE = new BitBoard(new byte[] {
+         //@formatter:off
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b11111111 });
+         //@formatter:off
+
    /**
     * only the 2nd rank bits are set.
     */
-   public static BitBoard ONLY_RANK_TWO = new BitBoard(new byte[] {
+   public static BitBoard RANK_TWO = new BitBoard(new byte[] {
          //@formatter:off
          (byte) 0b00000000,
          (byte) 0b00000000,
@@ -63,9 +89,23 @@ public class BitBoard {
          (byte) 0b00000000 });
          //@formatter:off
    /**
+    * only the 7th rank bits are set.
+    */
+   public static BitBoard RANK_SEVEN = new BitBoard(new byte[] {
+         //@formatter:off
+         (byte) 0b00000000,
+         (byte) 0b11111111,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000 });
+         //@formatter:off
+   /**
     * only the 8th rank bits are set.
     */
-   public static BitBoard ONLY_RANK_EIGHT = new BitBoard(new byte[] {
+   public static BitBoard RANK_EIGHT = new BitBoard(new byte[] {
          //@formatter:off
          (byte) 0b11111111,
          (byte) 0b00000000,
@@ -205,4 +245,5 @@ public class BitBoard {
       bs.flip(0, 64);
       return bs;
    }
+   
 }

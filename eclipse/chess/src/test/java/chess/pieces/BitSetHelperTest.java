@@ -13,7 +13,7 @@ public class BitSetHelperTest {
 
    @Test
    public void testOneRankNorth() {
-      checkResult(BitSetHelper.oneRankNorth(initStartBits(new int[] { 0, 8, 44, 48, 55, 56, 57 })), new int[] { 8, 16,
+      checkResult(BitSetHelper.shiftOneNorth(initStartBits(new int[] { 0, 8, 44, 48, 55, 56, 57 })), new int[] { 8, 16,
             52, 56, 63 });
    }
 
@@ -30,13 +30,109 @@ public class BitSetHelperTest {
             (byte) 0b11111111,
             (byte) 0b00000000 }).getBitSet();
       //@formatter:on
-      BitSet result = BitSetHelper.oneRankNorth(BitSet.valueOf(new long[] { -1 }));
+      BitSet result = BitSetHelper.shiftOneNorth(BitSet.valueOf(new long[] { -1 }));
+      assertEquals(expected, result);
+   }
+
+   @Test
+   public void testOneNorthWest() {
+      // +7 excluding squares on LHS (0,8,48)
+      checkResult(BitSetHelper.shiftOneNorthWest(initStartBits(new int[] { 0, 8, 44, 48, 55, 56, 57 })), new int[] {
+            51, 62 });
+   }
+
+   @Test
+   public void allBitsOneNorthWest() {
+      BitSet expected = new BitBoard(new byte[] {
+      //@formatter:off
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b00000000 }).getBitSet();
+      //@formatter:on
+      BitSet result = BitSetHelper.shiftOneNorthWest(BitSet.valueOf(new long[] { -1 }));
+      assertEquals(expected, result);
+   }
+
+   @Test
+   public void testOneNorthEast() {
+      // +9 excluding squares on RHS (7,39,55)
+      checkResult(BitSetHelper.shiftOneNorthEast(initStartBits(new int[] { 0, 7, 8, 39, 44, 48, 55, 56, 57 })),
+            new int[] { 9, 17, 53, 57 });
+   }
+
+   @Test
+   public void allBitsOneNorthEast() {
+      BitSet expected = new BitBoard(new byte[] {
+      //@formatter:off
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b00000000 }).getBitSet();
+      //@formatter:on
+      BitSet result = BitSetHelper.shiftOneNorthEast(BitSet.valueOf(new long[] { -1 }));
+      assertEquals(expected, result);
+   }
+
+   @Test
+   public void testOneSouthEast() {
+      // -7 excluding squares on RHS (7,39,55)
+      checkResult(BitSetHelper.shiftOneSouthEast(initStartBits(new int[] { 0, 7, 8, 39, 44, 48, 55, 56, 57 })),
+            new int[] { 1, 37, 41, 49, 50 });
+   }
+
+   @Test
+   public void allBitsOneSouthEast() {
+      BitSet expected = new BitBoard(new byte[] {
+      //@formatter:off
+            (byte) 0b00000000,
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b01111111,
+            (byte) 0b01111111 }).getBitSet();
+      //@formatter:on
+      BitSet result = BitSetHelper.shiftOneSouthEast(BitSet.valueOf(new long[] { -1 }));
+      assertEquals(expected, result);
+   }
+
+   @Test
+   public void testOneSouthWest() {
+      // -9 excluding squares on LHS (0,8,48,56)
+      checkResult(BitSetHelper.shiftOneSouthWest(initStartBits(new int[] { 0, 8, 44, 48, 55, 56, 57 })), new int[] {
+            35, 46, 48 });
+   }
+
+   @Test
+   public void allBitsOneSouthWest() {
+      BitSet expected = new BitBoard(new byte[] {
+      //@formatter:off
+            (byte) 0b00000000,
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b11111110,
+            (byte) 0b11111110 }).getBitSet();
+      //@formatter:on
+      BitSet result = BitSetHelper.shiftOneSouthWest(BitSet.valueOf(new long[] { -1 }));
       assertEquals(expected, result);
    }
 
    @Test
    public void testOneRankSouth() {
-      checkResult(BitSetHelper.oneRankSouth(initStartBits(new int[] { 0, 3, 8, 44, 48, 55, 56, 57, 63 })), new int[] {
+      checkResult(BitSetHelper.shiftOneSouth(initStartBits(new int[] { 0, 3, 8, 44, 48, 55, 56, 57, 63 })), new int[] {
             0, 36, 40, 47, 48, 49, 55 });
    }
 
@@ -53,14 +149,14 @@ public class BitSetHelperTest {
             (byte) 0b11111111,
             (byte) 0b11111111 }).getBitSet();
       //@formatter:on
-      BitSet result = BitSetHelper.oneRankSouth(BitSet.valueOf(new long[] { -1 }));
+      BitSet result = BitSetHelper.shiftOneSouth(BitSet.valueOf(new long[] { -1 }));
       assertEquals(expected, result);
    }
 
    @Test
    public void testOneFileWest() {
-      checkResult(BitSetHelper.oneFileWest(initStartBits(new int[] { 0, 7, 8, 44, 57, 63 })),
-            new int[] { 6, 43, 56, 62 });
+      checkResult(BitSetHelper.shiftOneWest(initStartBits(new int[] { 0, 7, 8, 44, 57, 63 })), new int[] { 6, 43, 56,
+            62 });
    }
 
    @Test
@@ -76,13 +172,13 @@ public class BitSetHelperTest {
             (byte) 0b11111110,
             (byte) 0b11111110 }).getBitSet();
       //@formatter:on
-      BitSet result = BitSetHelper.oneFileWest(BitSet.valueOf(new long[] { -1 }));
+      BitSet result = BitSetHelper.shiftOneWest(BitSet.valueOf(new long[] { -1 }));
       assertEquals(expected, result);
    }
 
    @Test
    public void testOneFileEast() {
-      checkResult(BitSetHelper.oneFileEast(initStartBits(new int[] { 0, 7, 8, 63 })), new int[] { 1, 9 });
+      checkResult(BitSetHelper.shiftOneEast(initStartBits(new int[] { 0, 7, 8, 63 })), new int[] { 1, 9 });
    }
 
    @Test
@@ -98,7 +194,7 @@ public class BitSetHelperTest {
             (byte) 0b01111111,
             (byte) 0b01111111 }).getBitSet();
       //@formatter:on
-      BitSet result = BitSetHelper.oneFileEast(BitSet.valueOf(new long[] { -1 }));
+      BitSet result = BitSetHelper.shiftOneEast(BitSet.valueOf(new long[] { -1 }));
       assertEquals(expected, result);
    }
 
@@ -127,7 +223,7 @@ public class BitSetHelperTest {
     */
    private void checkResult(BitSet bs, int[] setBits) {
       for (int i = 0; i < setBits.length; i++) {
-         assertTrue("bit " + setBits[i] + " not set: result: " + bs, bs.get(setBits[i]));
+         assertTrue("bit " + setBits[i] + " not set: remaining bits in result: " + bs, bs.get(setBits[i]));
          // blank this bit
          bs.clear(setBits[i]);
       }

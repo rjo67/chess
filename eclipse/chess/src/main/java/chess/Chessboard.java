@@ -1,7 +1,9 @@
 package chess;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import chess.pieces.Bishop;
@@ -9,6 +11,7 @@ import chess.pieces.King;
 import chess.pieces.Knight;
 import chess.pieces.Pawn;
 import chess.pieces.Piece;
+import chess.pieces.PieceType;
 import chess.pieces.Queen;
 import chess.pieces.Rook;
 
@@ -18,7 +21,7 @@ public class Chessboard {
     * Stores the pieces in the game.
     * The dimension indicates the colour {white, black}.
     */
-   private Set<Piece>[] pieces;
+   private Map<PieceType, Piece>[] pieces;
 
    /**
     * bitboard of all pieces for a particular colour.
@@ -40,6 +43,11 @@ public class Chessboard {
     * Indicates an enpassant square; can be null.
     */
    private Square enpassantSquare;
+
+   /**
+    * which side is to move
+    */
+   private Colour sideToMove;
 
    /**
     * Creates a chessboard with default piece settings.
@@ -64,15 +72,21 @@ public class Chessboard {
    }
 
    private void initBoard(Set<Piece> whitePieces, Set<Piece> blackPieces) {
-      pieces = new HashSet[Colour.values().length];
-      pieces[Colour.WHITE.ordinal()] = whitePieces;
-      pieces[Colour.BLACK.ordinal()] = blackPieces;
+      pieces = new HashMap[Colour.values().length];
+      pieces[Colour.WHITE.ordinal()] = new HashMap<>();
+      for (Piece p : whitePieces) {
+         pieces[Colour.WHITE.ordinal()].put(p.getType(), p);
+      }
+      pieces[Colour.BLACK.ordinal()] = new HashMap<>();
+      for (Piece p : blackPieces) {
+         pieces[Colour.BLACK.ordinal()].put(p.getType(), p);
+      }
       allPieces = new BitBoard[Colour.values().length];
       // fill the board
       for (Colour colour : Colour.values()) {
          allPieces[colour.ordinal()] = new BitBoard();
-         for (Piece p : pieces[colour.ordinal()]) {
-            allPieces[colour.ordinal()].getBitSet().or(p.getBitBoard().getBitSet());
+         for (PieceType p : pieces[colour.ordinal()].keySet()) {
+            allPieces[colour.ordinal()].getBitSet().or(pieces[colour.ordinal()].get(p).getBitBoard().getBitSet());
          }
       }
       totalPieces = new BitBoard();
@@ -81,20 +95,47 @@ public class Chessboard {
 
       emptySquares = new BitBoard(totalPieces.cloneBitSet());
       emptySquares.getBitSet().flip(0, 64);
+
+      enpassantSquare = null;
+      sideToMove = Colour.WHITE;
    }
 
-   public Set<Piece> getPieces(Colour colour) {
+   /**
+    * Access to the set of pieces of a given colour.
+    * 
+    * @param colour
+    *           the required colour
+    * @return the set of pieces of this colour
+    */
+   public Map<PieceType, Piece> getPieces(Colour colour) {
       return pieces[colour.ordinal()];
    }
 
+   /**
+    * Access to a BitBoard of all the pieces of a given colour.
+    * 
+    * @param colour
+    *           the required colour
+    * @return a BitBoard containing all the pieces of a given colour.
+    */
    public BitBoard getAllPieces(Colour colour) {
       return allPieces[colour.ordinal()];
    }
 
+   /**
+    * Access to a BitBoard of all the pieces irrespective of colour.
+    * 
+    * @return a BitBoard containing all the pieces irrespective of colour.
+    */
    public BitBoard getTotalPieces() {
       return totalPieces;
    }
 
+   /**
+    * Access to a BitBoard of all the empty squares on the board.
+    * 
+    * @return a BitBoard containing all the empty squares on the board.
+    */
    public BitBoard getEmptySquares() {
       return emptySquares;
    }
@@ -107,9 +148,9 @@ public class Chessboard {
       }
       System.out.println("pieces");
       for (Colour colour : Colour.values()) {
-         for (Piece p : pieces[colour.ordinal()]) {
-            System.out.println(p);
-            System.out.println(p.getBitBoard().display());
+         for (PieceType p : pieces[colour.ordinal()].keySet()) {
+            System.out.println(p + ", " + colour);
+            System.out.println(pieces[colour.ordinal()].get(p).getBitBoard().display());
             System.out.println("---");
          }
       }
@@ -128,5 +169,9 @@ public class Chessboard {
 
    public Square getEnpassantSquare() {
       return enpassantSquare;
+   }
+
+   public Colour getSideToMove() {
+      return sideToMove;
    }
 }

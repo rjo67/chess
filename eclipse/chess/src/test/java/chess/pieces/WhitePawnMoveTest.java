@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import chess.Chessboard;
@@ -12,19 +11,12 @@ import chess.Colour;
 import chess.Square;
 import chess.TestUtil;
 
-public class PawnTest {
-
-   private Pawn pawn;
-
-   @Before
-   public void init() {
-      pawn = new Pawn(Colour.WHITE);
-   }
+public class WhitePawnMoveTest {
 
    @Test
    public void startPosition() {
       Chessboard chessboard = new Chessboard();
-      pawn.initPosition();
+      Pawn pawn = new Pawn(Colour.WHITE);
       TestUtil.checkMoves(
             pawn.findMoves(chessboard),
             new HashSet<>(Arrays.asList("a2-a3", "a2-a4", "b2-b3", "b2-b4", "c2-c3", "c2-c4", "d2-d3", "d2-d4",
@@ -33,8 +25,8 @@ public class PawnTest {
 
    @Test
    public void blockedPawn() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.a2, Square.a3);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(pawn));
-      pawn.initPosition(Square.a2, Square.a3);
       Set<Piece> blackPieces = new HashSet<>();
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
       TestUtil.checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("a3-a4")));
@@ -42,10 +34,9 @@ public class PawnTest {
 
    @Test
    public void captureLeft() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.b2);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(pawn));
-      pawn.initPosition(Square.b2);
-      Pawn blackPawn = new Pawn(Colour.BLACK);
-      blackPawn.initPosition(Square.a3, Square.b3);
+      Pawn blackPawn = new Pawn(Colour.BLACK, Square.a3, Square.b3);
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackPawn));
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
       TestUtil.checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("b2xa3")));
@@ -53,10 +44,9 @@ public class PawnTest {
 
    @Test
    public void captureRight() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.a2);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(pawn));
-      pawn.initPosition(Square.a2);
-      Pawn blackPawn = new Pawn(Colour.BLACK);
-      blackPawn.initPosition(Square.a3, Square.b3);
+      Pawn blackPawn = new Pawn(Colour.BLACK, Square.a3, Square.b3);
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackPawn));
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
       TestUtil.checkMoves(pawn.findMoves(chessboard), new HashSet<>(Arrays.asList("a2xb3")));
@@ -64,8 +54,8 @@ public class PawnTest {
 
    @Test
    public void promotion() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.a7);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(pawn));
-      pawn.initPosition(Square.a7);
       Set<Piece> blackPieces = new HashSet<>();
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
       TestUtil.checkMoves(pawn.findMoves(chessboard),
@@ -74,8 +64,8 @@ public class PawnTest {
 
    @Test
    public void enpassantRight() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.a5);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(pawn));
-      pawn.initPosition(Square.a5);
       // don't need to set up the black pawns; it's enough to set the enpassant square
       Set<Piece> blackPieces = new HashSet<>();
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
@@ -85,8 +75,8 @@ public class PawnTest {
 
    @Test
    public void enpassantLeft() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.b5);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(pawn));
-      pawn.initPosition(Square.b5);
       // don't need to set up the black pawns; it's enough to set the enpassant square
       Set<Piece> blackPieces = new HashSet<>();
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);
@@ -96,8 +86,8 @@ public class PawnTest {
 
    @Test
    public void enpassantWithTwoCandidatePawns() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.b5, Square.d5);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(pawn));
-      pawn.initPosition(Square.b5, Square.d5);
       // don't need to set up the black pawns; it's enough to set the enpassant square
       Set<Piece> blackPieces = new HashSet<>();
       Chessboard chessboard = new Chessboard(whitePieces, blackPieces);

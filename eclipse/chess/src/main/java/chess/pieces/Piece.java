@@ -62,7 +62,7 @@ public abstract class Piece {
    }
 
    /**
-    * Sets the start squares to the parameter(s).
+    * Sets the start squares for this piece type to the parameter(s).
     * 
     * @param requiredSquares
     *           all required squares.
@@ -72,12 +72,17 @@ public abstract class Piece {
       pieces.setBitsAt(requiredSquares);
    }
 
-   public Set<Square> getLocations() {
+   /**
+    * Returns all the squares currently occupied by this piece type.
+    * 
+    * @return the squares currently occupied by this piece type
+    */
+   public Square[] getLocations() {
       Set<Square> set = new HashSet<>();
       for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
          set.add(Square.fromBitPosn(i));
       }
-      return set;
+      return set.toArray(new Square[set.size()]);
    }
 
    /**

@@ -13,6 +13,7 @@ import chess.pieces.King;
 import chess.pieces.Knight;
 import chess.pieces.Pawn;
 import chess.pieces.Piece;
+import chess.pieces.PieceType;
 import chess.pieces.Queen;
 import chess.pieces.Rook;
 
@@ -60,12 +61,14 @@ public class Fen {
             board[rank][file] = ' ';
          }
       }
-      for (Piece piece : chessboard.getPieces(Colour.WHITE)) {
+      for (PieceType pieceType : chessboard.getPieces(Colour.WHITE).keySet()) {
+         Piece piece = chessboard.getPieces(Colour.WHITE).get(pieceType);
          for (Square sq : piece.getLocations()) {
             board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
          }
       }
-      for (Piece piece : chessboard.getPieces(Colour.BLACK)) {
+      for (PieceType pieceType : chessboard.getPieces(Colour.BLACK).keySet()) {
+         Piece piece = chessboard.getPieces(Colour.BLACK).get(pieceType);
          for (Square sq : piece.getLocations()) {
             board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
          }

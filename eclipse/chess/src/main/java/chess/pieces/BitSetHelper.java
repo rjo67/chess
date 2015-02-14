@@ -16,7 +16,7 @@ public class BitSetHelper {
     *           starting position. Does not get changed by this routine.
     * @return a new bitset with the shifted bits.
     */
-   public static BitSet oneRankNorth(BitSet startPosn) {
+   public static BitSet shiftOneNorth(BitSet startPosn) {
       if (startPosn.isEmpty()) {
          return (BitSet) startPosn.clone();
       }
@@ -32,7 +32,7 @@ public class BitSetHelper {
     *           starting position. Does not get changed by this routine.
     * @return a new bitset with the shifted bits.
     */
-   public static BitSet oneRankSouth(BitSet startPosn) {
+   public static BitSet shiftOneSouth(BitSet startPosn) {
       if (startPosn.isEmpty()) {
          return (BitSet) startPosn.clone();
       }
@@ -47,7 +47,7 @@ public class BitSetHelper {
     *           starting position. Does not get changed by this routine.
     * @return a new bitset with the shifted bits.
     */
-   public static BitSet oneFileWest(BitSet startPosn) {
+   public static BitSet shiftOneWest(BitSet startPosn) {
       if (startPosn.isEmpty()) {
          return (BitSet) startPosn.clone();
       }
@@ -68,7 +68,7 @@ public class BitSetHelper {
     *           starting position. Does not get changed by this routine.
     * @return a new bitset with the shifted bits.
     */
-   public static BitSet oneFileEast(BitSet startPosn) {
+   public static BitSet shiftOneEast(BitSet startPosn) {
       if (startPosn.isEmpty()) {
          return (BitSet) startPosn.clone();
       }
@@ -80,5 +80,53 @@ public class BitSetHelper {
       long lo = bs.toLongArray()[0];
       bs = BitSet.valueOf(new long[] { (lo << 1) });
       return bs;
+   }
+
+   /**
+    * Shifts the bits in 'startPosn' one file to west and one rank north.
+    * 
+    * @param startPosn
+    *           starting position. Does not get changed by this routine.
+    * @return a new bitset with the shifted bits.
+    */
+   public static BitSet shiftOneNorthWest(BitSet startBoard) {
+      BitSet bs = shiftOneNorth(startBoard);
+      return shiftOneWest(bs);
+   }
+
+   /**
+    * Shifts the bits in 'startPosn' one file to west and one rank south.
+    * 
+    * @param startPosn
+    *           starting position. Does not get changed by this routine.
+    * @return a new bitset with the shifted bits.
+    */
+   public static BitSet shiftOneSouthWest(BitSet startBoard) {
+      BitSet bs = shiftOneSouth(startBoard);
+      return shiftOneWest(bs);
+   }
+
+   /**
+    * Shifts the bits in 'startPosn' one file to east and one rank north.
+    * 
+    * @param startPosn
+    *           starting position. Does not get changed by this routine.
+    * @return a new bitset with the shifted bits.
+    */
+   public static BitSet shiftOneNorthEast(BitSet startBoard) {
+      BitSet bs = shiftOneNorth(startBoard);
+      return shiftOneEast(bs);
+   }
+
+   /**
+    * Shifts the bits in 'startPosn' one file to east and one rank south.
+    * 
+    * @param startPosn
+    *           starting position. Does not get changed by this routine.
+    * @return a new bitset with the shifted bits.
+    */
+   public static BitSet shiftOneSouthEast(BitSet startBoard) {
+      BitSet bs = shiftOneSouth(startBoard);
+      return shiftOneEast(bs);
    }
 }

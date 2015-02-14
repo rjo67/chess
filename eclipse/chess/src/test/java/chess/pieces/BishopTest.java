@@ -1,5 +1,7 @@
 package chess.pieces;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
@@ -15,7 +17,8 @@ public class BishopTest {
    public void locations() {
       Bishop b = new Bishop(Colour.WHITE);
       b.initPosition();
-      Set<Square> set = b.getLocations();
+      Square[] locn = b.getLocations();
+      Set<Square> set = new HashSet<>(Arrays.asList(locn));
       assertTrue(set.contains(Square.c1));
       assertTrue(set.contains(Square.f1));
    }

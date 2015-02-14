@@ -23,6 +23,6 @@ public class TestUtil {
       assertTrue("not all required moves found: " + requiredMoves
             + (moves.isEmpty() ? "" : ". Input-Moves not processed: " + moves), requiredMoves.isEmpty());
       // all required moves found but still some input moves left over?
-      assertTrue("extraneous moves found: " + moves, moves.isEmpty());
+      assertTrue("unexpected moves found: " + moves, moves.isEmpty());
    }
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import chess.Chessboard;
 import chess.Colour;
 import chess.Move;
+import chess.MoveDistance;
 import chess.Square;
 
 /**
@@ -18,13 +19,31 @@ import chess.Square;
 public class King extends Piece {
 
    /**
-    * Constructs the King class.
+    * Constructs the King class with the default start squares.
     * 
-    * @param side
-    *           used to determine the starting position for the pieces
+    * @param colour
+    *           indicates the colour of the pieces
     */
    public King(Colour colour) {
+      this(colour, (Square[]) null);
+   }
+
+   /**
+    * Constructs the King class with the default start squares.
+    * 
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startSquares
+    *           the required starting squares of the piece(s). Can be null, in which case the default start squares are
+    *           used. (In this case see the alternative constructor {@link #King(Colour)}.)
+    */
+   public King(Colour colour, Square... startSquares) {
       super(colour, PieceType.KING);
+      if (startSquares == null) {
+         initPosition();
+      } else {
+         initPosition(startSquares);
+      }
    }
 
    @Override
@@ -43,7 +62,8 @@ public class King extends Piece {
 
    @Override
    public List<Move> findMoves(Chessboard chessboard) {
-      // TODO: add support for black moves!
+      // TODO: generate the move tables statically
+      // TODO: castling
 
       List<Move> moves = new ArrayList<>();
 
@@ -51,29 +71,39 @@ public class King extends Piece {
        * calculate left and right attack
        * then shift up and down one rank
        */
-      BitSet west = BitSetHelper.oneFileWest(pieces.getBitSet());
-      BitSet east = BitSetHelper.oneFileEast(pieces.getBitSet());
+      BitSet west = BitSetHelper.shiftOneWest(pieces.getBitSet());
+      BitSet east = BitSetHelper.shiftOneEast(pieces.getBitSet());
       BitSet combined = (BitSet) west.clone();
       combined.or(east);
       // save the current state
       BitSet result = (BitSet) combined.clone();
       // now add the king's position again and shift up and down one rank
       combined.or(pieces.getBitSet());
-      BitSet north = BitSetHelper.oneRankNorth(combined);
-      BitSet south = BitSetHelper.oneRankSouth(combined);
+      BitSet north = BitSetHelper.shiftOneNorth(combined);
+      BitSet south = BitSetHelper.shiftOneSouth(combined);
       // add to result
       result.or(north);
       result.or(south);
 
-      // move can't be to a square with the same coloured piece on it
+      // move can't be to a square with a piece of the same colour on it
       result.andNot(chessboard.getAllPieces(colour).getBitSet());
 
+      // TODO check for checks here?
+
+      Square opponentsKingSquare = findOpponentsKing(chessboard);
       Square kingPosn = Square.fromBitPosn(pieces.getBitSet().nextSetBit(0));
       for (int i = result.nextSetBit(0); i >= 0; i = result.nextSetBit(i + 1)) {
-         moves.add(new Move(this, kingPosn, Square.fromBitPosn(i)));
+         Square targetSquare = Square.fromBitPosn(i);
+         if (MoveDistance.calculateDistance(targetSquare, opponentsKingSquare) > 1) {
+            // TODO capture?
+            moves.add(new Move(this, kingPosn, targetSquare));
+         }
       }
 
       return moves;
    }
 
+   private Square findOpponentsKing(Chessboard chessboard) {
+      return chessboard.getPieces(Colour.oppositeColour(colour)).get(PieceType.KING).getLocations()[0];
+   }
 }

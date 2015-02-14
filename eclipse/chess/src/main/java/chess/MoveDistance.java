@@ -1,6 +1,10 @@
 package chess;
 
 public class MoveDistance {
+
+   private MoveDistance() {
+   }
+
    /*
     * An approach with a 225 element table for king move distance, as well for other piece move distances, directions,
     * vector attacks and increment vectors, was used in Pioneer as described by Boris Stilman. The 8x8 array is
@@ -43,6 +47,7 @@ public class MoveDistance {
     */
    public static int calculateDistance(Square start, Square finish) {
       // place 8x8 board so that the square 'start' is located at (7,7) in the above array
+      // The 8x8 board is superimposed on the array 15x15 so that square x coincides with the central square (7,7)
       int rankOffset = CENTRE_RANK - start.rank();
       int fileOffset = CENTRE_FILE - start.file();
       return moveDistances[rankOffset + finish.rank()][fileOffset + finish.file()];

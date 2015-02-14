@@ -23,17 +23,23 @@ public class BitBoardTest {
       // System.out.println(BitBoard.display(bs2));
 
       BitSet bs = bb.cloneBitSet();
-      bs.and(BitBoard.ONLY_RANK_TWO.getBitSet());
+      bs.and(BitBoard.RANK_TWO.getBitSet());
       lo = bs.toLongArray()[0];
       bs2 = BitSet.valueOf(new long[] { (lo << 16) }); // c2->c4; need to blank everything except rank 2 since only
                                                        // these pawns can move 2
-      System.out.println(BitBoard.display(bs2));
+                                                       // System.out.println(BitBoard.display(bs2));
 
       bs = bb.cloneBitSet();
       bs.and(BitBoard.NOT_FILE_ONE.getBitSet());
       lo = bs.toLongArray()[0];
       bs2 = BitSet.valueOf(new long[] { (lo << 7) }); // c2->b3; need to blank file 1
       // System.out.println(BitBoard.display(bs2));
+
+      bs = bb.cloneBitSet();
+      bs.and(BitBoard.NOT_FILE_ONE.getBitSet());
+      lo = bs.toLongArray()[0];
+      bs2 = BitSet.valueOf(new long[] { (lo >>> 9) }); // b2->c1; need to blank file 1
+      System.out.println(BitBoard.display(bs2));
 
    }
 
