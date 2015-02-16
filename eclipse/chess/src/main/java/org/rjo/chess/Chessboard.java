@@ -1,10 +1,8 @@
 package org.rjo.chess;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,11 +43,6 @@ public class Chessboard {
     * Indicates an enpassant square; can be null.
     */
    private Square enpassantSquare;
-
-   /**
-    * which side is to move
-    */
-   private Colour sideToMove;
 
    /**
     * Creates a chessboard with default piece settings.
@@ -99,7 +92,6 @@ public class Chessboard {
       emptySquares.getBitSet().flip(0, 64);
 
       enpassantSquare = null;
-      sideToMove = Colour.WHITE;
    }
 
    /**
@@ -169,27 +161,13 @@ public class Chessboard {
       this.enpassantSquare = enpassantSquare;
    }
 
+   /**
+    * The enpassant square.
+    * 
+    * @return the enpassant square or null.
+    */
    public Square getEnpassantSquare() {
       return enpassantSquare;
    }
 
-   public Colour getSideToMove() {
-      return sideToMove;
-   }
-
-   /**
-    * Find all moves for the given colour from the current position.
-    * 
-    * @param colour
-    *           the required colour
-    * @return all moves for this colour.
-    */
-   public List<Move> findMoves(Colour colour) {
-      List<Move> moves = new ArrayList<>(60);
-      for (PieceType type : PieceType.values()) {
-         Piece p = pieces[colour.ordinal()].get(type);
-         moves.addAll(p.findMoves(this));
-      }
-      return moves;
-   }
 }

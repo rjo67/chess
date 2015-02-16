@@ -1,5 +1,6 @@
 package org.rjo.chess;
 
+import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.pieces.PieceType;
 
@@ -19,13 +20,18 @@ public class Move {
 
    private Piece piece; // maybe a bit heavyweight
 
-   // whether this move was a capture
+   /** whether this move was a capture */
    private boolean capture;
 
-   // whether this move was a check
+   /** whether this move was a check */
    private boolean check;
 
-   // if this move was a promotion, then this field indicates the piece and is not null
+   /** whether this move was castling king's side */
+   private boolean castlingKingsSide;
+   /** whether this move was castling queen's side */
+   private boolean castlingQueensSide;
+
+   /** if this move was a promotion, then this field indicates the piece and is not null */
    private PieceType promotionPiece;
 
    /**
@@ -78,6 +84,8 @@ public class Move {
       this.to = to;
       this.capture = capture;
       this.check = check;
+      this.castlingKingsSide = false;
+      this.castlingQueensSide = false;
    }
 
    public void setPromotionPiece(PieceType type) {
@@ -89,8 +97,33 @@ public class Move {
 
    @Override
    public String toString() {
-      return piece.getSymbol() + from + (capture ? "x" : "-") + to
-            + (promotionPiece != null ? "=" + promotionPiece.getSymbol() : "") + (check ? "+" : "");
+      if (castlingKingsSide) {
+         return "0-0";
+      } else if (castlingQueensSide) {
+         return "0-0-0";
+      } else {
+         return piece.getSymbol() + from + (capture ? "x" : "-") + to
+               + (promotionPiece != null ? "=" + promotionPiece.getSymbol() : "") + (check ? "+" : "");
+      }
    }
 
+   public static Move castleKingsSide(King king) {
+      Move move = new Move(king, Square.e1, Square.g1);
+      move.castlingKingsSide = true;
+      return move;
+   }
+
+   public static Move castleQueensSide(King king) {
+      Move move = new Move(king, Square.e1, Square.c1);
+      move.castlingQueensSide = true;
+      return move;
+   }
+
+   public boolean isCheck() {
+      return check;
+   }
+
+   public boolean isCapture() {
+      return capture;
+   }
 }

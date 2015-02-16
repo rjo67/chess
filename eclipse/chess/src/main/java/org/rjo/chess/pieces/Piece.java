@@ -9,6 +9,7 @@ import java.util.Set;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
+import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.MoveHelper;
 import org.rjo.chess.Square;
@@ -43,13 +44,13 @@ public abstract class Piece {
    abstract public void initPosition();
 
    /**
-    * Finds all possible moves for this piece type on the given board.
+    * Finds all possible moves for this piece type in the given game.
     * 
-    * @param chessboard
-    *           current board state.
+    * @param game
+    *           current game state.
     * @return a list of all possible moves.
     */
-   abstract public List<Move> findMoves(Chessboard chessboard);
+   abstract public List<Move> findMoves(Game game);
 
    protected Piece(Colour colour, PieceType type) {
       this.colour = colour;
@@ -113,6 +114,7 @@ public abstract class Piece {
 
    /**
     * Searches for moves in the direction specified by the {@link MoveHelper} implementation.
+    * This is for rooks, bishops, and queens.
     * 
     * @param chessboard
     *           state of the board

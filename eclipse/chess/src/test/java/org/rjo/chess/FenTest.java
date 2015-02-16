@@ -8,7 +8,7 @@ public class FenTest {
 
    @Test
    public void startPosition() {
-      assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1", Fen.encode(new Chessboard()));
+      assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", Fen.encode(new Game()));
    }
 
    @Test(expected = IllegalArgumentException.class)
@@ -23,7 +23,7 @@ public class FenTest {
 
    @Test
    public void fromStartPosition() {
-      Fen.decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1").debug();
+      Fen.decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1").getChessboard().debug();
    }
 
    @Test

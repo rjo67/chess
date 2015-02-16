@@ -11,6 +11,12 @@ import static org.junit.Assert.assertTrue;
 public class BitSetHelperTest {
 
    @Test
+   public void testShiftLeft() {
+      checkResult(BitSetHelper.shift(initStartBits(new int[] { 0, 8, 44, 48, 55, 56, 57 }), 3), new int[] { 3, 11, 47,
+            51, 58, 59, 60 });
+   }
+
+   @Test
    public void testOneRankNorth() {
       checkResult(BitSetHelper.shiftOneNorth(initStartBits(new int[] { 0, 8, 44, 48, 55, 56, 57 })), new int[] { 8, 16,
             52, 56, 63 });

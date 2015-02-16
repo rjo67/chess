@@ -3,8 +3,8 @@ package org.rjo.chess.pieces;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
+import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.MoveHelper;
 import org.rjo.chess.NorthEastMoveHelper;
@@ -67,16 +67,16 @@ public class Bishop extends Piece {
    }
 
    @Override
-   public List<Move> findMoves(Chessboard chessboard) {
+   public List<Move> findMoves(Game game) {
       List<Move> moves = new ArrayList<>(14);
 
       /*
        * search for moves in directions NW, SW, NE, and SE
        */
-      moves.addAll(search(chessboard, NORTHWEST_MOVE_HELPER));
-      moves.addAll(search(chessboard, SOUTHWEST_MOVE_HELPER));
-      moves.addAll(search(chessboard, NORTHEAST_MOVE_HELPER));
-      moves.addAll(search(chessboard, SOUTHEAST_MOVE_HELPER));
+      moves.addAll(search(game.getChessboard(), NORTHWEST_MOVE_HELPER));
+      moves.addAll(search(game.getChessboard(), SOUTHWEST_MOVE_HELPER));
+      moves.addAll(search(game.getChessboard(), NORTHEAST_MOVE_HELPER));
+      moves.addAll(search(game.getChessboard(), SOUTHEAST_MOVE_HELPER));
       return moves;
    }
 

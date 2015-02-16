@@ -7,6 +7,7 @@ import java.util.List;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
+import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 
@@ -72,7 +73,7 @@ public class Pawn extends Piece {
    }
 
    @Override
-   public List<Move> findMoves(Chessboard chessboard) {
+   public List<Move> findMoves(Game game) {
 
       /*
        * The pawn move is complicated by the different directions for white and black pawns.
@@ -88,10 +89,10 @@ public class Pawn extends Piece {
        * 5) enpassant
        * 6) promotion
        */
-      moves.addAll(moveOneSquareForward(chessboard, helper));
-      moves.addAll(moveTwoSquaresForward(chessboard, helper));
-      moves.addAll(captureLeft(chessboard, helper));
-      moves.addAll(captureRight(chessboard, helper));
+      moves.addAll(moveOneSquareForward(game.getChessboard(), helper));
+      moves.addAll(moveTwoSquaresForward(game.getChessboard(), helper));
+      moves.addAll(captureLeft(game.getChessboard(), helper));
+      moves.addAll(captureRight(game.getChessboard(), helper));
 
       return moves;
    }

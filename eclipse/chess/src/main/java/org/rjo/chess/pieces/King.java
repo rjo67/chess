@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import org.rjo.chess.CastlingRights;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
+import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.MoveDistance;
 import org.rjo.chess.Square;
@@ -61,9 +63,8 @@ public class King extends Piece {
    }
 
    @Override
-   public List<Move> findMoves(Chessboard chessboard) {
+   public List<Move> findMoves(Game game) {
       // TODO: generate the move tables statically
-      // TODO: castling
 
       List<Move> moves = new ArrayList<>();
 
@@ -76,27 +77,53 @@ public class King extends Piece {
       BitSet combined = (BitSet) west.clone();
       combined.or(east);
       // save the current state
-      BitSet result = (BitSet) combined.clone();
+      BitSet possibleMoves = (BitSet) combined.clone();
       // now add the king's position again and shift up and down one rank
       combined.or(pieces.getBitSet());
       BitSet north = BitSetHelper.shiftOneNorth(combined);
       BitSet south = BitSetHelper.shiftOneSouth(combined);
       // add to result
-      result.or(north);
-      result.or(south);
+      possibleMoves.or(north);
+      possibleMoves.or(south);
 
       // move can't be to a square with a piece of the same colour on it
-      result.andNot(chessboard.getAllPieces(colour).getBitSet());
+      possibleMoves.andNot(game.getChessboard().getAllPieces(colour).getBitSet());
 
       // TODO check for checks here?
 
-      Square opponentsKingSquare = findOpponentsKing(chessboard);
+      Square opponentsKingSquare = findOpponentsKing(game.getChessboard());
       Square kingPosn = Square.fromBitPosn(pieces.getBitSet().nextSetBit(0));
-      for (int i = result.nextSetBit(0); i >= 0; i = result.nextSetBit(i + 1)) {
+      for (int i = possibleMoves.nextSetBit(0); i >= 0; i = possibleMoves.nextSetBit(i + 1)) {
          Square targetSquare = Square.fromBitPosn(i);
+         // make sure we're not moving king to king
          if (MoveDistance.calculateDistance(targetSquare, opponentsKingSquare) > 1) {
-            // TODO capture?
+            /*
+             * check for captures in 'possibleMoves'.
+             * If any found, remove from 'possibleMoves' before next iteration.
+             */
+            BitSet captures = (BitSet) possibleMoves.clone();
+            captures.and(game.getChessboard().getAllPieces(Colour.oppositeColour(getColour())).getBitSet());
+            for (int j = captures.nextSetBit(0); j >= 0; j = captures.nextSetBit(j + 1)) {
+               moves.add(new Move(this, kingPosn, targetSquare, true));
+               // remove capture square
+               possibleMoves.clear(j);
+            }
             moves.add(new Move(this, kingPosn, targetSquare));
+         }
+      }
+
+      // castling
+      // TODO disallow castling over a square in check
+      if (game.canCastle(colour, CastlingRights.KINGS_SIDE)) {
+         BitSet bs = game.getChessboard().getEmptySquares().getBitSet();
+         if (bs.get(Square.f1.bitPosn()) && bs.get(Square.g1.bitPosn())) {
+            moves.add(Move.castleKingsSide(this));
+         }
+      }
+      if (game.canCastle(colour, CastlingRights.QUEENS_SIDE)) {
+         BitSet bs = game.getChessboard().getEmptySquares().getBitSet();
+         if (bs.get(Square.d1.bitPosn()) && bs.get(Square.c1.bitPosn()) && bs.get(Square.b1.bitPosn())) {
+            moves.add(Move.castleQueensSide(this));
          }
       }
 

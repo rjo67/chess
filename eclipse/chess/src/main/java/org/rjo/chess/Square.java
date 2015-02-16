@@ -81,7 +81,7 @@ public enum Square {
     */
    public static Square fromString(String coord) {
       if (coord.length() != 2) {
-         throw new IllegalArgumentException("coord must be a string of length 2");
+         throw new IllegalArgumentException("coord must be a string of length 2. Got '" + coord + "'");
       }
       String fileStr = String.valueOf(coord.charAt(0)).toLowerCase();
       char file = fileStr.charAt(0);

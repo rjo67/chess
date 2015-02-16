@@ -3,9 +3,9 @@ package org.rjo.chess.pieces;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.EastMoveHelper;
+import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.MoveHelper;
 import org.rjo.chess.NorthMoveHelper;
@@ -68,16 +68,16 @@ public class Rook extends Piece {
    }
 
    @Override
-   public List<Move> findMoves(Chessboard chessboard) {
+   public List<Move> findMoves(Game game) {
       List<Move> moves = new ArrayList<>(14);
 
       /*
        * search for moves in directions N, S, W, and E
        */
-      moves.addAll(search(chessboard, NORTH_MOVE_HELPER));
-      moves.addAll(search(chessboard, SOUTH_MOVE_HELPER));
-      moves.addAll(search(chessboard, WEST_MOVE_HELPER));
-      moves.addAll(search(chessboard, EAST_MOVE_HELPER));
+      moves.addAll(search(game.getChessboard(), NORTH_MOVE_HELPER));
+      moves.addAll(search(game.getChessboard(), SOUTH_MOVE_HELPER));
+      moves.addAll(search(game.getChessboard(), WEST_MOVE_HELPER));
+      moves.addAll(search(game.getChessboard(), EAST_MOVE_HELPER));
 
       return moves;
    }

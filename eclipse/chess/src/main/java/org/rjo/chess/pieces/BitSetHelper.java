@@ -10,6 +10,28 @@ public class BitSetHelper {
    }
 
    /**
+    * General method to shift bits.
+    * 
+    * @param startPosn
+    *           starting position. Does not get changed by this routine.
+    * @param shift
+    *           how much to shift. Positive==shift to right (<<). Negative==shift to left (>>>).
+    * @return a new bitset with the shifted bits.
+    */
+   public static BitSet shift(BitSet startPosn, int shift) {
+      if (startPosn.isEmpty()) {
+         return (BitSet) startPosn.clone();
+      }
+
+      long lo = startPosn.toLongArray()[0];
+      if (shift < 0) {
+         return BitSet.valueOf(new long[] { (lo >>> Math.abs(shift)) });
+      } else {
+         return BitSet.valueOf(new long[] { (lo << shift) });
+      }
+   }
+
+   /**
     * Shifts the bits in 'startPosn' one rank to North.
     * 
     * @param startPosn
@@ -42,6 +64,7 @@ public class BitSetHelper {
 
    /**
     * Shifts the bits in 'startPosn' one file to West.
+    * File 1 does not get wrapped.
     * 
     * @param startPosn
     *           starting position. Does not get changed by this routine.

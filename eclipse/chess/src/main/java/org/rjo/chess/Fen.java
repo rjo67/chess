@@ -47,13 +47,13 @@ import org.rjo.chess.pieces.Rook;
 public class Fen {
 
    /**
-    * Creates a FEN notation for the given chessboard.
+    * Creates a FEN notation for the given game.
     * 
-    * @param chessboard
+    * @param game
     *           state of the game
     * @return a FEN string
     */
-   public static String encode(Chessboard chessboard) {
+   public static String encode(Game game) {
       char[][] board = new char[8][];
       for (int rank = 0; rank < 8; rank++) {
          board[rank] = new char[8];
@@ -61,14 +61,14 @@ public class Fen {
             board[rank][file] = ' ';
          }
       }
-      for (PieceType pieceType : chessboard.getPieces(Colour.WHITE).keySet()) {
-         Piece piece = chessboard.getPieces(Colour.WHITE).get(pieceType);
+      for (PieceType pieceType : game.getChessboard().getPieces(Colour.WHITE).keySet()) {
+         Piece piece = game.getChessboard().getPieces(Colour.WHITE).get(pieceType);
          for (Square sq : piece.getLocations()) {
             board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
          }
       }
-      for (PieceType pieceType : chessboard.getPieces(Colour.BLACK).keySet()) {
-         Piece piece = chessboard.getPieces(Colour.BLACK).get(pieceType);
+      for (PieceType pieceType : game.getChessboard().getPieces(Colour.BLACK).keySet()) {
+         Piece piece = game.getChessboard().getPieces(Colour.BLACK).get(pieceType);
          for (Square sq : piece.getLocations()) {
             board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
          }
@@ -99,11 +99,11 @@ public class Fen {
          }
       }
 
-      fen.append(" ").append(addActiveColour(chessboard));
-      fen.append(" ").append(addCastlingRights(chessboard));
-      fen.append(" ").append(addEnpassantSquare(chessboard));
-      fen.append(" ").append(addHalfmoveClock(chessboard));
-      fen.append(" ").append(addFullmoveNumber(chessboard));
+      fen.append(" ").append(addActiveColour(game));
+      fen.append(" ").append(addCastlingRights(game));
+      fen.append(" ").append(addEnpassantSquare(game));
+      fen.append(" ").append(addHalfmoveClock(game));
+      fen.append(" ").append(addFullmoveNumber(game));
 
       return fen.toString();
    }
@@ -113,9 +113,9 @@ public class Fen {
     * 
     * @param fen
     *           a FEN representation of a chess position
-    * @return a Chessboard
+    * @return a Game object
     */
-   public static Chessboard decode(String fen) {
+   public static Game decode(String fen) {
 
       StringTokenizer fenTokenizer = new StringTokenizer(fen, " ");
       if (fenTokenizer.countTokens() != 6) {
@@ -124,37 +124,42 @@ public class Fen {
       }
 
       Chessboard cb = parsePosition(fenTokenizer.nextToken());
-      parseActiveColour(fenTokenizer.nextToken());
-      parseCastlingRights(fenTokenizer.nextToken());
-      parseEnpassantSquare(fenTokenizer.nextToken());
-      parseHalfmoveClock(fenTokenizer.nextToken());
-      parseFullmoveNumber(fenTokenizer.nextToken());
+      Game game = new Game(cb);
+      parseActiveColour(game, fenTokenizer.nextToken());
+      parseCastlingRights(game, fenTokenizer.nextToken());
+      parseEnpassantSquare(game, fenTokenizer.nextToken());
+      parseHalfmoveClock(game, fenTokenizer.nextToken());
+      parseFullmoveNumber(game, fenTokenizer.nextToken());
 
-      return cb;
+      return game;
    }
 
    /**
     * Active color. "w" means White moves next, "b" means Black.
     * 
+    * @param game
+    *           game state
     * @param token
+    *           token repesenting the active colour
     */
-   private static void parseActiveColour(String token) {
+   private static void parseActiveColour(Game game, String token) {
       if (token.length() != 1) {
          throw new IllegalArgumentException("Invalid FEN string: expected 1 char for field 2: active colour");
       }
       switch (token) {
       case "w":
-         break; // TODO
+         game.setSideToMove(Colour.WHITE);
+         break;
       case "b":
-         break;// TODO
+         game.setSideToMove(Colour.BLACK);
+         break;
       default:
          throw new IllegalArgumentException("Invalid FEN string: expected w/b for field 2: active colour");
       }
    }
 
-   private static String addActiveColour(Chessboard chessboard) {
-      // TODO Auto-generated method stub
-      return "w";
+   private static String addActiveColour(Game game) {
+      return game.getSideToMove() == Colour.WHITE ? "w" : "b";
    }
 
    /**
@@ -162,16 +167,50 @@ public class Fen {
     * (White can castle kingside), "Q" (White can castle queenside), "k" (Black can castle kingside), and/or "q" (Black
     * can castle queenside).
     * 
+    * @param game
+    *           game state
     * @param token
+    *           token representing castling rights
     */
-   private static void parseCastlingRights(String token) {
-      // TODO Auto-generated method stub
+   private static void parseCastlingRights(Game game, String token) {
 
+      List<CastlingRights> whiteRights = new ArrayList<>(2);
+      List<CastlingRights> blackRights = new ArrayList<>(2);
+      if (token.contains("K")) {
+         whiteRights.add(CastlingRights.KINGS_SIDE);
+      }
+      if (token.contains("Q")) {
+         whiteRights.add(CastlingRights.QUEENS_SIDE);
+      }
+      if (token.contains("k")) {
+         blackRights.add(CastlingRights.KINGS_SIDE);
+      }
+      if (token.contains("q")) {
+         blackRights.add(CastlingRights.QUEENS_SIDE);
+      }
+      game.setCastlingRights(Colour.WHITE, whiteRights.toArray(new CastlingRights[2]));
+      game.setCastlingRights(Colour.BLACK, blackRights.toArray(new CastlingRights[2]));
    }
 
-   private static String addCastlingRights(Chessboard chessboard) {
-      // TODO Auto-generated method stub
-      return "-";
+   private static String addCastlingRights(Game game) {
+      StringBuilder sb = new StringBuilder(4);
+      if (game.canCastle(Colour.WHITE, CastlingRights.KINGS_SIDE)) {
+         sb.append('K');
+      }
+      if (game.canCastle(Colour.WHITE, CastlingRights.QUEENS_SIDE)) {
+         sb.append('Q');
+      }
+      if (game.canCastle(Colour.BLACK, CastlingRights.KINGS_SIDE)) {
+         sb.append('k');
+      }
+      if (game.canCastle(Colour.BLACK, CastlingRights.QUEENS_SIDE)) {
+         sb.append('q');
+      }
+      if (sb.length() == 0) {
+         return "-";
+      } else {
+         return sb.toString();
+      }
    }
 
    /**
@@ -179,33 +218,43 @@ public class Fen {
     * has just made a two-square move, this is the position "behind" the pawn. This is recorded regardless of whether
     * there is a pawn in position to make an en passant capture.
     * 
+    * @param game
+    * 
     * @param token
     */
-   private static void parseEnpassantSquare(String token) {
-      // TODO Auto-generated method stub
-
+   private static void parseEnpassantSquare(Game game, String token) {
+      if (!token.equals("-")) {
+         game.getChessboard().setEnpassantSquare(Square.fromString(token));
+      }
    }
 
-   private static String addEnpassantSquare(Chessboard chessboard) {
-      // TODO Auto-generated method stub
-      return "-";
+   private static String addEnpassantSquare(Game game) {
+      Square sq = game.getChessboard().getEnpassantSquare();
+      if (sq == null) {
+         return "-";
+      } else {
+         return sq.toString();
+      }
    }
 
    /**
     * Halfmove clock: This is the number of halfmoves since the last capture or pawn advance. This is used to
     * determine if a draw can be claimed under the fifty-move rule.
     * 
+    * @param game
+    * 
     * @param token
     */
-   private static void parseHalfmoveClock(String token) {
+   private static void parseHalfmoveClock(Game game, String token) {
       try {
          Integer halfmoves = Integer.parseInt(token);
       } catch (NumberFormatException x) {
          throw new IllegalArgumentException("Invalid FEN string: expected a number for field 5: halfmove clock");
       }
+      // TODO store halfmoves
    }
 
-   private static String addHalfmoveClock(Chessboard chessboard) {
+   private static String addHalfmoveClock(Game game) {
       // TODO Auto-generated method stub
       return "0";
    }
@@ -213,19 +262,21 @@ public class Fen {
    /**
     * Fullmove number: The number of the full move. It starts at 1, and is incremented after Black's move.
     * 
+    * @param game
+    * 
     * @param token
     */
-   private static void parseFullmoveNumber(String token) {
+   private static void parseFullmoveNumber(Game game, String token) {
       try {
          Integer fullmoves = Integer.parseInt(token);
+         game.setMoveNumber(fullmoves);
       } catch (NumberFormatException x) {
          throw new IllegalArgumentException("Invalid FEN string: expected a number for field 6: fullmove clock");
       }
    }
 
-   private static String addFullmoveNumber(Chessboard chessboard) {
-      // TODO Auto-generated method stub
-      return "1";
+   private static String addFullmoveNumber(Game game) {
+      return "" + game.getMoveNumber();
    }
 
    private static Chessboard parsePosition(String fen) {

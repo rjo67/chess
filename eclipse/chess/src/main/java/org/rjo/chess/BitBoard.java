@@ -40,6 +40,46 @@ public class BitBoard {
    public static BitBoard NOT_FILE_ONE = new BitBoard(BitBoard.FILE_ONE.flip());
 
    /**
+    * no bits set apart from those on the 2nd file.
+    */
+   public static BitBoard FILE_TWO = new BitBoard(new byte[] {
+         //@formatter:off
+         (byte) 0b01000000,
+         (byte) 0b01000000,
+         (byte) 0b01000000,
+         (byte) 0b01000000,
+         (byte) 0b01000000,
+         (byte) 0b01000000,
+         (byte) 0b01000000,
+         (byte) 0b01000000 });
+         //@formatter:on
+
+   /**
+    * all bits set apart from those on the 2nd file
+    */
+   public static BitBoard NOT_FILE_TWO = new BitBoard(BitBoard.FILE_TWO.flip());
+
+   /**
+    * all bits set apart from those on the seventh file.
+    */
+   public static BitBoard FILE_SEVEN = new BitBoard(new byte[] {
+         //@formatter:off
+         (byte) 0b00000010,
+         (byte) 0b00000010,
+         (byte) 0b00000010,
+         (byte) 0b00000010,
+         (byte) 0b00000010,
+         (byte) 0b00000010,
+         (byte) 0b00000010,
+         (byte) 0b00000010 });
+         //@formatter:on
+
+   /**
+    * all bits set apart from those on the seventh file.
+    */
+   public static BitBoard NOT_FILE_SEVEN = new BitBoard(BitBoard.FILE_SEVEN.flip());
+
+   /**
     * all bits set apart from those on the eighth file, i.e. the RHS.
     */
    public static BitBoard FILE_EIGHT = new BitBoard(new byte[] {
@@ -119,13 +159,22 @@ public class BitBoard {
 
    private BitSet bs = new BitSet(64);
 
+   /**
+    *  default constructor. Initialises the underlying bit set to 64 bits.
+    */
    public BitBoard() {
    }
 
-   public BitBoard(long lo) {
+   /**
+    * Fills the underlying bit with the given 64 bits.
+    */
+  public BitBoard(long lo) {
       bs = BitSet.valueOf(new long[] { lo });
    }
 
+  /**
+   * Fills the underlying bit with the given bitset.
+   */
    public BitBoard(BitSet bs) {
       this.bs = bs;
    }
