@@ -41,14 +41,7 @@ public class Pawn extends Piece {
     */
    public Pawn(Colour colour, Square... startSquares) {
       super(colour, PieceType.PAWN);
-      switch (colour) {
-      case WHITE:
-         helper = new WhiteMoveHelper();
-         break;
-      case BLACK:
-         helper = new BlackSideHelper();
-         break;
-      }
+      helper = colour == Colour.WHITE ? new WhiteMoveHelper() : new BlackSideHelper();
       if (startSquares == null) {
          initPosition();
       } else {
@@ -59,16 +52,11 @@ public class Pawn extends Piece {
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
-      switch (colour) {
-      case WHITE:
-         requiredSquares = new Square[] { Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2,
-               Square.h2 };
-         break;
-      case BLACK:
-         requiredSquares = new Square[] { Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7,
-               Square.h7 };
-         break;
-      }
+      // @formatter:off
+      requiredSquares = colour == Colour.WHITE
+         ? new Square[] { Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2 }
+         : new Square[] { Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7, Square.h7 };
+      // @formatter:on
       initPosition(requiredSquares);
    }
 
@@ -78,6 +66,8 @@ public class Pawn extends Piece {
       /*
        * The pawn move is complicated by the different directions for white and black pawns.
        * This is the only piece to have this complication.
+       * 
+       * This difference is catered for by the 'MoveHelper' implementations.
        */
 
       List<Move> moves = new ArrayList<>();
@@ -93,6 +83,12 @@ public class Pawn extends Piece {
       moves.addAll(moveTwoSquaresForward(game.getChessboard(), helper));
       moves.addAll(captureLeft(game.getChessboard(), helper));
       moves.addAll(captureRight(game.getChessboard(), helper));
+
+      // checks
+      Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
+      for (Move move : moves) {
+         move.setCheck(checkIfCheck(move, opponentsKing));
+      }
 
       return moves;
    }
@@ -233,6 +229,41 @@ public class Pawn extends Piece {
          moves.add(new Move(this, Square.fromBitPosn(i + offset), Square.fromBitPosn(i), true));
       }
       return moves;
+   }
+
+   /**
+    * Calculates if the given move leaves the opponent's king in check.
+    * 
+    * @param move
+    *           the pawn move
+    * @param opponentsKing
+    *           square of the opponent's king
+    * @return true if this move leaves the king in check
+    */
+   private boolean checkIfCheck(Move move, Square opponentsKing) {
+      if (move.isPromotion()) {
+         // TODO promotion
+         return false;
+      } else {
+         // set up bitset with the square the pawn moved to
+         BitSet left = new BitSet(64);
+         left.set(move.to().bitPosn());
+         BitSet right = (BitSet) left.clone();
+
+         left.and(BitBoard.NOT_FILE_ONE.getBitSet()); // only the pawns on the 2nd to 8th files
+         left = helper.pawnCaptureLeft(left);
+         right.and(BitBoard.NOT_FILE_EIGHT.getBitSet()); // only the pawns on the 1st to 7th files
+         right = helper.pawnCaptureRight(right);
+
+         // now 'and' with king's bitset
+         // TODO shouldn't create every time
+         BitSet king = new BitSet(64);
+         king.set(opponentsKing.bitPosn());
+         left.and(king);
+         right.and(king);
+
+         return (!left.isEmpty() || !right.isEmpty());
+      }
    }
 
    /**

@@ -56,14 +56,8 @@ public class Rook extends Piece {
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
-      switch (colour) {
-      case WHITE:
-         requiredSquares = new Square[] { Square.a1, Square.h1 };
-         break;
-      case BLACK:
-         requiredSquares = new Square[] { Square.a8, Square.h8 };
-         break;
-      }
+      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.a1, Square.h1 } : new Square[] { Square.a8,
+            Square.h8 };
       initPosition(requiredSquares);
    }
 

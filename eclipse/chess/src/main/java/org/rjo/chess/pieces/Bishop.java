@@ -55,14 +55,8 @@ public class Bishop extends Piece {
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
-      switch (colour) {
-      case WHITE:
-         requiredSquares = new Square[] { Square.c1, Square.f1 };
-         break;
-      case BLACK:
-         requiredSquares = new Square[] { Square.c8, Square.f8 };
-         break;
-      }
+      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.c1, Square.f1 } : new Square[] { Square.c8,
+            Square.f8 };
       initPosition(requiredSquares);
    }
 

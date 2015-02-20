@@ -110,14 +110,8 @@ public class Knight extends Piece {
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
-      switch (colour) {
-      case WHITE:
-         requiredSquares = new Square[] { Square.b1, Square.g1 };
-         break;
-      case BLACK:
-         requiredSquares = new Square[] { Square.b8, Square.g8 };
-         break;
-      }
+      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.b1, Square.g1 } : new Square[] { Square.b8,
+            Square.g8 };
       initPosition(requiredSquares);
    }
 
@@ -151,7 +145,24 @@ public class Knight extends Piece {
             moves.add(new Move(this, knightStartSquare, Square.fromBitPosn(k)));
          }
       }
+
+      // checks
+      Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
+      BitSet king = new BitSet(64);
+      king.set(opponentsKing.bitPosn());
+      for (Move move : moves) {
+         move.setCheck(checkIfCheck(move, king));
+      }
+
       return moves;
+   }
+
+   private boolean checkIfCheck(Move move, BitSet opponentsKing) {
+      // check if the king is a knight move away from the destination square of the move
+      BitSet possibleMoves = (BitSet) knightMoves[move.to().bitPosn()].clone();
+      possibleMoves.and(opponentsKing);
+
+      return !possibleMoves.isEmpty();
    }
 
 }

@@ -31,7 +31,6 @@ public class PerftTest {
       checkAnswer(48, moves);
       checkAnswer(0, MoveUtil.getChecks(moves));
       checkAnswer(8, MoveUtil.getCaptures(moves));
-
    }
 
    @Test

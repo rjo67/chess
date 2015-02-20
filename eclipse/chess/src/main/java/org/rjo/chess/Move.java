@@ -9,10 +9,6 @@ import org.rjo.chess.pieces.PieceType;
  * 
  * @author rich
  */
-/**
- * @author rich
- *
- */
 public class Move {
 
    private Square from;
@@ -103,7 +99,7 @@ public class Move {
          return "0-0-0";
       } else {
          return piece.getSymbol() + from + (capture ? "x" : "-") + to
-               + (promotionPiece != null ? "=" + promotionPiece.getSymbol() : "") + (check ? "+" : "");
+               + (isPromotion() ? "=" + promotionPiece.getSymbol() : "") + (check ? "+" : "");
       }
    }
 
@@ -119,11 +115,27 @@ public class Move {
       return move;
    }
 
+   public void setCheck(boolean check) {
+      this.check = check;
+   }
+
    public boolean isCheck() {
       return check;
    }
 
    public boolean isCapture() {
       return capture;
+   }
+
+   public boolean isPromotion() {
+      return promotionPiece != null;
+   }
+
+   public Square from() {
+      return from;
+   }
+
+   public Square to() {
+      return to;
    }
 }

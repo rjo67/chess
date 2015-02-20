@@ -24,21 +24,30 @@ public class Game {
    /** which side is to move */
    private Colour sideToMove;
 
+   /**
+    * Constructs a game with the default start position.
+    */
    public Game() {
       chessboard = new Chessboard();
-      init();
+      init(EnumSet.allOf(CastlingRights.class), EnumSet.allOf(CastlingRights.class));
    }
 
+   /**
+    * Inits a game with the given chessboard. Castling rights are set to 'empty'.
+    * 
+    * @param chessboard
+    *           the chessboard
+    */
    public Game(Chessboard chessboard) {
       this.chessboard = chessboard;
-      init();
+      init(EnumSet.noneOf(CastlingRights.class), EnumSet.noneOf(CastlingRights.class));
    }
 
-   private void init() {
+   private void init(EnumSet<CastlingRights> whiteCastlingRights, EnumSet<CastlingRights> blackCastlingRights) {
       moves = new ArrayDeque<>();
       castling = new EnumSet[Colour.values().length];
-      castling[Colour.WHITE.ordinal()] = EnumSet.allOf(CastlingRights.class);
-      castling[Colour.BLACK.ordinal()] = EnumSet.allOf(CastlingRights.class);
+      castling[Colour.WHITE.ordinal()] = whiteCastlingRights;
+      castling[Colour.BLACK.ordinal()] = blackCastlingRights;
       sideToMove = Colour.WHITE;
    }
 

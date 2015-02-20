@@ -51,14 +51,7 @@ public class King extends Piece {
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
-      switch (colour) {
-      case WHITE:
-         requiredSquares = new Square[] { Square.e1 };
-         break;
-      case BLACK:
-         requiredSquares = new Square[] { Square.e8 };
-         break;
-      }
+      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.e1 } : new Square[] { Square.e8 };
       initPosition(requiredSquares);
    }
 
@@ -131,6 +124,21 @@ public class King extends Piece {
    }
 
    private Square findOpponentsKing(Chessboard chessboard) {
-      return chessboard.getPieces(Colour.oppositeColour(colour)).get(PieceType.KING).getLocations()[0];
+      return findOpponentsKing(colour, chessboard);
+   }
+
+   /**
+    * Locates the enemy's king.
+    * 
+    * TODO store this value in 'Game' after each move, to make this lookup quicker.
+    * 
+    * @param myColour
+    *           my colour
+    * @param chessboard
+    *           the board
+    * @return location of the other colour's king.
+    */
+   public static Square findOpponentsKing(Colour myColour, Chessboard chessboard) {
+      return chessboard.getPieces(Colour.oppositeColour(myColour)).get(PieceType.KING).getLocations()[0];
    }
 }

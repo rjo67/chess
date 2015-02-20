@@ -63,14 +63,7 @@ public class Queen extends Piece {
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
-      switch (colour) {
-      case WHITE:
-         requiredSquares = new Square[] { Square.d1 };
-         break;
-      case BLACK:
-         requiredSquares = new Square[] { Square.d8 };
-         break;
-      }
+      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.d1 } : new Square[] { Square.d8 };
       initPosition(requiredSquares);
    }
 
