@@ -10,12 +10,6 @@ public enum Colour {
    }
 
    public static Colour oppositeColour(Colour colour) {
-      switch (colour) {
-      case WHITE:
-         return Colour.BLACK;
-      case BLACK:
-         return Colour.WHITE;
-      }
-      throw new IllegalArgumentException("not possible");
+      return (colour == Colour.WHITE ? BLACK : WHITE);
    }
 }

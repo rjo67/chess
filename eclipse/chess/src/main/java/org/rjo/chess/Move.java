@@ -94,9 +94,9 @@ public class Move {
    @Override
    public String toString() {
       if (castlingKingsSide) {
-         return "0-0";
+         return "O-O";
       } else if (castlingQueensSide) {
-         return "0-0-0";
+         return "O-O-O";
       } else {
          return piece.getSymbol() + from + (capture ? "x" : "-") + to
                + (isPromotion() ? "=" + promotionPiece.getSymbol() : "") + (check ? "+" : "");

@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.rjo.chess.CastlingRights;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
@@ -128,4 +129,39 @@ public class KingMoveTest {
                   )));
    }
 
+   @Test
+   public void castleKingsSide() {
+      whiteKing.initPosition(Square.e1);
+      blackKing.initPosition(Square.h7);
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing, new Pawn(Colour.WHITE, Square.d2, Square.e2,
+            Square.f2), new Rook(Colour.WHITE, Square.h1)));
+      Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing));
+      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      game.setCastlingRights(Colour.WHITE, CastlingRights.KINGS_SIDE);
+      TestUtil.checkMoves(whiteKing.findMoves(game), new HashSet<>(Arrays.asList("Ke1-d1", "Ke1-f1", "O-O")));
+   }
+
+   @Test
+   public void castleKingsSideInCheck() {
+      whiteKing.initPosition(Square.e1);
+      blackKing.initPosition(Square.h7);
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing, new Pawn(Colour.WHITE, Square.d2, Square.e2,
+            Square.f2), new Rook(Colour.WHITE, Square.h1)));
+      Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing, new Bishop(Colour.BLACK, Square.h2)));
+      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      game.setCastlingRights(Colour.WHITE, CastlingRights.KINGS_SIDE);
+      TestUtil.checkMoves(whiteKing.findMoves(game), new HashSet<>(Arrays.asList("Ke1-d1", "Ke1-f1")));
+   }
+
+   @Test
+   public void castleQueensSide() {
+      whiteKing.initPosition(Square.e1);
+      blackKing.initPosition(Square.h7);
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing, new Rook(Colour.WHITE, Square.a1)));
+      Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing));
+      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      game.setCastlingRights(Colour.WHITE, CastlingRights.QUEENS_SIDE);
+      TestUtil.checkMoves(whiteKing.findMoves(game),
+            new HashSet<>(Arrays.asList("Ke1-d1", "Ke1-f1", "Ke1-d2", "Ke1-e2", "Ke1-f2", "O-O-O")));
+   }
 }

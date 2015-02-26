@@ -170,4 +170,30 @@ public class Chessboard {
       return enpassantSquare;
    }
 
+   /**
+    * Returns true if the given square is attacked by any opponent's pieces.
+    * 
+    * @param game
+    *           the game
+    * @param targetSquare
+    *           the square to consider
+    * @param opponentsColour
+    *           the colour of the opponent
+    * @return true if this square is attacked by the opponent
+    */
+   public boolean squareIsAttacked(Game game, Square targetSquare, Colour opponentsColour) {
+      Map<PieceType, Piece> opponentsPieces = getPieces(opponentsColour);
+      // iterate over the pieces
+      // TODO instead of treating queens separately, should 'merge' them with the rooks and the bishops
+      for (PieceType type : new PieceType[] { PieceType.PAWN, PieceType.KNIGHT, PieceType.KING, PieceType.ROOK,
+            PieceType.BISHOP, PieceType.QUEEN }) {
+         Piece piece = opponentsPieces.get(type);
+         if (piece != null) {
+            if (piece.attacksSquare(game.getChessboard(), targetSquare)) {
+               return true;
+            }
+         }
+      }
+      return false;
+   }
 }

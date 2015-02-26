@@ -81,8 +81,8 @@ public class Pawn extends Piece {
        */
       moves.addAll(moveOneSquareForward(game.getChessboard(), helper));
       moves.addAll(moveTwoSquaresForward(game.getChessboard(), helper));
-      moves.addAll(captureLeft(game.getChessboard(), helper));
-      moves.addAll(captureRight(game.getChessboard(), helper));
+      moves.addAll(captureLeft(game.getChessboard(), helper, false));
+      moves.addAll(captureRight(game.getChessboard(), helper, false));
 
       // checks
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
@@ -180,21 +180,26 @@ public class Pawn extends Piece {
     *           state of the board
     * @param helper
     *           distinguishes between white and black sides, since the pawns move in different directions
+    * @param checkingForAttack
+    *           if true, this routine returns all possible moves to the 'left'. The normal value of false returns only
+    *           moves
+    *           which are captures i.e. the opponent's pieces are taken into account.
     * @return list of moves found by this method
     */
-   private List<Move> captureLeft(Chessboard chessboard, MoveHelper helper) {
+   private List<Move> captureLeft(Chessboard chessboard, MoveHelper helper, boolean checkingForAttack) {
       List<Move> moves = new ArrayList<>();
       // 3) capture left
-      // first remove the pawns on the first file
       // then shift by 7 (for white) or 9 (for black) and AND with opposition pieces
-      BitSet captureLeft = pieces.cloneBitSet();
-      captureLeft.and(BitBoard.NOT_FILE_ONE.getBitSet()); // only the pawns on the 2nd to 8th files
-      captureLeft = helper.pawnCaptureLeft(captureLeft);
-      // move must be a capture, therefore AND with opponent's pieces
-      BitSet opponentsPieces = chessboard.getAllPieces(Colour.oppositeColour(helper.getColour())).cloneBitSet();
-      // 5) enpassant: add in enpassant square if available
-      addEnpassantSquare(chessboard, opponentsPieces);
-      captureLeft.and(opponentsPieces);
+
+      BitSet captureLeft = helper.pawnCaptureLeft(pieces.cloneBitSet());
+
+      if (!checkingForAttack) {
+         // move must be a capture, therefore AND with opponent's pieces
+         BitSet opponentsPieces = chessboard.getAllPieces(Colour.oppositeColour(helper.getColour())).cloneBitSet();
+         // 5) enpassant: add in enpassant square if available
+         addEnpassantSquare(chessboard, opponentsPieces);
+         captureLeft.and(opponentsPieces);
+      }
       int offset = helper.getColour() == Colour.WHITE ? -7 : 9;
       for (int i = captureLeft.nextSetBit(0); i >= 0; i = captureLeft.nextSetBit(i + 1)) {
          moves.add(new Move(this, Square.fromBitPosn(i + offset), Square.fromBitPosn(i), true));
@@ -209,21 +214,24 @@ public class Pawn extends Piece {
     *           state of the board
     * @param helper
     *           distinguishes between white and black sides, since the pawns move in different directions
+    * @param checkingForAttack
+    *           if true, this routine returns all possible moves to the 'right'. The normal value of false returns only
+    *           moves
+    *           which are captures i.e. the opponent's pieces are taken into account.
     * @return list of moves found by this method
     */
-   private List<Move> captureRight(Chessboard chessboard, MoveHelper helper) {
+   private List<Move> captureRight(Chessboard chessboard, MoveHelper helper, boolean checkingForAttack) {
       List<Move> moves = new ArrayList<>();
       // 4) capture right
-      // first remove the pawns on the eigth file
-      // then shift by 9 (for white) or 7 (for black) and AND with opposition pieces
-      BitSet captureRight = pieces.cloneBitSet();
-      captureRight.and(BitBoard.NOT_FILE_EIGHT.getBitSet()); // only the pawns on the 1st to 7th files
-      captureRight = helper.pawnCaptureRight(captureRight);
-      // move must be a capture, therefore AND with opponent's pieces
-      BitSet opponentsPieces = chessboard.getAllPieces(Colour.oppositeColour(this.colour)).cloneBitSet();
-      // 5) enpassant: add in enpassant square if available
-      addEnpassantSquare(chessboard, opponentsPieces);
-      captureRight.and(opponentsPieces);
+      // shift by 9 (for white) or 7 (for black) and AND with opposition pieces
+      BitSet captureRight = helper.pawnCaptureRight(pieces.cloneBitSet());
+      if (!checkingForAttack) {
+         // move must be a capture, therefore AND with opponent's pieces
+         BitSet opponentsPieces = chessboard.getAllPieces(Colour.oppositeColour(this.colour)).cloneBitSet();
+         // 5) enpassant: add in enpassant square if available
+         addEnpassantSquare(chessboard, opponentsPieces);
+         captureRight.and(opponentsPieces);
+      }
       int offset = helper.getColour() == Colour.WHITE ? -9 : 7;
       for (int i = captureRight.nextSetBit(0); i >= 0; i = captureRight.nextSetBit(i + 1)) {
          moves.add(new Move(this, Square.fromBitPosn(i + offset), Square.fromBitPosn(i), true));
@@ -250,9 +258,9 @@ public class Pawn extends Piece {
          left.set(move.to().bitPosn());
          BitSet right = (BitSet) left.clone();
 
-         left.and(BitBoard.NOT_FILE_ONE.getBitSet()); // only the pawns on the 2nd to 8th files
+         left.and(BitBoard.EXCEPT_FILE[1].getBitSet()); // only the pawns on the 2nd to 8th files
          left = helper.pawnCaptureLeft(left);
-         right.and(BitBoard.NOT_FILE_EIGHT.getBitSet()); // only the pawns on the 1st to 7th files
+         right.and(BitBoard.EXCEPT_FILE[7].getBitSet()); // only the pawns on the 1st to 7th files
          right = helper.pawnCaptureRight(right);
 
          // now 'and' with king's bitset
@@ -264,6 +272,19 @@ public class Pawn extends Piece {
 
          return (!left.isEmpty() || !right.isEmpty());
       }
+   }
+
+   @Override
+   public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
+      List<Move> moves = new ArrayList<>();
+      moves.addAll(captureLeft(chessboard, helper, true));
+      moves.addAll(captureRight(chessboard, helper, true));
+      for (Move move : moves) {
+         if (move.to() == targetSq) {
+            return true;
+         }
+      }
+      return false;
    }
 
    /**
@@ -331,7 +352,7 @@ public class Pawn extends Piece {
 
       @Override
       public BitBoard lastRank() {
-         return BitBoard.RANK_EIGHT;
+         return BitBoard.RANK[7];
       }
 
       @Override
@@ -341,7 +362,7 @@ public class Pawn extends Piece {
 
       @Override
       public BitBoard startRank() {
-         return BitBoard.RANK_TWO;
+         return BitBoard.RANK[1];
       }
 
       @Override
@@ -349,8 +370,12 @@ public class Pawn extends Piece {
          if (startPosn.isEmpty()) {
             return startPosn;
          }
-         long lo = startPosn.toLongArray()[0];
-         return BitSet.valueOf(new long[] { (lo << 7) });
+         startPosn.and(BitBoard.EXCEPT_FILE[0].getBitSet()); // only the pawns on the 2nd to 8th files
+         long[] longArray = startPosn.toLongArray();
+         if (longArray.length == 0) {
+            return new BitSet(64);
+         }
+         return BitSet.valueOf(new long[] { (longArray[0] << 7) });
       }
 
       @Override
@@ -358,8 +383,12 @@ public class Pawn extends Piece {
          if (startPosn.isEmpty()) {
             return startPosn;
          }
-         long lo = startPosn.toLongArray()[0];
-         return BitSet.valueOf(new long[] { (lo << 9) });
+         startPosn.and(BitBoard.EXCEPT_FILE[7].getBitSet()); // only the pawns on the 1st to 7th files
+         long[] longArray = startPosn.toLongArray();
+         if (longArray.length == 0) {
+            return new BitSet(64);
+         }
+         return BitSet.valueOf(new long[] { (longArray[0] << 9) });
       }
 
    }
@@ -379,8 +408,12 @@ public class Pawn extends Piece {
          if (startPosn.isEmpty()) {
             return startPosn;
          }
-         long lo = startPosn.toLongArray()[0];
-         return BitSet.valueOf(new long[] { (lo >>> 7) });
+         startPosn.and(BitBoard.EXCEPT_FILE[7].getBitSet()); // only the pawns on the 1st to 7th files
+         long[] longArray = startPosn.toLongArray();
+         if (longArray.length == 0) {
+            return new BitSet(64);
+         }
+         return BitSet.valueOf(new long[] { (longArray[0] >>> 7) });
       }
 
       @Override
@@ -388,8 +421,12 @@ public class Pawn extends Piece {
          if (startPosn.isEmpty()) {
             return startPosn;
          }
-         long lo = startPosn.toLongArray()[0];
-         return BitSet.valueOf(new long[] { (lo >>> 9) });
+         startPosn.and(BitBoard.EXCEPT_FILE[0].getBitSet()); // only the pawns on the 2nd to 8th files
+         long[] longArray = startPosn.toLongArray();
+         if (longArray.length == 0) {
+            return new BitSet(64);
+         }
+         return BitSet.valueOf(new long[] { (longArray[0] >>> 9) });
       }
 
       @Override
@@ -399,13 +436,14 @@ public class Pawn extends Piece {
 
       @Override
       public BitBoard lastRank() {
-         return BitBoard.RANK_ONE;
+         return BitBoard.RANK[0];
       }
 
       @Override
       public BitBoard startRank() {
-         return BitBoard.RANK_SEVEN;
+         return BitBoard.RANK[6];
       }
 
    }
+
 }

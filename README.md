@@ -4,6 +4,12 @@ chess
 explorations in the world of chess computer programming
 
 
+## 26.02.15 
+Finalised routines to check if a square is attacked by an opposing piece.
+Improved King castling.
+
+## 22.02.15 
+Routines to check if a square is attacked by an opposing piece.
 
 ## 16.02.15 
 queen moves.

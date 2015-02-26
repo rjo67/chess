@@ -5,6 +5,7 @@ import java.util.BitSet;
 import java.util.List;
 
 import org.rjo.chess.BitBoard;
+import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
@@ -44,9 +45,9 @@ public class Knight extends Piece {
          // - work[4,5] == file 8 blanked
          // - work[6,7] == file 7 blanked as well
          work[0] = (BitSet) knightMoves[i].clone();
-         work[0].and(BitBoard.NOT_FILE_ONE.getBitSet());
+         work[0].and(BitBoard.EXCEPT_FILE[0].getBitSet());
          work[2] = (BitSet) work[0].clone();
-         work[2].and(BitBoard.NOT_FILE_TWO.getBitSet());
+         work[2].and(BitBoard.EXCEPT_FILE[1].getBitSet());
 
          // store another copy
          work[1] = (BitSet) work[0].clone();
@@ -58,9 +59,9 @@ public class Knight extends Piece {
          work[3] = BitSetHelper.shift(work[3], -10);// file-2,rank-1
 
          work[4] = (BitSet) knightMoves[i].clone();
-         work[4].and(BitBoard.NOT_FILE_EIGHT.getBitSet());
+         work[4].and(BitBoard.EXCEPT_FILE[7].getBitSet());
          work[6] = (BitSet) work[4].clone();
-         work[6].and(BitBoard.NOT_FILE_SEVEN.getBitSet());
+         work[6].and(BitBoard.EXCEPT_FILE[6].getBitSet());
 
          // store another copy
          work[5] = (BitSet) work[4].clone();
@@ -163,6 +164,12 @@ public class Knight extends Piece {
       possibleMoves.and(opponentsKing);
 
       return !possibleMoves.isEmpty();
+   }
+
+   @Override
+   public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
+      // TODO Auto-generated method stub
+      return false;
    }
 
 }

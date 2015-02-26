@@ -21,7 +21,9 @@ public enum Square {
    h1( 7), h2(15), h3(23), h4(31), h5(39), h6(47), h7(55), h8(63);  
    //@formatter:on
 
-   private static Map<Integer, Square> map = new HashMap<>(64);
+   // look up map
+   private static Map<Integer, Square> bitPosnToSquare = new HashMap<>(64);
+
    private int bitPosn;
 
    private Square(int bitPosn) {
@@ -64,12 +66,12 @@ public enum Square {
     */
    public static Square fromBitPosn(int bitPosn) {
       // build static map the first time
-      if (map.isEmpty()) {
+      if (bitPosnToSquare.isEmpty()) {
          for (Square sq : Square.values()) {
-            map.put(sq.bitPosn(), sq);
+            bitPosnToSquare.put(sq.bitPosn(), sq);
          }
       }
-      return map.get(bitPosn);
+      return bitPosnToSquare.get(bitPosn);
    }
 
    /**
@@ -92,7 +94,20 @@ public enum Square {
       if ((rank < 1) || (rank > 8)) {
          throw new IllegalArgumentException("bad value for 'rank': " + rank);
       }
-      int bitPosn = ((rank - 1) * 8) + (file - 'a');
+      return Square.fromRankAndFile(rank - 1, file - 'a');
+   }
+
+   /**
+    * Maps from a rank/file mapping to a Square.
+    * 
+    * @param rank
+    *           the rank (0..7)
+    * @param file
+    *           the file (0..7)
+    * @return the square
+    */
+   public static Square fromRankAndFile(int rank, int file) {
+      int bitPosn = (rank * 8) + (file);
       return Square.fromBitPosn(bitPosn);
    }
 }

@@ -3,6 +3,7 @@ package org.rjo.chess.pieces;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.EastMoveHelper;
 import org.rjo.chess.Game;
@@ -18,7 +19,7 @@ import org.rjo.chess.WestMoveHelper;
  * 
  * @author rich
  */
-public class Rook extends Piece {
+public class Rook extends SlidingPiece {
 
    private static MoveHelper NORTH_MOVE_HELPER = NorthMoveHelper.instance();
    private static MoveHelper SOUTH_MOVE_HELPER = SouthMoveHelper.instance();
@@ -73,7 +74,26 @@ public class Rook extends Piece {
       moves.addAll(search(game.getChessboard(), WEST_MOVE_HELPER));
       moves.addAll(search(game.getChessboard(), EAST_MOVE_HELPER));
 
+      // checks
+      Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
+      for (Move move : moves) {
+         move.setCheck(findRankOrFileCheck(game, move, opponentsKing));
+      }
+
       return moves;
+   }
+
+   @Override
+   public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
+      boolean attacksSquare = false;
+      int i = pieces.getBitSet().nextSetBit(0);
+      while ((!attacksSquare) && (i >= 0)) {
+         attacksSquare = attacksSquareRankOrFile(chessboard, Square.fromBitPosn(i), targetSq);
+         if (!attacksSquare) {
+            i = pieces.getBitSet().nextSetBit(i + 1);
+         }
+      }
+      return attacksSquare;
    }
 
 }

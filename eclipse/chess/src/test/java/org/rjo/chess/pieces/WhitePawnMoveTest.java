@@ -12,6 +12,9 @@ import org.rjo.chess.Game;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 public class WhitePawnMoveTest {
 
    private King opponentsKing;
@@ -145,4 +148,15 @@ public class WhitePawnMoveTest {
       TestUtil.checkMoves(pawn.findMoves(game), new HashSet<>(Arrays.asList("d5xe6+")));
    }
 
+   @Test
+   public void attacksSquare() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.d5);
+      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn));
+      King king = new King(Colour.BLACK, Square.f7);
+      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(king));
+      Chessboard chessboard = new Chessboard(myPieces, opponentsPieces);
+      assertTrue(pawn.attacksSquare(chessboard, Square.e6));
+      assertFalse(pawn.attacksSquare(chessboard, Square.d6));
+      assertFalse(pawn.attacksSquare(chessboard, Square.e7));
+   }
 }

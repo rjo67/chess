@@ -19,11 +19,15 @@ import java.util.BitSet;
 public class BitBoard {
 
    /**
-    * no bits set apart from those on the first file i.e. the LHS.
+    * Bitboards for each file of the board.
+    * <p>
+    * Usage: to just get pieces on the second file, 'and' the bitset with FILE[1].getBitSet()
+    * 
     * TODO maybe store these directly as BitSets / immutable BitSets?
     */
-   public static BitBoard FILE_ONE = new BitBoard(new byte[] {
-         //@formatter:off
+   public static BitBoard[] FILE = new BitBoard[] {
+//@formatter:off
+      new BitBoard(new byte[] {
          (byte) 0b10000000,
          (byte) 0b10000000,
          (byte) 0b10000000,
@@ -31,19 +35,8 @@ public class BitBoard {
          (byte) 0b10000000,
          (byte) 0b10000000,
          (byte) 0b10000000,
-         (byte) 0b10000000 });
-         //@formatter:on
-
-   /**
-    * all bits set apart from those on the first file i.e. the LHS.
-    */
-   public static BitBoard NOT_FILE_ONE = new BitBoard(BitBoard.FILE_ONE.flip());
-
-   /**
-    * no bits set apart from those on the 2nd file.
-    */
-   public static BitBoard FILE_TWO = new BitBoard(new byte[] {
-         //@formatter:off
+         (byte) 0b10000000 }),
+      new BitBoard(new byte[] {
          (byte) 0b01000000,
          (byte) 0b01000000,
          (byte) 0b01000000,
@@ -51,19 +44,44 @@ public class BitBoard {
          (byte) 0b01000000,
          (byte) 0b01000000,
          (byte) 0b01000000,
-         (byte) 0b01000000 });
-         //@formatter:on
-
-   /**
-    * all bits set apart from those on the 2nd file
-    */
-   public static BitBoard NOT_FILE_TWO = new BitBoard(BitBoard.FILE_TWO.flip());
-
-   /**
-    * all bits set apart from those on the seventh file.
-    */
-   public static BitBoard FILE_SEVEN = new BitBoard(new byte[] {
-         //@formatter:off
+         (byte) 0b01000000 }),
+      new BitBoard(new byte[] {
+         (byte) 0b00100000,
+         (byte) 0b00100000,
+         (byte) 0b00100000,
+         (byte) 0b00100000,
+         (byte) 0b00100000,
+         (byte) 0b00100000,
+         (byte) 0b00100000,
+         (byte) 0b00100000 }),
+      new BitBoard(new byte[] {
+         (byte) 0b00010000,
+         (byte) 0b00010000,
+         (byte) 0b00010000,
+         (byte) 0b00010000,
+         (byte) 0b00010000,
+         (byte) 0b00010000,
+         (byte) 0b00010000,
+         (byte) 0b00010000 }),
+      new BitBoard(new byte[] {
+         (byte) 0b00001000,
+         (byte) 0b00001000,
+         (byte) 0b00001000,
+         (byte) 0b00001000,
+         (byte) 0b00001000,
+         (byte) 0b00001000,
+         (byte) 0b00001000,
+         (byte) 0b00001000 }),
+      new BitBoard(new byte[] {
+         (byte) 0b00000100,
+         (byte) 0b00000100,
+         (byte) 0b00000100,
+         (byte) 0b00000100,
+         (byte) 0b00000100,
+         (byte) 0b00000100,
+         (byte) 0b00000100,
+         (byte) 0b00000100 }),
+      new BitBoard(new byte[] {
          (byte) 0b00000010,
          (byte) 0b00000010,
          (byte) 0b00000010,
@@ -71,39 +89,38 @@ public class BitBoard {
          (byte) 0b00000010,
          (byte) 0b00000010,
          (byte) 0b00000010,
-         (byte) 0b00000010 });
-         //@formatter:on
+         (byte) 0b00000010 }),
+      new BitBoard(new byte[] {
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001,
+         (byte) 0b00000001 })
+//@formatter:on
+   };
 
    /**
-    * all bits set apart from those on the seventh file.
+    * Bitboards for every file of the board except the file of the array index. The opposite of FILE.
+    * <p>
+    * Usage: to get all pieces EXCEPT on the second file, 'and' the bitset with EXCEPT_FILE[1].getBitSet()
     */
-   public static BitBoard NOT_FILE_SEVEN = new BitBoard(BitBoard.FILE_SEVEN.flip());
+   public static BitBoard[] EXCEPT_FILE = new BitBoard[] { new BitBoard(BitBoard.FILE[0].flip()),
+         new BitBoard(BitBoard.FILE[1].flip()), new BitBoard(BitBoard.FILE[2].flip()),
+         new BitBoard(BitBoard.FILE[3].flip()), new BitBoard(BitBoard.FILE[4].flip()),
+         new BitBoard(BitBoard.FILE[5].flip()), new BitBoard(BitBoard.FILE[6].flip()),
+         new BitBoard(BitBoard.FILE[7].flip()) };
 
    /**
-    * all bits set apart from those on the eighth file, i.e. the RHS.
+    * Bitboards for each rank of the board.
+    * <p>
+    * Usage: to just get pieces on the second rank, 'and' the bitset with RANK[1].getBitSet()
     */
-   public static BitBoard FILE_EIGHT = new BitBoard(new byte[] {
-         //@formatter:off
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001 });
-         //@formatter:on
-
-   /**
-    * all bits set apart from those on the eighth file i.e. the RHS.
-    */
-   public static BitBoard NOT_FILE_EIGHT = new BitBoard(BitBoard.FILE_EIGHT.flip());
-
-   /**
-    * only the 1st rank bits are set.
-    */
-   public static BitBoard RANK_ONE = new BitBoard(new byte[] {
-         //@formatter:off
+   public static BitBoard[] RANK = new BitBoard[] {
+//@formatter:off
+      new BitBoard(new byte[] {
          (byte) 0b00000000,
          (byte) 0b00000000,
          (byte) 0b00000000,
@@ -111,14 +128,8 @@ public class BitBoard {
          (byte) 0b00000000,
          (byte) 0b00000000,
          (byte) 0b00000000,
-         (byte) 0b11111111 });
-         //@formatter:off
-
-   /**
-    * only the 2nd rank bits are set.
-    */
-   public static BitBoard RANK_TWO = new BitBoard(new byte[] {
-         //@formatter:off
+         (byte) 0b11111111 }),
+      new BitBoard(new byte[] {
          (byte) 0b00000000,
          (byte) 0b00000000,
          (byte) 0b00000000,
@@ -126,13 +137,44 @@ public class BitBoard {
          (byte) 0b00000000,
          (byte) 0b00000000,
          (byte) 0b11111111,
-         (byte) 0b00000000 });
-         //@formatter:off
-   /**
-    * only the 7th rank bits are set.
-    */
-   public static BitBoard RANK_SEVEN = new BitBoard(new byte[] {
-         //@formatter:off
+         (byte) 0b00000000 }),
+      new BitBoard(new byte[] {
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b11111111,
+         (byte) 0b00000000,
+         (byte) 0b00000000 }),
+      new BitBoard(new byte[] {
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b11111111,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000 }),
+      new BitBoard(new byte[] {
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b11111111,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000 }),
+      new BitBoard(new byte[] {
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b11111111,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000,
+         (byte) 0b00000000 }),
+      new BitBoard(new byte[] {
          (byte) 0b00000000,
          (byte) 0b11111111,
          (byte) 0b00000000,
@@ -140,13 +182,8 @@ public class BitBoard {
          (byte) 0b00000000,
          (byte) 0b00000000,
          (byte) 0b00000000,
-         (byte) 0b00000000 });
-         //@formatter:off
-   /**
-    * only the 8th rank bits are set.
-    */
-   public static BitBoard RANK_EIGHT = new BitBoard(new byte[] {
-         //@formatter:off
+         (byte) 0b00000000 }),
+      new BitBoard(new byte[] {
          (byte) 0b11111111,
          (byte) 0b00000000,
          (byte) 0b00000000,
@@ -154,13 +191,25 @@ public class BitBoard {
          (byte) 0b00000000,
          (byte) 0b00000000,
          (byte) 0b00000000,
-         (byte) 0b00000000 });
-         //@formatter:off
+         (byte) 0b00000000 })
+//@formatter:on
+   };
+
+   /**
+    * Bitboards for every rank of the board except the rank of the array index. The opposite of RANK.
+    * <p>
+    * Usage: to get all pieces EXCEPT on the second file, 'and' the bitset with EXCEPT_RANK[1].getBitSet()
+    */
+   public static BitBoard[] EXCEPT_RANK = new BitBoard[] { new BitBoard(BitBoard.RANK[0].flip()),
+         new BitBoard(BitBoard.RANK[1].flip()), new BitBoard(BitBoard.RANK[2].flip()),
+         new BitBoard(BitBoard.RANK[3].flip()), new BitBoard(BitBoard.RANK[4].flip()),
+         new BitBoard(BitBoard.RANK[5].flip()), new BitBoard(BitBoard.RANK[6].flip()),
+         new BitBoard(BitBoard.RANK[7].flip()) };
 
    private BitSet bs = new BitSet(64);
 
    /**
-    *  default constructor. Initialises the underlying bit set to 64 bits.
+    * default constructor. Initialises the underlying bit set to 64 bits.
     */
    public BitBoard() {
    }
@@ -168,13 +217,13 @@ public class BitBoard {
    /**
     * Fills the underlying bit with the given 64 bits.
     */
-  public BitBoard(long lo) {
+   public BitBoard(long lo) {
       bs = BitSet.valueOf(new long[] { lo });
    }
 
-  /**
-   * Fills the underlying bit with the given bitset.
-   */
+   /**
+    * Fills the underlying bit with the given bitset.
+    */
    public BitBoard(BitSet bs) {
       this.bs = bs;
    }
@@ -187,19 +236,20 @@ public class BitBoard {
     *           The eighth byte corresponds to the bottom row of the board (rank 1).
     *           The first byte corresponds to the top row (rank 8).
     *           The bits of the input bytes will be mapped to the bit set, starting at bottom left === index 0.
-    *           For example <pre>new byte[] { (byte) 0b1110_0010, ... };</pre>
+    *           For example
+    * 
+    *           <pre>
+    * new byte[] { (byte) 0b1110_0010, ... };
+    * </pre>
+    * 
     *           This will lead to the bits 56, 57, 58 and 62 being set in the BitSet.
     *           <p>
     *           The advantage of this format is that the initialisation byte array can be read like a chessboard, e.g.:
-    *       <pre>new BitBoard(new byte[] {
-    *                (byte) 0b01111111,
-    *                (byte) 0b01111111,
-    *                (byte) 0b01111111,
-    *                (byte) 0b01111111,
-    *                (byte) 0b01111111,
-    *                (byte) 0b01111111,
-    *                (byte) 0b01111111,
-    *                (byte) 0b01111111 });</pre>
+    * 
+    *           <pre>
+    * new BitBoard(new byte[] { (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111,
+    *       (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111 });
+    * </pre>
     * 
     *           <B>This is not the same order as used by the BitSet.parse(byte[]) method!!</B>
     */
@@ -294,5 +344,5 @@ public class BitBoard {
       bs.flip(0, 64);
       return bs;
    }
-   
+
 }

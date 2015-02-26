@@ -3,10 +3,10 @@ package org.rjo.chess.pieces;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
-import org.rjo.chess.MoveHelper;
 import org.rjo.chess.NorthEastMoveHelper;
 import org.rjo.chess.NorthWestMoveHelper;
 import org.rjo.chess.SouthEastMoveHelper;
@@ -18,11 +18,7 @@ import org.rjo.chess.Square;
  * 
  * @author rich
  */
-public class Bishop extends Piece {
-   private static MoveHelper NORTHWEST_MOVE_HELPER = NorthWestMoveHelper.instance();
-   private static MoveHelper SOUTHWEST_MOVE_HELPER = SouthWestMoveHelper.instance();
-   private static MoveHelper NORTHEAST_MOVE_HELPER = NorthEastMoveHelper.instance();
-   private static MoveHelper SOUTHEAST_MOVE_HELPER = SouthEastMoveHelper.instance();
+public class Bishop extends SlidingPiece {
 
    /**
     * Constructs the Bishop class with the default start squares.
@@ -67,11 +63,29 @@ public class Bishop extends Piece {
       /*
        * search for moves in directions NW, SW, NE, and SE
        */
-      moves.addAll(search(game.getChessboard(), NORTHWEST_MOVE_HELPER));
-      moves.addAll(search(game.getChessboard(), SOUTHWEST_MOVE_HELPER));
-      moves.addAll(search(game.getChessboard(), NORTHEAST_MOVE_HELPER));
-      moves.addAll(search(game.getChessboard(), SOUTHEAST_MOVE_HELPER));
+      moves.addAll(search(game.getChessboard(), NorthWestMoveHelper.instance()));
+      moves.addAll(search(game.getChessboard(), SouthWestMoveHelper.instance()));
+      moves.addAll(search(game.getChessboard(), NorthEastMoveHelper.instance()));
+      moves.addAll(search(game.getChessboard(), SouthEastMoveHelper.instance()));
+
+      // checks
+      Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
+      for (Move move : moves) {
+         move.setCheck(findDiagonalCheck(game, move, opponentsKing));
+      }
+
       return moves;
+   }
+
+   @Override
+   public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
+      boolean attacksSquare = false;
+      int i = pieces.getBitSet().nextSetBit(0);
+      while ((!attacksSquare) && (i >= 0)) {
+         attacksSquare = attacksSquareDiagonally(chessboard, Square.fromBitPosn(i), targetSq);
+         i = pieces.getBitSet().nextSetBit(i + 1);
+      }
+      return attacksSquare;
    }
 
 }

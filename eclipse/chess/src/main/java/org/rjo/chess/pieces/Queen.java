@@ -3,6 +3,7 @@ package org.rjo.chess.pieces;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.EastMoveHelper;
 import org.rjo.chess.Game;
@@ -22,7 +23,7 @@ import org.rjo.chess.WestMoveHelper;
  * 
  * @author rich
  */
-public class Queen extends Piece {
+public class Queen extends SlidingPiece {
    private static MoveHelper NORTHWEST_MOVE_HELPER = NorthWestMoveHelper.instance();
    private static MoveHelper SOUTHWEST_MOVE_HELPER = SouthWestMoveHelper.instance();
    private static MoveHelper NORTHEAST_MOVE_HELPER = NorthEastMoveHelper.instance();
@@ -84,7 +85,34 @@ public class Queen extends Piece {
       moves.addAll(search(game.getChessboard(), WEST_MOVE_HELPER));
       moves.addAll(search(game.getChessboard(), NORTHWEST_MOVE_HELPER));
 
+      // checks
+      Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
+      for (Move move : moves) {
+         boolean check = findRankOrFileCheck(game, move, opponentsKing);
+         if (!check) {
+            check = findDiagonalCheck(game, move, opponentsKing);
+         }
+         move.setCheck(check);
+      }
+
       return moves;
+   }
+
+   @Override
+   public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
+      boolean attacksSquare = false;
+      int i = pieces.getBitSet().nextSetBit(0);
+      while ((!attacksSquare) && (i >= 0)) {
+         Square startSquare = Square.fromBitPosn(i);
+         attacksSquare = attacksSquareRankOrFile(chessboard, startSquare, targetSq);
+         if (!attacksSquare) {
+            attacksSquare = attacksSquareDiagonally(chessboard, startSquare, targetSq);
+         }
+         if (!attacksSquare) {
+            i = pieces.getBitSet().nextSetBit(i + 1);
+         }
+      }
+      return attacksSquare;
    }
 
 }

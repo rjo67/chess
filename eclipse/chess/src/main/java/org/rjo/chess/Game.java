@@ -13,7 +13,6 @@ import org.rjo.chess.pieces.PieceType;
  * Encapsulates the board, the moves, castling rights, etc (clocks?).
  * 
  * @author rich
- *
  */
 public class Game {
 

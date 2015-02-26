@@ -75,7 +75,7 @@ public class BitSetHelper {
          return (BitSet) startPosn.clone();
       }
       BitSet bs = (BitSet) startPosn.clone();
-      bs.and(BitBoard.NOT_FILE_ONE.getBitSet());
+      bs.and(BitBoard.EXCEPT_FILE[0].getBitSet());
       if (bs.isEmpty()) {
          return bs;
       }
@@ -96,7 +96,7 @@ public class BitSetHelper {
          return (BitSet) startPosn.clone();
       }
       BitSet bs = (BitSet) startPosn.clone();
-      bs.and(BitBoard.NOT_FILE_EIGHT.getBitSet());
+      bs.and(BitBoard.EXCEPT_FILE[7].getBitSet());
       if (bs.isEmpty()) {
          return bs;
       }

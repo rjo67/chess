@@ -1,5 +1,6 @@
 package org.rjo.chess;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -12,7 +13,9 @@ public class TestUtil {
    }
 
    public static void checkMoves(List<Move> moves, Set<String> requiredMoves) {
-      Iterator<Move> iter = moves.iterator();
+      // clone moves so as to avoid losing the move list for later tests
+      List<Move> moveClone = new ArrayList<>(moves);
+      Iterator<Move> iter = moveClone.iterator();
       while (iter.hasNext()) {
          Move m = iter.next();
          if (requiredMoves.contains(m.toString())) {
@@ -21,8 +24,8 @@ public class TestUtil {
          }
       }
       assertTrue("not all required moves found: " + requiredMoves
-            + (moves.isEmpty() ? "" : ". Input-Moves not processed: " + moves), requiredMoves.isEmpty());
+            + (moveClone.isEmpty() ? "" : ". Input-Moves not processed: " + moveClone), requiredMoves.isEmpty());
       // all required moves found but still some input moves left over?
-      assertTrue("unexpected moves found: " + moves, moves.isEmpty());
+      assertTrue("unexpected moves found: " + moveClone, moveClone.isEmpty());
    }
 }
