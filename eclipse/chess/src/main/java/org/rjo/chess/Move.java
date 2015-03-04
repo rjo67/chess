@@ -3,6 +3,7 @@ package org.rjo.chess;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.pieces.PieceType;
+import org.rjo.chess.pieces.Rook;
 
 /**
  * Represents a move.
@@ -22,13 +23,11 @@ public class Move {
    /** whether this move was a check */
    private boolean check;
 
-   /** whether this move was castling king's side */
-   private boolean castlingKingsSide;
-   /** whether this move was castling queen's side */
-   private boolean castlingQueensSide;
+   /** castling info -- if not null, implies that this move was 0-0 or 0-0-0 */
+   private CastlingInfo castlingInfo;
 
-   /** if this move was a promotion, then this field indicates the piece and is not null */
-   private PieceType promotionPiece;
+   /** if promotion info -- if not null, implies that this move was a promotion */
+   private PromotionInfo promotionInfo;
 
    /**
     * Constructor for normal non-capture non-check moves.
@@ -80,38 +79,62 @@ public class Move {
       this.to = to;
       this.capture = capture;
       this.check = check;
-      this.castlingKingsSide = false;
-      this.castlingQueensSide = false;
+      this.castlingInfo = null;
    }
 
    public void setPromotionPiece(PieceType type) {
       if (piece.getType() != PieceType.PAWN) {
          throw new IllegalArgumentException("can only specify a promotion piece for a pawn move");
       }
-      this.promotionPiece = type;
+
+      this.promotionInfo = new PromotionInfo(type);
    }
 
    @Override
    public String toString() {
-      if (castlingKingsSide) {
-         return "O-O";
-      } else if (castlingQueensSide) {
-         return "O-O-O";
+      StringBuilder sb = new StringBuilder(10);
+      if (castlingInfo != null) {
+         if (CastlingRights.KINGS_SIDE == castlingInfo.direction) {
+            sb.append("O-O");
+         } else {
+            sb.append("O-O-O");
+         }
       } else {
-         return piece.getSymbol() + from + (capture ? "x" : "-") + to
-               + (isPromotion() ? "=" + promotionPiece.getSymbol() : "") + (check ? "+" : "");
+         sb.append(piece.getSymbol());
+         sb.append(from);
+         sb.append(capture ? "x" : "-");
+         sb.append(to);
+         sb.append(isPromotion() ? "=" + promotionInfo.promotedPiece.getSymbol() : "");
       }
+      sb.append(check ? "+" : "");
+      return sb.toString();
    }
 
    public static Move castleKingsSide(King king) {
-      Move move = new Move(king, Square.e1, Square.g1);
-      move.castlingKingsSide = true;
+      Move move;
+      if (king.getColour() == Colour.WHITE) {
+         move = new Move(king, Square.e1, Square.g1);
+         move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(new Rook(Colour.WHITE), Square.h1,
+               Square.f1));
+      } else {
+         move = new Move(king, Square.e8, Square.g8);
+         move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(new Rook(Colour.BLACK), Square.h8,
+               Square.f8));
+      }
       return move;
    }
 
    public static Move castleQueensSide(King king) {
-      Move move = new Move(king, Square.e1, Square.c1);
-      move.castlingQueensSide = true;
+      Move move;
+      if (king.getColour() == Colour.WHITE) {
+         move = new Move(king, Square.e1, Square.c1);
+         move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(new Rook(Colour.WHITE), Square.a1,
+               Square.d1));
+      } else {
+         move = new Move(king, Square.e8, Square.c8);
+         move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(new Rook(Colour.BLACK), Square.a8,
+               Square.d8));
+      }
       return move;
    }
 
@@ -128,7 +151,23 @@ public class Move {
    }
 
    public boolean isPromotion() {
-      return promotionPiece != null;
+      return promotionInfo != null;
+   }
+
+   public boolean isCastleKingsSide() {
+      return ((castlingInfo != null) && (castlingInfo.direction == CastlingRights.KINGS_SIDE));
+   }
+
+   public boolean isCastleQueensSide() {
+      return ((castlingInfo != null) && (castlingInfo.direction == CastlingRights.QUEENS_SIDE));
+   }
+
+   public Move getRooksCastlingMove() {
+      return (castlingInfo != null) ? castlingInfo.rooksMove : null;
+   }
+
+   public PieceType getPromotedPiece() {
+      return (promotionInfo != null) ? promotionInfo.promotedPiece : null;
    }
 
    public Square from() {
@@ -137,5 +176,26 @@ public class Move {
 
    public Square to() {
       return to;
+   }
+
+   static class CastlingInfo {
+      public CastlingInfo(CastlingRights direction, Move rooksMove) {
+         this.direction = direction;
+         this.rooksMove = rooksMove;
+      }
+
+      private CastlingRights direction;
+      private Move rooksMove;
+   }
+
+   static class PromotionInfo {
+      public PromotionInfo(PieceType promotedPiece) {
+         if ((promotedPiece == PieceType.PAWN) || (promotedPiece == PieceType.KING)) {
+            throw new IllegalArgumentException("cannot promote to a pawn or king!");
+         }
+         this.promotedPiece = promotedPiece;
+      }
+
+      private PieceType promotedPiece;
    }
 }

@@ -64,13 +64,36 @@ public class WhitePawnMoveTest {
    }
 
    @Test
-   public void promotion() {
-      Pawn pawn = new Pawn(Colour.WHITE, Square.a7);
+   public void promotionCheckKnight() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.g7);
       Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn));
+      King opponentsKing = new King(Colour.BLACK, Square.e7);
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing));
       Game game = new Game(new Chessboard(myPieces, opponentsPieces));
       TestUtil.checkMoves(pawn.findMoves(game),
-            new HashSet<>(Arrays.asList("a7-a8=Q", "a7-a8=B", "a7-a8=N", "a7-a8=R")));
+            new HashSet<>(Arrays.asList("g7-g8=Q", "g7-g8=B", "g7-g8=N+", "g7-g8=R")));
+   }
+
+   @Test
+   public void promotionCheckBishop() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.g7);
+      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn));
+      King opponentsKing = new King(Colour.BLACK, Square.e6);
+      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing));
+      Game game = new Game(new Chessboard(myPieces, opponentsPieces));
+      TestUtil.checkMoves(pawn.findMoves(game),
+            new HashSet<>(Arrays.asList("g7-g8=Q+", "g7-g8=B+", "g7-g8=N", "g7-g8=R")));
+   }
+
+   @Test
+   public void promotionCheckRook() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.g7);
+      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn));
+      King opponentsKing = new King(Colour.BLACK, Square.b8);
+      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing));
+      Game game = new Game(new Chessboard(myPieces, opponentsPieces));
+      TestUtil.checkMoves(pawn.findMoves(game),
+            new HashSet<>(Arrays.asList("g7-g8=Q+", "g7-g8=B", "g7-g8=N", "g7-g8=R+")));
    }
 
    @Test

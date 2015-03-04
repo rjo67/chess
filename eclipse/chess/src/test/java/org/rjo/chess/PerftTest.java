@@ -114,6 +114,26 @@ public class PerftTest {
       checkAnswer(2, MoveUtil.getCaptures(moves));
    }
 
+   /**
+    * various discovered checks.
+    * Pawn move - discovered check from rook.
+    * King move - discovered check from bishop.
+    * Pawn capture - discovered check from queen.
+    */
+   @Test
+   public void discoveredCheck() {
+      Game game = Fen.decode("8/8/8/2k3PR/8/1p2K3/2P2B2/2Q5 w - - 0 10");
+      List<Move> moves = game.findMoves(Colour.WHITE);
+      TestUtil.checkMoves(
+            moves,
+            new HashSet<>(Arrays.asList("Rh5-h6", "Rh5-h7", "Rh5-h8", "Rh5-h4", "Rh5-h3", "Rh5-h2", "Rh5-h1", "Bf2-e1",
+                  "Bf2-g1", "Bf2-g3", "Bf2-h4", "Ke3-d3+", "Ke3-d2+", "Ke3-e2+", "Ke3-e4+", "Ke3-f3+", "Ke3-f4+",
+                  "c2xb3+", "c2-c4", "c2-c3", "g5-g6+", "Qc1-b1", "Qc1-a1", "Qc1-d1", "Qc1-b2", "Qc1-a3+", "Qc1-d1",
+                  "Qc1-e1", "Qc1-f1", "Qc1-g1", "Qc1-h1", "Qc1-d2")));
+      checkAnswer(9, MoveUtil.getChecks(moves));
+      checkAnswer(1, MoveUtil.getCaptures(moves));
+   }
+
    private void checkAnswer(int expectedNbrOfMoves, List<Move> moveList) {
       assertEquals("got moves " + moveList, expectedNbrOfMoves, moveList.size());
    }

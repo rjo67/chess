@@ -97,7 +97,7 @@ public class Game {
       List<Move> moves = new ArrayList<>(60);
       for (PieceType type : PieceType.values()) {
          Piece p = chessboard.getPieces(colour).get(type);
-         // null == piece no longer on board
+         // null == piece-type no longer on board
          if (p != null) {
             moves.addAll(p.findMoves(this));
          }

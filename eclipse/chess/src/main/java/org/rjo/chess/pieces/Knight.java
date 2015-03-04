@@ -152,7 +152,12 @@ public class Knight extends Piece {
       BitSet king = new BitSet(64);
       king.set(opponentsKing.bitPosn());
       for (Move move : moves) {
-         move.setCheck(checkIfCheck(move, king));
+         boolean isCheck = checkIfCheck(move, king);
+         // if it's already check, don't need to calculate discovered check
+         if (!isCheck) {
+            isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+         }
+         move.setCheck(isCheck);
       }
 
       return moves;
@@ -167,9 +172,10 @@ public class Knight extends Piece {
    }
 
    @Override
-   public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
-      // TODO Auto-generated method stub
-      return false;
+   public boolean attacksSquare(Chessboard notUsed, Square targetSq) {
+      BitSet possibleMovesFromTargetSquare = (BitSet) knightMoves[targetSq.bitPosn()].clone();
+      possibleMovesFromTargetSquare.and(pieces.getBitSet());
+      return !possibleMovesFromTargetSquare.isEmpty();
    }
 
 }

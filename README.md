@@ -3,6 +3,8 @@ chess
 
 explorations in the world of chess computer programming
 
+## 04.03.15 
+Handling of discovered checks.
 
 ## 26.02.15 
 Finalised routines to check if a square is attacked by an opposing piece.

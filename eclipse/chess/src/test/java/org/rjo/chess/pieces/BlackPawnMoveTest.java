@@ -66,7 +66,7 @@ public class BlackPawnMoveTest {
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing));
       Game game = new Game(new Chessboard(opponentsPieces, myPieces));
       TestUtil.checkMoves(pawn.findMoves(game),
-            new HashSet<>(Arrays.asList("a2-a1=Q", "a2-a1=B", "a2-a1=N", "a2-a1=R")));
+            new HashSet<>(Arrays.asList("a2-a1=Q+", "a2-a1=B", "a2-a1=N", "a2-a1=R+")));
    }
 
    @Test

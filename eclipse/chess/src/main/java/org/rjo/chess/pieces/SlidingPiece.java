@@ -24,6 +24,54 @@ public abstract class SlidingPiece extends Piece {
    }
 
    /**
+    * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along rank or file,
+    * taking into account any intervening pieces.
+    * 
+    * @param pieces
+    *           which pieces are available. This should represent the rooks and queens in the game.
+    * @param emptySquares
+    *           which squares are currently empty.
+    * @param targetSquare
+    *           which square should be attacked
+    * @return true if at least one of the given pieces can attack the target square along a rank or file.
+    */
+   public static boolean attacksSquareOnRankOrFile(BitSet pieces, BitSet emptySquares, Square targetSquare) {
+      boolean attacksSquare = false;
+      int i = pieces.nextSetBit(0);
+      while ((!attacksSquare) && (i >= 0)) {
+         attacksSquare = attacksSquareRankOrFile(emptySquares, Square.fromBitPosn(i), targetSquare);
+         if (!attacksSquare) {
+            i = pieces.nextSetBit(i + 1);
+         }
+      }
+      return attacksSquare;
+   }
+
+   /**
+    * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along a diagonal,
+    * taking into account any intervening pieces.
+    * 
+    * @param bishopsAndQueens
+    *           which pieces are available. This should represent the bishops and queens in the game.
+    * @param emptySquares
+    *           which squares are currently empty.
+    * @param targetSquare
+    *           which square should be attacked
+    * @return true if at least one of the given pieces can attack the target square along a diagonal.
+    */
+   public static boolean attacksSquareOnDiagonal(BitSet bishopsAndQueens, BitSet emptySquares, Square targetSquare) {
+      boolean attacksSquare = false;
+      int i = bishopsAndQueens.nextSetBit(0);
+      while ((!attacksSquare) && (i >= 0)) {
+         attacksSquare = attacksSquareDiagonally(emptySquares, Square.fromBitPosn(i), targetSquare);
+         if (!attacksSquare) {
+            i = bishopsAndQueens.nextSetBit(i + 1);
+         }
+      }
+      return attacksSquare;
+   }
+
+   /**
     * Searches for moves in the direction specified by the {@link MoveHelper} implementation.
     * This is for rooks, bishops, and queens.
     * 
@@ -72,8 +120,7 @@ public abstract class SlidingPiece extends Piece {
    }
 
    /**
-    * Checks if the given move would place the opponent's king in check, i.e. the destination square of the move attacks
-    * (diagonally) the location of the king.
+    * Checks if the given move would place the opponent's king in check.
     * <p>
     * This is for bishop-type moves.
     * 
@@ -86,21 +133,22 @@ public abstract class SlidingPiece extends Piece {
     * @return true if this move is a check
     */
    protected boolean findDiagonalCheck(Game game, Move move, Square opponentsKing) {
-      return attacksSquareDiagonally(game.getChessboard(), move.to(), opponentsKing);
+      return attacksSquareDiagonally(game.getChessboard().getEmptySquares().getBitSet(), move.to(), opponentsKing);
    }
 
    /**
-    * Checks if a bishop/queen on the given startSquare attacks the given targetSquare.
+    * Checks if a bishop/queen on the given startSquare attacks the given targetSquare, i.e. the target square can be
+    * reached (diagonally) from the start square and there are no intervening pieces.
     * 
-    * @param chessboard
-    *           the board
+    * @param emptySquares
+    *           the empty squares of the board
     * @param startSquare
     *           start square
     * @param targetSquare
     *           target square
     * @return true if the target square is attacked (diagonally) from the start square.
     */
-   protected boolean attacksSquareDiagonally(Chessboard chessboard, Square startSquare, Square targetSquare) {
+   protected static boolean attacksSquareDiagonally(BitSet emptySquares, Square startSquare, Square targetSquare) {
       if (!onSameDiagonal(startSquare, targetSquare)) {
          return false;
       }
@@ -113,7 +161,7 @@ public abstract class SlidingPiece extends Piece {
          bitPosn += (8 * rankOffset) + fileOffset;
          if (bitPosn == targetSquare.bitPosn()) {
             reachedTargetSquare = true;
-         } else if (!chessboard.getEmptySquares().getBitSet().get(bitPosn)) {
+         } else if (!emptySquares.get(bitPosn)) {
             foundNonEmptySquare = true;
          }
       }
@@ -135,24 +183,26 @@ public abstract class SlidingPiece extends Piece {
     * @return true if this move is a check
     */
    protected boolean findRankOrFileCheck(Game game, Move move, Square opponentsKing) {
-      return attacksSquareRankOrFile(game.getChessboard(), move.to(), opponentsKing);
+      return attacksSquareRankOrFile(game.getChessboard().getEmptySquares().getBitSet(), move.to(), opponentsKing);
    }
 
    /**
-    * Checks if a rook/queen on the given startSquare attacks the given targetSquare.
+    * Checks if a rook/queen on the given startSquare attacks the given targetSquare, i.e. on the same rank or file and
+    * no intervening pieces.
     * This is for rook-type moves i.e. straight along files or ranks.
     * 
-    * @param chessboard
-    *           the board
+    * @param emptySquares
+    *           a bit set representing the empty squares on the board
     * @param startSquare
     *           start square
     * @param targetSquare
     *           target square
-    * @return true if the target square is attacked (diagonally) from the start square.
+    * 
+    * @return true if the target square is attacked (straight-line) from the start square.
     */
-   protected boolean attacksSquareRankOrFile(Chessboard chessboard, Square startSquare, Square targetSquare) {
+   protected static boolean attacksSquareRankOrFile(BitSet emptySquares, Square startSquare, Square targetSquare) {
       // for a rook to give check, it must be on the same rank or file as the king
-      // and there can't be any pieces in between
+      // and there can't be any pieces inbetween
 
       BitSet squaresInBetween = new BitSet(64);
       int nbrOfSquaresInBetween = 0;
@@ -186,23 +236,24 @@ public abstract class SlidingPiece extends Piece {
        * squaresInBetween has the squares between rook and king. nbrOfSquaresInBetween == the number of set bits.
        * Now intersect with the appropriate part of the 'emptySquares' bitset to see if these squares are empty.
        */
-      BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
+      BitSet clonedEmptySquares = (BitSet) emptySquares.clone();
       // remove unwanted ranks and files from 'emptySquares'
       for (int i = 0; i < Math.min(startSquare.file(), targetSquare.file()); i++) {
-         emptySquares.and(BitBoard.EXCEPT_FILE[i].getBitSet());
+         clonedEmptySquares.and(BitBoard.EXCEPT_FILE[i].getBitSet());
       }
       for (int i = 7; i > Math.max(startSquare.file(), targetSquare.file()); i--) {
-         emptySquares.and(BitBoard.EXCEPT_FILE[i].getBitSet());
+         clonedEmptySquares.and(BitBoard.EXCEPT_FILE[i].getBitSet());
       }
       for (int i = 0; i < Math.min(startSquare.rank(), targetSquare.rank()); i++) {
-         emptySquares.and(BitBoard.EXCEPT_RANK[i].getBitSet());
+         clonedEmptySquares.and(BitBoard.EXCEPT_RANK[i].getBitSet());
       }
       for (int i = 7; i > Math.max(startSquare.rank(), targetSquare.rank()); i--) {
-         emptySquares.and(BitBoard.EXCEPT_RANK[i].getBitSet());
+         clonedEmptySquares.and(BitBoard.EXCEPT_RANK[i].getBitSet());
       }
       // remove the new position of the moved piece from 'emptySquares'
-      emptySquares.clear(startSquare.bitPosn());
-      squaresInBetween.and(emptySquares);
+      clonedEmptySquares.clear(startSquare.bitPosn());
+
+      squaresInBetween.and(clonedEmptySquares);
       return squaresInBetween.cardinality() == nbrOfSquaresInBetween;
    }
 
@@ -215,7 +266,7 @@ public abstract class SlidingPiece extends Piece {
     *           second number
     * @return an array with the first element the smaller number, and the 2nd element the larger number
     */
-   private int[] orderNumbers(int num1, int num2) {
+   private static int[] orderNumbers(int num1, int num2) {
       int[] res = new int[2];
       if (num1 < num2) {
          res[0] = num1;
@@ -227,7 +278,7 @@ public abstract class SlidingPiece extends Piece {
       return res;
    }
 
-   private boolean onSameDiagonal(Square sq1, Square sq2) {
+   private static boolean onSameDiagonal(Square sq1, Square sq2) {
       return Math.abs(sq1.rank() - sq2.rank()) == Math.abs(sq1.file() - sq2.file());
    }
 

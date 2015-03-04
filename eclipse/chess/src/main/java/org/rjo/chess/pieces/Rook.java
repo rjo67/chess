@@ -77,7 +77,12 @@ public class Rook extends SlidingPiece {
       // checks
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
       for (Move move : moves) {
-         move.setCheck(findRankOrFileCheck(game, move, opponentsKing));
+         boolean isCheck = findRankOrFileCheck(game, move, opponentsKing);
+         // if it's already check, don't need to calculate discovered check
+         if (!isCheck) {
+            isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+         }
+         move.setCheck(isCheck);
       }
 
       return moves;
@@ -88,7 +93,8 @@ public class Rook extends SlidingPiece {
       boolean attacksSquare = false;
       int i = pieces.getBitSet().nextSetBit(0);
       while ((!attacksSquare) && (i >= 0)) {
-         attacksSquare = attacksSquareRankOrFile(chessboard, Square.fromBitPosn(i), targetSq);
+         attacksSquare = attacksSquareRankOrFile(chessboard.getEmptySquares().getBitSet(), Square.fromBitPosn(i),
+               targetSq);
          if (!attacksSquare) {
             i = pieces.getBitSet().nextSetBit(i + 1);
          }

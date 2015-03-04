@@ -132,7 +132,7 @@ public class KingMoveTest {
    @Test
    public void castleKingsSide() {
       whiteKing.initPosition(Square.e1);
-      blackKing.initPosition(Square.h7);
+      blackKing.initPosition(Square.g7);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing, new Pawn(Colour.WHITE, Square.d2, Square.e2,
             Square.f2), new Rook(Colour.WHITE, Square.h1)));
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing));
@@ -144,13 +144,37 @@ public class KingMoveTest {
    @Test
    public void castleKingsSideInCheck() {
       whiteKing.initPosition(Square.e1);
-      blackKing.initPosition(Square.h7);
+      blackKing.initPosition(Square.g7);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing, new Pawn(Colour.WHITE, Square.d2, Square.e2,
             Square.f2), new Rook(Colour.WHITE, Square.h1)));
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing, new Bishop(Colour.BLACK, Square.h2)));
       Game game = new Game(new Chessboard(whitePieces, blackPieces));
       game.setCastlingRights(Colour.WHITE, CastlingRights.KINGS_SIDE);
       TestUtil.checkMoves(whiteKing.findMoves(game), new HashSet<>(Arrays.asList("Ke1-d1", "Ke1-f1")));
+   }
+
+   @Test
+   public void castleKingsSideBlack() {
+      whiteKing.initPosition(Square.g1);
+      blackKing.initPosition(Square.e8);
+      Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing, new Pawn(Colour.BLACK, Square.d7, Square.e7,
+            Square.f7), new Rook(Colour.BLACK, Square.h8)));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing));
+      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      game.setCastlingRights(Colour.BLACK, CastlingRights.KINGS_SIDE);
+      TestUtil.checkMoves(blackKing.findMoves(game), new HashSet<>(Arrays.asList("Ke8-d8", "Ke8-f8", "O-O")));
+   }
+
+   @Test
+   public void castleKingsSideInCheckBlack() {
+      whiteKing.initPosition(Square.g1);
+      blackKing.initPosition(Square.e8);
+      Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing, new Pawn(Colour.BLACK, Square.d7, Square.e7,
+            Square.f7), new Rook(Colour.BLACK, Square.h8)));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing, new Bishop(Colour.WHITE, Square.h7)));
+      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      game.setCastlingRights(Colour.BLACK, CastlingRights.KINGS_SIDE);
+      TestUtil.checkMoves(blackKing.findMoves(game), new HashSet<>(Arrays.asList("Ke8-d8", "Ke8-f8")));
    }
 
    @Test

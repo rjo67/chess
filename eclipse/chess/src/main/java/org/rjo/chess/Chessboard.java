@@ -1,6 +1,7 @@
 package org.rjo.chess;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
+import org.rjo.chess.pieces.SlidingPiece;
 
 public class Chessboard {
 
@@ -196,4 +198,92 @@ public class Chessboard {
       }
       return false;
    }
+
+   /**
+    * Checks for a discovered check after the move 'move'.
+    * 
+    * @param chessboard
+    *           the chessboard
+    * @param move
+    *           the move
+    * @param colour
+    *           which side is moving
+    * @param opponentsKing
+    *           where the opponent's king is
+    * @return true if this move leads to a discovered check
+    */
+   public static boolean checkForDiscoveredCheck(Chessboard chessboard, Move move, Colour colour, Square opponentsKing) {
+      // set up the empty square bitset *after* this move
+      BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
+      emptySquares.set(move.from().bitPosn());
+      emptySquares.clear(move.to().bitPosn());
+      // take care of rook's move when castling
+      if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+         Move rooksMove = move.getRooksCastlingMove();
+         emptySquares.set(rooksMove.from().bitPosn());
+         emptySquares.clear(rooksMove.to().bitPosn());
+      }
+      return Chessboard.isOpponentsKingInCheck(chessboard.getPieces(colour), emptySquares, opponentsKing);
+   }
+
+   /**
+    * Helper method to check for a discovered check using a freely definable set of pieces and empty squares.
+    * Should normally not be called directly, see instead
+    * {@link Chessboard#checkForDiscoveredCheck(Chessboard, Move, Colour, Square)}.
+    * 
+    * @param myPieces
+    *           my pieces on the board
+    * @param emptySquares
+    *           the empty squares
+    * @param opponentsKing
+    *           where the opponent's king is
+    * @return true if the opponent's king is in check with this configuration of pieces and empty squares
+    */
+   public static boolean isOpponentsKingInCheck(Map<PieceType, Piece> myPieces, BitSet emptySquares,
+         Square opponentsKing) {
+      // discovered check can only be from a rook, queen, or bishop
+      boolean isCheck = false;
+      BitSet rooksAndQueens;
+      BitSet queensBitSet;
+      BitSet bishopsAndQueens;
+
+      Piece queens = myPieces.get(PieceType.QUEEN);
+      if (queens == null) {
+         queensBitSet = new BitSet(64);
+      } else {
+         queensBitSet = queens.getBitBoard().getBitSet();
+      }
+
+      Piece rooks = myPieces.get(PieceType.ROOK);
+      if (rooks == null) {
+         rooksAndQueens = new BitSet(64);
+      } else {
+         rooksAndQueens = rooks.getBitBoard().cloneBitSet();
+      }
+      rooksAndQueens.or(queensBitSet);
+      isCheck = SlidingPiece.attacksSquareOnRankOrFile(rooksAndQueens, emptySquares, opponentsKing);
+
+      // check bishops/queens if not already found check
+      if (!isCheck) {
+         Piece bishops = myPieces.get(PieceType.BISHOP);
+         if (bishops == null) {
+            bishopsAndQueens = new BitSet(64);
+         } else {
+            bishopsAndQueens = bishops.getBitBoard().cloneBitSet();
+         }
+         bishopsAndQueens.or(queensBitSet);
+         isCheck = SlidingPiece.attacksSquareOnDiagonal(bishopsAndQueens, emptySquares, opponentsKing);
+      }
+
+      // for discovered check not important, but this method is also used in general to see if a king is in check
+      if (!isCheck) {
+         Piece knights = myPieces.get(PieceType.KNIGHT);
+         if (knights != null) {
+            isCheck = knights.attacksSquare(null, opponentsKing);
+         }
+      }
+
+      return isCheck;
+   }
+
 }

@@ -174,6 +174,11 @@ public class King extends Piece {
          }
       }
 
+      // discovered checks
+      for (Move move : moves) {
+         move.setCheck(Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKingSquare));
+      }
+
       return moves;
    }
 

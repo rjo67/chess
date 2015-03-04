@@ -88,11 +88,15 @@ public class Queen extends SlidingPiece {
       // checks
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
       for (Move move : moves) {
-         boolean check = findRankOrFileCheck(game, move, opponentsKing);
-         if (!check) {
-            check = findDiagonalCheck(game, move, opponentsKing);
+         boolean isCheck = findRankOrFileCheck(game, move, opponentsKing);
+         if (!isCheck) {
+            isCheck = findDiagonalCheck(game, move, opponentsKing);
          }
-         move.setCheck(check);
+         // if it's already check, don't need to calculate discovered check
+         if (!isCheck) {
+            isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+         }
+         move.setCheck(isCheck);
       }
 
       return moves;
@@ -104,9 +108,9 @@ public class Queen extends SlidingPiece {
       int i = pieces.getBitSet().nextSetBit(0);
       while ((!attacksSquare) && (i >= 0)) {
          Square startSquare = Square.fromBitPosn(i);
-         attacksSquare = attacksSquareRankOrFile(chessboard, startSquare, targetSq);
+         attacksSquare = attacksSquareRankOrFile(chessboard.getEmptySquares().getBitSet(), startSquare, targetSq);
          if (!attacksSquare) {
-            attacksSquare = attacksSquareDiagonally(chessboard, startSquare, targetSq);
+            attacksSquare = attacksSquareDiagonally(chessboard.getEmptySquares().getBitSet(), startSquare, targetSq);
          }
          if (!attacksSquare) {
             i = pieces.getBitSet().nextSetBit(i + 1);

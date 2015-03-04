@@ -2,7 +2,9 @@ package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Chessboard;
@@ -87,7 +89,12 @@ public class Pawn extends Piece {
       // checks
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
       for (Move move : moves) {
-         move.setCheck(checkIfCheck(move, opponentsKing));
+         boolean isCheck = checkIfCheck(game.getChessboard(), move, opponentsKing);
+         // if it's already check, don't need to calculate discovered check
+         if (!isCheck) {
+            isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+         }
+         move.setCheck(isCheck);
       }
 
       return moves;
@@ -242,16 +249,45 @@ public class Pawn extends Piece {
    /**
     * Calculates if the given move leaves the opponent's king in check.
     * 
+    * @param chessboard
+    *           the board
     * @param move
     *           the pawn move
     * @param opponentsKing
     *           square of the opponent's king
     * @return true if this move leaves the king in check
     */
-   private boolean checkIfCheck(Move move, Square opponentsKing) {
+   private boolean checkIfCheck(Chessboard chessboard, Move move, Square opponentsKing) {
       if (move.isPromotion()) {
-         // TODO promotion
-         return false;
+         Map<PieceType, Piece> myPieces;
+         BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
+         emptySquares.set(move.from().bitPosn());
+         emptySquares.clear(move.to().bitPosn());
+
+         PieceType promotedPiece = move.getPromotedPiece();
+         // TODO could be improved ...
+         switch (promotedPiece) {
+         case QUEEN:
+            // only interested in whether the promoted piece is giving check
+            // therefore only need to supply this piece to the check-method
+            myPieces = new HashMap<>();
+            myPieces.put(PieceType.QUEEN, new Queen(colour, move.to()));
+            return Chessboard.isOpponentsKingInCheck(myPieces, emptySquares, opponentsKing);
+         case ROOK:
+            myPieces = new HashMap<>();
+            myPieces.put(PieceType.ROOK, new Rook(colour, move.to()));
+            return Chessboard.isOpponentsKingInCheck(myPieces, emptySquares, opponentsKing);
+         case BISHOP:
+            myPieces = new HashMap<>();
+            myPieces.put(PieceType.BISHOP, new Bishop(colour, move.to()));
+            return Chessboard.isOpponentsKingInCheck(myPieces, emptySquares, opponentsKing);
+         case KNIGHT:
+            myPieces = new HashMap<>();
+            myPieces.put(PieceType.KNIGHT, new Knight(colour, move.to()));
+            return Chessboard.isOpponentsKingInCheck(myPieces, emptySquares, opponentsKing);
+         default:
+            throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
+         }
       } else {
          // set up bitset with the square the pawn moved to
          BitSet left = new BitSet(64);
