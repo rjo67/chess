@@ -15,7 +15,7 @@ import org.rjo.chess.Square;
 
 /**
  * Stores information about the pawns (still) in the game.
- * 
+ *
  * @author rich
  */
 public class Pawn extends Piece {
@@ -23,28 +23,56 @@ public class Pawn extends Piece {
    private MoveHelper helper;
 
    /**
-    * Constructs the Pawn class with the default start squares.
-    * 
+    * Constructs the Pawn class -- with no pawns on the board. Delegates to Pawn(Colour, boolean) with parameter false.
+    *
     * @param colour
     *           indicates the colour of the pieces
     */
    public Pawn(Colour colour) {
-      this(colour, (Square[]) null);
+      this(colour, false);
    }
 
    /**
-    * Constructs the Pawn class with the default start squares.
-    * 
+    * Constructs the Pawn class.
+    *
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startPosition
+    *           if true, the default start squares are assigned. If false, no pieces are placed on the board.
+    */
+   public Pawn(Colour colour, boolean startPosition) {
+      this(colour, startPosition, (Square[]) null);
+   }
+
+   /**
+    * Constructs the Pawn class, defining the start squares.
+    *
     * @param colour
     *           indicates the colour of the pieces
     * @param startSquares
-    *           the required starting squares of the piece(s). Can be null, in which case the default start squares are
-    *           used. (In this case see the alternative constructor {@link #Pawn(Colour)}.)
+    *           the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the
+    *           board.
     */
    public Pawn(Colour colour, Square... startSquares) {
+      this(colour, false, startSquares);
+   }
+
+   /**
+    * Constructs the Pawn class with the required squares (can be null) or the default start squares.
+    * Setting 'startPosition' true has precedence over 'startSquares'.
+    *
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startPosition
+    *           if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+    * @param startSquares
+    *           the required starting squares of the piece(s). Can be null, in which case no pawns are placed on the
+    *           board.
+    */
+   public Pawn(Colour colour, boolean startPosition, Square... startSquares) {
       super(colour, PieceType.PAWN);
       helper = colour == Colour.WHITE ? new WhiteMoveHelper() : new BlackSideHelper();
-      if (startSquares == null) {
+      if (startPosition) {
          initPosition();
       } else {
          initPosition(startSquares);
@@ -56,9 +84,9 @@ public class Pawn extends Piece {
       Square[] requiredSquares = null;
       // @formatter:off
       requiredSquares = colour == Colour.WHITE
-         ? new Square[] { Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2 }
-         : new Square[] { Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7, Square.h7 };
-      // @formatter:on
+            ? new Square[] { Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2 }
+      : new Square[] { Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7, Square.h7 };
+            // @formatter:on
       initPosition(requiredSquares);
    }
 
@@ -102,7 +130,7 @@ public class Pawn extends Piece {
 
    /**
     * Adds the enpassant square to the list of opponent's pieces.
-    * 
+    *
     * @param chessboard
     *           state of the board
     * @param opponentsPieces
@@ -111,13 +139,13 @@ public class Pawn extends Piece {
    private void addEnpassantSquare(Chessboard chessboard, BitSet opponentsPieces) {
       Square enpassantSquare = chessboard.getEnpassantSquare();
       if (enpassantSquare != null) {
-         opponentsPieces.set(enpassantSquare.bitPosn());
+         opponentsPieces.set(enpassantSquare.bitIndex());
       }
    }
 
    /**
     * 'Moves' the pawns set-wise one square forward.
-    * 
+    *
     * @param chessboard
     *           state of the board
     * @param helper
@@ -137,14 +165,11 @@ public class Pawn extends Piece {
       oneSquareForward.and(helper.lastRank().flip()); // remove promoted pawns
       int offset = helper.getColour() == Colour.WHITE ? -8 : 8;
       for (int i = oneSquareForward.nextSetBit(0); i >= 0; i = oneSquareForward.nextSetBit(i + 1)) {
-         moves.add(new Move(this, Square.fromBitPosn(i + offset), Square.fromBitPosn(i)));
+         moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
       }
       for (int i = promotedPawns.nextSetBit(0); i >= 0; i = promotedPawns.nextSetBit(i + 1)) {
-         for (PieceType type : PieceType.values()) {
-            if ((type == PieceType.KING) || (type == PieceType.PAWN)) {
-               continue;
-            }
-            Move move = new Move(this, Square.fromBitPosn(i + offset), Square.fromBitPosn(i));
+         for (PieceType type : PieceType.getPieceTypesForPromotion()) {
+            Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i));
             move.setPromotionPiece(type);
             moves.add(move);
          }
@@ -154,7 +179,7 @@ public class Pawn extends Piece {
 
    /**
     * 'Moves' the pawns set-wise two squares forward.
-    * 
+    *
     * @param chessboard
     *           state of the board
     * @param helper
@@ -175,14 +200,14 @@ public class Pawn extends Piece {
       twoSquaresForward.and(chessboard.getEmptySquares().getBitSet()); // move must be to an empty square
       int offset = helper.getColour() == Colour.WHITE ? -16 : 16;
       for (int i = twoSquaresForward.nextSetBit(0); i >= 0; i = twoSquaresForward.nextSetBit(i + 1)) {
-         moves.add(new Move(this, Square.fromBitPosn(i + offset), Square.fromBitPosn(i)));
+         moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
       }
       return moves;
    }
 
    /**
     * Captures 'left' from white's POV e.g. b3xa4 or for a black move e.g. b6xa5.
-    * 
+    *
     * @param chessboard
     *           state of the board
     * @param helper
@@ -209,14 +234,24 @@ public class Pawn extends Piece {
       }
       int offset = helper.getColour() == Colour.WHITE ? -7 : 9;
       for (int i = captureLeft.nextSetBit(0); i >= 0; i = captureLeft.nextSetBit(i + 1)) {
-         moves.add(new Move(this, Square.fromBitPosn(i + offset), Square.fromBitPosn(i), true));
+         Square targetSquare = Square.fromBitIndex(i);
+         PieceType capturedPiece;
+         // no piece present on the attack square if 'checkingForAttack'
+         if (checkingForAttack) {
+            capturedPiece = PieceType.DUMMY;
+         } else {
+            capturedPiece = targetSquare == chessboard.getEnpassantSquare() ? PieceType.PAWN : chessboard
+                  .pieceAt(targetSquare);
+         }
+
+         moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece));
       }
       return moves;
    }
 
    /**
     * Captures 'right' from white's POV e.g. b3xc4 or for a black move e.g. b6xc5.
-    * 
+    *
     * @param chessboard
     *           state of the board
     * @param helper
@@ -241,14 +276,23 @@ public class Pawn extends Piece {
       }
       int offset = helper.getColour() == Colour.WHITE ? -9 : 7;
       for (int i = captureRight.nextSetBit(0); i >= 0; i = captureRight.nextSetBit(i + 1)) {
-         moves.add(new Move(this, Square.fromBitPosn(i + offset), Square.fromBitPosn(i), true));
+         Square targetSquare = Square.fromBitIndex(i);
+         PieceType capturedPiece;
+         // no piece present on the attack square if 'checkingForAttack'
+         if (checkingForAttack) {
+            capturedPiece = PieceType.DUMMY;
+         } else {
+            capturedPiece = targetSquare == chessboard.getEnpassantSquare() ? PieceType.PAWN : chessboard
+                  .pieceAt(targetSquare);
+         }
+         moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece));
       }
       return moves;
    }
 
    /**
     * Calculates if the given move leaves the opponent's king in check.
-    * 
+    *
     * @param chessboard
     *           the board
     * @param move
@@ -261,8 +305,8 @@ public class Pawn extends Piece {
       if (move.isPromotion()) {
          Map<PieceType, Piece> myPieces;
          BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
-         emptySquares.set(move.from().bitPosn());
-         emptySquares.clear(move.to().bitPosn());
+         emptySquares.set(move.from().bitIndex());
+         emptySquares.clear(move.to().bitIndex());
 
          PieceType promotedPiece = move.getPromotedPiece();
          // TODO could be improved ...
@@ -291,7 +335,7 @@ public class Pawn extends Piece {
       } else {
          // set up bitset with the square the pawn moved to
          BitSet left = new BitSet(64);
-         left.set(move.to().bitPosn());
+         left.set(move.to().bitIndex());
          BitSet right = (BitSet) left.clone();
 
          left.and(BitBoard.EXCEPT_FILE[1].getBitSet()); // only the pawns on the 2nd to 8th files
@@ -302,7 +346,7 @@ public class Pawn extends Piece {
          // now 'and' with king's bitset
          // TODO shouldn't create every time
          BitSet king = new BitSet(64);
-         king.set(opponentsKing.bitPosn());
+         king.set(opponentsKing.bitIndex());
          left.and(king);
          right.and(king);
 
@@ -329,7 +373,7 @@ public class Pawn extends Piece {
    private interface MoveHelper {
       /**
        * Shifts the given bitset one rank north or south.
-       * 
+       *
        * @param bs
        *           start bitset
        * @return shifted bitset
@@ -339,7 +383,7 @@ public class Pawn extends Piece {
       /**
        * Given the starting bitset, returns a new bitset representing the pawn capture 'to the right' as seen from
        * white's POV, e.g. b3xc4 or for a black move e.g. b6xc5.
-       * 
+       *
        * @param startPosn
        *           starting bitset
        * @return the shifted bitset
@@ -349,7 +393,7 @@ public class Pawn extends Piece {
       /**
        * Given the starting bitset, returns a new bitset representing the pawn capture 'to the left' as seen from
        * white's POV, e.g. b3xa4 or for a black move e.g. b6xa5.
-       * 
+       *
        * @param startPosn
        *           starting bitset
        * @return the shifted bitset
@@ -363,14 +407,14 @@ public class Pawn extends Piece {
 
       /**
        * The last rank (1st or 8th) depending on the colour.
-       * 
+       *
        * @return The last rank
        */
       BitBoard lastRank();
 
       /**
        * The starting rank for the pawns (2nd or 6th) depending on the colour.
-       * 
+       *
        * @return The starting rank
        */
       BitBoard startRank();

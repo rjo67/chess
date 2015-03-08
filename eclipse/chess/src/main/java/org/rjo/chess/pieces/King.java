@@ -16,7 +16,7 @@ import org.rjo.chess.Square;
 
 /**
  * Stores information about the king in the game.
- * 
+ *
  * @author rich
  * @see http://chessprogramming.wikispaces.com/King+Pattern
  */
@@ -54,27 +54,56 @@ public class King extends Piece {
    }
 
    /**
-    * Constructs the King class with the default start squares.
-    * 
+    * Constructs the King class -- with no pieces on the board. Delegates to King(Colour, boolean) with parameter
+    * false.
+    *
     * @param colour
     *           indicates the colour of the pieces
     */
    public King(Colour colour) {
-      this(colour, (Square[]) null);
+      this(colour, false);
    }
 
    /**
-    * Constructs the King class with the default start squares.
-    * 
+    * Constructs the King class.
+    *
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startPosition
+    *           if true, the default start squares are assigned. If false, no pieces are placed on the board.
+    */
+   public King(Colour colour, boolean startPosition) {
+      this(colour, startPosition, (Square[]) null);
+   }
+
+   /**
+    * Constructs the King class, defining the start squares.
+    *
     * @param colour
     *           indicates the colour of the pieces
     * @param startSquares
-    *           the required starting squares of the piece(s). Can be null, in which case the default start squares are
-    *           used. (In this case see the alternative constructor {@link #King(Colour)}.)
+    *           the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the
+    *           board.
     */
    public King(Colour colour, Square... startSquares) {
+      this(colour, false, startSquares);
+   }
+
+   /**
+    * Constructs the King class with the required squares (can be null) or the default start squares.
+    * Setting 'startPosition' true has precedence over 'startSquares'.
+    *
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startPosition
+    *           if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+    * @param startSquares
+    *           the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the
+    *           board.
+    */
+   public King(Colour colour, boolean startPosition, Square... startSquares) {
       super(colour, PieceType.KING);
-      if (startSquares == null) {
+      if (startPosition) {
          initPosition();
       } else {
          initPosition(startSquares);
@@ -115,26 +144,33 @@ public class King extends Piece {
       // move can't be to a square with a piece of the same colour on it
       possibleMoves.andNot(game.getChessboard().getAllPieces(colour).getBitSet());
 
+      /*
+       * possibleMoves now contains the possible moves. (King-adjacency and moving the king to an attacked square
+       * have not been checked yet.)
+       */
+
+      // set up captures bitset
+      BitSet captures = (BitSet) possibleMoves.clone();
+      captures.and(game.getChessboard().getAllPieces(Colour.oppositeColour(getColour())).getBitSet());
+
       Square opponentsKingSquare = findOpponentsKing(game.getChessboard());
-      Square kingPosn = Square.fromBitPosn(pieces.getBitSet().nextSetBit(0));
+      Square kingPosn = Square.fromBitIndex(pieces.getBitSet().nextSetBit(0));
+      // check the possibleMoves and store them as moves / captures.
       for (int i = possibleMoves.nextSetBit(0); i >= 0; i = possibleMoves.nextSetBit(i + 1)) {
-         Square targetSquare = Square.fromBitPosn(i);
+         Square targetSquare = Square.fromBitIndex(i);
          // make sure we're not moving king to king
-         // and cannot move to a square that is being attacked
+         // and not moving to a square that is being attacked
          if ((MoveDistance.calculateDistance(targetSquare, opponentsKingSquare) > 1)
                && !game.getChessboard().squareIsAttacked(game, targetSquare, Colour.oppositeColour(colour))) {
             /*
-             * check for captures in 'possibleMoves'.
-             * If any found, remove from 'possibleMoves' before next iteration.
+             * store move as 'move' or 'capture'
              */
-            BitSet captures = (BitSet) possibleMoves.clone();
-            captures.and(game.getChessboard().getAllPieces(Colour.oppositeColour(getColour())).getBitSet());
-            for (int j = captures.nextSetBit(0); j >= 0; j = captures.nextSetBit(j + 1)) {
-               moves.add(new Move(this, kingPosn, targetSquare, true));
-               // remove capture square
-               possibleMoves.clear(j);
+            if (captures.get(i)) {
+               moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare, game.getChessboard().pieceAt(
+                     targetSquare)));
+            } else {
+               moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare));
             }
-            moves.add(new Move(this, kingPosn, targetSquare));
          }
       }
 
@@ -144,7 +180,7 @@ public class King extends Piece {
          boolean canCastle = true;
          // check squares are empty
          for (Square sq : CASTLING_SQUARES_WHICH_MUST_BE_EMPTY.get(colour).get(CastlingRights.KINGS_SIDE)) {
-            canCastle = canCastle && emptySquaresBitset.get(sq.bitPosn());
+            canCastle = canCastle && emptySquaresBitset.get(sq.bitIndex());
          }
          // check squares are not attacked by an enemy piece
          for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(colour).get(CastlingRights.KINGS_SIDE)) {
@@ -153,7 +189,7 @@ public class King extends Piece {
             }
          }
          if (canCastle) {
-            moves.add(Move.castleKingsSide(this));
+            moves.add(Move.castleKingsSide(colour));
          }
       }
       if (game.canCastle(colour, CastlingRights.QUEENS_SIDE)) {
@@ -161,7 +197,7 @@ public class King extends Piece {
          boolean canCastle = true;
          // check squares are empty
          for (Square sq : CASTLING_SQUARES_WHICH_MUST_BE_EMPTY.get(colour).get(CastlingRights.QUEENS_SIDE)) {
-            canCastle = canCastle && emptySquaresBitset.get(sq.bitPosn());
+            canCastle = canCastle && emptySquaresBitset.get(sq.bitIndex());
          }
          // check squares are not attacked by an enemy piece
          for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(colour).get(CastlingRights.QUEENS_SIDE)) {
@@ -170,7 +206,7 @@ public class King extends Piece {
             }
          }
          if (canCastle) {
-            moves.add(Move.castleQueensSide(this));
+            moves.add(Move.castleQueensSide(colour));
          }
       }
 
@@ -188,9 +224,9 @@ public class King extends Piece {
 
    /**
     * Locates the enemy's king.
-    * 
+    *
     * TODO store this value in 'Game' after each move, to make this lookup quicker.
-    * 
+    *
     * @param myColour
     *           my colour
     * @param chessboard

@@ -21,7 +21,7 @@ public class QueenMoveTest {
 
    @Before
    public void setup() {
-      opponentsKing = new King(Colour.BLACK);
+      opponentsKing = new King(Colour.BLACK, true);
    }
 
    @Test
@@ -37,12 +37,12 @@ public class QueenMoveTest {
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteQueen));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil
-            .checkMoves(
-                  whiteQueen.findMoves(game),
-                  new HashSet<>(Arrays.asList("Qd4-d5", "Qd4-d6", "Qd4-d7+", "Qd4-d8+", "Qd4-e4+", "Qd4-f4", "Qd4-g4",
-                        "Qd4-h4", "Qd4-d3", "Qd4-d2", "Qd4-d1", "Qd4-c4", "Qd4-b4", "Qd4-a4+", "Qd4-e5+", "Qd4-f6",
-                        "Qd4-g7", "Qd4-h8+", "Qd4-c5", "Qd4-b6", "Qd4-a7", "Qd4-e3+", "Qd4-f2", "Qd4-g1", "Qd4-c3",
-                        "Qd4-b2", "Qd4-a1")));
+      .checkMoves(
+            whiteQueen.findMoves(game),
+            new HashSet<>(Arrays.asList("Qd4-d5", "Qd4-d6", "Qd4-d7+", "Qd4-d8+", "Qd4-e4+", "Qd4-f4", "Qd4-g4",
+                  "Qd4-h4", "Qd4-d3", "Qd4-d2", "Qd4-d1", "Qd4-c4", "Qd4-b4", "Qd4-a4+", "Qd4-e5+", "Qd4-f6",
+                  "Qd4-g7", "Qd4-h8+", "Qd4-c5", "Qd4-b6", "Qd4-a7", "Qd4-e3+", "Qd4-f2", "Qd4-g1", "Qd4-c3",
+                  "Qd4-b2", "Qd4-a1")));
    }
 
    @Test

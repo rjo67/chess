@@ -278,7 +278,7 @@ public class BitBoard {
     */
    public void setBitsAt(Square... squares) {
       for (Square coord : squares) {
-         this.bs.set(coord.bitPosn());
+         this.bs.set(coord.bitIndex());
       }
    }
 

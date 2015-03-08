@@ -16,7 +16,7 @@ import org.rjo.chess.WestMoveHelper;
 
 /**
  * Stores information about the rooks (still) in the game.
- * 
+ *
  * @author rich
  */
 public class Rook extends SlidingPiece {
@@ -27,27 +27,56 @@ public class Rook extends SlidingPiece {
    private static MoveHelper EAST_MOVE_HELPER = EastMoveHelper.instance();
 
    /**
-    * Constructs the Rook class with the default start squares.
-    * 
+    * Constructs the Rook class -- with no pieces on the board. Delegates to Rook(Colour, boolean) with parameter
+    * false.
+    *
     * @param colour
     *           indicates the colour of the pieces
     */
    public Rook(Colour colour) {
-      this(colour, (Square[]) null);
+      this(colour, false);
    }
 
    /**
-    * Constructs the Rook class with the default start squares.
-    * 
+    * Constructs the Rook class.
+    *
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startPosition
+    *           if true, the default start squares are assigned. If false, no pieces are placed on the board.
+    */
+   public Rook(Colour colour, boolean startPosition) {
+      this(colour, startPosition, (Square[]) null);
+   }
+
+   /**
+    * Constructs the Rook class, defining the start squares.
+    *
     * @param colour
     *           indicates the colour of the pieces
     * @param startSquares
-    *           the required starting squares of the piece(s). Can be null, in which case the default start squares are
-    *           used. (In this case see the alternative constructor {@link #Rook(Colour)}.)
+    *           the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the
+    *           board.
     */
    public Rook(Colour colour, Square... startSquares) {
+      this(colour, false, startSquares);
+   }
+
+   /**
+    * Constructs the Rook class with the required squares (can be null) or the default start squares.
+    * Setting 'startPosition' true has precedence over 'startSquares'.
+    *
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startPosition
+    *           if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+    * @param startSquares
+    *           the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the
+    *           board.
+    */
+   public Rook(Colour colour, boolean startPosition, Square... startSquares) {
       super(colour, PieceType.ROOK);
-      if (startSquares == null) {
+      if (startPosition) {
          initPosition();
       } else {
          initPosition(startSquares);
@@ -93,7 +122,7 @@ public class Rook extends SlidingPiece {
       boolean attacksSquare = false;
       int i = pieces.getBitSet().nextSetBit(0);
       while ((!attacksSquare) && (i >= 0)) {
-         attacksSquare = attacksSquareRankOrFile(chessboard.getEmptySquares().getBitSet(), Square.fromBitPosn(i),
+         attacksSquare = attacksSquareRankOrFile(chessboard.getEmptySquares().getBitSet(), Square.fromBitIndex(i),
                targetSq);
          if (!attacksSquare) {
             i = pieces.getBitSet().nextSetBit(i + 1);

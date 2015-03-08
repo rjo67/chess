@@ -22,12 +22,12 @@ public enum Square {
    //@formatter:on
 
    // look up map
-   private static Map<Integer, Square> bitPosnToSquare = new HashMap<>(64);
+   private static Map<Integer, Square> bitIndexToSquare = new HashMap<>(64);
 
-   private int bitPosn;
+   private int bitIndex;
 
-   private Square(int bitPosn) {
-      this.bitPosn = bitPosn;
+   private Square(int bitIndex) {
+      this.bitIndex = bitIndex;
    }
 
    /**
@@ -36,7 +36,7 @@ public enum Square {
     * @return
     */
    public int rank() {
-      return bitPosn / 8;
+      return bitIndex / 8;
    }
 
    /**
@@ -45,7 +45,7 @@ public enum Square {
     * @return
     */
    public int file() {
-      return bitPosn % 8;
+      return bitIndex % 8;
    }
 
    /**
@@ -53,25 +53,25 @@ public enum Square {
     * 
     * @return the bit posn 0..63
     */
-   public int bitPosn() {
-      return bitPosn;
+   public int bitIndex() {
+      return bitIndex;
    }
 
    /**
     * Gives the matching square to a bit posn.
     * 
-    * @param bitPosn
-    *           the required bit posn
+    * @param bitIndex
+    *           the required bit index (0..63)
     * @return the matching square or null
     */
-   public static Square fromBitPosn(int bitPosn) {
+   public static Square fromBitIndex(int bitIndex) {
       // build static map the first time
-      if (bitPosnToSquare.isEmpty()) {
+      if (bitIndexToSquare.isEmpty()) {
          for (Square sq : Square.values()) {
-            bitPosnToSquare.put(sq.bitPosn(), sq);
+            bitIndexToSquare.put(sq.bitIndex(), sq);
          }
       }
-      return bitPosnToSquare.get(bitPosn);
+      return bitIndexToSquare.get(bitIndex);
    }
 
    /**
@@ -108,6 +108,6 @@ public enum Square {
     */
    public static Square fromRankAndFile(int rank, int file) {
       int bitPosn = (rank * 8) + (file);
-      return Square.fromBitPosn(bitPosn);
+      return Square.fromBitIndex(bitPosn);
    }
 }

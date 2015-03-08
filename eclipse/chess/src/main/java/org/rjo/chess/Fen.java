@@ -20,10 +20,10 @@ import org.rjo.chess.pieces.Rook;
 /**
  * Implementation of the Forsyth–Edwards Notation to record a game's position.
  * https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
- * 
- * 
+ *
+ *
  * A FEN record contains six fields. The separator between fields is a space. The fields are:
- * 
+ *
  * <ul>
  * <li>Piece placement (from white's perspective). Each rank is described, starting with rank 8 and ending with rank 1;
  * within each rank, the contents of each square are described from file "a" through file "h". Each piece is identified
@@ -41,14 +41,14 @@ import org.rjo.chess.pieces.Rook;
  * if a draw can be claimed under the fifty-move rule.</li>
  * <li>Fullmove number: The number of the full move. It starts at 1, and is incremented after Black's move.</li>
  * </ul>
- * 
+ *
  * @author rich
  */
 public class Fen {
 
    /**
     * Creates a FEN notation for the given game.
-    * 
+    *
     * @param game
     *           state of the game
     * @return a FEN string
@@ -110,7 +110,7 @@ public class Fen {
 
    /**
     * Parses a FEN notation to create a game state.
-    * 
+    *
     * @param fen
     *           a FEN representation of a chess position
     * @return a Game object
@@ -136,7 +136,7 @@ public class Fen {
 
    /**
     * Active color. "w" means White moves next, "b" means Black.
-    * 
+    *
     * @param game
     *           game state
     * @param token
@@ -166,7 +166,7 @@ public class Fen {
     * Castling availability. If neither side can castle, this is "-". Otherwise, this has one or more letters: "K"
     * (White can castle kingside), "Q" (White can castle queenside), "k" (Black can castle kingside), and/or "q" (Black
     * can castle queenside).
-    * 
+    *
     * @param game
     *           game state
     * @param token
@@ -217,9 +217,9 @@ public class Fen {
     * En passant target square in algebraic notation. If there's no en passant target square, this is "-". If a pawn
     * has just made a two-square move, this is the position "behind" the pawn. This is recorded regardless of whether
     * there is a pawn in position to make an en passant capture.
-    * 
+    *
     * @param game
-    * 
+    *
     * @param token
     */
    private static void parseEnpassantSquare(Game game, String token) {
@@ -240,9 +240,9 @@ public class Fen {
    /**
     * Halfmove clock: This is the number of halfmoves since the last capture or pawn advance. This is used to
     * determine if a draw can be claimed under the fifty-move rule.
-    * 
+    *
     * @param game
-    * 
+    *
     * @param token
     */
    private static void parseHalfmoveClock(Game game, String token) {
@@ -261,9 +261,9 @@ public class Fen {
 
    /**
     * Fullmove number: The number of the full move. It starts at 1, and is incremented after Black's move.
-    * 
+    *
     * @param game
-    * 
+    *
     * @param token
     */
    private static void parseFullmoveNumber(Game game, String token) {
@@ -317,11 +317,11 @@ public class Fen {
                }
                if (foundPiece == null) {
                   throw new IllegalArgumentException("invalid FEN string: symbol '" + ch
-                        + "' not allowed. Full string: '" + fen + "'");
+                        + "' not recognised. Full string: '" + fen + "'");
                }
                // add to piece map
                List<Square> list = pieceMap.get(foundPiece);
-               list.add(Square.fromBitPosn(bitPosn));
+               list.add(Square.fromBitIndex(bitPosn));
                pieceMap.put(foundPiece, list);
 
                bitPosn++;
@@ -340,13 +340,14 @@ public class Fen {
       }
 
       // now init the pieces with the squares that have been parsed (from the map pieceMap)
+      // contains all piece types -- even if no pieces of this type exist on the board
       Set<Piece>[] pieces = new HashSet[Colour.values().length];
       for (Colour colour : Colour.values()) {
          pieces[colour.ordinal()] = new HashSet<>();
       }
       for (Piece piece : allPieces) {
-         // check if there are any pieces at all of this type
-         if (pieceMap.get(piece).size() != 0) {
+         pieces[piece.getColour().ordinal()].add(piece);
+         if (!pieceMap.get(piece).isEmpty()) {
             piece.initPosition(pieceMap.get(piece).toArray(new Square[1]));
             pieces[piece.getColour().ordinal()].add(piece);
          }

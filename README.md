@@ -3,6 +3,17 @@ chess
 
 explorations in the world of chess computer programming
 
+
+
+still TODO:
+* detection of pinned pieces in move generation
+
+
+
+## 08.03.15
+first steps to playing a move. Move.java expanded to hold further details e.g. which piece was captured,
+whether an en passant move, castling, in preparation for the 'unmove' funtion.
+
 ## 04.03.15 
 Handling of discovered checks.
 

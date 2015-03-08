@@ -35,14 +35,14 @@ public abstract class Piece {
 
    /**
     * Initialises data structures to the starting position of the pieces.
-    * 
+    *
     * @see #initPosition(Square...).
     */
    abstract public void initPosition();
 
    /**
     * Finds all possible moves for this piece type in the given game.
-    * 
+    *
     * @param game
     *           current game state.
     * @return a list of all possible moves.
@@ -51,7 +51,7 @@ public abstract class Piece {
 
    /**
     * Checks to see if the given square is attacked by one or more pieces of this piece type.
-    * 
+    *
     * @param chessboard
     *           the board
     * @param targetSq
@@ -59,6 +59,47 @@ public abstract class Piece {
     * @return true if it is attacked, otherwise false.
     */
    abstract public boolean attacksSquare(Chessboard chessboard, Square targetSq);
+
+   /**
+    * Carries out the move for this piece type, i.e. updates internal structures.
+    * More complicated situations e.g. promotions, captures are dealt with in {@link Game#move(Move)}.
+    *
+    * @param move
+    *           the move
+    */
+   public void move(Move move) {
+      if (!pieces.getBitSet().get(move.from().bitIndex())) {
+         throw new IllegalArgumentException("no " + type + " found on square " + move.from() + ". Move=" + move);
+      }
+      pieces.getBitSet().clear(move.from().bitIndex());
+      if (!move.isPromotion()) {
+         pieces.getBitSet().set(move.to().bitIndex());
+      }
+   }
+
+   /**
+    * Removes the captured piece in a capture move from the internal data structures for that piece type.
+    *
+    * @param square
+    *           from where to remove the piece
+    */
+   public void removePiece(Square square) {
+      if (!pieces.getBitSet().get(square.bitIndex())) {
+         throw new IllegalArgumentException("no " + type + " found on square " + square);
+      }
+      pieces.getBitSet().clear(square.bitIndex());
+   }
+
+   /**
+    * Adds a piece to the internal data structures at the given square. Mainly for promotions.
+    * No error checking is performed here.
+    *
+    * @param square
+    *           where to add the piece
+    */
+   public void addPiece(Square square) {
+      pieces.getBitSet().set(square.bitIndex());
+   }
 
    protected Piece(Colour colour, PieceType type) {
       this.colour = colour;
@@ -75,31 +116,33 @@ public abstract class Piece {
 
    /**
     * Sets the start squares for this piece type to the parameter(s).
-    * 
+    *
     * @param requiredSquares
     *           all required squares.
     */
    public void initPosition(Square... requiredSquares) {
       pieces = new BitBoard();
-      pieces.setBitsAt(requiredSquares);
+      if (requiredSquares != null) {
+         pieces.setBitsAt(requiredSquares);
+      }
    }
 
    /**
     * Returns all the squares currently occupied by this piece type.
-    * 
+    *
     * @return the squares currently occupied by this piece type
     */
    public Square[] getLocations() {
       Set<Square> set = new HashSet<>();
       for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-         set.add(Square.fromBitPosn(i));
+         set.add(Square.fromBitIndex(i));
       }
       return set.toArray(new Square[set.size()]);
    }
 
    /**
     * Returns the FEN symbol for this piece. Delegates to {@link PieceType#getFenSymbol(Colour)}.
-    * 
+    *
     * @return the FEN symbol for this piece.
     */
    public String getFenSymbol() {
@@ -118,6 +161,17 @@ public abstract class Piece {
 
    public PieceType getType() {
       return type;
+   }
+
+   /**
+    * Returns true if this piece type is present on the given square.
+    *
+    * @param targetSquare
+    *           square of interest.
+    * @return true if this piece type is present, otherwise false.
+    */
+   public boolean pieceAt(Square targetSquare) {
+      return pieces.getBitSet().get(targetSquare.bitIndex());
    }
 
 }

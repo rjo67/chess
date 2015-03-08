@@ -15,33 +15,62 @@ import org.rjo.chess.Square;
 
 /**
  * Stores information about the bishops (still) in the game.
- * 
+ *
  * @author rich
  */
 public class Bishop extends SlidingPiece {
 
    /**
-    * Constructs the Bishop class with the default start squares.
-    * 
+    * Constructs the Bishop class -- with no pieces on the board. Delegates to Bishop(Colour, boolean) with parameter
+    * false.
+    *
     * @param colour
     *           indicates the colour of the pieces
     */
    public Bishop(Colour colour) {
-      this(colour, (Square[]) null);
+      this(colour, false);
    }
 
    /**
-    * Constructs the Bishop class with the default start squares.
-    * 
+    * Constructs the Bishop class.
+    *
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startPosition
+    *           if true, the default start squares are assigned. If false, no pieces are placed on the board.
+    */
+   public Bishop(Colour colour, boolean startPosition) {
+      this(colour, startPosition, (Square[]) null);
+   }
+
+   /**
+    * Constructs the Bishop class, defining the start squares.
+    *
     * @param colour
     *           indicates the colour of the pieces
     * @param startSquares
-    *           the required starting squares of the piece(s). Can be null, in which case the default start squares are
-    *           used. (In this case see the alternative constructor {@link #Bishop(Colour)}.)
+    *           the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the
+    *           board.
     */
    public Bishop(Colour colour, Square... startSquares) {
+      this(colour, false, startSquares);
+   }
+
+   /**
+    * Constructs the Bishop class with the required squares (can be null) or the default start squares.
+    * Setting 'startPosition' true has precedence over 'startSquares'.
+    *
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startPosition
+    *           if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+    * @param startSquares
+    *           the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the
+    *           board.
+    */
+   public Bishop(Colour colour, boolean startPosition, Square... startSquares) {
       super(colour, PieceType.BISHOP);
-      if (startSquares == null) {
+      if (startPosition) {
          initPosition();
       } else {
          initPosition(startSquares);
@@ -87,7 +116,7 @@ public class Bishop extends SlidingPiece {
       boolean attacksSquare = false;
       int i = pieces.getBitSet().nextSetBit(0);
       while ((!attacksSquare) && (i >= 0)) {
-         attacksSquare = attacksSquareDiagonally(chessboard.getEmptySquares().getBitSet(), Square.fromBitPosn(i),
+         attacksSquare = attacksSquareDiagonally(chessboard.getEmptySquares().getBitSet(), Square.fromBitIndex(i),
                targetSq);
          i = pieces.getBitSet().nextSetBit(i + 1);
       }

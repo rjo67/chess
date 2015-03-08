@@ -1,13 +1,10 @@
 package org.rjo.chess;
 
-import org.rjo.chess.pieces.King;
-import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.pieces.PieceType;
-import org.rjo.chess.pieces.Rook;
 
 /**
  * Represents a move.
- * 
+ *
  * @author rich
  */
 public class Move {
@@ -15,10 +12,13 @@ public class Move {
    private Square from;
    private Square to;
 
-   private Piece piece; // maybe a bit heavyweight
+   /** which piece is moving */
+   private PieceType piece;
+   /** colour of the piece */
+   private Colour colour;
 
-   /** whether this move was a capture */
-   private boolean capture;
+   /** capture info -- if not null, implies that this move was a capture */
+   private CaptureInfo captureInfo;
 
    /** whether this move was a check */
    private boolean check;
@@ -31,7 +31,7 @@ public class Move {
 
    /**
     * Constructor for normal non-capture non-check moves.
-    * 
+    *
     * @param piece
     *           which piece is moving
     * @param from
@@ -39,29 +39,29 @@ public class Move {
     * @param to
     *           destination square
     */
-   public Move(Piece piece, Square from, Square to) {
-      this(piece, from, to, false);
+   public Move(PieceType piece, Colour colour, Square from, Square to) {
+      this(piece, colour, from, to, null);
    }
 
    /**
     * Constructor allowing specification of capture (non-check) moves.
-    * 
+    *
     * @param piece
     *           which piece is moving
     * @param from
     *           start square
     * @param to
     *           destination square
-    * @param capture
-    *           whether this move is a capture
+    * @param capturedPiece
+    *           the captured piece (null if not a capture)
     */
-   public Move(Piece piece, Square from, Square to, boolean capture) {
-      this(piece, from, to, capture, false);
+   public Move(PieceType piece, Colour colour, Square from, Square to, PieceType capturedPiece) {
+      this(piece, colour, from, to, capturedPiece, false);
    }
 
    /**
     * Constructor allowing specification of capture and check moves.
-    * 
+    *
     * @param piece
     *           which piece is moving
     * @param from
@@ -73,17 +73,26 @@ public class Move {
     * @param check
     *           whether this move is a check
     */
-   public Move(Piece piece, Square from, Square to, boolean capture, boolean check) {
+   public Move(PieceType piece, Colour colour, Square from, Square to, PieceType capturedPiece, boolean check) {
       this.piece = piece;
+      this.colour = colour;
       this.from = from;
       this.to = to;
-      this.capture = capture;
+      if (capturedPiece != null) {
+         this.captureInfo = new CaptureInfo(capturedPiece);
+      }
       this.check = check;
       this.castlingInfo = null;
    }
 
+   /**
+    * Sets the promotion piece i/c of a pawn promotion.
+    * 
+    * @param type
+    *           to which piece the pawn gets promoted
+    */
    public void setPromotionPiece(PieceType type) {
-      if (piece.getType() != PieceType.PAWN) {
+      if (piece != PieceType.PAWN) {
          throw new IllegalArgumentException("can only specify a promotion piece for a pawn move");
       }
 
@@ -102,7 +111,7 @@ public class Move {
       } else {
          sb.append(piece.getSymbol());
          sb.append(from);
-         sb.append(capture ? "x" : "-");
+         sb.append(isCapture() ? "x" : "-");
          sb.append(to);
          sb.append(isPromotion() ? "=" + promotionInfo.promotedPiece.getSymbol() : "");
       }
@@ -110,30 +119,30 @@ public class Move {
       return sb.toString();
    }
 
-   public static Move castleKingsSide(King king) {
+   public static Move castleKingsSide(Colour colour) {
       Move move;
-      if (king.getColour() == Colour.WHITE) {
-         move = new Move(king, Square.e1, Square.g1);
-         move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(new Rook(Colour.WHITE), Square.h1,
-               Square.f1));
+      if (Colour.WHITE == colour) {
+         move = new Move(PieceType.KING, Colour.WHITE, Square.e1, Square.g1);
+         move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(PieceType.ROOK, Colour.WHITE,
+               Square.h1, Square.f1));
       } else {
-         move = new Move(king, Square.e8, Square.g8);
-         move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(new Rook(Colour.BLACK), Square.h8,
-               Square.f8));
+         move = new Move(PieceType.KING, Colour.BLACK, Square.e8, Square.g8);
+         move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(PieceType.ROOK, Colour.BLACK,
+               Square.h8, Square.f8));
       }
       return move;
    }
 
-   public static Move castleQueensSide(King king) {
+   public static Move castleQueensSide(Colour colour) {
       Move move;
-      if (king.getColour() == Colour.WHITE) {
-         move = new Move(king, Square.e1, Square.c1);
-         move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(new Rook(Colour.WHITE), Square.a1,
-               Square.d1));
+      if (Colour.WHITE == colour) {
+         move = new Move(PieceType.KING, Colour.WHITE, Square.e1, Square.c1);
+         move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(PieceType.ROOK, Colour.WHITE,
+               Square.a1, Square.d1));
       } else {
-         move = new Move(king, Square.e8, Square.c8);
-         move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(new Rook(Colour.BLACK), Square.a8,
-               Square.d8));
+         move = new Move(PieceType.KING, Colour.BLACK, Square.e8, Square.c8);
+         move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(PieceType.ROOK, Colour.BLACK,
+               Square.a8, Square.d8));
       }
       return move;
    }
@@ -147,7 +156,15 @@ public class Move {
    }
 
    public boolean isCapture() {
-      return capture;
+      return captureInfo != null;
+   }
+
+   public PieceType getCapturedPiece() {
+      if (isCapture()) {
+         return captureInfo.capturedPiece;
+      } else {
+         throw new IllegalArgumentException("move was not a capture: " + toString());
+      }
    }
 
    public boolean isPromotion() {
@@ -166,6 +183,14 @@ public class Move {
       return (castlingInfo != null) ? castlingInfo.rooksMove : null;
    }
 
+   public PieceType getPiece() {
+      return piece;
+   }
+
+   public Colour getColour() {
+      return colour;
+   }
+
    public PieceType getPromotedPiece() {
       return (promotionInfo != null) ? promotionInfo.promotedPiece : null;
    }
@@ -178,7 +203,7 @@ public class Move {
       return to;
    }
 
-   static class CastlingInfo {
+   private static class CastlingInfo {
       public CastlingInfo(CastlingRights direction, Move rooksMove) {
          this.direction = direction;
          this.rooksMove = rooksMove;
@@ -188,7 +213,15 @@ public class Move {
       private Move rooksMove;
    }
 
-   static class PromotionInfo {
+   private static class CaptureInfo {
+      public CaptureInfo(PieceType capturedPiece) {
+         this.capturedPiece = capturedPiece;
+      }
+
+      private PieceType capturedPiece;
+   }
+
+   private static class PromotionInfo {
       public PromotionInfo(PieceType promotedPiece) {
          if ((promotedPiece == PieceType.PAWN) || (promotedPiece == PieceType.KING)) {
             throw new IllegalArgumentException("cannot promote to a pawn or king!");

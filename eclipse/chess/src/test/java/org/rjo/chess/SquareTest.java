@@ -8,12 +8,12 @@ public class SquareTest {
 
    @Test
    public void mappingToBitPosn() {
-      assertEquals(0, Square.a1.bitPosn());
+      assertEquals(0, Square.a1.bitIndex());
    }
 
    @Test
    public void mappingFromBitPosn() {
-      assertEquals(Square.a8, Square.fromBitPosn(56));
+      assertEquals(Square.a8, Square.fromBitIndex(56));
    }
 
    @Test
@@ -27,7 +27,7 @@ public class SquareTest {
    @Test
    public void bitPosns() {
       for (int i = 0; i < 64; i++) {
-         assertEquals(i, Square.fromBitPosn(i).bitPosn());
+         assertEquals(i, Square.fromBitIndex(i).bitIndex());
       }
    }
 

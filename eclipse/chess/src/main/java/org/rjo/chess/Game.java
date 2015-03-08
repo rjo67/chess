@@ -11,7 +11,7 @@ import org.rjo.chess.pieces.PieceType;
 
 /**
  * Encapsulates the board, the moves, castling rights, etc (clocks?).
- * 
+ *
  * @author rich
  */
 public class Game {
@@ -19,6 +19,8 @@ public class Game {
    private Chessboard chessboard;
    /** stores the moves (ply) */
    private Deque<Move> moves;
+   /** move number of the next move. Not calculated from size of 'moves' since we don't have to start at move 1 */
+   private int moveNbr;
    private EnumSet<CastlingRights>[] castling;
    /** which side is to move */
    private Colour sideToMove;
@@ -33,7 +35,7 @@ public class Game {
 
    /**
     * Inits a game with the given chessboard. Castling rights are set to 'empty'.
-    * 
+    *
     * @param chessboard
     *           the chessboard
     */
@@ -48,17 +50,18 @@ public class Game {
       castling[Colour.WHITE.ordinal()] = whiteCastlingRights;
       castling[Colour.BLACK.ordinal()] = blackCastlingRights;
       sideToMove = Colour.WHITE;
+      moveNbr = 1;
    }
 
    public int getMoveNumber() {
-      return (moves.size() % 2) + 1;
+      return moveNbr;
    }
 
    /**
-    * Sets the move number. NO-OP at the moment.
+    * Sets the move number.
     */
    public void setMoveNumber(int moveNbr) {
-      // NO-OP
+      this.moveNbr = moveNbr;
    }
 
    public boolean canCastle(Colour colour, CastlingRights rights) {
@@ -88,20 +91,64 @@ public class Game {
 
    /**
     * Find all moves for the given colour from the current position.
-    * 
+    *
     * @param colour
     *           the required colour
     * @return all moves for this colour.
     */
    public List<Move> findMoves(Colour colour) {
       List<Move> moves = new ArrayList<>(60);
-      for (PieceType type : PieceType.values()) {
+      for (PieceType type : PieceType.getPieceTypes()) {
          Piece p = chessboard.getPieces(colour).get(type);
-         // null == piece-type no longer on board
-         if (p != null) {
-            moves.addAll(p.findMoves(this));
-         }
+         moves.addAll(p.findMoves(this));
       }
       return moves;
+   }
+
+   /**
+    * Execute the given move.
+    *
+    * @param move
+    *           the move
+    */
+   public void move(Move move) {
+      if (move.getColour() != sideToMove) {
+         throw new IllegalArgumentException("move is for '" + move.getColour() + "' but sideToMove=" + sideToMove);
+      }
+      this.moves.add(move);
+      PieceType movingPiece = move.getPiece();
+      // double check that the move fits the data structures
+      // if (!chessboard.getPieces(sideToMove).get(movingPiece).getBitBoard().getBitSet().get(move.from().bitPosn())) {
+      // throw new IllegalArgumentException("no " + type + " found on square " + move.from() + ". Move=" + move);
+      // }
+
+      if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+         Move rooksMove = move.getRooksCastlingMove();
+         chessboard.getPieces(sideToMove).get(movingPiece).move(move);
+         chessboard.getPieces(sideToMove).get(PieceType.ROOK).move(rooksMove);
+      } else {
+         if (!move.isCapture() && !chessboard.getEmptySquares().getBitSet().get(move.to().bitIndex())) {
+            throw new IllegalArgumentException("square " + move.to() + " is not empty. Move=" + move);
+         }
+         // update structures for the moving piece
+         chessboard.getPieces(sideToMove).get(movingPiece).move(move);
+         // capture: remove the captured piece
+         if (move.isCapture()) {
+            chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece()).removePiece(move.to());
+         }
+         // promotion: add the promoted piece
+         if (move.isPromotion()) {
+            chessboard.getPieces(sideToMove).get(move.getPromotedPiece()).addPiece(move.to());
+         }
+
+         chessboard.getEmptySquares().getBitSet().set(move.from().bitIndex());
+         chessboard.getEmptySquares().getBitSet().clear(move.to().bitIndex());
+
+         setSideToMove(Colour.oppositeColour(sideToMove));
+         if (Colour.WHITE == sideToMove) {
+            moveNbr++;
+         }
+      }
+
    }
 }

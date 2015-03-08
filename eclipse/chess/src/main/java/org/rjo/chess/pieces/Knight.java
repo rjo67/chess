@@ -13,7 +13,7 @@ import org.rjo.chess.Square;
 
 /**
  * Stores information about the knights (still) in the game.
- * 
+ *
  * @author rich
  */
 public class Knight extends Piece {
@@ -33,7 +33,7 @@ public class Knight extends Piece {
           * - blank first and 2nd file for -17 and +15
           * RHS: blank last file for +10 and -6
           * - blank 7th and 8th file for +17 and -15
-          * 
+          *
           * Don't need to blank ranks, these just 'drop off' during the bit shift.
           */
 
@@ -74,34 +74,63 @@ public class Knight extends Piece {
 
          // store results
          knightMoves[i].clear(i); // clear the start position
-         for (int j = 0; j < work.length; j++) {
-            knightMoves[i].or(work[j]);
+         for (BitSet element : work) {
+            knightMoves[i].or(element);
          }
       }
    }
 
    /**
-    * Constructs the Knight class with the default start squares.
-    * 
+    * Constructs the Knight class -- with no pieces on the board. Delegates to Knight(Colour, boolean) with parameter
+    * false.
+    *
     * @param colour
     *           indicates the colour of the pieces
     */
    public Knight(Colour colour) {
-      this(colour, (Square[]) null);
+      this(colour, false);
    }
 
    /**
-    * Constructs the Knight class with the default start squares.
-    * 
+    * Constructs the Knight class.
+    *
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startPosition
+    *           if true, the default start squares are assigned. If false, no pieces are placed on the board.
+    */
+   public Knight(Colour colour, boolean startPosition) {
+      this(colour, startPosition, (Square[]) null);
+   }
+
+   /**
+    * Constructs the Knight class, defining the start squares.
+    *
     * @param colour
     *           indicates the colour of the pieces
     * @param startSquares
-    *           the required starting squares of the piece(s). Can be null, in which case the default start squares are
-    *           used. (In this case see the alternative constructor {@link #Knight(Colour)}.)
+    *           the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the
+    *           board.
     */
    public Knight(Colour colour, Square... startSquares) {
+      this(colour, false, startSquares);
+   }
+
+   /**
+    * Constructs the Knight class with the required squares (can be null) or the default start squares.
+    * Setting 'startPosition' true has precedence over 'startSquares'.
+    *
+    * @param colour
+    *           indicates the colour of the pieces
+    * @param startPosition
+    *           if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+    * @param startSquares
+    *           the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the
+    *           board.
+    */
+   public Knight(Colour colour, boolean startPosition, Square... startSquares) {
       super(colour, PieceType.KNIGHT);
-      if (startSquares == null) {
+      if (startPosition) {
          initPosition();
       } else {
          initPosition(startSquares);
@@ -127,7 +156,7 @@ public class Knight extends Piece {
          // move can't be to a square with a piece of the same colour on it
          possibleMoves.andNot(game.getChessboard().getAllPieces(colour).getBitSet());
 
-         Square knightStartSquare = Square.fromBitPosn(i);
+         Square knightStartSquare = Square.fromBitIndex(i);
          /*
           * check for captures in 'possibleMoves'.
           * If any found, remove from 'possibleMoves' before next iteration.
@@ -135,7 +164,9 @@ public class Knight extends Piece {
          BitSet captures = (BitSet) possibleMoves.clone();
          captures.and(game.getChessboard().getAllPieces(Colour.oppositeColour(getColour())).getBitSet());
          for (int j = captures.nextSetBit(0); j >= 0; j = captures.nextSetBit(j + 1)) {
-            moves.add(new Move(this, knightStartSquare, Square.fromBitPosn(j), true));
+            Square targetSquare = Square.fromBitIndex(j);
+            moves.add(new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare, game.getChessboard().pieceAt(
+                  targetSquare)));
             // remove capture square
             possibleMoves.clear(j);
          }
@@ -143,14 +174,14 @@ public class Knight extends Piece {
           * store any remaining moves.
           */
          for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
-            moves.add(new Move(this, knightStartSquare, Square.fromBitPosn(k)));
+            moves.add(new Move(PieceType.KNIGHT, colour, knightStartSquare, Square.fromBitIndex(k)));
          }
       }
 
       // checks
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
       BitSet king = new BitSet(64);
-      king.set(opponentsKing.bitPosn());
+      king.set(opponentsKing.bitIndex());
       for (Move move : moves) {
          boolean isCheck = checkIfCheck(move, king);
          // if it's already check, don't need to calculate discovered check
@@ -165,7 +196,7 @@ public class Knight extends Piece {
 
    private boolean checkIfCheck(Move move, BitSet opponentsKing) {
       // check if the king is a knight move away from the destination square of the move
-      BitSet possibleMoves = (BitSet) knightMoves[move.to().bitPosn()].clone();
+      BitSet possibleMoves = (BitSet) knightMoves[move.to().bitIndex()].clone();
       possibleMoves.and(opponentsKing);
 
       return !possibleMoves.isEmpty();
@@ -173,7 +204,7 @@ public class Knight extends Piece {
 
    @Override
    public boolean attacksSquare(Chessboard notUsed, Square targetSq) {
-      BitSet possibleMovesFromTargetSquare = (BitSet) knightMoves[targetSq.bitPosn()].clone();
+      BitSet possibleMovesFromTargetSquare = (BitSet) knightMoves[targetSq.bitIndex()].clone();
       possibleMovesFromTargetSquare.and(pieces.getBitSet());
       return !possibleMovesFromTargetSquare.isEmpty();
    }

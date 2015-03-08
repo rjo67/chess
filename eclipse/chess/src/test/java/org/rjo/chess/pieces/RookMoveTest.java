@@ -21,7 +21,7 @@ public class RookMoveTest {
 
    @Before
    public void setup() {
-      opponentsKing = new King(Colour.BLACK);
+      opponentsKing = new King(Colour.BLACK, true);
    }
 
    @Test

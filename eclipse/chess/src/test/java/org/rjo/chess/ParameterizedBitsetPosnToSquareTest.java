@@ -31,7 +31,7 @@ public class ParameterizedBitsetPosnToSquareTest {
 
    @Test
    public void bitposnToCoord() {
-      assertThat("bad mapping for bitposn " + bitsetPosn, Square.fromBitPosn(bitsetPosn).toString(), is(equalTo(coord)));
+      assertThat("bad mapping for bitposn " + bitsetPosn, Square.fromBitIndex(bitsetPosn).toString(), is(equalTo(coord)));
    }
 
 }

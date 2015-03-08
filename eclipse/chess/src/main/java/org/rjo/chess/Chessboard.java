@@ -215,13 +215,13 @@ public class Chessboard {
    public static boolean checkForDiscoveredCheck(Chessboard chessboard, Move move, Colour colour, Square opponentsKing) {
       // set up the empty square bitset *after* this move
       BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
-      emptySquares.set(move.from().bitPosn());
-      emptySquares.clear(move.to().bitPosn());
+      emptySquares.set(move.from().bitIndex());
+      emptySquares.clear(move.to().bitIndex());
       // take care of rook's move when castling
       if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
          Move rooksMove = move.getRooksCastlingMove();
-         emptySquares.set(rooksMove.from().bitPosn());
-         emptySquares.clear(rooksMove.to().bitPosn());
+         emptySquares.set(rooksMove.from().bitIndex());
+         emptySquares.clear(rooksMove.to().bitIndex());
       }
       return Chessboard.isOpponentsKingInCheck(chessboard.getPieces(colour), emptySquares, opponentsKing);
    }
@@ -284,6 +284,30 @@ public class Chessboard {
       }
 
       return isCheck;
+   }
+
+   /**
+    * Finds the piece at the given square.
+    * 
+    * @param targetSquare
+    *           square to use
+    * @return the piece at this location.
+    * @throws IllegalArgumentException
+    *            if no piece exists at the given square.
+    */
+   public PieceType pieceAt(Square targetSquare) {
+      for (Colour colour : Colour.values()) {
+         for (PieceType type : PieceType.values()) {
+            Piece p = getPieces(colour).get(type);
+            // null == piece-type no longer on board
+            if (p != null) {
+               if (p.pieceAt(targetSquare)) {
+                  return type;
+               }
+            }
+         }
+      }
+      throw new IllegalArgumentException("no piece at " + targetSquare);
    }
 
 }

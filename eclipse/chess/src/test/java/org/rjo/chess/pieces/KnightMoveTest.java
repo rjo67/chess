@@ -24,13 +24,13 @@ public class KnightMoveTest {
 
    @Before
    public void setup() {
-      opponentsKing = new King(Colour.BLACK);
+      opponentsKing = new King(Colour.BLACK, true);
    }
 
    @Test
    public void startPosition() {
       Game game = new Game();
-      Knight whiteKnight = new Knight(Colour.WHITE);
+      Knight whiteKnight = new Knight(Colour.WHITE, true);
       TestUtil.checkMoves(whiteKnight.findMoves(game),
             new HashSet<>(Arrays.asList("Nb1-a3", "Nb1-c3", "Ng1-f3", "Ng1-h3")));
    }

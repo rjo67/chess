@@ -39,7 +39,7 @@ public abstract class SlidingPiece extends Piece {
       boolean attacksSquare = false;
       int i = pieces.nextSetBit(0);
       while ((!attacksSquare) && (i >= 0)) {
-         attacksSquare = attacksSquareRankOrFile(emptySquares, Square.fromBitPosn(i), targetSquare);
+         attacksSquare = attacksSquareRankOrFile(emptySquares, Square.fromBitIndex(i), targetSquare);
          if (!attacksSquare) {
             i = pieces.nextSetBit(i + 1);
          }
@@ -63,7 +63,7 @@ public abstract class SlidingPiece extends Piece {
       boolean attacksSquare = false;
       int i = bishopsAndQueens.nextSetBit(0);
       while ((!attacksSquare) && (i >= 0)) {
-         attacksSquare = attacksSquareDiagonally(emptySquares, Square.fromBitPosn(i), targetSquare);
+         attacksSquare = attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSquare);
          if (!attacksSquare) {
             i = bishopsAndQueens.nextSetBit(i + 1);
          }
@@ -104,7 +104,9 @@ public abstract class SlidingPiece extends Piece {
          BitSet captures = (BitSet) shiftedBoard.clone();
          captures.and(chessboard.getAllPieces(Colour.oppositeColour(getColour())).getBitSet());
          for (int i = captures.nextSetBit(0); i >= 0; i = captures.nextSetBit(i + 1)) {
-            moves.add(new Move(this, Square.fromBitPosn(i - offset), Square.fromBitPosn(i), true));
+            Square targetSquare = Square.fromBitIndex(i);
+            moves.add(new Move(this.getType(), colour, Square.fromBitIndex(i - offset), targetSquare, chessboard
+                  .pieceAt(targetSquare)));
             // remove capture square from 'shiftedBoard'
             shiftedBoard.clear(i);
          }
@@ -112,7 +114,7 @@ public abstract class SlidingPiece extends Piece {
           * store any remaining moves.
           */
          for (int i = shiftedBoard.nextSetBit(0); i >= 0; i = shiftedBoard.nextSetBit(i + 1)) {
-            moves.add(new Move(this, Square.fromBitPosn(i - offset), Square.fromBitPosn(i)));
+            moves.add(new Move(this.getType(), colour, Square.fromBitIndex(i - offset), Square.fromBitIndex(i)));
          }
       }
 
@@ -154,12 +156,12 @@ public abstract class SlidingPiece extends Piece {
       }
       int rankOffset = startSquare.rank() > targetSquare.rank() ? -1 : 1;
       int fileOffset = startSquare.file() > targetSquare.file() ? -1 : 1;
-      int bitPosn = startSquare.bitPosn();
+      int bitPosn = startSquare.bitIndex();
       boolean reachedTargetSquare = false;
       boolean foundNonEmptySquare = false;
       while (!reachedTargetSquare && !foundNonEmptySquare) {
          bitPosn += (8 * rankOffset) + fileOffset;
-         if (bitPosn == targetSquare.bitPosn()) {
+         if (bitPosn == targetSquare.bitIndex()) {
             reachedTargetSquare = true;
          } else if (!emptySquares.get(bitPosn)) {
             foundNonEmptySquare = true;
@@ -212,7 +214,7 @@ public abstract class SlidingPiece extends Piece {
          onSameRankOrFile = true;
          // set squares between rook and king on this rank
          int[] orderedNumbers = orderNumbers(startSquare.file(), targetSquare.file());
-         int offset = Square.fromRankAndFile(startSquare.rank(), 0).bitPosn();
+         int offset = Square.fromRankAndFile(startSquare.rank(), 0).bitIndex();
          for (int i = orderedNumbers[0] + 1; i < orderedNumbers[1]; i++) {
             nbrOfSquaresInBetween++;
             squaresInBetween.set(offset + i);
@@ -221,7 +223,7 @@ public abstract class SlidingPiece extends Piece {
          onSameRankOrFile = true;
          // set squares between rook and king on this rank
          int[] orderedNumbers = orderNumbers(startSquare.rank(), targetSquare.rank());
-         int offset = Square.fromRankAndFile(0, startSquare.file()).bitPosn();
+         int offset = Square.fromRankAndFile(0, startSquare.file()).bitIndex();
          for (int i = orderedNumbers[0] + 1; i < orderedNumbers[1]; i++) {
             nbrOfSquaresInBetween++;
             squaresInBetween.set(offset + i * 8);
@@ -251,7 +253,7 @@ public abstract class SlidingPiece extends Piece {
          clonedEmptySquares.and(BitBoard.EXCEPT_RANK[i].getBitSet());
       }
       // remove the new position of the moved piece from 'emptySquares'
-      clonedEmptySquares.clear(startSquare.bitPosn());
+      clonedEmptySquares.clear(startSquare.bitIndex());
 
       squaresInBetween.and(clonedEmptySquares);
       return squaresInBetween.cardinality() == nbrOfSquaresInBetween;

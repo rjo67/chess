@@ -21,7 +21,17 @@ public class BishopMoveTest {
 
    @Before
    public void setup() {
-      opponentsKing = new King(Colour.BLACK);
+      opponentsKing = new King(Colour.BLACK, true);
+   }
+
+   @Test
+   public void locations() {
+      Bishop b = new Bishop(Colour.WHITE);
+      b.initPosition();
+      Square[] locn = b.getLocations();
+      Set<Square> set = new HashSet<>(Arrays.asList(locn));
+      assertTrue(set.contains(Square.c1));
+      assertTrue(set.contains(Square.f1));
    }
 
    @Test

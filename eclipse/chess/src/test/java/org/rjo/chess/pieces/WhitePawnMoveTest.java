@@ -21,13 +21,13 @@ public class WhitePawnMoveTest {
 
    @Before
    public void setup() {
-      opponentsKing = new King(Colour.BLACK);
+      opponentsKing = new King(Colour.BLACK, true);
    }
 
    @Test
    public void startPosition() {
       Game game = new Game();
-      Pawn pawn = new Pawn(Colour.WHITE);
+      Pawn pawn = new Pawn(Colour.WHITE, true);
       TestUtil.checkMoves(
             pawn.findMoves(game),
             new HashSet<>(Arrays.asList("a2-a3", "a2-a4", "b2-b3", "b2-b4", "c2-c3", "c2-c4", "d2-d3", "d2-d4",

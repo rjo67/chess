@@ -15,11 +15,11 @@ import org.rjo.chess.TestUtil;
 
 /**
  * Test movement of the king.
- * 
+ *
  * Tests are repeated for white and black kings, although there shouldn't be any difference.
- * 
+ *
  * NB: For these tests the position of the opponent's king must always be specified.
- * 
+ *
  * @author rich
  */
 public class KingMoveTest {
@@ -28,6 +28,7 @@ public class KingMoveTest {
 
    @Before
    public void init() {
+      // NB: initialised without any starting squares
       whiteKing = new King(Colour.WHITE);
       blackKing = new King(Colour.BLACK);
    }
@@ -35,8 +36,8 @@ public class KingMoveTest {
    @Test
    public void startPosition() {
       Game game = new Game();
-      whiteKing.initPosition(); // TODO not very clean
-      blackKing.initPosition();
+      whiteKing = new King(Colour.WHITE, true);
+      blackKing = new King(Colour.BLACK, true);
       TestUtil.checkMoves(whiteKing.findMoves(game), new HashSet<>());
       TestUtil.checkMoves(blackKing.findMoves(game), new HashSet<>());
    }
