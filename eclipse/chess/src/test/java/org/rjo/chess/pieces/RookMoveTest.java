@@ -27,7 +27,7 @@ public class RookMoveTest {
    @Test
    public void startPosition() {
       Game game = new Game();
-      Rook whiteRook = new Rook(Colour.WHITE);
+      Rook whiteRook = (Rook) game.getChessboard().getPieces(Colour.WHITE).get(PieceType.ROOK);
       TestUtil.checkMoves(whiteRook.findMoves(game), new HashSet<>());
    }
 

@@ -12,7 +12,7 @@ public class BitBoardTest {
       BitBoard bb = new BitBoard();
       bb.setBitsAt(Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2);
 
-      System.out.println(bb.display());
+      // System.out.println(bb.display());
 
       long lo = bb.toLong();
 
@@ -26,8 +26,8 @@ public class BitBoardTest {
       bs.and(BitBoard.RANK[1].getBitSet());
       lo = bs.toLongArray()[0];
       bs2 = BitSet.valueOf(new long[] { (lo << 16) }); // c2->c4; need to blank everything except rank 2 since only
-                                                       // these pawns can move 2
-                                                       // System.out.println(BitBoard.display(bs2));
+      // these pawns can move 2
+      // System.out.println(BitBoard.display(bs2));
 
       bs = bb.cloneBitSet();
       bs.and(BitBoard.EXCEPT_FILE[0].getBitSet());
@@ -39,7 +39,8 @@ public class BitBoardTest {
       bs.and(BitBoard.EXCEPT_FILE[0].getBitSet());
       lo = bs.toLongArray()[0];
       bs2 = BitSet.valueOf(new long[] { (lo >>> 9) }); // b2->c1; need to blank file 1
-      System.out.println(BitBoard.display(bs2));
+      BitBoard.display(bs2);
+      // System.out.println(BitBoard.display(bs2));
 
    }
 

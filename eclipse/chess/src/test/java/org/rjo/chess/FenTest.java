@@ -1,5 +1,6 @@
 package org.rjo.chess;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -22,6 +23,7 @@ public class FenTest {
    }
 
    @Test
+   @Ignore
    public void fromStartPosition() {
       Fen.decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1").getChessboard().debug();
    }

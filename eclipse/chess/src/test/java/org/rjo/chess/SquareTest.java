@@ -7,6 +7,13 @@ import static org.junit.Assert.assertEquals;
 public class SquareTest {
 
    @Test
+   public void enumCoverage() {
+      // increase coverage of enum
+      Square.values();
+      Square.valueOf("a2");
+   }
+
+   @Test
    public void mappingToBitPosn() {
       assertEquals(0, Square.a1.bitIndex());
    }
@@ -29,6 +36,11 @@ public class SquareTest {
       for (int i = 0; i < 64; i++) {
          assertEquals(i, Square.fromBitIndex(i).bitIndex());
       }
+   }
+
+   @Test(expected = IllegalArgumentException.class)
+   public void badInput() {
+      Square.fromString("A92");
    }
 
    @Test(expected = IllegalArgumentException.class)

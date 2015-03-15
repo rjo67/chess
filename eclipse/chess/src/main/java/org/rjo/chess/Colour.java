@@ -1,5 +1,10 @@
 package org.rjo.chess;
 
+/**
+ * Represents the colours of the sides in the game.
+ * 
+ * @author rich
+ */
 public enum Colour {
 
    WHITE, BLACK;

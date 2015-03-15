@@ -11,12 +11,30 @@ import static org.junit.Assert.assertEquals;
 /**
  * Perft, (PERFormance Test, move path enumeration) is a debugging function to walk the move generation tree of strictly
  * legal moves to count all the leaf nodes of a certain depth,
- * 
+ *
  * @author rich
  * @see http://chessprogramming.wikispaces.com/Perft
  * @see http://chessprogramming.wikispaces.com/Perft+Results
  */
 public class PerftTest {
+
+   @Test
+   public void initialPositionPerft2() {
+      Game game = new Game();
+      assertEquals(400, game.findMoves(Colour.WHITE, 2));
+   }
+
+   @Test
+   public void initialPositionPerft3() {
+      Game game = new Game();
+      assertEquals(8902, game.findMoves(Colour.WHITE, 3));
+   }
+
+   @Test
+   public void initialPositionPerft4() {
+      Game game = new Game();
+      assertEquals(197281, game.findMoves(Colour.WHITE, 4));
+   }
 
    // these tests only go to 1ply at the moment
 
@@ -135,6 +153,6 @@ public class PerftTest {
    }
 
    private void checkAnswer(int expectedNbrOfMoves, List<Move> moveList) {
-      assertEquals("got moves " + moveList, expectedNbrOfMoves, moveList.size());
+      assertEquals("got " + moveList.size() + " moves: " + moveList, expectedNbrOfMoves, moveList.size());
    }
 }

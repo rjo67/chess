@@ -52,11 +52,8 @@ public class Chessboard {
    public Chessboard() {
       Set<Piece>[] pieces = new HashSet[Colour.values().length];
       for (Colour col : Colour.values()) {
-         pieces[col.ordinal()] = new HashSet<Piece>(Arrays.asList(new Pawn(col), new Rook(col), new Knight(col),
-               new Bishop(col), new Queen(col), new King(col)));
-         for (Piece piece : pieces[col.ordinal()]) {
-            piece.initPosition();
-         }
+         pieces[col.ordinal()] = new HashSet<Piece>(Arrays.asList(new Pawn(col, true), new Rook(col, true), new Knight(
+               col, true), new Bishop(col, true), new Queen(col, true), new King(col, true)));
       }
       initBoard(pieces[Colour.WHITE.ordinal()], pieces[Colour.BLACK.ordinal()]);
    }
@@ -79,7 +76,16 @@ public class Chessboard {
          pieces[Colour.BLACK.ordinal()].put(p.getType(), p);
       }
       allPieces = new BitBoard[Colour.values().length];
-      // fill the board
+      updateStructures();
+
+      enpassantSquare = null;
+   }
+
+   /**
+    * update structures (after a move). Would be more efficient to incremently recalculate, see {@link Game#move(Move)}
+    * and {@link Game#unmove(Move)}.
+    */
+   public void updateStructures() {
       for (Colour colour : Colour.values()) {
          allPieces[colour.ordinal()] = new BitBoard();
          for (PieceType p : pieces[colour.ordinal()].keySet()) {
@@ -92,13 +98,11 @@ public class Chessboard {
 
       emptySquares = new BitBoard(totalPieces.cloneBitSet());
       emptySquares.getBitSet().flip(0, 64);
-
-      enpassantSquare = null;
    }
 
    /**
     * Access to the set of pieces of a given colour.
-    * 
+    *
     * @param colour
     *           the required colour
     * @return the set of pieces of this colour
@@ -109,7 +113,7 @@ public class Chessboard {
 
    /**
     * Access to a BitBoard of all the pieces of a given colour.
-    * 
+    *
     * @param colour
     *           the required colour
     * @return a BitBoard containing all the pieces of a given colour.
@@ -120,7 +124,7 @@ public class Chessboard {
 
    /**
     * Access to a BitBoard of all the pieces irrespective of colour.
-    * 
+    *
     * @return a BitBoard containing all the pieces irrespective of colour.
     */
    public BitBoard getTotalPieces() {
@@ -129,7 +133,7 @@ public class Chessboard {
 
    /**
     * Access to a BitBoard of all the empty squares on the board.
-    * 
+    *
     * @return a BitBoard containing all the empty squares on the board.
     */
    public BitBoard getEmptySquares() {
@@ -165,7 +169,7 @@ public class Chessboard {
 
    /**
     * The enpassant square.
-    * 
+    *
     * @return the enpassant square or null.
     */
    public Square getEnpassantSquare() {
@@ -174,7 +178,7 @@ public class Chessboard {
 
    /**
     * Returns true if the given square is attacked by any opponent's pieces.
-    * 
+    *
     * @param game
     *           the game
     * @param targetSquare
@@ -201,7 +205,7 @@ public class Chessboard {
 
    /**
     * Checks for a discovered check after the move 'move'.
-    * 
+    *
     * @param chessboard
     *           the chessboard
     * @param move
@@ -230,7 +234,7 @@ public class Chessboard {
     * Helper method to check for a discovered check using a freely definable set of pieces and empty squares.
     * Should normally not be called directly, see instead
     * {@link Chessboard#checkForDiscoveredCheck(Chessboard, Move, Colour, Square)}.
-    * 
+    *
     * @param myPieces
     *           my pieces on the board
     * @param emptySquares
@@ -288,7 +292,7 @@ public class Chessboard {
 
    /**
     * Finds the piece at the given square.
-    * 
+    *
     * @param targetSquare
     *           square to use
     * @return the piece at this location.

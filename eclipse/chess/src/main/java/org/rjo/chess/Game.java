@@ -106,6 +106,32 @@ public class Game {
    }
 
    /**
+    * Find the number of possible moves at the given depth, starting at the current position, i.e. for a depth of 2 and
+    * start colour white, all of black's moves will be returned for each of the possible white moves.
+    *
+    * NB: this is not the same as counting all possible moves from a given position for a given depth. Only leaf nodes
+    * are counted.
+    *
+    * @param sideToMove
+    *           the starting colour
+    * @return the number of possible moves at the given depth.
+    */
+   public int findMoves(Colour sideToMove, int depth) {
+      if (depth == 0) {
+         return 1;
+      }
+      int nodes = 0;
+      for (Move move : findMoves(sideToMove)) {
+         System.out.println("(" + depth + ") moving " + move + " " + sideToMove);
+         this.move(move);
+         nodes += findMoves(Colour.oppositeColour(sideToMove), depth - 1);
+         this.unmove(move);
+         System.out.println("(" + depth + ") unmoving " + move + " " + sideToMove);
+      }
+      return nodes;
+   }
+
+   /**
     * Execute the given move.
     *
     * @param move
@@ -126,6 +152,8 @@ public class Game {
          Move rooksMove = move.getRooksCastlingMove();
          chessboard.getPieces(sideToMove).get(movingPiece).move(move);
          chessboard.getPieces(sideToMove).get(PieceType.ROOK).move(rooksMove);
+         CastlingRights right = move.isCastleKingsSide() ? CastlingRights.KINGS_SIDE : CastlingRights.QUEENS_SIDE;
+         castling[sideToMove.ordinal()].remove(right);
       } else {
          if (!move.isCapture() && !chessboard.getEmptySquares().getBitSet().get(move.to().bitIndex())) {
             throw new IllegalArgumentException("square " + move.to() + " is not empty. Move=" + move);
@@ -141,12 +169,69 @@ public class Game {
             chessboard.getPieces(sideToMove).get(move.getPromotedPiece()).addPiece(move.to());
          }
 
-         chessboard.getEmptySquares().getBitSet().set(move.from().bitIndex());
-         chessboard.getEmptySquares().getBitSet().clear(move.to().bitIndex());
+         chessboard.updateStructures();
+         // this doesn't take into a/c captures, promotions, castling, therefore using updateStructures for now
+         // chessboard.getEmptySquares().getBitSet().set(move.from().bitIndex());
+         // chessboard.getEmptySquares().getBitSet().clear(move.to().bitIndex());
+         //
+         // chessboard.getAllPieces(sideToMove).getBitSet().clear(move.from().bitIndex());
+         // chessboard.getAllPieces(sideToMove).getBitSet().set(move.to().bitIndex());
 
          setSideToMove(Colour.oppositeColour(sideToMove));
          if (Colour.WHITE == sideToMove) {
             moveNbr++;
+         }
+      }
+   }
+
+   /**
+    * Reverses the given move.
+    *
+    * @param move
+    *           the move
+    */
+   public void unmove(Move move) {
+      if (move.getColour() == sideToMove) {
+         throw new IllegalArgumentException("unmove for '" + move.getColour() + "' was unexpected");
+      }
+      // pollLast instead of removeLast to avoid exception
+      this.moves.pollLast();
+      PieceType movingPiece = move.getPiece();
+
+      if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+         Move rooksMove = move.getRooksCastlingMove();
+         chessboard.getPieces(move.getColour()).get(movingPiece).unmove(move);
+         chessboard.getPieces(move.getColour()).get(PieceType.ROOK).unmove(rooksMove);
+         CastlingRights right = move.isCastleKingsSide() ? CastlingRights.KINGS_SIDE : CastlingRights.QUEENS_SIDE;
+         castling[move.getColour().ordinal()].add(right);
+      } else {
+         if (!move.isCapture() && !chessboard.getEmptySquares().getBitSet().get(move.from().bitIndex())) {
+            throw new IllegalArgumentException("square " + move.from() + " is not empty. Unmove=" + move);
+         }
+         // update structures for the moving piece
+         chessboard.getPieces(move.getColour()).get(movingPiece).unmove(move);
+         // capture: add the captured piece
+         if (move.isCapture()) {
+            chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
+            .addPiece(move.to());
+         }
+         // promotion: remove the promoted piece
+         if (move.isPromotion()) {
+            chessboard.getPieces(move.getColour()).get(move.getPromotedPiece()).removePiece(move.to());
+         }
+
+         chessboard.updateStructures();
+         // this doesn't take into a/c captures, promotions, castling, therefore using updateStructures for now
+         // chessboard.getEmptySquares().getBitSet().clear(move.from().bitIndex());
+         // chessboard.getEmptySquares().getBitSet().set(move.to().bitIndex());
+         //
+         // chessboard.getAllPieces(move.getColour()).getBitSet().set(move.from().bitIndex());
+         // chessboard.getAllPieces(move.getColour()).getBitSet().clear(move.to().bitIndex());
+
+         // undoing black's move means that black should now move
+         setSideToMove(move.getColour());
+         if (Colour.BLACK == sideToMove) {
+            moveNbr--;
          }
       }
 

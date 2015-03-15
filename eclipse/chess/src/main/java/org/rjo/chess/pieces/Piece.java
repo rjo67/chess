@@ -19,10 +19,6 @@ public abstract class Piece {
    // stores position of the piece(s) of a particular kind (queen, pawns, ...)
    protected BitBoard pieces;
 
-   // Stores for each square a bitboard containing all possible moves.
-   // first dimension is the rank, 2nd the file
-   protected BitBoard[][] moveBitBoards;
-
    // stores the colour of the piece
    protected Colour colour;
 
@@ -65,7 +61,7 @@ public abstract class Piece {
     * More complicated situations e.g. promotions, captures are dealt with in {@link Game#move(Move)}.
     *
     * @param move
-    *           the move
+    *           the move to make
     */
    public void move(Move move) {
       if (!pieces.getBitSet().get(move.from().bitIndex())) {
@@ -75,6 +71,23 @@ public abstract class Piece {
       if (!move.isPromotion()) {
          pieces.getBitSet().set(move.to().bitIndex());
       }
+   }
+
+   /**
+    * Reverses the move for this piece type, i.e. updates internal structures.
+    * More complicated situations e.g. promotions, captures are dealt with in {@link Game#unmove(Move)}.
+    *
+    * @param move
+    *           the move to undo
+    */
+   public void unmove(Move move) {
+      if (!move.isPromotion()) {
+         if (!pieces.getBitSet().get(move.to().bitIndex())) {
+            throw new IllegalArgumentException("no " + type + " found on square " + move.to() + ". Unmove=" + move);
+         }
+         pieces.getBitSet().clear(move.to().bitIndex());
+      }
+      pieces.getBitSet().set(move.from().bitIndex());
    }
 
    /**
@@ -147,11 +160,6 @@ public abstract class Piece {
     */
    public String getFenSymbol() {
       return type.getFenSymbol(colour);
-   }
-
-   // for test
-   BitBoard[][] getMoveBitBoards() {
-      return moveBitBoards;
    }
 
    @Override

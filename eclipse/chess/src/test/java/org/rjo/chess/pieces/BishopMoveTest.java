@@ -26,8 +26,7 @@ public class BishopMoveTest {
 
    @Test
    public void locations() {
-      Bishop b = new Bishop(Colour.WHITE);
-      b.initPosition();
+      Bishop b = new Bishop(Colour.WHITE, true);
       Square[] locn = b.getLocations();
       Set<Square> set = new HashSet<>(Arrays.asList(locn));
       assertTrue(set.contains(Square.c1));
