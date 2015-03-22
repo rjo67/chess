@@ -24,6 +24,11 @@ public class Game {
    private EnumSet<CastlingRights>[] castling;
    /** which side is to move */
    private Colour sideToMove;
+   /**
+    * if the king (of the sideToMove) is currently in check. Normally deduced from the last move but can be set
+    * delibarately for tests.
+    */
+   private boolean inCheck;
 
    /**
     * Constructs a game with the default start position.
@@ -77,6 +82,16 @@ public class Game {
       }
    }
 
+   /**
+    * Just for tests: indicate that in this position the king of the side to move is in check.
+    *
+    * @param inCheck
+    *           true when the king is in check.
+    */
+   public void setInCheck(boolean inCheck) {
+      this.inCheck = inCheck;
+   }
+
    public Chessboard getChessboard() {
       return chessboard;
    }
@@ -100,7 +115,7 @@ public class Game {
       List<Move> moves = new ArrayList<>(60);
       for (PieceType type : PieceType.getPieceTypes()) {
          Piece p = chessboard.getPieces(colour).get(type);
-         moves.addAll(p.findMoves(this));
+         moves.addAll(p.findMoves(this, inCheck));
       }
       return moves;
    }
@@ -114,21 +129,77 @@ public class Game {
     *
     * @param sideToMove
     *           the starting colour
-    * @return the number of possible moves at the given depth.
+    * @param depth
+    *           the required depth to search
+    * @param debug
+    *           if true, debug-info will be printed to stdout
+    *
+    * @return the list of possible moves at the given depth.
     */
-   public int findMoves(Colour sideToMove, int depth) {
+   public List<Move> findMoves(Colour sideToMove, int depth, boolean debug) {
+      return findMovesInternal(sideToMove, depth, new ArrayDeque<Move>(), new ArrayList<Move>(), debug);
+   }
+
+   /**
+    * Internal method for finding the number of possible moves at the given depth.
+    *
+    * @param sideToMove
+    *           the starting colour
+    * @param depth
+    *           the required depth to search
+    * @param movesSoFar
+    *           for debugging purposes: the moves up to this point
+    * @param totalMoves
+    *           stores all moves found
+    * @param debug
+    *           if true, debug-info will be printed to stdout
+    *
+    * @return the list of possible moves at the given depth.
+    */
+   private List<Move> findMovesInternal(Colour sideToMove, int depth, Deque<Move> movesSoFar, List<Move> totalMoves,
+         boolean debug) {
       if (depth == 0) {
-         return 1;
+         return new ArrayList<Move>();
       }
-      int nodes = 0;
+      // movesAtThisLevel and movesSoFar are only used for "logging"
+      List<Move> movesAtThisLevel = new ArrayList<>();
       for (Move move : findMoves(sideToMove)) {
-         System.out.println("(" + depth + ") moving " + move + " " + sideToMove);
-         this.move(move);
-         nodes += findMoves(Colour.oppositeColour(sideToMove), depth - 1);
-         this.unmove(move);
-         System.out.println("(" + depth + ") unmoving " + move + " " + sideToMove);
+         if (debug) {
+            movesSoFar.addLast(move);
+         }
+         move(move);
+
+         List<Move> movesFromThisPosn = findMovesInternal(Colour.oppositeColour(sideToMove), depth - 1, movesSoFar,
+               totalMoves, debug);
+         if (movesFromThisPosn.isEmpty()) {
+            totalMoves.add(move);
+            if (debug) {
+               movesAtThisLevel.add(move);
+            }
+         }
+
+         unmove(move);
+         if (debug) {
+            movesSoFar.removeLast();
+         }
       }
-      return nodes;
+
+      if (debug) {
+         if (!movesAtThisLevel.isEmpty()) {
+            boolean check = false;
+            boolean capture = false;
+            if (!movesSoFar.isEmpty()) {
+               check = movesSoFar.peekLast().isCheck();
+            }
+            if (!movesSoFar.isEmpty()) {
+               capture = movesSoFar.peekLast().isCapture();
+            }
+            System.out.println((check ? "CHECK" : "") + (capture ? "CAPTURE" : "") + " moves: " + movesSoFar + " -> "
+                  + movesAtThisLevel.size() + ":" + movesAtThisLevel);
+         }
+      }
+      return totalMoves;
+
    }
 
    /**
@@ -178,6 +249,7 @@ public class Game {
          // chessboard.getAllPieces(sideToMove).getBitSet().set(move.to().bitIndex());
 
          setSideToMove(Colour.oppositeColour(sideToMove));
+         inCheck = move.isCheck();
          if (Colour.WHITE == sideToMove) {
             moveNbr++;
          }
@@ -213,7 +285,7 @@ public class Game {
          // capture: add the captured piece
          if (move.isCapture()) {
             chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-            .addPiece(move.to());
+                  .addPiece(move.to());
          }
          // promotion: remove the promoted piece
          if (move.isPromotion()) {
@@ -230,6 +302,9 @@ public class Game {
 
          // undoing black's move means that black should now move
          setSideToMove(move.getColour());
+         // check if the 'new' last move was a check
+         Move lastMove = this.moves.peekLast();
+         inCheck = (lastMove != null) ? lastMove.isCheck() : false;
          if (Colour.BLACK == sideToMove) {
             moveNbr--;
          }

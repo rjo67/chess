@@ -3,6 +3,7 @@ package org.rjo.chess.pieces;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -91,7 +92,7 @@ public class Pawn extends Piece {
    }
 
    @Override
-   public List<Move> findMoves(Game game) {
+   public List<Move> findMoves(Game game, boolean kingInCheck) {
 
       /*
        * The pawn move is complicated by the different directions for white and black pawns.
@@ -113,6 +114,16 @@ public class Pawn extends Piece {
       moves.addAll(moveTwoSquaresForward(game.getChessboard(), helper));
       moves.addAll(captureLeft(game.getChessboard(), helper, false));
       moves.addAll(captureRight(game.getChessboard(), helper, false));
+
+      // make sure king is not/no longer in check
+      Square myKing = King.findKing(colour, game.getChessboard());
+      Iterator<Move> iter = moves.listIterator();
+      while (iter.hasNext()) {
+         Move move = iter.next();
+         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing)) {
+            iter.remove();
+         }
+      }
 
       // checks
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
@@ -236,15 +247,22 @@ public class Pawn extends Piece {
       for (int i = captureLeft.nextSetBit(0); i >= 0; i = captureLeft.nextSetBit(i + 1)) {
          Square targetSquare = Square.fromBitIndex(i);
          PieceType capturedPiece;
+         boolean enpassant = false;
          // no piece present on the attack square if 'checkingForAttack'
          if (checkingForAttack) {
             capturedPiece = PieceType.DUMMY;
          } else {
-            capturedPiece = targetSquare == chessboard.getEnpassantSquare() ? PieceType.PAWN : chessboard
-                  .pieceAt(targetSquare);
+            if (targetSquare == chessboard.getEnpassantSquare()) {
+               capturedPiece = PieceType.PAWN;
+               enpassant = true;
+            } else {
+               capturedPiece = chessboard.pieceAt(targetSquare);
+            }
          }
 
-         moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece));
+         Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
+         move.setEnpassant(enpassant);
+         moves.add(move);
       }
       return moves;
    }
@@ -277,15 +295,22 @@ public class Pawn extends Piece {
       int offset = helper.getColour() == Colour.WHITE ? -9 : 7;
       for (int i = captureRight.nextSetBit(0); i >= 0; i = captureRight.nextSetBit(i + 1)) {
          Square targetSquare = Square.fromBitIndex(i);
+         boolean enpassant = false;
          PieceType capturedPiece;
          // no piece present on the attack square if 'checkingForAttack'
          if (checkingForAttack) {
             capturedPiece = PieceType.DUMMY;
          } else {
-            capturedPiece = targetSquare == chessboard.getEnpassantSquare() ? PieceType.PAWN : chessboard
-                  .pieceAt(targetSquare);
+            if (targetSquare == chessboard.getEnpassantSquare()) {
+               capturedPiece = PieceType.PAWN;
+               enpassant = true;
+            } else {
+               capturedPiece = chessboard.pieceAt(targetSquare);
+            }
          }
-         moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece));
+         Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
+         move.setEnpassant(enpassant);
+         moves.add(move);
       }
       return moves;
    }
@@ -316,19 +341,19 @@ public class Pawn extends Piece {
             // therefore only need to supply this piece to the check-method
             myPieces = new HashMap<>();
             myPieces.put(PieceType.QUEEN, new Queen(colour, move.to()));
-            return Chessboard.isOpponentsKingInCheck(myPieces, emptySquares, opponentsKing);
+            return Chessboard.isKingInCheck(myPieces, emptySquares, opponentsKing);
          case ROOK:
             myPieces = new HashMap<>();
             myPieces.put(PieceType.ROOK, new Rook(colour, move.to()));
-            return Chessboard.isOpponentsKingInCheck(myPieces, emptySquares, opponentsKing);
+            return Chessboard.isKingInCheck(myPieces, emptySquares, opponentsKing);
          case BISHOP:
             myPieces = new HashMap<>();
             myPieces.put(PieceType.BISHOP, new Bishop(colour, move.to()));
-            return Chessboard.isOpponentsKingInCheck(myPieces, emptySquares, opponentsKing);
+            return Chessboard.isKingInCheck(myPieces, emptySquares, opponentsKing);
          case KNIGHT:
             myPieces = new HashMap<>();
             myPieces.put(PieceType.KNIGHT, new Knight(colour, move.to()));
-            return Chessboard.isOpponentsKingInCheck(myPieces, emptySquares, opponentsKing);
+            return Chessboard.isKingInCheck(myPieces, emptySquares, opponentsKing);
          default:
             throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
          }

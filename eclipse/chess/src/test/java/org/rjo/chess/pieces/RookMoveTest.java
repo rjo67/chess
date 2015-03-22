@@ -18,10 +18,12 @@ import static org.junit.Assert.assertTrue;
 public class RookMoveTest {
 
    private King opponentsKing;
+   private King myKing;
 
    @Before
    public void setup() {
       opponentsKing = new King(Colour.BLACK, true);
+      myKing = new King(Colour.WHITE, true);
    }
 
    @Test
@@ -34,7 +36,7 @@ public class RookMoveTest {
    @Test
    public void moveFromMiddleOfBoard() {
       Rook whiteRook = new Rook(Colour.WHITE, Square.d4);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook, myKing));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(
             whiteRook.findMoves(game),
@@ -45,7 +47,7 @@ public class RookMoveTest {
    @Test
    public void moveFromA1() {
       Rook whiteRook = new Rook(Colour.WHITE, Square.a1);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook, new King(Colour.WHITE, Square.b6)));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(
             whiteRook.findMoves(game),
@@ -84,7 +86,7 @@ public class RookMoveTest {
    @Test
    public void moveFromH1() {
       Rook whiteRook = new Rook(Colour.WHITE, Square.h1);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook, new King(Colour.WHITE, Square.b6)));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(
             whiteRook.findMoves(game),
@@ -123,7 +125,7 @@ public class RookMoveTest {
    @Test
    public void moveFromA8() {
       Rook whiteRook = new Rook(Colour.WHITE, Square.a8);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook, myKing));
       opponentsKing = new King(Colour.BLACK, Square.b5);
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(
@@ -163,7 +165,7 @@ public class RookMoveTest {
    @Test
    public void moveFromH8() {
       Rook whiteRook = new Rook(Colour.WHITE, Square.h8);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook, myKing));
       opponentsKing = new King(Colour.BLACK, Square.b5);
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(

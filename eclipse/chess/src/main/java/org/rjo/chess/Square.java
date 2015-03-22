@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * An enum which maps between board squares and their bit positions (A1 == 0, H8 == 63)
  * and vice versa.
- * 
+ *
  * @author rich
  */
 public enum Square {
@@ -18,7 +18,7 @@ public enum Square {
    e1( 4), e2(12), e3(20), e4(28), e5(36), e6(44), e7(52), e8(60),
    f1( 5), f2(13), f3(21), f4(29), f5(37), f6(45), f7(53), f8(61),
    g1( 6), g2(14), g3(22), g4(30), g5(38), g6(46), g7(54), g8(62),
-   h1( 7), h2(15), h3(23), h4(31), h5(39), h6(47), h7(55), h8(63);  
+   h1( 7), h2(15), h3(23), h4(31), h5(39), h6(47), h7(55), h8(63);
    //@formatter:on
 
    // look up map
@@ -32,7 +32,7 @@ public enum Square {
 
    /**
     * Rank of this square (0..7)
-    * 
+    *
     * @return
     */
    public int rank() {
@@ -41,7 +41,7 @@ public enum Square {
 
    /**
     * File of this square (0..7)
-    * 
+    *
     * @return
     */
    public int file() {
@@ -50,7 +50,7 @@ public enum Square {
 
    /**
     * Delivers the bit posn of this square.
-    * 
+    *
     * @return the bit posn 0..63
     */
    public int bitIndex() {
@@ -59,7 +59,7 @@ public enum Square {
 
    /**
     * Gives the matching square to a bit posn.
-    * 
+    *
     * @param bitIndex
     *           the required bit index (0..63)
     * @return the matching square or null
@@ -76,7 +76,7 @@ public enum Square {
 
    /**
     * Maps a string "a5" to the corresponding enum value.
-    * 
+    *
     * @param coord
     *           a string of length 2. Values A..H and 1..8.
     * @return a Square or null.
@@ -99,7 +99,7 @@ public enum Square {
 
    /**
     * Maps from a rank/file mapping to a Square.
-    * 
+    *
     * @param rank
     *           the rank (0..7)
     * @param file
@@ -109,5 +109,23 @@ public enum Square {
    public static Square fromRankAndFile(int rank, int file) {
       int bitPosn = (rank * 8) + (file);
       return Square.fromBitIndex(bitPosn);
+   }
+
+   /**
+    * Returns the square where the pawn must be, given the enpassant square.
+    * e.g. given b6, returns b5.
+    * 
+    * @param sq
+    *           start square. Must be either on the 6th rank (for a white move) or on the 3rd rank (for a black move).
+    * @return
+    */
+   public static Square findSquareFromEnpassantSquare(Square sq) {
+      if (sq.rank() == 5) {
+         return Square.fromRankAndFile(4, sq.file());
+      } else if (sq.rank() == 2) {
+         return Square.fromRankAndFile(3, sq.file());
+      } else {
+         throw new IllegalArgumentException("must specify an enpassant square, but got: " + sq);
+      }
    }
 }

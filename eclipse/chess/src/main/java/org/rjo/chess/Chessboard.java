@@ -221,13 +221,67 @@ public class Chessboard {
       BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
       emptySquares.set(move.from().bitIndex());
       emptySquares.clear(move.to().bitIndex());
+      // don't need to consider captures here, since we're looking for a check from OUR side
+
       // take care of rook's move when castling
       if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
          Move rooksMove = move.getRooksCastlingMove();
          emptySquares.set(rooksMove.from().bitIndex());
          emptySquares.clear(rooksMove.to().bitIndex());
       }
-      return Chessboard.isOpponentsKingInCheck(chessboard.getPieces(colour), emptySquares, opponentsKing);
+      return Chessboard.isKingInCheck(chessboard.getPieces(colour), emptySquares, opponentsKing);
+   }
+
+   /**
+    * Checks if the king is in check after the move 'move'.
+    * TODO NB does not cater for castling, since one can't castle out of check.
+    *
+    * @param chessboard
+    *           the chessboard
+    * @param move
+    *           the move
+    * @param opponentsColour
+    *           this colour's pieces will be checked
+    * @param king
+    *           where my king is
+    * @return true if this move leaves the king in check (i.e. is an illegal move)
+    */
+   public static boolean isKingInCheck(Chessboard chessboard, Move move, Colour opponentsColour, Square king) {
+      BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
+      emptySquares.set(move.from().bitIndex());
+      emptySquares.clear(move.to().bitIndex());
+
+      Map<PieceType, Piece> opponentsPieces = chessboard.getPieces(opponentsColour);
+      Piece originalPiece = null;
+      // TODO promotions
+      if (move.isCapture()) {
+         // need to remove captured piece temporarily from the appropriate Piece instance
+         originalPiece = opponentsPieces.get(move.getCapturedPiece());
+         try {
+            Piece clonedPiece = (Piece) originalPiece.clone();
+            if (move.isEnpassant()) {
+               Square enpassantPawnSquare = Square.findSquareFromEnpassantSquare(move.to());
+               clonedPiece.removePiece(enpassantPawnSquare);
+               // reset this square, (enpassant square), since erroneously cleared above
+               emptySquares.set(move.to().bitIndex());
+               // blank the correct square (where the pawn is which has been taken e.p.)
+               emptySquares.clear(enpassantPawnSquare.bitIndex());
+            } else {
+               clonedPiece.removePiece(move.to());
+            }
+            // achtung: changing the 'global' state here, need to reset later!
+            opponentsPieces.put(move.getCapturedPiece(), clonedPiece);
+         } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException("cannot clone:", e);
+         }
+      }
+      boolean inCheck = Chessboard.isKingInCheck(opponentsPieces, emptySquares, king);
+      if (move.isCapture()) {
+         // reset global state
+         opponentsPieces.put(move.getCapturedPiece(), originalPiece);
+      }
+      return inCheck;
+
    }
 
    /**
@@ -239,12 +293,11 @@ public class Chessboard {
     *           my pieces on the board
     * @param emptySquares
     *           the empty squares
-    * @param opponentsKing
-    *           where the opponent's king is
-    * @return true if the opponent's king is in check with this configuration of pieces and empty squares
+    * @param kingsSquare
+    *           where the (opponent's) king is
+    * @return true if a king on the 'kingsSquare' would be in check with this configuration of pieces and empty squares
     */
-   public static boolean isOpponentsKingInCheck(Map<PieceType, Piece> myPieces, BitSet emptySquares,
-         Square opponentsKing) {
+   public static boolean isKingInCheck(Map<PieceType, Piece> myPieces, BitSet emptySquares, Square kingsSquare) {
       // discovered check can only be from a rook, queen, or bishop
       boolean isCheck = false;
       BitSet rooksAndQueens;
@@ -265,7 +318,7 @@ public class Chessboard {
          rooksAndQueens = rooks.getBitBoard().cloneBitSet();
       }
       rooksAndQueens.or(queensBitSet);
-      isCheck = SlidingPiece.attacksSquareOnRankOrFile(rooksAndQueens, emptySquares, opponentsKing);
+      isCheck = SlidingPiece.attacksSquareOnRankOrFile(rooksAndQueens, emptySquares, kingsSquare);
 
       // check bishops/queens if not already found check
       if (!isCheck) {
@@ -276,14 +329,18 @@ public class Chessboard {
             bishopsAndQueens = bishops.getBitBoard().cloneBitSet();
          }
          bishopsAndQueens.or(queensBitSet);
-         isCheck = SlidingPiece.attacksSquareOnDiagonal(bishopsAndQueens, emptySquares, opponentsKing);
+         isCheck = SlidingPiece.attacksSquareOnDiagonal(bishopsAndQueens, emptySquares, kingsSquare);
       }
 
       // for discovered check not important, but this method is also used in general to see if a king is in check
       if (!isCheck) {
-         Piece knights = myPieces.get(PieceType.KNIGHT);
-         if (knights != null) {
-            isCheck = knights.attacksSquare(null, opponentsKing);
+         for (PieceType pieceType : new PieceType[] { PieceType.KNIGHT, PieceType.PAWN }) {
+            if (!isCheck) {
+               Piece piece = myPieces.get(pieceType);
+               if (piece != null) {
+                  isCheck = piece.attacksSquare(null, kingsSquare);
+               }
+            }
          }
       }
 

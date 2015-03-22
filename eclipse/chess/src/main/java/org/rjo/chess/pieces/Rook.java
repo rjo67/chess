@@ -1,6 +1,7 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.rjo.chess.Chessboard;
@@ -92,7 +93,7 @@ public class Rook extends SlidingPiece {
    }
 
    @Override
-   public List<Move> findMoves(Game game) {
+   public List<Move> findMoves(Game game, boolean kingInCheck) {
       List<Move> moves = new ArrayList<>(14);
 
       /*
@@ -102,6 +103,16 @@ public class Rook extends SlidingPiece {
       moves.addAll(search(game.getChessboard(), SOUTH_MOVE_HELPER));
       moves.addAll(search(game.getChessboard(), WEST_MOVE_HELPER));
       moves.addAll(search(game.getChessboard(), EAST_MOVE_HELPER));
+
+      // make sure king is not/no longer in check
+      Square myKing = King.findKing(colour, game.getChessboard());
+      Iterator<Move> iter = moves.listIterator();
+      while (iter.hasNext()) {
+         Move move = iter.next();
+         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing)) {
+            iter.remove();
+         }
+      }
 
       // checks
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());

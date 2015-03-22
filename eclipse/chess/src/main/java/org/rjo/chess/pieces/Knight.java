@@ -2,6 +2,7 @@ package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.rjo.chess.BitBoard;
@@ -146,7 +147,7 @@ public class Knight extends Piece {
    }
 
    @Override
-   public List<Move> findMoves(Game game) {
+   public List<Move> findMoves(Game game, boolean kingInCheck) {
       List<Move> moves = new ArrayList<>(20);
       /*
        * for each knight on the board, finds its moves using the lookup table
@@ -175,6 +176,16 @@ public class Knight extends Piece {
           */
          for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
             moves.add(new Move(PieceType.KNIGHT, colour, knightStartSquare, Square.fromBitIndex(k)));
+         }
+      }
+
+      // make sure king is not/no longer in check
+      Square myKing = King.findKing(colour, game.getChessboard());
+      Iterator<Move> iter = moves.listIterator();
+      while (iter.hasNext()) {
+         Move move = iter.next();
+         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing)) {
+            iter.remove();
          }
       }
 

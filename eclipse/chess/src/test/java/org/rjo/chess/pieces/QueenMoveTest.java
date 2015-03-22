@@ -18,10 +18,12 @@ import static org.junit.Assert.assertTrue;
 public class QueenMoveTest {
 
    private King opponentsKing;
+   private King myKing;
 
    @Before
    public void setup() {
       opponentsKing = new King(Colour.BLACK, true);
+      myKing = new King(Colour.WHITE, true);
    }
 
    @Test
@@ -34,21 +36,21 @@ public class QueenMoveTest {
    @Test
    public void moveFromMiddleOfBoard() {
       Queen whiteQueen = new Queen(Colour.WHITE, Square.d4);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteQueen));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteQueen, new King(Colour.WHITE, Square.b3)));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil
-      .checkMoves(
-            whiteQueen.findMoves(game),
-            new HashSet<>(Arrays.asList("Qd4-d5", "Qd4-d6", "Qd4-d7+", "Qd4-d8+", "Qd4-e4+", "Qd4-f4", "Qd4-g4",
-                  "Qd4-h4", "Qd4-d3", "Qd4-d2", "Qd4-d1", "Qd4-c4", "Qd4-b4", "Qd4-a4+", "Qd4-e5+", "Qd4-f6",
-                  "Qd4-g7", "Qd4-h8+", "Qd4-c5", "Qd4-b6", "Qd4-a7", "Qd4-e3+", "Qd4-f2", "Qd4-g1", "Qd4-c3",
-                  "Qd4-b2", "Qd4-a1")));
+            .checkMoves(
+                  whiteQueen.findMoves(game),
+                  new HashSet<>(Arrays.asList("Qd4-d5", "Qd4-d6", "Qd4-d7+", "Qd4-d8+", "Qd4-e4+", "Qd4-f4", "Qd4-g4",
+                        "Qd4-h4", "Qd4-d3", "Qd4-d2", "Qd4-d1", "Qd4-c4", "Qd4-b4", "Qd4-a4+", "Qd4-e5+", "Qd4-f6",
+                        "Qd4-g7", "Qd4-h8+", "Qd4-c5", "Qd4-b6", "Qd4-a7", "Qd4-e3+", "Qd4-f2", "Qd4-g1", "Qd4-c3",
+                        "Qd4-b2", "Qd4-a1")));
    }
 
    @Test
    public void moveFromA1() {
       Queen whiteQueen = new Queen(Colour.WHITE, Square.a1);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteQueen));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteQueen, new King(Colour.WHITE, Square.b6)));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(
             whiteQueen.findMoves(game),
@@ -91,7 +93,7 @@ public class QueenMoveTest {
    @Test
    public void moveFromA8() {
       Queen whiteQueen = new Queen(Colour.WHITE, Square.a8);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteQueen));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteQueen, myKing));
       opponentsKing = new King(Colour.BLACK, Square.c5);
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(

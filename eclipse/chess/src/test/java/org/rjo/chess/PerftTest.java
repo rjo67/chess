@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -15,34 +16,54 @@ import static org.junit.Assert.assertEquals;
  * @author rich
  * @see http://chessprogramming.wikispaces.com/Perft
  * @see http://chessprogramming.wikispaces.com/Perft+Results
+ * @see http://wismuth.com/chess/statistics-games.html
+ * @see http://www.chessprogramming.net/perfect-perft/
+ * @see http://www.rocechess.ch/perft.html
  */
 public class PerftTest {
 
    @Test
+   public void initialPositionPerft1() {
+      Game game = new Game();
+      checkAnswer(20, game.findMoves(Colour.WHITE));
+   }
+
+   @Test
    public void initialPositionPerft2() {
       Game game = new Game();
-      assertEquals(400, game.findMoves(Colour.WHITE, 2));
+      List<Move> moves = game.findMoves(Colour.WHITE, 2, false);
+      assertEquals(400, moves.size());
    }
 
    @Test
    public void initialPositionPerft3() {
       Game game = new Game();
-      assertEquals(8902, game.findMoves(Colour.WHITE, 3));
+      List<Move> moves = game.findMoves(Colour.WHITE, 3, false);
+      assertEquals(8902, moves.size());
+      assertEquals(34, MoveUtil.getCaptures(moves).size());
+      assertEquals(12, MoveUtil.getChecks(moves).size());
    }
 
    @Test
    public void initialPositionPerft4() {
       Game game = new Game();
-      assertEquals(197281, game.findMoves(Colour.WHITE, 4));
+      List<Move> moves = game.findMoves(Colour.WHITE, 4, false);
+      assertEquals(197281, moves.size());
+      assertEquals(1576, MoveUtil.getCaptures(moves).size());
+      assertEquals(469, MoveUtil.getChecks(moves).size());
+   }
+
+   @Test
+   @Ignore
+   public void initialPositionPerft5() {
+      Game game = new Game();
+      List<Move> moves = game.findMoves(Colour.WHITE, 5, false);
+      assertEquals(4865609, moves.size());
+      assertEquals(82719, MoveUtil.getCaptures(moves).size());
+      assertEquals(27351, MoveUtil.getChecks(moves).size());
    }
 
    // these tests only go to 1ply at the moment
-
-   @Test
-   public void initialPosition() {
-      Game game = new Game();
-      checkAnswer(20, game.findMoves(Colour.WHITE));
-   }
 
    @Test
    public void posn2() {
@@ -59,8 +80,8 @@ public class PerftTest {
       List<Move> moves = game.findMoves(Colour.WHITE);
       TestUtil.checkMoves(
             moves,
-            new HashSet<>(Arrays.asList("Ka5-a6", "Ka5-a4", "g2-g3+", "g2-g4", "e2-e3", "e2-e4", "b5-b6", "Rb4-b3",
-                  "Rb4-b2", "Rb4-b1", "Rb4-a4", "Rb4-c4", "Rb4-d4", "Rb4-e4", "Rb4xf4+")));
+            new HashSet<>(Arrays.asList("Ka5-a6", "Ka5-a4", "g2-g3+", "g2-g4", "e2-e3", "e2-e4", "Rb4-b3", "Rb4-b2",
+                  "Rb4-b1", "Rb4-a4", "Rb4-c4", "Rb4-d4", "Rb4-e4", "Rb4xf4+")));
       checkAnswer(2, MoveUtil.getChecks(moves));
       checkAnswer(1, MoveUtil.getCaptures(moves));
 

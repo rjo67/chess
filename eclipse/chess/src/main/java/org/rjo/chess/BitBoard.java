@@ -5,7 +5,7 @@ import java.util.BitSet;
 /**
  * Representation of the chessboard using 64 bits.
  * http://chessprogramming.wikispaces.com/Bitboards.
- * 
+ *
  * Little-Endian Rank-File Mapping:
  * <ul>
  * <li>bit index 0 == bottom left of board == A1</li>
@@ -13,7 +13,7 @@ import java.util.BitSet;
  * <li>bit index 56 == top left of board == A8</li>
  * <li>bit index 63 == top right of board == H8</li>
  * </ul>
- * 
+ *
  * @author rich
  */
 public class BitBoard {
@@ -22,84 +22,84 @@ public class BitBoard {
     * Bitboards for each file of the board.
     * <p>
     * Usage: to just get pieces on the second file, 'and' the bitset with FILE[1].getBitSet()
-    * 
+    *
     * TODO maybe store these directly as BitSets / immutable BitSets?
     */
    public static BitBoard[] FILE = new BitBoard[] {
-//@formatter:off
+      //@formatter:off
       new BitBoard(new byte[] {
-         (byte) 0b10000000,
-         (byte) 0b10000000,
-         (byte) 0b10000000,
-         (byte) 0b10000000,
-         (byte) 0b10000000,
-         (byte) 0b10000000,
-         (byte) 0b10000000,
-         (byte) 0b10000000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b01000000,
-         (byte) 0b01000000,
-         (byte) 0b01000000,
-         (byte) 0b01000000,
-         (byte) 0b01000000,
-         (byte) 0b01000000,
-         (byte) 0b01000000,
-         (byte) 0b01000000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00100000,
-         (byte) 0b00100000,
-         (byte) 0b00100000,
-         (byte) 0b00100000,
-         (byte) 0b00100000,
-         (byte) 0b00100000,
-         (byte) 0b00100000,
-         (byte) 0b00100000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00010000,
-         (byte) 0b00010000,
-         (byte) 0b00010000,
-         (byte) 0b00010000,
-         (byte) 0b00010000,
-         (byte) 0b00010000,
-         (byte) 0b00010000,
-         (byte) 0b00010000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00001000,
-         (byte) 0b00001000,
-         (byte) 0b00001000,
-         (byte) 0b00001000,
-         (byte) 0b00001000,
-         (byte) 0b00001000,
-         (byte) 0b00001000,
-         (byte) 0b00001000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00000100,
-         (byte) 0b00000100,
-         (byte) 0b00000100,
-         (byte) 0b00000100,
-         (byte) 0b00000100,
-         (byte) 0b00000100,
-         (byte) 0b00000100,
-         (byte) 0b00000100 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00000010,
-         (byte) 0b00000010,
-         (byte) 0b00000010,
-         (byte) 0b00000010,
-         (byte) 0b00000010,
-         (byte) 0b00000010,
-         (byte) 0b00000010,
-         (byte) 0b00000010 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001,
-         (byte) 0b00000001 })
-//@formatter:on
+            (byte) 0b10000000,
+            (byte) 0b10000000,
+            (byte) 0b10000000,
+            (byte) 0b10000000,
+            (byte) 0b10000000,
+            (byte) 0b10000000,
+            (byte) 0b10000000,
+            (byte) 0b10000000 }),
+            new BitBoard(new byte[] {
+                  (byte) 0b01000000,
+                  (byte) 0b01000000,
+                  (byte) 0b01000000,
+                  (byte) 0b01000000,
+                  (byte) 0b01000000,
+                  (byte) 0b01000000,
+                  (byte) 0b01000000,
+                  (byte) 0b01000000 }),
+                  new BitBoard(new byte[] {
+                        (byte) 0b00100000,
+                        (byte) 0b00100000,
+                        (byte) 0b00100000,
+                        (byte) 0b00100000,
+                        (byte) 0b00100000,
+                        (byte) 0b00100000,
+                        (byte) 0b00100000,
+                        (byte) 0b00100000 }),
+                        new BitBoard(new byte[] {
+                              (byte) 0b00010000,
+                              (byte) 0b00010000,
+                              (byte) 0b00010000,
+                              (byte) 0b00010000,
+                              (byte) 0b00010000,
+                              (byte) 0b00010000,
+                              (byte) 0b00010000,
+                              (byte) 0b00010000 }),
+                              new BitBoard(new byte[] {
+                                    (byte) 0b00001000,
+                                    (byte) 0b00001000,
+                                    (byte) 0b00001000,
+                                    (byte) 0b00001000,
+                                    (byte) 0b00001000,
+                                    (byte) 0b00001000,
+                                    (byte) 0b00001000,
+                                    (byte) 0b00001000 }),
+                                    new BitBoard(new byte[] {
+                                          (byte) 0b00000100,
+                                          (byte) 0b00000100,
+                                          (byte) 0b00000100,
+                                          (byte) 0b00000100,
+                                          (byte) 0b00000100,
+                                          (byte) 0b00000100,
+                                          (byte) 0b00000100,
+                                          (byte) 0b00000100 }),
+                                          new BitBoard(new byte[] {
+                                                (byte) 0b00000010,
+                                                (byte) 0b00000010,
+                                                (byte) 0b00000010,
+                                                (byte) 0b00000010,
+                                                (byte) 0b00000010,
+                                                (byte) 0b00000010,
+                                                (byte) 0b00000010,
+                                                (byte) 0b00000010 }),
+                                                new BitBoard(new byte[] {
+                                                      (byte) 0b00000001,
+                                                      (byte) 0b00000001,
+                                                      (byte) 0b00000001,
+                                                      (byte) 0b00000001,
+                                                      (byte) 0b00000001,
+                                                      (byte) 0b00000001,
+                                                      (byte) 0b00000001,
+                                                      (byte) 0b00000001 })
+      //@formatter:on
    };
 
    /**
@@ -119,80 +119,80 @@ public class BitBoard {
     * Usage: to just get pieces on the second rank, 'and' the bitset with RANK[1].getBitSet()
     */
    public static BitBoard[] RANK = new BitBoard[] {
-//@formatter:off
+      //@formatter:off
       new BitBoard(new byte[] {
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b11111111 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b11111111,
-         (byte) 0b00000000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b11111111,
-         (byte) 0b00000000,
-         (byte) 0b00000000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b11111111,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b11111111,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b11111111,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b00000000,
-         (byte) 0b11111111,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000 }),
-      new BitBoard(new byte[] {
-         (byte) 0b11111111,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000,
-         (byte) 0b00000000 })
-//@formatter:on
+            (byte) 0b00000000,
+            (byte) 0b00000000,
+            (byte) 0b00000000,
+            (byte) 0b00000000,
+            (byte) 0b00000000,
+            (byte) 0b00000000,
+            (byte) 0b00000000,
+            (byte) 0b11111111 }),
+            new BitBoard(new byte[] {
+                  (byte) 0b00000000,
+                  (byte) 0b00000000,
+                  (byte) 0b00000000,
+                  (byte) 0b00000000,
+                  (byte) 0b00000000,
+                  (byte) 0b00000000,
+                  (byte) 0b11111111,
+                  (byte) 0b00000000 }),
+                  new BitBoard(new byte[] {
+                        (byte) 0b00000000,
+                        (byte) 0b00000000,
+                        (byte) 0b00000000,
+                        (byte) 0b00000000,
+                        (byte) 0b00000000,
+                        (byte) 0b11111111,
+                        (byte) 0b00000000,
+                        (byte) 0b00000000 }),
+                        new BitBoard(new byte[] {
+                              (byte) 0b00000000,
+                              (byte) 0b00000000,
+                              (byte) 0b00000000,
+                              (byte) 0b00000000,
+                              (byte) 0b11111111,
+                              (byte) 0b00000000,
+                              (byte) 0b00000000,
+                              (byte) 0b00000000 }),
+                              new BitBoard(new byte[] {
+                                    (byte) 0b00000000,
+                                    (byte) 0b00000000,
+                                    (byte) 0b00000000,
+                                    (byte) 0b11111111,
+                                    (byte) 0b00000000,
+                                    (byte) 0b00000000,
+                                    (byte) 0b00000000,
+                                    (byte) 0b00000000 }),
+                                    new BitBoard(new byte[] {
+                                          (byte) 0b00000000,
+                                          (byte) 0b00000000,
+                                          (byte) 0b11111111,
+                                          (byte) 0b00000000,
+                                          (byte) 0b00000000,
+                                          (byte) 0b00000000,
+                                          (byte) 0b00000000,
+                                          (byte) 0b00000000 }),
+                                          new BitBoard(new byte[] {
+                                                (byte) 0b00000000,
+                                                (byte) 0b11111111,
+                                                (byte) 0b00000000,
+                                                (byte) 0b00000000,
+                                                (byte) 0b00000000,
+                                                (byte) 0b00000000,
+                                                (byte) 0b00000000,
+                                                (byte) 0b00000000 }),
+                                                new BitBoard(new byte[] {
+                                                      (byte) 0b11111111,
+                                                      (byte) 0b00000000,
+                                                      (byte) 0b00000000,
+                                                      (byte) 0b00000000,
+                                                      (byte) 0b00000000,
+                                                      (byte) 0b00000000,
+                                                      (byte) 0b00000000,
+                                                      (byte) 0b00000000 })
+      //@formatter:on
    };
 
    /**
@@ -230,27 +230,27 @@ public class BitBoard {
 
    /**
     * Initialise a bitboard.
-    * 
+    *
     * @param input
     *           must be an array of 8 bytes describing the bits that are set.
     *           The eighth byte corresponds to the bottom row of the board (rank 1).
     *           The first byte corresponds to the top row (rank 8).
     *           The bits of the input bytes will be mapped to the bit set, starting at bottom left === index 0.
     *           For example
-    * 
+    *
     *           <pre>
     * new byte[] { (byte) 0b1110_0010, ... };
     * </pre>
-    * 
+    *
     *           This will lead to the bits 56, 57, 58 and 62 being set in the BitSet.
     *           <p>
     *           The advantage of this format is that the initialisation byte array can be read like a chessboard, e.g.:
-    * 
+    *
     *           <pre>
     * new BitBoard(new byte[] { (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111,
     *       (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111 });
     * </pre>
-    * 
+    *
     *           <B>This is not the same order as used by the BitSet.parse(byte[]) method!!</B>
     */
    public BitBoard(byte[] input) {
@@ -272,7 +272,7 @@ public class BitBoard {
 
    /**
     * Convenience method to set various bits of the bitboard.
-    * 
+    *
     * @param squares
     *           a number of squares
     */
@@ -285,7 +285,7 @@ public class BitBoard {
    /**
     * allow operations on the underlying BitSet.
     * TODO: return a non-writable version of the bitset?
-    * 
+    *
     * @return the bitset representing the BitBoard.
     */
    public BitSet getBitSet() {
@@ -294,7 +294,7 @@ public class BitBoard {
 
    /**
     * returns a copy of the underlying BitSet.
-    * 
+    *
     * @return a copy of the underlying bitset.
     */
    public BitSet cloneBitSet() {
@@ -322,6 +322,9 @@ public class BitBoard {
       if (bs.size() != 64) {
          return "cannot display bitset of size " + bs.size();
       }
+      if (bs.isEmpty()) {
+         return "<empty>";
+      }
       StringBuilder sb = new StringBuilder(90);
       // need to parse in rows of 8, since bit 0 == bottom left
       for (int file = 56; file >= 0; file = file - 8) {
@@ -336,13 +339,18 @@ public class BitBoard {
 
    /**
     * Convenience method to return this BitBoard's BitSet 'flipped', i.e. each set bit is unset and v.v.
-    * 
+    *
     * @return a new BitSet, complement of this BitBoard's BitSet.
     */
    public BitSet flip() {
       BitSet bs = cloneBitSet();
       bs.flip(0, 64);
       return bs;
+   }
+
+   @Override
+   public String toString() {
+      return display();
    }
 
 }

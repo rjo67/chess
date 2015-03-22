@@ -18,10 +18,12 @@ import static org.junit.Assert.assertTrue;
 public class BishopMoveTest {
 
    private King opponentsKing;
+   private King myKing;
 
    @Before
    public void setup() {
       opponentsKing = new King(Colour.BLACK, true);
+      myKing = new King(Colour.WHITE, true);
    }
 
    @Test
@@ -43,7 +45,7 @@ public class BishopMoveTest {
    @Test
    public void moveFromMiddleOfBoard() {
       Bishop whiteBishop = new Bishop(Colour.WHITE, Square.d4);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop, myKing));
       Pawn pawn = new Pawn(Colour.BLACK, Square.g7);
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
       Game game = new Game(new Chessboard(whitePieces, opponentsPieces));
@@ -56,7 +58,7 @@ public class BishopMoveTest {
    @Test
    public void moveFromA1() {
       Bishop whiteBishop = new Bishop(Colour.WHITE, Square.a1);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop, myKing));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(whiteBishop.findMoves(game),
             new HashSet<>(Arrays.asList("Ba1-b2", "Ba1-c3", "Ba1-d4", "Ba1-e5", "Ba1-f6", "Ba1-g7", "Ba1-h8")));
@@ -82,7 +84,7 @@ public class BishopMoveTest {
    public void moveFromA1WithCapture() {
       Bishop whiteBishop = new Bishop(Colour.WHITE, Square.a1);
       Pawn pawn = new Pawn(Colour.BLACK, Square.d4);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop, myKing));
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
       Game game = new Game(new Chessboard(whitePieces, opponentsPieces));
       TestUtil.checkMoves(whiteBishop.findMoves(game), new HashSet<>(Arrays.asList("Ba1-b2", "Ba1-c3", "Ba1xd4")));
@@ -91,7 +93,7 @@ public class BishopMoveTest {
    @Test
    public void moveFromH1() {
       Bishop whiteBishop = new Bishop(Colour.WHITE, Square.h1);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop, myKing));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(whiteBishop.findMoves(game),
             new HashSet<>(Arrays.asList("Bh1-g2", "Bh1-f3", "Bh1-e4", "Bh1-d5", "Bh1-c6+", "Bh1-b7", "Bh1-a8")));
@@ -127,7 +129,7 @@ public class BishopMoveTest {
    @Test
    public void moveFromA8() {
       Bishop whiteBishop = new Bishop(Colour.WHITE, Square.a8);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop, myKing));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(whiteBishop.findMoves(game),
             new HashSet<>(Arrays.asList("Ba8-b7", "Ba8-c6+", "Ba8-d5", "Ba8-e4", "Ba8-f3", "Ba8-g2", "Ba8-h1")));
@@ -163,7 +165,7 @@ public class BishopMoveTest {
    @Test
    public void moveFromH8() {
       Bishop whiteBishop = new Bishop(Colour.WHITE, Square.h8);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteBishop, myKing));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
       TestUtil.checkMoves(whiteBishop.findMoves(game),
             new HashSet<>(Arrays.asList("Bh8-g7", "Bh8-f6", "Bh8-e5", "Bh8-d4", "Bh8-c3", "Bh8-b2", "Bh8-a1")));

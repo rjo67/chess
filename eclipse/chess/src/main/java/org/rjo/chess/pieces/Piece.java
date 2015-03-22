@@ -11,7 +11,7 @@ import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 
-public abstract class Piece {
+public abstract class Piece implements Cloneable {
 
    // type of this piece
    private PieceType type;
@@ -21,6 +21,13 @@ public abstract class Piece {
 
    // stores the colour of the piece
    protected Colour colour;
+
+   @Override
+   public Object clone() throws CloneNotSupportedException {
+      Piece piece = (Piece) super.clone();
+      piece.pieces = new BitBoard(pieces.cloneBitSet());
+      return piece;
+   }
 
    /**
     * @return the symbol for this piece.
@@ -38,12 +45,28 @@ public abstract class Piece {
 
    /**
     * Finds all possible moves for this piece type in the given game.
+    * Delegates to {@link #findMoves(Game, boolean)} with 2nd parameter FALSE.
     *
     * @param game
     *           current game state.
     * @return a list of all possible moves.
     */
-   abstract public List<Move> findMoves(Game game);
+   public final List<Move> findMoves(Game game) {
+      return findMoves(game, false);
+   }
+
+   /**
+    * Finds all possible moves for this piece type in the given game.
+    * <p>
+    * The parameter 'kingInCheck' is not currently used, but could potentially offer optimisation possibilities.
+    *
+    * @param game
+    *           current game state.
+    * @param kingInCheck
+    *           indicates if the king is currently in check. This limits the available moves.
+    * @return a list of all possible moves.
+    */
+   abstract public List<Move> findMoves(Game game, boolean kingInCheck);
 
    /**
     * Checks to see if the given square is attacked by one or more pieces of this piece type.

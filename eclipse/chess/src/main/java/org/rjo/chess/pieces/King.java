@@ -3,6 +3,7 @@ package org.rjo.chess.pieces;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -118,7 +119,7 @@ public class King extends Piece {
    }
 
    @Override
-   public List<Move> findMoves(Game game) {
+   public List<Move> findMoves(Game game, boolean kingInCheck) {
       // TODO: generate the move tables statically
 
       List<Move> moves = new ArrayList<>();
@@ -145,8 +146,8 @@ public class King extends Piece {
       possibleMoves.andNot(game.getChessboard().getAllPieces(colour).getBitSet());
 
       /*
-       * possibleMoves now contains the possible moves. (King-adjacency and moving the king to an attacked square
-       * have not been checked yet.)
+       * possibleMoves now contains the possible moves. (King-in-check, King-adjacency and moving the king to an
+       * attacked square have not been checked yet.)
        */
 
       // set up captures bitset
@@ -174,8 +175,8 @@ public class King extends Piece {
          }
       }
 
-      // castling
-      if (game.canCastle(colour, CastlingRights.KINGS_SIDE)) {
+      // castling -- can't castle out of check
+      if (!kingInCheck && game.canCastle(colour, CastlingRights.KINGS_SIDE)) {
          BitSet emptySquaresBitset = game.getChessboard().getEmptySquares().getBitSet();
          boolean canCastle = true;
          // check squares are empty
@@ -192,7 +193,7 @@ public class King extends Piece {
             moves.add(Move.castleKingsSide(colour));
          }
       }
-      if (game.canCastle(colour, CastlingRights.QUEENS_SIDE)) {
+      if (!kingInCheck && game.canCastle(colour, CastlingRights.QUEENS_SIDE)) {
          BitSet emptySquaresBitset = game.getChessboard().getEmptySquares().getBitSet();
          boolean canCastle = true;
          // check squares are empty
@@ -207,6 +208,17 @@ public class King extends Piece {
          }
          if (canCastle) {
             moves.add(Move.castleQueensSide(colour));
+         }
+      }
+
+      // make sure king is not/no longer in check
+      // maybe should be done in Chessboard.squareIsAttacked (see above)?
+      Iterator<Move> iter = moves.listIterator();
+      while (iter.hasNext()) {
+         Move move = iter.next();
+         Square myKing = move.to();
+         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing)) {
+            iter.remove();
          }
       }
 
@@ -234,7 +246,20 @@ public class King extends Piece {
     * @return location of the other colour's king.
     */
    public static Square findOpponentsKing(Colour myColour, Chessboard chessboard) {
-      return chessboard.getPieces(Colour.oppositeColour(myColour)).get(PieceType.KING).getLocations()[0];
+      return findKing(Colour.oppositeColour(myColour), chessboard);
+   }
+
+   /**
+    * Locates the king (mine or the opponents).
+    *
+    * @param colour
+    *           which colour king we want
+    * @param chessboard
+    *           the board
+    * @return location of this colour's king.
+    */
+   public static Square findKing(Colour colour, Chessboard chessboard) {
+      return chessboard.getPieces(colour).get(PieceType.KING).getLocations()[0];
    }
 
    @Override

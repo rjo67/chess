@@ -5,10 +5,8 @@ explorations in the world of chess computer programming
 
 
 
-still TODO:
-* detection of pinned pieces in move generation
-
-
+## 22.03.15
+move/unmove finished. Perft 4 from start position works. Corrected bugs in check evaluation and pinned pieces.
 
 ## 08.03.15
 first steps to playing a move. Move.java expanded to hold further details e.g. which piece was captured,

@@ -28,6 +28,8 @@ public class Move {
 
    /** if promotion info -- if not null, implies that this move was a promotion */
    private PromotionInfo promotionInfo;
+   /** true if enpassant move */
+   private boolean enpassant;
 
    /**
     * Constructor for normal non-capture non-check moves.
@@ -87,7 +89,7 @@ public class Move {
 
    /**
     * Sets the promotion piece i/c of a pawn promotion.
-    * 
+    *
     * @param type
     *           to which piece the pawn gets promoted
     */
@@ -157,6 +159,10 @@ public class Move {
 
    public boolean isCapture() {
       return captureInfo != null;
+   }
+
+   public boolean isEnpassant() {
+      return enpassant;
    }
 
    public PieceType getCapturedPiece() {
@@ -230,5 +236,9 @@ public class Move {
       }
 
       private PieceType promotedPiece;
+   }
+
+   public void setEnpassant(boolean enpassant) {
+      this.enpassant = enpassant;
    }
 }
