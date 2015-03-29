@@ -114,18 +114,37 @@ public enum Square {
    /**
     * Returns the square where the pawn must be, given the enpassant square.
     * e.g. given b6, returns b5.
-    * 
+    *
     * @param sq
-    *           start square. Must be either on the 6th rank (for a white move) or on the 3rd rank (for a black move).
-    * @return
+    *           start square. Must be either on the 6th rank (for a black move) or on the 3rd rank (for a white move).
+    * @return the square where the pawn moved to (on the 5th rank for black or the 4th rank for white).
     */
-   public static Square findSquareFromEnpassantSquare(Square sq) {
+   public static Square findMoveFromEnpassantSquare(Square sq) {
       if (sq.rank() == 5) {
          return Square.fromRankAndFile(4, sq.file());
       } else if (sq.rank() == 2) {
          return Square.fromRankAndFile(3, sq.file());
       } else {
          throw new IllegalArgumentException("must specify an enpassant square, but got: " + sq);
+      }
+   }
+
+   /**
+    * Returns the enpassant square, given the (pawn) move.
+    * e.g. given b5, returns b6. Or a4, returns a3.
+    *
+    * @param sq
+    *           the square where the pawn moved to (on the 5th rank for black or the 4th rank for white).
+    *
+    * @return enpassant square. Must be either on the 6th rank (for a black move) or on the 3rd rank (for a white move).
+    */
+   public static Square findEnpassantSquareFromMove(Square sq) {
+      if (sq.rank() == 4) {
+         return Square.fromRankAndFile(5, sq.file());
+      } else if (sq.rank() == 3) {
+         return Square.fromRankAndFile(2, sq.file());
+      } else {
+         throw new IllegalArgumentException("must specify a square on the 4th or 5th rank, but got: " + sq);
       }
    }
 }

@@ -4,6 +4,32 @@ chess
 explorations in the world of chess computer programming
 
 
+## TODO
+* enpassant bug (perft3):
+ f4xe3 (e.p.) not allowed here since would be check: e2-e4 -> 17:f4-f3, d6-d5, c7-c6, c7-c5, f4xe3, Rh5-h6, Rh5-h7, Rh5-h8, Rh5-g5, Rh5-f5, Rh5-e5, Rh5-d5, Rh5-c5, Rh5xb5+, Kh4-g3, Kh4-g4, Kh4-g5
+
+
+
+
+## 29.03.15
+perft2
+1ply finished in 23
+2ply finished in 50
+3ply finished in 734
+4ply finished in 22629 (with debug info)
+
+  4ply: java.lang.AssertionError: wrong number of moves expected:<4085603> but was:<4079646>
+
+perft6:
+2ply finished in 45
+3ply finished in 629
+4ply finished in 16518
+
+* Fixed bug in attacksSquare.  startSquare==targetSquare was being counted as the target being attacked.
+  Found by perft5: king capture bug after Qd1xd7+ -> Nb8xd7, Bc8xd7, Qd8xd7. Missing move Ke8xd7.
+
+## 24.03.15
+Bugs in castling rights move/unmove
 
 ## 22.03.15
 move/unmove finished. Perft 4 from start position works. Corrected bugs in check evaluation and pinned pieces.

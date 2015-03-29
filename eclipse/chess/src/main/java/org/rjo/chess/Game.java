@@ -1,5 +1,7 @@
 package org.rjo.chess;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -131,13 +133,13 @@ public class Game {
     *           the starting colour
     * @param depth
     *           the required depth to search
-    * @param debug
-    *           if true, debug-info will be printed to stdout
+    * @param debugWriter
+    *           if not null, debug-info will be written to this file
     *
     * @return the list of possible moves at the given depth.
     */
-   public List<Move> findMoves(Colour sideToMove, int depth, boolean debug) {
-      return findMovesInternal(sideToMove, depth, new ArrayDeque<Move>(), new ArrayList<Move>(), debug);
+   public List<Move> findMoves(Colour sideToMove, int depth, Writer debugWriter) {
+      return findMovesInternal(sideToMove, depth, new ArrayDeque<Move>(), new ArrayList<Move>(), debugWriter);
    }
 
    /**
@@ -151,40 +153,40 @@ public class Game {
     *           for debugging purposes: the moves up to this point
     * @param totalMoves
     *           stores all moves found
-    * @param debug
-    *           if true, debug-info will be printed to stdout
+    * @param debugWriter
+    *           if not null, debug-info will be written to this file
     *
     * @return the list of possible moves at the given depth.
     */
    private List<Move> findMovesInternal(Colour sideToMove, int depth, Deque<Move> movesSoFar, List<Move> totalMoves,
-         boolean debug) {
+         Writer debugWriter) {
       if (depth == 0) {
          return new ArrayList<Move>();
       }
       // movesAtThisLevel and movesSoFar are only used for "logging"
       List<Move> movesAtThisLevel = new ArrayList<>();
       for (Move move : findMoves(sideToMove)) {
-         if (debug) {
+         if (debugWriter != null) {
             movesSoFar.addLast(move);
          }
-         move(move);
+         move(move, debugWriter);
 
          List<Move> movesFromThisPosn = findMovesInternal(Colour.oppositeColour(sideToMove), depth - 1, movesSoFar,
-               totalMoves, debug);
+               totalMoves, debugWriter);
          if (movesFromThisPosn.isEmpty()) {
             totalMoves.add(move);
-            if (debug) {
+            if (debugWriter != null) {
                movesAtThisLevel.add(move);
             }
          }
 
          unmove(move);
-         if (debug) {
+         if (debugWriter != null) {
             movesSoFar.removeLast();
          }
       }
 
-      if (debug) {
+      if (debugWriter != null) {
          if (!movesAtThisLevel.isEmpty()) {
             boolean check = false;
             boolean capture = false;
@@ -194,8 +196,12 @@ public class Game {
             if (!movesSoFar.isEmpty()) {
                capture = movesSoFar.peekLast().isCapture();
             }
-            System.out.println((check ? "CHECK" : "") + (capture ? "CAPTURE" : "") + " moves: " + movesSoFar + " -> "
-                  + movesAtThisLevel.size() + ":" + movesAtThisLevel);
+            try {
+               debugWriter.write((check ? "CHECK" : "") + (capture ? "CAPTURE" : "") + " moves: " + movesSoFar + " -> "
+                     + movesAtThisLevel.size() + ":" + movesAtThisLevel + System.lineSeparator());
+            } catch (IOException e) {
+               throw new RuntimeException("could not write to file", e);
+            }
          }
       }
       return totalMoves;
@@ -203,28 +209,35 @@ public class Game {
    }
 
    /**
-    * Execute the given move.
+    * Execute the given move without debug.
     *
     * @param move
     *           the move
     */
    public void move(Move move) {
+      move(move, null);
+   }
+
+   /**
+    * Execute the given move.
+    *
+    * @param move
+    *           the move
+    * @param debugWriter
+    *           if not null, debug info will be written here
+    */
+   public void move(Move move, Writer debugWriter) {
       if (move.getColour() != sideToMove) {
          throw new IllegalArgumentException("move is for '" + move.getColour() + "' but sideToMove=" + sideToMove);
       }
       this.moves.add(move);
       PieceType movingPiece = move.getPiece();
-      // double check that the move fits the data structures
-      // if (!chessboard.getPieces(sideToMove).get(movingPiece).getBitBoard().getBitSet().get(move.from().bitPosn())) {
-      // throw new IllegalArgumentException("no " + type + " found on square " + move.from() + ". Move=" + move);
-      // }
 
       if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
          Move rooksMove = move.getRooksCastlingMove();
          chessboard.getPieces(sideToMove).get(movingPiece).move(move);
          chessboard.getPieces(sideToMove).get(PieceType.ROOK).move(rooksMove);
-         CastlingRights right = move.isCastleKingsSide() ? CastlingRights.KINGS_SIDE : CastlingRights.QUEENS_SIDE;
-         castling[sideToMove.ordinal()].remove(right);
+         // castling rights are reset later on
       } else {
          if (!move.isCapture() && !chessboard.getEmptySquares().getBitSet().get(move.to().bitIndex())) {
             throw new IllegalArgumentException("square " + move.to() + " is not empty. Move=" + move);
@@ -233,27 +246,103 @@ public class Game {
          chessboard.getPieces(sideToMove).get(movingPiece).move(move);
          // capture: remove the captured piece
          if (move.isCapture()) {
-            chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece()).removePiece(move.to());
+            if (move.isEnpassant()) {
+               chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
+                     .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
+            } else {
+               chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
+               .removePiece(move.to());
+            }
          }
          // promotion: add the promoted piece
          if (move.isPromotion()) {
             chessboard.getPieces(sideToMove).get(move.getPromotedPiece()).addPiece(move.to());
          }
+      }
+      chessboard.updateStructures();
+      // this doesn't take into a/c captures, promotions, castling, therefore using updateStructures for now
+      // chessboard.getEmptySquares().getBitSet().set(move.from().bitIndex());
+      // chessboard.getEmptySquares().getBitSet().clear(move.to().bitIndex());
+      //
+      // chessboard.getAllPieces(sideToMove).getBitSet().clear(move.from().bitIndex());
+      // chessboard.getAllPieces(sideToMove).getBitSet().set(move.to().bitIndex());
 
-         chessboard.updateStructures();
-         // this doesn't take into a/c captures, promotions, castling, therefore using updateStructures for now
-         // chessboard.getEmptySquares().getBitSet().set(move.from().bitIndex());
-         // chessboard.getEmptySquares().getBitSet().clear(move.to().bitIndex());
-         //
-         // chessboard.getAllPieces(sideToMove).getBitSet().clear(move.from().bitIndex());
-         // chessboard.getAllPieces(sideToMove).getBitSet().set(move.to().bitIndex());
+      updateCastlingRightsAfterMove(move, debugWriter);
+      if (move.isPawnMoveTwoSquaresForward()) {
+         chessboard.setEnpassantSquare(Square.findEnpassantSquareFromMove(move.to()));
+      } else {
+         chessboard.setEnpassantSquare(null);
+      }
+      setSideToMove(Colour.oppositeColour(sideToMove));
+      inCheck = move.isCheck();
+      if (Colour.WHITE == sideToMove) {
+         moveNbr++;
+      }
+   }
 
-         setSideToMove(Colour.oppositeColour(sideToMove));
-         inCheck = move.isCheck();
-         if (Colour.WHITE == sideToMove) {
-            moveNbr++;
+   private void updateCastlingRightsAfterMove(Move move, Writer debugWriter) {
+      if (PieceType.KING == move.getPiece()) {
+         move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
+         castling[sideToMove.ordinal()].clear();
+         writeDebug(debugWriter,
+               "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
+      } else if (PieceType.ROOK == move.getPiece()) {
+         // remove castling rights if rook has moved
+         move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
+         if (castling[sideToMove.ordinal()].contains(CastlingRights.KINGS_SIDE)) {
+            Square targetSquare = (sideToMove == Colour.WHITE) ? Square.h1 : Square.h8;
+            if (move.from() == targetSquare) {
+               castling[sideToMove.ordinal()].remove(CastlingRights.KINGS_SIDE);
+            }
+         }
+         if (castling[sideToMove.ordinal()].contains(CastlingRights.QUEENS_SIDE)) {
+            Square targetSquare = (sideToMove == Colour.WHITE) ? Square.a1 : Square.a8;
+            if (move.from() == targetSquare) {
+               castling[sideToMove.ordinal()].remove(CastlingRights.QUEENS_SIDE);
+            }
+         }
+         writeDebug(debugWriter,
+               "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
+      }
+      // update OPPONENT's castling rights if necessary
+      Colour opponentsColour = Colour.oppositeColour(sideToMove);
+      {
+         Square targetSquare = (sideToMove == Colour.WHITE) ? Square.h8 : Square.h1;
+         if (move.isCapture() && move.to().equals(targetSquare)) {
+            move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
+            castling[opponentsColour.ordinal()].remove(CastlingRights.KINGS_SIDE);
+            writeDebug(debugWriter, "move: " + move + ", removed kings side castling for " + opponentsColour);
          }
       }
+      {
+         Square targetSquare = (sideToMove == Colour.WHITE) ? Square.a8 : Square.a1;
+         if (move.isCapture() && move.to().equals(targetSquare)) {
+            move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
+            castling[opponentsColour.ordinal()].remove(CastlingRights.QUEENS_SIDE);
+            writeDebug(debugWriter, "move: " + move + ", removed queens side castling for " + opponentsColour);
+         }
+      }
+
+   }
+
+   private void writeDebug(Writer debugWriter, String string) {
+      if (debugWriter != null) {
+         try {
+            debugWriter.write(string + System.lineSeparator());
+         } catch (IOException e) {
+            throw new RuntimeException("could not write debug info", e);
+         }
+      }
+   }
+
+   /**
+    * Reverses the given move. Version without debug info.
+    *
+    * @param move
+    *           the move
+    */
+   public void unmove(Move move) {
+      unmove(move, null);
    }
 
    /**
@@ -261,21 +350,21 @@ public class Game {
     *
     * @param move
     *           the move
+    * @param debugWriter
+    *           if not null, debug info will be written here
     */
-   public void unmove(Move move) {
+   public void unmove(Move move, Writer debugWriter) {
       if (move.getColour() == sideToMove) {
          throw new IllegalArgumentException("unmove for '" + move.getColour() + "' was unexpected");
       }
-      // pollLast instead of removeLast to avoid exception
-      this.moves.pollLast();
+
       PieceType movingPiece = move.getPiece();
 
       if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
          Move rooksMove = move.getRooksCastlingMove();
          chessboard.getPieces(move.getColour()).get(movingPiece).unmove(move);
          chessboard.getPieces(move.getColour()).get(PieceType.ROOK).unmove(rooksMove);
-         CastlingRights right = move.isCastleKingsSide() ? CastlingRights.KINGS_SIDE : CastlingRights.QUEENS_SIDE;
-         castling[move.getColour().ordinal()].add(right);
+         // castling rights are reset later on
       } else {
          if (!move.isCapture() && !chessboard.getEmptySquares().getBitSet().get(move.from().bitIndex())) {
             throw new IllegalArgumentException("square " + move.from() + " is not empty. Unmove=" + move);
@@ -284,31 +373,56 @@ public class Game {
          chessboard.getPieces(move.getColour()).get(movingPiece).unmove(move);
          // capture: add the captured piece
          if (move.isCapture()) {
-            chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-                  .addPiece(move.to());
+            if (move.isEnpassant()) {
+               chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
+                     .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
+            } else {
+               chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
+                     .addPiece(move.to());
+            }
          }
          // promotion: remove the promoted piece
          if (move.isPromotion()) {
             chessboard.getPieces(move.getColour()).get(move.getPromotedPiece()).removePiece(move.to());
          }
-
-         chessboard.updateStructures();
-         // this doesn't take into a/c captures, promotions, castling, therefore using updateStructures for now
-         // chessboard.getEmptySquares().getBitSet().clear(move.from().bitIndex());
-         // chessboard.getEmptySquares().getBitSet().set(move.to().bitIndex());
-         //
-         // chessboard.getAllPieces(move.getColour()).getBitSet().set(move.from().bitIndex());
-         // chessboard.getAllPieces(move.getColour()).getBitSet().clear(move.to().bitIndex());
-
-         // undoing black's move means that black should now move
-         setSideToMove(move.getColour());
-         // check if the 'new' last move was a check
-         Move lastMove = this.moves.peekLast();
-         inCheck = (lastMove != null) ? lastMove.isCheck() : false;
-         if (Colour.BLACK == sideToMove) {
-            moveNbr--;
-         }
       }
 
+      chessboard.updateStructures();
+      // this doesn't take into a/c captures, promotions, castling, therefore using updateStructures for now
+      // chessboard.getEmptySquares().getBitSet().clear(move.from().bitIndex());
+      // chessboard.getEmptySquares().getBitSet().set(move.to().bitIndex());
+      //
+      // chessboard.getAllPieces(move.getColour()).getBitSet().set(move.from().bitIndex());
+      // chessboard.getAllPieces(move.getColour()).getBitSet().clear(move.to().bitIndex());
+
+      // reset castling rights if necessary
+      // if ((PieceType.KING == move.getPiece()) || (PieceType.ROOK == move.getPiece())) {
+      if (move.previousCastlingRightsWasSet()) {
+         castling[move.getColour().ordinal()] = move.getPreviousCastlingRights();
+         writeDebug(debugWriter, "unmove: " + move + ", sideToMove: " + move.getColour() + ", castling="
+               + castling[move.getColour().ordinal()]);
+      }
+      if (move.previousCastlingRightsOpponentWasSet()) {
+         castling[Colour.oppositeColour(move.getColour()).ordinal()] = move.getPreviousCastlingRightsOpponent();
+         writeDebug(debugWriter, "unmove: " + move + ", sideToMove: " + Colour.oppositeColour(move.getColour())
+               + ", opponents castling=" + castling[Colour.oppositeColour(move.getColour()).ordinal()]);
+      }
+      // undoing black's move means that black should now move
+      setSideToMove(move.getColour());
+
+      // pollLast instead of removeLast to avoid exception
+      Move lastMove = this.moves.pollLast();
+      // check if the 'new' last move was a check
+      inCheck = (lastMove != null) ? lastMove.isCheck() : false;
+
+      if (lastMove != null && lastMove.isEnpassant()) {
+         chessboard.setEnpassantSquare(lastMove.to());
+      } else {
+         chessboard.setEnpassantSquare(null);
+      }
+
+      if (Colour.BLACK == sideToMove) {
+         moveNbr--;
+      }
    }
 }

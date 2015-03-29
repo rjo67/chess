@@ -1,5 +1,10 @@
 package org.rjo.chess;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -31,14 +36,14 @@ public class PerftTest {
    @Test
    public void initialPositionPerft2() {
       Game game = new Game();
-      List<Move> moves = game.findMoves(Colour.WHITE, 2, false);
+      List<Move> moves = game.findMoves(Colour.WHITE, 2, null);
       assertEquals(400, moves.size());
    }
 
    @Test
    public void initialPositionPerft3() {
       Game game = new Game();
-      List<Move> moves = game.findMoves(Colour.WHITE, 3, false);
+      List<Move> moves = game.findMoves(Colour.WHITE, 3, null);
       assertEquals(8902, moves.size());
       assertEquals(34, MoveUtil.getCaptures(moves).size());
       assertEquals(12, MoveUtil.getChecks(moves).size());
@@ -47,7 +52,7 @@ public class PerftTest {
    @Test
    public void initialPositionPerft4() {
       Game game = new Game();
-      List<Move> moves = game.findMoves(Colour.WHITE, 4, false);
+      List<Move> moves = game.findMoves(Colour.WHITE, 4, null);
       assertEquals(197281, moves.size());
       assertEquals(1576, MoveUtil.getCaptures(moves).size());
       assertEquals(469, MoveUtil.getChecks(moves).size());
@@ -57,7 +62,7 @@ public class PerftTest {
    @Ignore
    public void initialPositionPerft5() {
       Game game = new Game();
-      List<Move> moves = game.findMoves(Colour.WHITE, 5, false);
+      List<Move> moves = game.findMoves(Colour.WHITE, 5, null);
       assertEquals(4865609, moves.size());
       assertEquals(82719, MoveUtil.getCaptures(moves).size());
       assertEquals(27351, MoveUtil.getChecks(moves).size());
@@ -66,43 +71,138 @@ public class PerftTest {
    // these tests only go to 1ply at the moment
 
    @Test
-   public void posn2() {
-      Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0");
-      List<Move> moves = game.findMoves(Colour.WHITE);
-      checkAnswer(48, moves);
-      checkAnswer(0, MoveUtil.getChecks(moves));
-      checkAnswer(8, MoveUtil.getCaptures(moves));
+   public void posn2() throws IOException {
+      {
+         long start = System.currentTimeMillis();
+         Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0");
+         List<Move> moves = game.findMoves(Colour.WHITE);
+         System.out.println("1ply finished in " + (System.currentTimeMillis() - start));
+         checkAnswer(48, moves);
+         checkAnswer(0, MoveUtil.getChecks(moves));
+         checkAnswer(8, MoveUtil.getCaptures(moves));
+      }
+      {
+         long start = System.currentTimeMillis();
+         Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 4");
+         List<Move> moves = game.findMoves(Colour.WHITE, 2, null);
+         System.out.println("2ply finished in " + (System.currentTimeMillis() - start));
+         checkAnswer(2039, moves);
+         checkAnswer(3, MoveUtil.getChecks(moves));
+         checkAnswer(351, MoveUtil.getCaptures(moves));
+      }
+      {
+         long start = System.currentTimeMillis();
+         Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 4");
+         List<Move> moves = game.findMoves(Colour.WHITE, 3, null);
+         System.out.println("3ply finished in " + (System.currentTimeMillis() - start));
+         checkAnswer(97862, moves);
+         checkAnswer(993, MoveUtil.getChecks(moves));
+         checkAnswer(17102, MoveUtil.getCaptures(moves));
+      }
+      {
+         Writer debugWriter = new BufferedWriter(new FileWriter(createTempFile()));
+         long start = System.currentTimeMillis();
+         Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 4");
+         List<Move> moves = game.findMoves(Colour.WHITE, 4, debugWriter);
+         debugWriter.close();
+         System.out.println("4ply finished in " + (System.currentTimeMillis() - start));
+         checkAnswer(4085603, moves);
+         checkAnswer(25523, MoveUtil.getChecks(moves));
+         checkAnswer(757163, MoveUtil.getCaptures(moves));
+      }
    }
 
    @Test
-   public void posn3() {
-      Game game = Fen.decode("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0");
-      List<Move> moves = game.findMoves(Colour.WHITE);
-      TestUtil.checkMoves(
-            moves,
-            new HashSet<>(Arrays.asList("Ka5-a6", "Ka5-a4", "g2-g3+", "g2-g4", "e2-e3", "e2-e4", "Rb4-b3", "Rb4-b2",
-                  "Rb4-b1", "Rb4-a4", "Rb4-c4", "Rb4-d4", "Rb4-e4", "Rb4xf4+")));
-      checkAnswer(2, MoveUtil.getChecks(moves));
-      checkAnswer(1, MoveUtil.getCaptures(moves));
-
+   public void posn3() throws IOException {
+      {
+         Game game = Fen.decode("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0");
+         long start = System.currentTimeMillis();
+         List<Move> moves = game.findMoves(Colour.WHITE);
+         System.out.println("1ply finished in " + (System.currentTimeMillis() - start));
+         TestUtil.checkMoves(
+               moves,
+               new HashSet<>(Arrays.asList("Ka5-a6", "Ka5-a4", "g2-g3+", "g2-g4", "e2-e3", "e2-e4", "Rb4-b3", "Rb4-b2",
+                     "Rb4-b1", "Rb4-a4", "Rb4-c4", "Rb4-d4", "Rb4-e4", "Rb4xf4+")));
+         checkAnswer(2, MoveUtil.getChecks(moves));
+         checkAnswer(1, MoveUtil.getCaptures(moves));
+      }
+      {
+         Writer debugWriter = new BufferedWriter(new FileWriter(createTempFile()));
+         Game game = Fen.decode("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0");
+         long start = System.currentTimeMillis();
+         List<Move> moves = game.findMoves(Colour.WHITE, 2, debugWriter);
+         System.out.println("2ply finished in " + (System.currentTimeMillis() - start));
+         debugWriter.close();
+         checkAnswer(191, moves);
+         checkAnswer(10, MoveUtil.getChecks(moves));
+         checkAnswer(14, MoveUtil.getCaptures(moves));
+      }
    }
 
    @Test
-   public void posn5() {
-      Game game = Fen.decode("rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6");
-      List<Move> moves = game.findMoves(Colour.WHITE);
-      checkAnswer(42, moves);
-      checkAnswer(2, MoveUtil.getChecks(moves));
-      checkAnswer(3, MoveUtil.getCaptures(moves));
+   public void posn5() throws IOException {
+      {
+         Game game = Fen.decode("rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6");
+         List<Move> moves = game.findMoves(Colour.WHITE);
+         checkAnswer(42, moves);
+         checkAnswer(2, MoveUtil.getChecks(moves));
+         checkAnswer(3, MoveUtil.getCaptures(moves));
+      }
+      {
+         Game game = Fen.decode("rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6");
+         long start = System.currentTimeMillis();
+         List<Move> moves = game.findMoves(Colour.WHITE, 2, null);
+         System.out.println("2ply finished in " + (System.currentTimeMillis() - start));
+         checkAnswer(1352, moves);
+      }
+      {
+         Writer debugWriter = new BufferedWriter(new FileWriter(createTempFile()));
+         Game game = Fen.decode("rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6");
+         long start = System.currentTimeMillis();
+         List<Move> moves = game.findMoves(Colour.WHITE, 3, debugWriter);
+         System.out.println("3ply finished in " + (System.currentTimeMillis() - start));
+         debugWriter.close();
+         checkAnswer(53392, moves);
+      }
    }
 
    @Test
    public void posn6() {
-      Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-      List<Move> moves = game.findMoves(Colour.WHITE);
-      checkAnswer(46, moves);
-      checkAnswer(1, MoveUtil.getChecks(moves));
-      checkAnswer(4, MoveUtil.getCaptures(moves));
+      {
+         Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
+         List<Move> moves = game.findMoves(Colour.WHITE);
+         checkAnswer(46, moves);
+         checkAnswer(1, MoveUtil.getChecks(moves));
+         checkAnswer(4, MoveUtil.getCaptures(moves));
+      }
+      {
+         Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
+         long start = System.currentTimeMillis();
+         List<Move> moves = game.findMoves(Colour.WHITE, 2, null);
+         System.out.println("2ply finished in " + (System.currentTimeMillis() - start));
+         checkAnswer(2079, moves);
+      }
+      {
+         Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
+         long start = System.currentTimeMillis();
+         List<Move> moves = game.findMoves(Colour.WHITE, 3, null);
+         System.out.println("3ply finished in " + (System.currentTimeMillis() - start));
+         checkAnswer(89890, moves);
+      }
+      {
+         Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
+         long start = System.currentTimeMillis();
+         List<Move> moves = game.findMoves(Colour.WHITE, 4, null);
+         System.out.println("4ply finished in " + (System.currentTimeMillis() - start));
+         checkAnswer(3894594, moves);
+      }
+      {
+         Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
+         long start = System.currentTimeMillis();
+         List<Move> moves = game.findMoves(Colour.WHITE, 5, null);
+         System.out.println("5ply finished in " + (System.currentTimeMillis() - start));
+         checkAnswer(164075551, moves);
+      }
    }
 
    // https://sites.google.com/site/numptychess/perft/position-2
@@ -174,6 +274,17 @@ public class PerftTest {
    }
 
    private void checkAnswer(int expectedNbrOfMoves, List<Move> moveList) {
-      assertEquals("got " + moveList.size() + " moves: " + moveList, expectedNbrOfMoves, moveList.size());
+      // don't print all moves if there's too many
+      if (moveList.size() >= 500) {
+         assertEquals("wrong number of moves", expectedNbrOfMoves, moveList.size());
+      } else {
+         assertEquals("got " + moveList.size() + " moves: " + moveList, expectedNbrOfMoves, moveList.size());
+      }
+   }
+
+   private File createTempFile() throws IOException {
+      File file = File.createTempFile("perft", null);
+      System.out.println("writing to " + file);
+      return file;
    }
 }

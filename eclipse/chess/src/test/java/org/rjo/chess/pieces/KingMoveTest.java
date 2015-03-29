@@ -9,9 +9,13 @@ import org.junit.Test;
 import org.rjo.chess.CastlingRights;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
+import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
+import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test movement of the king.
@@ -50,15 +54,15 @@ public class KingMoveTest {
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing));
       Game game = new Game(new Chessboard(whitePieces, blackPieces));
       TestUtil
-            .checkMoves(
-                  whiteKing.findMoves(game),
-                  new HashSet<>(Arrays.asList("Kc5-c4", "Kc5-c6", "Kc5-b4", "Kc5-b5", "Kc5-b6", "Kc5-d4", "Kc5-d5",
-                        "Kc5-d6")));
+      .checkMoves(
+            whiteKing.findMoves(game),
+            new HashSet<>(Arrays.asList("Kc5-c4", "Kc5-c6", "Kc5-b4", "Kc5-b5", "Kc5-b6", "Kc5-d4", "Kc5-d5",
+                  "Kc5-d6")));
       TestUtil
-            .checkMoves(
-                  blackKing.findMoves(game),
-                  new HashSet<>(Arrays.asList("Kf5-f4", "Kf5-f6", "Kf5-e4", "Kf5-e5", "Kf5-e6", "Kf5-g4", "Kf5-g5",
-                        "Kf5-g6")));
+      .checkMoves(
+            blackKing.findMoves(game),
+            new HashSet<>(Arrays.asList("Kf5-f4", "Kf5-f6", "Kf5-e4", "Kf5-e5", "Kf5-e6", "Kf5-g4", "Kf5-g5",
+                  "Kf5-g6")));
    }
 
    @Test
@@ -122,11 +126,11 @@ public class KingMoveTest {
       Game game = new Game(new Chessboard(whitePieces, blackPieces));
       TestUtil.checkMoves(whiteKing.findMoves(game),
             new HashSet<>(Arrays.asList("Kc4-b3", "Kc4-b4", "Kc4-b5", "Kc4-c3", "Kc4-c5", "Kc4-d3"
-            // not possible because of adjacent king: "Kc4-d4", "Kc4-d5"
+                  // not possible because of adjacent king: "Kc4-d4", "Kc4-d5"
                   )));
       TestUtil.checkMoves(blackKing.findMoves(game),
             new HashSet<>(Arrays.asList("Ke5-f4", "Ke5-f5", "Ke5-f6", "Ke5-e6", "Ke5-e4", "Ke5-d6"
-            // not possible because of adjacent king: "Ke5-d5", "Ke5-d4"
+                  // not possible because of adjacent king: "Ke5-d5", "Ke5-d4"
                   )));
    }
 
@@ -188,5 +192,54 @@ public class KingMoveTest {
       game.setCastlingRights(Colour.WHITE, CastlingRights.QUEENS_SIDE);
       TestUtil.checkMoves(whiteKing.findMoves(game),
             new HashSet<>(Arrays.asList("Ke1-d1", "Ke1-f1", "Ke1-d2", "Ke1-e2", "Ke1-f2", "O-O-O")));
+   }
+
+   @Test
+   public void castleQueensSideMoveUnmove() {
+      whiteKing.initPosition(Square.e1);
+      blackKing.initPosition(Square.h7);
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing, new Rook(Colour.WHITE, Square.a1)));
+      Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing));
+      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      game.setSideToMove(Colour.WHITE);
+      game.setCastlingRights(Colour.WHITE, CastlingRights.QUEENS_SIDE);
+      String previousFen = Fen.encode(game);
+      Move move = Move.castleQueensSide(Colour.WHITE);
+      game.move(move);
+      game.unmove(move);
+      assertEquals(previousFen, Fen.encode(game));
+   }
+
+   @Test
+   public void castleKingsSideBlackMoveUnmove() {
+      whiteKing.initPosition(Square.g1);
+      blackKing.initPosition(Square.e8);
+      Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing, new Pawn(Colour.BLACK, Square.d7, Square.e7,
+            Square.f7), new Rook(Colour.BLACK, Square.h8)));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing));
+      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      game.setSideToMove(Colour.BLACK);
+      game.setCastlingRights(Colour.BLACK, CastlingRights.KINGS_SIDE);
+      String previousFen = Fen.encode(game);
+      Move move = Move.castleKingsSide(Colour.BLACK);
+      game.move(move);
+      game.unmove(move);
+      assertEquals(previousFen, Fen.encode(game));
+   }
+
+   @Test
+   public void castleQueensSideBlackMoveUnmove() {
+      whiteKing.initPosition(Square.g1);
+      blackKing.initPosition(Square.e8);
+      Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing, new Rook(Colour.BLACK, Square.a8)));
+      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing));
+      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      game.setSideToMove(Colour.BLACK);
+      game.setCastlingRights(Colour.BLACK, CastlingRights.QUEENS_SIDE);
+      String previousFen = Fen.encode(game);
+      Move move = Move.castleQueensSide(Colour.BLACK);
+      game.move(move);
+      game.unmove(move);
+      assertEquals(previousFen, Fen.encode(game));
    }
 }

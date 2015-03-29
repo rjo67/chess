@@ -1,5 +1,7 @@
 package org.rjo.chess;
 
+import java.util.List;
+
 import org.junit.Test;
 import org.rjo.chess.pieces.PieceType;
 
@@ -176,8 +178,10 @@ public class GameTest {
 
    @Test
    public void unmoveKingsCastlingWhite() {
-      Game game = Fen.decode("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 b kQq - 0 1");
-      game.unmove(Move.castleKingsSide(Colour.WHITE));
+      Game game = Fen.decode("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w kKQq - 0 1");
+      Move move = Move.castleKingsSide(Colour.WHITE);
+      game.move(move);
+      game.unmove(move);
       Chessboard cb = game.getChessboard();
       assertEmptySquare(cb, Square.f1);
       assertEmptySquare(cb, Square.g1);
@@ -188,8 +192,10 @@ public class GameTest {
 
    @Test
    public void unmoveKingsCastlingBlack() {
-      Game game = Fen.decode("r4rk1/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 w Qq - 0 1");
-      game.unmove(Move.castleKingsSide(Colour.BLACK));
+      Game game = Fen.decode("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 b kQq - 0 1");
+      Move move = Move.castleKingsSide(Colour.BLACK);
+      game.move(move);
+      game.unmove(move);
       Chessboard cb = game.getChessboard();
       assertEmptySquare(cb, Square.f8);
       assertEmptySquare(cb, Square.g8);
@@ -200,8 +206,10 @@ public class GameTest {
 
    @Test
    public void unmoveQueensCastlingWhite() {
-      Game game = Fen.decode("2kr4/pppppppp/8/8/8/8/PPPPPPPP/2KR4 b - - 0 1");
-      game.unmove(Move.castleQueensSide(Colour.WHITE));
+      Game game = Fen.decode("2kr4/pppppppp/8/8/8/8/PPPPPPPP/R3K3 w Q - 0 1");
+      Move move = Move.castleQueensSide(Colour.WHITE);
+      game.move(move);
+      game.unmove(move);
       Chessboard cb = game.getChessboard();
       assertEmptySquare(cb, Square.c1);
       assertEmptySquare(cb, Square.d1);
@@ -212,8 +220,10 @@ public class GameTest {
 
    @Test
    public void unmoveQueensCastlingBlack() {
-      Game game = Fen.decode("2kr4/pppppppp/8/8/8/8/PPPPPPPP/2KR4 w - - 0 1");
-      game.unmove(Move.castleQueensSide(Colour.BLACK));
+      Game game = Fen.decode("r3k3/pppppppp/8/8/8/8/PPPPPPPP/2KR4 b q - 0 1");
+      Move move = Move.castleQueensSide(Colour.BLACK);
+      game.move(move);
+      game.unmove(move);
       Chessboard cb = game.getChessboard();
       assertEmptySquare(cb, Square.c8);
       assertEmptySquare(cb, Square.d8);
@@ -246,6 +256,40 @@ public class GameTest {
       Chessboard cb = game.getChessboard();
       assertEmptySquare(cb, Square.f1);
       assertPieceAt(cb, Square.f2, PieceType.PAWN);
+   }
+
+   @Test
+   public void castlingNotAllowedAfterRookCapture() {
+      // this is 'posn2' from PerftTest
+      // sequence of moves: Ne5xg6, b4-b3, Ng6xh8. O-O is then not allowed...
+      Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 4");
+      game.move(new Move(PieceType.KNIGHT, Colour.WHITE, Square.e5, Square.g6, PieceType.PAWN));
+      game.move(new Move(PieceType.PAWN, Colour.BLACK, Square.b4, Square.b3));
+      game.move(new Move(PieceType.KNIGHT, Colour.WHITE, Square.g6, Square.h8, PieceType.ROOK));
+      List<Move> moves = game.findMoves(Colour.BLACK);
+      assertMovePresent(moves, "O-O-O");
+      assertMoveNotPresent(moves, "O-O");
+   }
+
+   private void assertMoveNotPresent(List<Move> moves, String requiredMove) {
+      for (Move move : moves) {
+         if (requiredMove.equals(move.toString())) {
+            throw new AssertionError("move '" + requiredMove + "' was found in " + moves);
+         }
+      }
+   }
+
+   private void assertMovePresent(List<Move> moves, String requiredMove) {
+      boolean found = false;
+      for (Move move : moves) {
+         if (requiredMove.equals(move.toString())) {
+            found = true;
+            break;
+         }
+      }
+      if (!found) {
+         throw new AssertionError("move '" + requiredMove + "' not found in " + moves);
+      }
    }
 
    private void assertPieceAt(Chessboard cb, Square sq, PieceType expectedPiece) {

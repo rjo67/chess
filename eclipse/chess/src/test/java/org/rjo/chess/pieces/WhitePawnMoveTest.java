@@ -8,10 +8,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
+import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
+import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -109,6 +112,21 @@ public class WhitePawnMoveTest {
    }
 
    @Test
+   public void enpassantRightMoveAndUnmove() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.a5);
+      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
+      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing, new Pawn(Colour.BLACK, Square.b5)));
+      Game game = new Game(new Chessboard(myPieces, opponentsPieces));
+      game.getChessboard().setEnpassantSquare(Square.b6);
+      String fenBefore = Fen.encode(game);
+      Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.a5, Square.b6, PieceType.PAWN);
+      move.setEnpassant(true);
+      game.move(move);
+      game.unmove(move);
+      assertEquals(fenBefore, Fen.encode(game));
+   }
+
+   @Test
    public void enpassantLeft() {
       Pawn pawn = new Pawn(Colour.WHITE, Square.b5);
       Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
@@ -116,6 +134,21 @@ public class WhitePawnMoveTest {
       Game game = new Game(new Chessboard(myPieces, opponentsPieces));
       game.getChessboard().setEnpassantSquare(Square.a6);
       TestUtil.checkMoves(pawn.findMoves(game), new HashSet<>(Arrays.asList("b5-b6", "b5xa6")));
+   }
+
+   @Test
+   public void enpassantLeftMoveAndUnmove() {
+      Pawn pawn = new Pawn(Colour.WHITE, Square.b5);
+      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
+      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing, new Pawn(Colour.BLACK, Square.a5)));
+      Game game = new Game(new Chessboard(myPieces, opponentsPieces));
+      game.getChessboard().setEnpassantSquare(Square.a6);
+      String fenBefore = Fen.encode(game);
+      Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.b5, Square.a6, PieceType.PAWN);
+      move.setEnpassant(true);
+      game.move(move);
+      game.unmove(move);
+      assertEquals(fenBefore, Fen.encode(game));
    }
 
    @Test

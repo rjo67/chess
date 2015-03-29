@@ -14,7 +14,7 @@ import org.rjo.chess.Square;
 
 /**
  * Represents the pieces which can move over a greater distance: rooks, bishops, queens.
- * 
+ *
  * @author rich
  */
 public abstract class SlidingPiece extends Piece {
@@ -26,7 +26,7 @@ public abstract class SlidingPiece extends Piece {
    /**
     * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along rank or file,
     * taking into account any intervening pieces.
-    * 
+    *
     * @param pieces
     *           which pieces are available. This should represent the rooks and queens in the game.
     * @param emptySquares
@@ -50,7 +50,7 @@ public abstract class SlidingPiece extends Piece {
    /**
     * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along a diagonal,
     * taking into account any intervening pieces.
-    * 
+    *
     * @param bishopsAndQueens
     *           which pieces are available. This should represent the bishops and queens in the game.
     * @param emptySquares
@@ -74,7 +74,7 @@ public abstract class SlidingPiece extends Piece {
    /**
     * Searches for moves in the direction specified by the {@link MoveHelper} implementation.
     * This is for rooks, bishops, and queens.
-    * 
+    *
     * @param chessboard
     *           state of the board
     * @param moveHelper
@@ -125,7 +125,7 @@ public abstract class SlidingPiece extends Piece {
     * Checks if the given move would place the opponent's king in check.
     * <p>
     * This is for bishop-type moves.
-    * 
+    *
     * @param game
     *           the game
     * @param move
@@ -141,7 +141,7 @@ public abstract class SlidingPiece extends Piece {
    /**
     * Checks if a bishop/queen on the given startSquare attacks the given targetSquare, i.e. the target square can be
     * reached (diagonally) from the start square and there are no intervening pieces.
-    * 
+    *
     * @param emptySquares
     *           the empty squares of the board
     * @param startSquare
@@ -151,6 +151,10 @@ public abstract class SlidingPiece extends Piece {
     * @return true if the target square is attacked (diagonally) from the start square.
     */
    protected static boolean attacksSquareDiagonally(BitSet emptySquares, Square startSquare, Square targetSquare) {
+      // give up straight away if start and target are the same
+      if (startSquare == targetSquare) {
+         return false;
+      }
       if (!onSameDiagonal(startSquare, targetSquare)) {
          return false;
       }
@@ -175,7 +179,7 @@ public abstract class SlidingPiece extends Piece {
     * the location of the king along a rank or file.
     * <p>
     * This is for rook-type moves.
-    * 
+    *
     * @param game
     *           the game
     * @param move
@@ -192,27 +196,31 @@ public abstract class SlidingPiece extends Piece {
     * Checks if a rook/queen on the given startSquare attacks the given targetSquare, i.e. on the same rank or file and
     * no intervening pieces.
     * This is for rook-type moves i.e. straight along files or ranks.
-    * 
+    *
     * @param emptySquares
     *           a bit set representing the empty squares on the board
     * @param startSquare
     *           start square
     * @param targetSquare
     *           target square
-    * 
+    *
     * @return true if the target square is attacked (straight-line) from the start square.
     */
    protected static boolean attacksSquareRankOrFile(BitSet emptySquares, Square startSquare, Square targetSquare) {
       // for a rook to give check, it must be on the same rank or file as the king
       // and there can't be any pieces inbetween
 
+      // give up straight away if start and target are the same
+      if (startSquare == targetSquare) {
+         return false;
+      }
       BitSet squaresInBetween = new BitSet(64);
       int nbrOfSquaresInBetween = 0;
       boolean onSameRankOrFile = false;
 
       if (startSquare.rank() == targetSquare.rank()) {
          onSameRankOrFile = true;
-         // set squares between rook and king on this rank
+         // set squares between rook and targetSquare on this rank
          int[] orderedNumbers = orderNumbers(startSquare.file(), targetSquare.file());
          int offset = Square.fromRankAndFile(startSquare.rank(), 0).bitIndex();
          for (int i = orderedNumbers[0] + 1; i < orderedNumbers[1]; i++) {
@@ -235,7 +243,8 @@ public abstract class SlidingPiece extends Piece {
       }
 
       /*
-       * squaresInBetween has the squares between rook and king. nbrOfSquaresInBetween == the number of set bits.
+       * squaresInBetween has the squares between rook and targetSquare. nbrOfSquaresInBetween == the number of set
+       * bits.
        * Now intersect with the appropriate part of the 'emptySquares' bitset to see if these squares are empty.
        */
       BitSet clonedEmptySquares = (BitSet) emptySquares.clone();
@@ -261,7 +270,7 @@ public abstract class SlidingPiece extends Piece {
 
    /**
     * Orders two numbers.
-    * 
+    *
     * @param num1
     *           first number
     * @param num2
