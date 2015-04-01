@@ -123,92 +123,6 @@ public class Game {
    }
 
    /**
-    * Find the number of possible moves at the given depth, starting at the current position, i.e. for a depth of 2 and
-    * start colour white, all of black's moves will be returned for each of the possible white moves.
-    *
-    * NB: this is not the same as counting all possible moves from a given position for a given depth. Only leaf nodes
-    * are counted.
-    *
-    * @param sideToMove
-    *           the starting colour
-    * @param depth
-    *           the required depth to search
-    * @param debugWriter
-    *           if not null, debug-info will be written to this file
-    *
-    * @return the list of possible moves at the given depth.
-    */
-   public List<Move> findMoves(Colour sideToMove, int depth, Writer debugWriter) {
-      return findMovesInternal(sideToMove, depth, new ArrayDeque<Move>(), new ArrayList<Move>(), debugWriter);
-   }
-
-   /**
-    * Internal method for finding the number of possible moves at the given depth.
-    *
-    * @param sideToMove
-    *           the starting colour
-    * @param depth
-    *           the required depth to search
-    * @param movesSoFar
-    *           for debugging purposes: the moves up to this point
-    * @param totalMoves
-    *           stores all moves found
-    * @param debugWriter
-    *           if not null, debug-info will be written to this file
-    *
-    * @return the list of possible moves at the given depth.
-    */
-   private List<Move> findMovesInternal(Colour sideToMove, int depth, Deque<Move> movesSoFar, List<Move> totalMoves,
-         Writer debugWriter) {
-      if (depth == 0) {
-         return new ArrayList<Move>();
-      }
-      // movesAtThisLevel and movesSoFar are only used for "logging"
-      List<Move> movesAtThisLevel = new ArrayList<>();
-      for (Move move : findMoves(sideToMove)) {
-         if (debugWriter != null) {
-            movesSoFar.addLast(move);
-         }
-         move(move, debugWriter);
-
-         List<Move> movesFromThisPosn = findMovesInternal(Colour.oppositeColour(sideToMove), depth - 1, movesSoFar,
-               totalMoves, debugWriter);
-         if (movesFromThisPosn.isEmpty()) {
-            totalMoves.add(move);
-            if (debugWriter != null) {
-               movesAtThisLevel.add(move);
-            }
-         }
-
-         unmove(move);
-         if (debugWriter != null) {
-            movesSoFar.removeLast();
-         }
-      }
-
-      if (debugWriter != null) {
-         if (!movesAtThisLevel.isEmpty()) {
-            boolean check = false;
-            boolean capture = false;
-            if (!movesSoFar.isEmpty()) {
-               check = movesSoFar.peekLast().isCheck();
-            }
-            if (!movesSoFar.isEmpty()) {
-               capture = movesSoFar.peekLast().isCapture();
-            }
-            try {
-               debugWriter.write((check ? "CHECK" : "") + (capture ? "CAPTURE" : "") + " moves: " + movesSoFar + " -> "
-                     + movesAtThisLevel.size() + ":" + movesAtThisLevel + System.lineSeparator());
-            } catch (IOException e) {
-               throw new RuntimeException("could not write to file", e);
-            }
-         }
-      }
-      return totalMoves;
-
-   }
-
-   /**
     * Execute the given move without debug.
     *
     * @param move
@@ -248,10 +162,10 @@ public class Game {
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
-                     .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
+               .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
             } else {
                chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
-               .removePiece(move.to());
+                     .removePiece(move.to());
             }
          }
          // promotion: add the promoted piece
@@ -284,8 +198,8 @@ public class Game {
       if (PieceType.KING == move.getPiece()) {
          move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
          castling[sideToMove.ordinal()].clear();
-         writeDebug(debugWriter,
-               "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
+         // writeDebug(debugWriter,
+         // "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
       } else if (PieceType.ROOK == move.getPiece()) {
          // remove castling rights if rook has moved
          move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
@@ -301,8 +215,8 @@ public class Game {
                castling[sideToMove.ordinal()].remove(CastlingRights.QUEENS_SIDE);
             }
          }
-         writeDebug(debugWriter,
-               "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
+         // writeDebug(debugWriter,
+         // "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
       }
       // update OPPONENT's castling rights if necessary
       Colour opponentsColour = Colour.oppositeColour(sideToMove);
@@ -311,7 +225,7 @@ public class Game {
          if (move.isCapture() && move.to().equals(targetSquare)) {
             move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
             castling[opponentsColour.ordinal()].remove(CastlingRights.KINGS_SIDE);
-            writeDebug(debugWriter, "move: " + move + ", removed kings side castling for " + opponentsColour);
+            // writeDebug(debugWriter, "move: " + move + ", removed kings side castling for " + opponentsColour);
          }
       }
       {
@@ -319,7 +233,7 @@ public class Game {
          if (move.isCapture() && move.to().equals(targetSquare)) {
             move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
             castling[opponentsColour.ordinal()].remove(CastlingRights.QUEENS_SIDE);
-            writeDebug(debugWriter, "move: " + move + ", removed queens side castling for " + opponentsColour);
+            // writeDebug(debugWriter, "move: " + move + ", removed queens side castling for " + opponentsColour);
          }
       }
 
@@ -375,10 +289,10 @@ public class Game {
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-                     .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
+               .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
             } else {
                chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-                     .addPiece(move.to());
+               .addPiece(move.to());
             }
          }
          // promotion: remove the promoted piece
@@ -399,13 +313,13 @@ public class Game {
       // if ((PieceType.KING == move.getPiece()) || (PieceType.ROOK == move.getPiece())) {
       if (move.previousCastlingRightsWasSet()) {
          castling[move.getColour().ordinal()] = move.getPreviousCastlingRights();
-         writeDebug(debugWriter, "unmove: " + move + ", sideToMove: " + move.getColour() + ", castling="
-               + castling[move.getColour().ordinal()]);
+         // writeDebug(debugWriter, "unmove: " + move + ", sideToMove: " + move.getColour() + ", castling="
+         // + castling[move.getColour().ordinal()]);
       }
       if (move.previousCastlingRightsOpponentWasSet()) {
          castling[Colour.oppositeColour(move.getColour()).ordinal()] = move.getPreviousCastlingRightsOpponent();
-         writeDebug(debugWriter, "unmove: " + move + ", sideToMove: " + Colour.oppositeColour(move.getColour())
-               + ", opponents castling=" + castling[Colour.oppositeColour(move.getColour()).ordinal()]);
+         // writeDebug(debugWriter, "unmove: " + move + ", sideToMove: " + Colour.oppositeColour(move.getColour())
+         // + ", opponents castling=" + castling[Colour.oppositeColour(move.getColour()).ordinal()]);
       }
       // undoing black's move means that black should now move
       setSideToMove(move.getColour());

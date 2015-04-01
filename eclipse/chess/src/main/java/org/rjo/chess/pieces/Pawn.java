@@ -88,7 +88,7 @@ public class Pawn extends Piece {
             ? new Square[] { Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2 }
       : new Square[] { Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7, Square.h7 };
             // @formatter:on
-      initPosition(requiredSquares);
+            initPosition(requiredSquares);
    }
 
    @Override
@@ -97,7 +97,7 @@ public class Pawn extends Piece {
       /*
        * The pawn move is complicated by the different directions for white and black pawns.
        * This is the only piece to have this complication.
-       * 
+       *
        * This difference is catered for by the 'MoveHelper' implementations.
        */
 
@@ -225,14 +225,13 @@ public class Pawn extends Piece {
     *           distinguishes between white and black sides, since the pawns move in different directions
     * @param checkingForAttack
     *           if true, this routine returns all possible moves to the 'left'. The normal value of false returns only
-    *           moves
-    *           which are captures i.e. the opponent's pieces are taken into account.
+    *           moves which are captures i.e. the opponent's pieces are taken into account.
     * @return list of moves found by this method
     */
    private List<Move> captureLeft(Chessboard chessboard, MoveHelper helper, boolean checkingForAttack) {
       List<Move> moves = new ArrayList<>();
       // 3) capture left
-      // then shift by 7 (for white) or 9 (for black) and AND with opposition pieces
+      // shift by 7 (for white) or 9 (for black) and AND with opposition pieces
 
       BitSet captureLeft = helper.pawnCaptureLeft(pieces.cloneBitSet());
 
@@ -243,6 +242,11 @@ public class Pawn extends Piece {
          addEnpassantSquare(chessboard, opponentsPieces);
          captureLeft.and(opponentsPieces);
       }
+      BitSet promotedPawns = (BitSet) captureLeft.clone(); // copy this bitset
+      promotedPawns.and(helper.lastRank().getBitSet()); // just the promoted pawns
+      captureLeft.and(helper.lastRank().flip()); // remove promoted pawns
+
+      // process 'normal' captures
       int offset = helper.getColour() == Colour.WHITE ? -7 : 9;
       for (int i = captureLeft.nextSetBit(0); i >= 0; i = captureLeft.nextSetBit(i + 1)) {
          Square targetSquare = Square.fromBitIndex(i);
@@ -263,6 +267,21 @@ public class Pawn extends Piece {
          Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
          move.setEnpassant(enpassant);
          moves.add(move);
+      }
+      // process promotions
+      for (int i = promotedPawns.nextSetBit(0); i >= 0; i = promotedPawns.nextSetBit(i + 1)) {
+         Square targetSquare = Square.fromBitIndex(i);
+         PieceType capturedPiece;
+         if (checkingForAttack) {
+            capturedPiece = PieceType.DUMMY;
+         } else {
+            capturedPiece = chessboard.pieceAt(targetSquare);
+         }
+         for (PieceType type : PieceType.getPieceTypesForPromotion()) {
+            Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
+            move.setPromotionPiece(type);
+            moves.add(move);
+         }
       }
       return moves;
    }
@@ -292,6 +311,10 @@ public class Pawn extends Piece {
          addEnpassantSquare(chessboard, opponentsPieces);
          captureRight.and(opponentsPieces);
       }
+      BitSet promotedPawns = (BitSet) captureRight.clone(); // copy this bitset
+      promotedPawns.and(helper.lastRank().getBitSet()); // just the promoted pawns
+      captureRight.and(helper.lastRank().flip()); // remove promoted pawns
+
       int offset = helper.getColour() == Colour.WHITE ? -9 : 7;
       for (int i = captureRight.nextSetBit(0); i >= 0; i = captureRight.nextSetBit(i + 1)) {
          Square targetSquare = Square.fromBitIndex(i);
@@ -311,6 +334,21 @@ public class Pawn extends Piece {
          Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
          move.setEnpassant(enpassant);
          moves.add(move);
+      }
+      // process promotions
+      for (int i = promotedPawns.nextSetBit(0); i >= 0; i = promotedPawns.nextSetBit(i + 1)) {
+         Square targetSquare = Square.fromBitIndex(i);
+         PieceType capturedPiece;
+         if (checkingForAttack) {
+            capturedPiece = PieceType.DUMMY;
+         } else {
+            capturedPiece = chessboard.pieceAt(targetSquare);
+         }
+         for (PieceType type : PieceType.getPieceTypesForPromotion()) {
+            Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
+            move.setPromotionPiece(type);
+            moves.add(move);
+         }
       }
       return moves;
    }
@@ -363,7 +401,7 @@ public class Pawn extends Piece {
          left.set(move.to().bitIndex());
          BitSet right = (BitSet) left.clone();
 
-         left.and(BitBoard.EXCEPT_FILE[1].getBitSet()); // only the pawns on the 2nd to 8th files
+         left.and(BitBoard.EXCEPT_FILE[0].getBitSet()); // only the pawns on the 2nd to 8th files
          left = helper.pawnCaptureLeft(left);
          right.and(BitBoard.EXCEPT_FILE[7].getBitSet()); // only the pawns on the 1st to 7th files
          right = helper.pawnCaptureRight(right);

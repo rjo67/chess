@@ -108,10 +108,10 @@ public class BitBoard {
     * Usage: to get all pieces EXCEPT on the second file, 'and' the bitset with EXCEPT_FILE[1].getBitSet()
     */
    public static BitBoard[] EXCEPT_FILE = new BitBoard[] { new BitBoard(BitBoard.FILE[0].flip()),
-         new BitBoard(BitBoard.FILE[1].flip()), new BitBoard(BitBoard.FILE[2].flip()),
-         new BitBoard(BitBoard.FILE[3].flip()), new BitBoard(BitBoard.FILE[4].flip()),
-         new BitBoard(BitBoard.FILE[5].flip()), new BitBoard(BitBoard.FILE[6].flip()),
-         new BitBoard(BitBoard.FILE[7].flip()) };
+      new BitBoard(BitBoard.FILE[1].flip()), new BitBoard(BitBoard.FILE[2].flip()),
+      new BitBoard(BitBoard.FILE[3].flip()), new BitBoard(BitBoard.FILE[4].flip()),
+      new BitBoard(BitBoard.FILE[5].flip()), new BitBoard(BitBoard.FILE[6].flip()),
+      new BitBoard(BitBoard.FILE[7].flip()) };
 
    /**
     * Bitboards for each rank of the board.
@@ -201,10 +201,10 @@ public class BitBoard {
     * Usage: to get all pieces EXCEPT on the second file, 'and' the bitset with EXCEPT_RANK[1].getBitSet()
     */
    public static BitBoard[] EXCEPT_RANK = new BitBoard[] { new BitBoard(BitBoard.RANK[0].flip()),
-         new BitBoard(BitBoard.RANK[1].flip()), new BitBoard(BitBoard.RANK[2].flip()),
-         new BitBoard(BitBoard.RANK[3].flip()), new BitBoard(BitBoard.RANK[4].flip()),
-         new BitBoard(BitBoard.RANK[5].flip()), new BitBoard(BitBoard.RANK[6].flip()),
-         new BitBoard(BitBoard.RANK[7].flip()) };
+      new BitBoard(BitBoard.RANK[1].flip()), new BitBoard(BitBoard.RANK[2].flip()),
+      new BitBoard(BitBoard.RANK[3].flip()), new BitBoard(BitBoard.RANK[4].flip()),
+      new BitBoard(BitBoard.RANK[5].flip()), new BitBoard(BitBoard.RANK[6].flip()),
+      new BitBoard(BitBoard.RANK[7].flip()) };
 
    private BitSet bs = new BitSet(64);
 

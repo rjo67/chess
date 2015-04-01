@@ -262,10 +262,8 @@ public class Chessboard {
             if (move.isEnpassant()) {
                Square enpassantPawnSquare = Square.findMoveFromEnpassantSquare(move.to());
                clonedPiece.removePiece(enpassantPawnSquare);
-               // reset this square, (enpassant square), since erroneously cleared above
-               emptySquares.set(move.to().bitIndex());
-               // blank the correct square (where the pawn is which has been taken e.p.)
-               emptySquares.clear(enpassantPawnSquare.bitIndex());
+               // blank the square where the pawn is which has been taken e.p.
+               emptySquares.set(enpassantPawnSquare.bitIndex());
             } else {
                clonedPiece.removePiece(move.to());
             }

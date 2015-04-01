@@ -1,13 +1,7 @@
 package org.rjo.chess;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Locale;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,234 +17,211 @@ import static org.junit.Assert.assertEquals;
  * @see http://chessprogramming.wikispaces.com/Perft+Results
  * @see http://wismuth.com/chess/statistics-games.html
  * @see http://www.chessprogramming.net/perfect-perft/
+ * @see http://www.talkchess.com/forum/viewtopic.php?topic_view=threads&p=508921&t=47318
  * @see http://www.rocechess.ch/perft.html
  */
 public class PerftTest {
 
-   @Test
-   public void initialPositionPerft1() {
-      Game game = new Game();
-      checkAnswer(20, game.findMoves(Colour.WHITE));
+   /**
+    * performs perft(n) for n = 1..size of expectedNbrOfMoves.
+    * Fill expectedNbrOfMoves with -1 to avoid calling for this depth.
+    *
+    * @param testname
+    *           for output purposes
+    * @param fenString
+    *           the starting position
+    * @param sideToMove
+    *           which side to move
+    * @param expectedNbrOfMoves
+    *           int array with expected number of moves.
+    */
+   private void doTest(String testname, String fenString, Colour sideToMove, int[] expectedNbrOfMoves) {
+      for (int depth = 0; depth < expectedNbrOfMoves.length; depth++) {
+         if (expectedNbrOfMoves[depth] != -1) {
+            Game game = Fen.decode(fenString);
+            long start = System.currentTimeMillis();
+            int moves = Perft.countMoves(Perft.findMoves(game, sideToMove, depth + 1));
+            long time = System.currentTimeMillis() - start;
+            System.out.println(String.format(Locale.GERMANY, "%s, %2dply: %,12d moves (%,10d ms) (%8.1f moves/ms)",
+                  testname, depth + 1, moves, time, ((moves * 1.0) / time)));
+            assertEquals(expectedNbrOfMoves[depth], moves);
+         }
+      }
    }
 
    @Test
-   public void initialPositionPerft2() {
-      Game game = new Game();
-      List<Move> moves = game.findMoves(Colour.WHITE, 2, null);
-      assertEquals(400, moves.size());
+   public void initialPosition() {
+      doTest("initialPosition", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0", Colour.WHITE, new int[] {
+            20, 400, 8902, 197281, 4865609 });
    }
-
-   @Test
-   public void initialPositionPerft3() {
-      Game game = new Game();
-      List<Move> moves = game.findMoves(Colour.WHITE, 3, null);
-      assertEquals(8902, moves.size());
-      assertEquals(34, MoveUtil.getCaptures(moves).size());
-      assertEquals(12, MoveUtil.getChecks(moves).size());
-   }
-
-   @Test
-   public void initialPositionPerft4() {
-      Game game = new Game();
-      List<Move> moves = game.findMoves(Colour.WHITE, 4, null);
-      assertEquals(197281, moves.size());
-      assertEquals(1576, MoveUtil.getCaptures(moves).size());
-      assertEquals(469, MoveUtil.getChecks(moves).size());
-   }
-
-   @Test
-   @Ignore
-   public void initialPositionPerft5() {
-      Game game = new Game();
-      List<Move> moves = game.findMoves(Colour.WHITE, 5, null);
-      assertEquals(4865609, moves.size());
-      assertEquals(82719, MoveUtil.getCaptures(moves).size());
-      assertEquals(27351, MoveUtil.getChecks(moves).size());
-   }
-
-   // these tests only go to 1ply at the moment
 
    @Test
    public void posn2() throws IOException {
-      {
-         long start = System.currentTimeMillis();
-         Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0");
-         List<Move> moves = game.findMoves(Colour.WHITE);
-         System.out.println("1ply finished in " + (System.currentTimeMillis() - start));
-         checkAnswer(48, moves);
-         checkAnswer(0, MoveUtil.getChecks(moves));
-         checkAnswer(8, MoveUtil.getCaptures(moves));
-      }
-      {
-         long start = System.currentTimeMillis();
-         Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 4");
-         List<Move> moves = game.findMoves(Colour.WHITE, 2, null);
-         System.out.println("2ply finished in " + (System.currentTimeMillis() - start));
-         checkAnswer(2039, moves);
-         checkAnswer(3, MoveUtil.getChecks(moves));
-         checkAnswer(351, MoveUtil.getCaptures(moves));
-      }
-      {
-         long start = System.currentTimeMillis();
-         Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 4");
-         List<Move> moves = game.findMoves(Colour.WHITE, 3, null);
-         System.out.println("3ply finished in " + (System.currentTimeMillis() - start));
-         checkAnswer(97862, moves);
-         checkAnswer(993, MoveUtil.getChecks(moves));
-         checkAnswer(17102, MoveUtil.getCaptures(moves));
-      }
-      {
-         Writer debugWriter = new BufferedWriter(new FileWriter(createTempFile()));
-         long start = System.currentTimeMillis();
-         Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 4");
-         List<Move> moves = game.findMoves(Colour.WHITE, 4, debugWriter);
-         debugWriter.close();
-         System.out.println("4ply finished in " + (System.currentTimeMillis() - start));
-         checkAnswer(4085603, moves);
-         checkAnswer(25523, MoveUtil.getChecks(moves));
-         checkAnswer(757163, MoveUtil.getCaptures(moves));
-      }
+      doTest("posn2", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0", Colour.WHITE, new int[] {
+            48, 2039, 97862, 4085603 });
    }
 
    @Test
    public void posn3() throws IOException {
-      {
-         Game game = Fen.decode("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0");
-         long start = System.currentTimeMillis();
-         List<Move> moves = game.findMoves(Colour.WHITE);
-         System.out.println("1ply finished in " + (System.currentTimeMillis() - start));
-         TestUtil.checkMoves(
-               moves,
-               new HashSet<>(Arrays.asList("Ka5-a6", "Ka5-a4", "g2-g3+", "g2-g4", "e2-e3", "e2-e4", "Rb4-b3", "Rb4-b2",
-                     "Rb4-b1", "Rb4-a4", "Rb4-c4", "Rb4-d4", "Rb4-e4", "Rb4xf4+")));
-         checkAnswer(2, MoveUtil.getChecks(moves));
-         checkAnswer(1, MoveUtil.getCaptures(moves));
-      }
-      {
-         Writer debugWriter = new BufferedWriter(new FileWriter(createTempFile()));
-         Game game = Fen.decode("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0");
-         long start = System.currentTimeMillis();
-         List<Move> moves = game.findMoves(Colour.WHITE, 2, debugWriter);
-         System.out.println("2ply finished in " + (System.currentTimeMillis() - start));
-         debugWriter.close();
-         checkAnswer(191, moves);
-         checkAnswer(10, MoveUtil.getChecks(moves));
-         checkAnswer(14, MoveUtil.getCaptures(moves));
-      }
+      doTest("posn3", "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0", Colour.WHITE, new int[] { 14, 191, 2812, 43238,
+            674624 });
    }
 
    @Test
    public void posn5() throws IOException {
-      {
-         Game game = Fen.decode("rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6");
-         List<Move> moves = game.findMoves(Colour.WHITE);
-         checkAnswer(42, moves);
-         checkAnswer(2, MoveUtil.getChecks(moves));
-         checkAnswer(3, MoveUtil.getCaptures(moves));
-      }
-      {
-         Game game = Fen.decode("rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6");
-         long start = System.currentTimeMillis();
-         List<Move> moves = game.findMoves(Colour.WHITE, 2, null);
-         System.out.println("2ply finished in " + (System.currentTimeMillis() - start));
-         checkAnswer(1352, moves);
-      }
-      {
-         Writer debugWriter = new BufferedWriter(new FileWriter(createTempFile()));
-         Game game = Fen.decode("rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6");
-         long start = System.currentTimeMillis();
-         List<Move> moves = game.findMoves(Colour.WHITE, 3, debugWriter);
-         System.out.println("3ply finished in " + (System.currentTimeMillis() - start));
-         debugWriter.close();
-         checkAnswer(53392, moves);
-      }
+      doTest("posn5", "rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/8/PPP1NnPP/RNBQK2R w KQkq - 0 6", Colour.WHITE, new int[] { 42,
+            1352, 53392 });
    }
 
    @Test
-   public void posn6() {
-      {
-         Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-         List<Move> moves = game.findMoves(Colour.WHITE);
-         checkAnswer(46, moves);
-         checkAnswer(1, MoveUtil.getChecks(moves));
-         checkAnswer(4, MoveUtil.getCaptures(moves));
-      }
-      {
-         Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-         long start = System.currentTimeMillis();
-         List<Move> moves = game.findMoves(Colour.WHITE, 2, null);
-         System.out.println("2ply finished in " + (System.currentTimeMillis() - start));
-         checkAnswer(2079, moves);
-      }
-      {
-         Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-         long start = System.currentTimeMillis();
-         List<Move> moves = game.findMoves(Colour.WHITE, 3, null);
-         System.out.println("3ply finished in " + (System.currentTimeMillis() - start));
-         checkAnswer(89890, moves);
-      }
-      {
-         Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-         long start = System.currentTimeMillis();
-         List<Move> moves = game.findMoves(Colour.WHITE, 4, null);
-         System.out.println("4ply finished in " + (System.currentTimeMillis() - start));
-         checkAnswer(3894594, moves);
-      }
-      {
-         Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-         long start = System.currentTimeMillis();
-         List<Move> moves = game.findMoves(Colour.WHITE, 5, null);
-         System.out.println("5ply finished in " + (System.currentTimeMillis() - start));
-         checkAnswer(164075551, moves);
-      }
+   public void posn6() throws IOException {
+      doTest("posn6", "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10", Colour.WHITE,
+            new int[] { 46, 2079, 89890, 3894594 });
+   }
+
+   @Test
+   @Ignore
+   // takes 510s
+   public void posn6ply5() throws IOException {
+      doTest("posn6", "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10", Colour.WHITE,
+            new int[] { -1, -1, -1, -1, 164075551 });
    }
 
    // https://sites.google.com/site/numptychess/perft/position-2
    @Test
-   public void numpty2() {
-      Game game = Fen.decode("8/p7/8/1P6/K1k3p1/6P1/7P/8 w - - 0 10");
-      List<Move> moves = game.findMoves(Colour.WHITE);
-      checkAnswer(5, moves);
-      checkAnswer(0, MoveUtil.getChecks(moves));
-      checkAnswer(0, MoveUtil.getCaptures(moves));
+   public void numpty2() throws IOException {
+      doTest("numpty2", "8/p7/8/1P6/K1k3p1/6P1/7P/8 w - - 0 10", Colour.WHITE, new int[] { 5, 39, 237, 2002, 14062,
+            120995, 966152 });
    }
 
    // https://sites.google.com/site/numptychess/perft/position-3
    @Test
-   public void numpty3() {
-      Game game = Fen.decode("r3k2r/p6p/8/B7/1pp1p3/3b4/P6P/R3K2R w KQkq - 0 10");
-      List<Move> moves = game.findMoves(Colour.WHITE);
-      TestUtil.checkMoves(
-            moves,
-            new HashSet<>(Arrays.asList("Ra1-b1", "Ra1-c1", "Ra1-d1", "Ke1-f2", "Ke1-d2", "Ke1-d1", "O-O-O", "Rh1-g1",
-                  "Rh1-f1", "a2-a4", "a2-a3", "h2-h4", "h2-h3", "Ba5-b6", "Ba5-c7", "Ba5-d8", "Ba5xb4")));
-      checkAnswer(0, MoveUtil.getChecks(moves));
-      checkAnswer(1, MoveUtil.getCaptures(moves));
+   public void numpty3() throws IOException {
+      doTest("numpty3", "r3k2r/p6p/8/B7/1pp1p3/3b4/P6P/R3K2R w KQkq - 0 10", Colour.WHITE, new int[] { 17, 341, 6666,
+            150072, 3186478 });
    }
 
    // https://sites.google.com/site/numptychess/perft/position-4
    @Test
-   public void numpty4() {
-      Game game = Fen.decode("8/5p2/8/2k3P1/p3K3/8/1P6/8 b - - 0 10");
-      List<Move> moves = game.findMoves(Colour.WHITE);
-      checkAnswer(9, moves);
-      checkAnswer(1, MoveUtil.getChecks(moves));
-      checkAnswer(0, MoveUtil.getCaptures(moves));
+   public void numpty4() throws IOException {
+      doTest("numpty4", "8/5p2/8/2k3P1/p3K3/8/1P6/8 b - - 0 10", Colour.BLACK, new int[] { 9, 85, 795, 7658, 72120,
+            703851 });
    }
 
    // https://sites.google.com/site/numptychess/perft/position-5
    @Test
-   public void numpty5() {
-      Game game = Fen.decode("r3k2r/pb3p2/5npp/n2p4/1p1PPB2/6P1/P2N1PBP/R3K2R b KQkq - 0 10");
-      List<Move> moves = game.findMoves(Colour.BLACK);
-      TestUtil.checkMoves(
-            moves,
-            new HashSet<>(Arrays.asList("b4-b3", "Na5-b3", "Na5-c4", "Na5-c6", "d5xe4", "Nf6xe4", "Nf6-g4", "Nf6-h5",
-                  "Nf6-d7", "Nf6-h7", "Nf6-g8", "g6-g5", "h6-h5", "a7-a6", "Bb7-c8", "Bb7-a6", "Bb7-c6", "Ra8-b8",
-                  "Ra8-c8", "Ra8-d8", "Ke8-d7", "Ke8-e7", "Ke8-d8", "Ke8-f8", "O-O", "O-O-O", "Rh8-h7", "Rh8-g8",
-                  "Rh8-f8")));
-      checkAnswer(0, MoveUtil.getChecks(moves));
-      checkAnswer(2, MoveUtil.getCaptures(moves));
+   public void numpty5() throws IOException {
+      doTest("numpty5", "r3k2r/pb3p2/5npp/n2p4/1p1PPB2/6P1/P2N1PBP/R3K2R b KQkq - 0 10", Colour.BLACK, new int[] { 29,
+            953, 27990, 909807 });
+   }
+
+   // http://www.talkchess.com/forum/viewtopic.php?topic_view=threads&p=508921&t=47318
+   @Test
+   public void illegalEpMove1() throws IOException {
+      doTest("illegalEpMove1", "8/8/8/8/k1p4R/8/3P4/3K4 w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1, -1,
+            1134888 });
+      doTest("illegalEpMove1", "3k4/3p4/8/K1P4r/8/8/8/8 b - - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1, -1,
+            1134888 });
+   }
+
+   @Test
+   public void illegalEpMove2() throws IOException {
+      doTest("illegalEpMove2", "8/8/4k3/8/2p5/8/B2P2K1/8 w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1, -1,
+            1015133 });
+      doTest("illegalEpMove2", "8/b2p2k1/8/2P5/8/4K3/8/8 b - - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1, -1,
+            1015133 });
+   }
+
+   @Test
+   public void enpassantCaptureChecksOpponent() throws IOException {
+      doTest("enpassantCaptureChecksOpponent", "8/5k2/8/2Pp4/2B5/1K6/8/8 w - d6 0 1", Colour.WHITE, new int[] { -1, -1,
+            -1, -1, -1, 1440467 });
+      doTest("enpassantCaptureChecksOpponent", "8/8/1k6/2b5/2pP4/8/5K2/8 b - d3 0 1", Colour.BLACK, new int[] { -1, -1,
+            -1, -1, -1, 1440467 });
+   }
+
+   @Test
+   public void shortCastlingChecksOpponent() throws IOException {
+      doTest("shortCastlingChecksOpponent", "5k2/8/8/8/8/8/8/4K2R w K - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1,
+            -1, 661072 });
+      doTest("shortCastlingChecksOpponent", "4k2r/8/8/8/8/8/8/5K2 b k - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1,
+            -1, 661072 });
+   }
+
+   @Test
+   public void longCastlingChecksOpponent() throws IOException {
+      doTest("longCastlingChecksOpponent", "3k4/8/8/8/8/8/8/R3K3 w Q - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1,
+            -1, 803711 });
+      doTest("longCastlingChecksOpponent", "r3k3/8/8/8/8/8/8/3K4 b q - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1,
+            -1, 803711 });
+   }
+
+   @Test
+   public void castlingIncludingLosingOrRookCapture() throws IOException {
+      doTest("castlingIncludingLosingOrRookCapture", "r3k2r/1b4bq/8/8/8/8/7B/R3K2R w KQkq - 0 1", Colour.WHITE,
+            new int[] { -1, -1, -1, 1274206 });
+      doTest("castlingIncludingLosingOrRookCapture", "r3k2r/7b/8/8/8/8/1B4BQ/R3K2R b KQkq - 0 1", Colour.BLACK,
+            new int[] { -1, -1, -1, 1274206 });
+   }
+
+   @Test
+   public void castlingPrevented() throws IOException {
+      doTest("castlingPrevented", "r3k2r/8/5Q2/8/8/3q4/8/R3K2R w KQkq - 0 1", Colour.WHITE, new int[] { -1, -1, -1,
+            1720476 });
+      doTest("castlingPrevented", "r3k2r/8/3Q4/8/8/5q2/8/R3K2R b KQkq - 0 1", Colour.BLACK, new int[] { -1, -1, -1,
+            1720476 });
+   }
+
+   @Test
+   public void promoteOutOfCheck() throws IOException {
+      doTest("promoteOutOfCheck", "2K2r2/4P3/8/8/8/8/8/3k4 w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1, -1,
+            3821001 });
+      doTest("promoteOutOfCheck", "3K4/8/8/8/8/8/4p3/2k2R2 b - - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1, -1,
+            3821001 });
+   }
+
+   @Test
+   public void discoveredCheck2() throws IOException {
+      doTest("discoveredCheck2", "5K2/8/1Q6/2N5/8/1p2k3/8/8 w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1,
+            1004658 });
+      doTest("discoveredCheck2", "8/8/1P2K3/8/2n5/1q6/8/5k2 b - - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1,
+            1004658 });
+   }
+
+   @Test
+   public void promoteToGiveCheck() throws IOException {
+      doTest("promoteToGiveCheck", "4k3/1P6/8/8/8/8/K7/8 w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1, -1,
+            217342 });
+      doTest("promoteToGiveCheck", "8/k7/8/8/8/8/1p6/4K3 b - - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1, -1,
+            217342 });
+   }
+
+   @Test
+   public void underpromoteToGiveCheck() throws IOException {
+      doTest("underpromoteToGiveCheck", "8/P1k5/K7/8/8/8/8/8 w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1, -1,
+            92683 });
+      doTest("underpromoteToGiveCheck", "8/8/8/8/8/k7/p1K5/8 b - - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1, -1,
+            92683 });
+   }
+
+   @Test
+   public void selfStalemate() throws IOException {
+      doTest("selfStalemate", "K1k5/8/P7/8/8/8/8/8 w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1, -1, 2217 });
+      doTest("selfStalemate", "8/8/8/8/8/p7/8/k1K5 b - - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1, -1, 2217 });
+   }
+
+   @Test
+   public void selfStalemateCheckmate() throws IOException {
+      doTest("selfStalemateCheckmate", "8/k1P5/8/1K6/8/8/8/8 w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1, -1,
+            -1, 567584 });
+      doTest("selfStalemateCheckmate", "8/8/8/8/1k6/8/K1p5/8 b - - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1, -1,
+            -1, 567584 });
+   }
+
+   @Test
+   public void doubleCheck() throws IOException {
+      doTest("doubleCheck", "8/5k2/8/5N2/5Q2/2K5/8/8 w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, 23527 });
+      doTest("doubleCheck", "8/8/2k5/5q2/5n2/8/5K2/8 b - - 0 1", Colour.BLACK, new int[] { -1, -1, -1, 23527 });
    }
 
    /**
@@ -261,30 +232,14 @@ public class PerftTest {
     */
    @Test
    public void discoveredCheck() {
-      Game game = Fen.decode("8/8/8/2k3PR/8/1p2K3/2P2B2/2Q5 w - - 0 10");
-      List<Move> moves = game.findMoves(Colour.WHITE);
-      TestUtil.checkMoves(
-            moves,
-            new HashSet<>(Arrays.asList("Rh5-h6", "Rh5-h7", "Rh5-h8", "Rh5-h4", "Rh5-h3", "Rh5-h2", "Rh5-h1", "Bf2-e1",
-                  "Bf2-g1", "Bf2-g3", "Bf2-h4", "Ke3-d3+", "Ke3-d2+", "Ke3-e2+", "Ke3-e4+", "Ke3-f3+", "Ke3-f4+",
-                  "c2xb3+", "c2-c4", "c2-c3", "g5-g6+", "Qc1-b1", "Qc1-a1", "Qc1-d1", "Qc1-b2", "Qc1-a3+", "Qc1-d1",
-                  "Qc1-e1", "Qc1-f1", "Qc1-g1", "Qc1-h1", "Qc1-d2")));
-      checkAnswer(9, MoveUtil.getChecks(moves));
-      checkAnswer(1, MoveUtil.getCaptures(moves));
+      doTest("discoveredCheck", "8/8/8/2k3PR/8/1p2K3/2P2B2/2Q5 w - - 0 10", Colour.WHITE, new int[] { 31 });
    }
 
-   private void checkAnswer(int expectedNbrOfMoves, List<Move> moveList) {
-      // don't print all moves if there's too many
-      if (moveList.size() >= 500) {
-         assertEquals("wrong number of moves", expectedNbrOfMoves, moveList.size());
-      } else {
-         assertEquals("got " + moveList.size() + " moves: " + moveList, expectedNbrOfMoves, moveList.size());
-      }
+   // http://www.rocechess.ch/perft.html
+   @Test
+   public void promotion() throws IOException {
+      doTest("promotion", "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1", Colour.BLACK, new int[] { 24, 496, 9483, 182838,
+            3605103 /* , 71179139 */});
    }
 
-   private File createTempFile() throws IOException {
-      File file = File.createTempFile("perft", null);
-      System.out.println("writing to " + file);
-      return file;
-   }
 }
