@@ -127,8 +127,10 @@ public class Pawn extends Piece {
 
       // checks
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
+      BitSet opponentsKingBitset = new BitSet(64);
+      opponentsKingBitset.set(opponentsKing.bitIndex());
       for (Move move : moves) {
-         boolean isCheck = checkIfCheck(game.getChessboard(), move, opponentsKing);
+         boolean isCheck = checkIfCheck(game.getChessboard(), move, opponentsKing, opponentsKingBitset);
          // if it's already check, don't need to calculate discovered check
          if (!isCheck) {
             isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
@@ -172,8 +174,8 @@ public class Pawn extends Piece {
       BitSet oneSquareForward = helper.moveOneRank(pieces.getBitSet());
       oneSquareForward.and(chessboard.getEmptySquares().getBitSet()); // move must be to an empty square
       BitSet promotedPawns = (BitSet) oneSquareForward.clone(); // copy this bitset
-      promotedPawns.and(helper.lastRank().getBitSet()); // just the promoted pawns
-      oneSquareForward.and(helper.lastRank().flip()); // remove promoted pawns
+      promotedPawns.and(helper.lastRank()); // just the promoted pawns
+      oneSquareForward.and(helper.lastRankFlipped()); // remove promoted pawns
       int offset = helper.getColour() == Colour.WHITE ? -8 : 8;
       for (int i = oneSquareForward.nextSetBit(0); i >= 0; i = oneSquareForward.nextSetBit(i + 1)) {
          moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
@@ -204,7 +206,7 @@ public class Pawn extends Piece {
       // then shift by 8 and check if empty square
       // shift again by 8 and check if empty square
       BitSet twoSquaresForward = pieces.cloneBitSet();
-      twoSquaresForward.and(helper.startRank().getBitSet()); // only the pawns on the 2nd rank
+      twoSquaresForward.and(helper.startRank()); // only the pawns on the 2nd rank
       twoSquaresForward = helper.moveOneRank(twoSquaresForward);
       twoSquaresForward.and(chessboard.getEmptySquares().getBitSet()); // move must be to an empty square
       twoSquaresForward = helper.moveOneRank(twoSquaresForward);
@@ -243,12 +245,18 @@ public class Pawn extends Piece {
          captureLeft.and(opponentsPieces);
       }
       BitSet promotedPawns = (BitSet) captureLeft.clone(); // copy this bitset
-      promotedPawns.and(helper.lastRank().getBitSet()); // just the promoted pawns
-      captureLeft.and(helper.lastRank().flip()); // remove promoted pawns
+      promotedPawns.and(helper.lastRank()); // just the promoted pawns
+      captureLeft.and(helper.lastRankFlipped()); // remove promoted pawns
 
-      // process 'normal' captures
       int offset = helper.getColour() == Colour.WHITE ? -7 : 9;
-      for (int i = captureLeft.nextSetBit(0); i >= 0; i = captureLeft.nextSetBit(i + 1)) {
+      moves.addAll(processCaptures(chessboard, captureLeft, checkingForAttack, offset));
+      moves.addAll(processPromotions(chessboard, promotedPawns, checkingForAttack, offset));
+      return moves;
+   }
+
+   private List<Move> processCaptures(Chessboard chessboard, BitSet captures, boolean checkingForAttack, int offset) {
+      List<Move> moves = new ArrayList<>();
+      for (int i = captures.nextSetBit(0); i >= 0; i = captures.nextSetBit(i + 1)) {
          Square targetSquare = Square.fromBitIndex(i);
          PieceType capturedPiece;
          boolean enpassant = false;
@@ -268,17 +276,19 @@ public class Pawn extends Piece {
          move.setEnpassant(enpassant);
          moves.add(move);
       }
-      // process promotions
+
+      return moves;
+   }
+
+   private List<Move> processPromotions(Chessboard chessboard, BitSet promotedPawns, boolean checkingForAttack,
+         int offset) {
+      List<Move> moves = new ArrayList<>();
       for (int i = promotedPawns.nextSetBit(0); i >= 0; i = promotedPawns.nextSetBit(i + 1)) {
+         Square fromSquare = Square.fromBitIndex(i + offset);
          Square targetSquare = Square.fromBitIndex(i);
-         PieceType capturedPiece;
-         if (checkingForAttack) {
-            capturedPiece = PieceType.DUMMY;
-         } else {
-            capturedPiece = chessboard.pieceAt(targetSquare);
-         }
+         PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY : chessboard.pieceAt(targetSquare);
          for (PieceType type : PieceType.getPieceTypesForPromotion()) {
-            Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
+            Move move = new Move(PieceType.PAWN, colour, fromSquare, targetSquare, capturedPiece);
             move.setPromotionPiece(type);
             moves.add(move);
          }
@@ -312,44 +322,12 @@ public class Pawn extends Piece {
          captureRight.and(opponentsPieces);
       }
       BitSet promotedPawns = (BitSet) captureRight.clone(); // copy this bitset
-      promotedPawns.and(helper.lastRank().getBitSet()); // just the promoted pawns
-      captureRight.and(helper.lastRank().flip()); // remove promoted pawns
+      promotedPawns.and(helper.lastRank()); // just the promoted pawns
+      captureRight.and(helper.lastRankFlipped()); // remove promoted pawns
 
       int offset = helper.getColour() == Colour.WHITE ? -9 : 7;
-      for (int i = captureRight.nextSetBit(0); i >= 0; i = captureRight.nextSetBit(i + 1)) {
-         Square targetSquare = Square.fromBitIndex(i);
-         boolean enpassant = false;
-         PieceType capturedPiece;
-         // no piece present on the attack square if 'checkingForAttack'
-         if (checkingForAttack) {
-            capturedPiece = PieceType.DUMMY;
-         } else {
-            if (targetSquare == chessboard.getEnpassantSquare()) {
-               capturedPiece = PieceType.PAWN;
-               enpassant = true;
-            } else {
-               capturedPiece = chessboard.pieceAt(targetSquare);
-            }
-         }
-         Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
-         move.setEnpassant(enpassant);
-         moves.add(move);
-      }
-      // process promotions
-      for (int i = promotedPawns.nextSetBit(0); i >= 0; i = promotedPawns.nextSetBit(i + 1)) {
-         Square targetSquare = Square.fromBitIndex(i);
-         PieceType capturedPiece;
-         if (checkingForAttack) {
-            capturedPiece = PieceType.DUMMY;
-         } else {
-            capturedPiece = chessboard.pieceAt(targetSquare);
-         }
-         for (PieceType type : PieceType.getPieceTypesForPromotion()) {
-            Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
-            move.setPromotionPiece(type);
-            moves.add(move);
-         }
-      }
+      moves.addAll(processCaptures(chessboard, captureRight, checkingForAttack, offset));
+      moves.addAll(processPromotions(chessboard, promotedPawns, checkingForAttack, offset));
       return moves;
    }
 
@@ -362,9 +340,11 @@ public class Pawn extends Piece {
     *           the pawn move
     * @param opponentsKing
     *           square of the opponent's king
+    * @param opponentsKingBitset
+    *           bitset for the opponent's king (passed in as optimization)
     * @return true if this move leaves the king in check
     */
-   private boolean checkIfCheck(Chessboard chessboard, Move move, Square opponentsKing) {
+   private boolean checkIfCheck(Chessboard chessboard, Move move, Square opponentsKing, BitSet opponentsKingBitset) {
       if (move.isPromotion()) {
          Map<PieceType, Piece> myPieces;
          BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
@@ -372,6 +352,7 @@ public class Pawn extends Piece {
          emptySquares.clear(move.to().bitIndex());
 
          PieceType promotedPiece = move.getPromotedPiece();
+         BitSet rooksAndQueens, bishopsAndQueens;
          // TODO could be improved ...
          switch (promotedPiece) {
          case QUEEN:
@@ -379,19 +360,29 @@ public class Pawn extends Piece {
             // therefore only need to supply this piece to the check-method
             myPieces = new HashMap<>();
             myPieces.put(PieceType.QUEEN, new Queen(colour, move.to()));
-            return Chessboard.isKingInCheck(myPieces, emptySquares, opponentsKing);
+            rooksAndQueens = new BitSet(64);
+            rooksAndQueens.set(move.to().bitIndex());
+            return Chessboard.isKingInCheck(myPieces, rooksAndQueens, rooksAndQueens, emptySquares, opponentsKing,
+                  false);
          case ROOK:
             myPieces = new HashMap<>();
             myPieces.put(PieceType.ROOK, new Rook(colour, move.to()));
-            return Chessboard.isKingInCheck(myPieces, emptySquares, opponentsKing);
+            rooksAndQueens = new BitSet(64);
+            rooksAndQueens.set(move.to().bitIndex());
+            return Chessboard.isKingInCheck(myPieces, rooksAndQueens, new BitSet(64), emptySquares, opponentsKing,
+                  false);
          case BISHOP:
             myPieces = new HashMap<>();
             myPieces.put(PieceType.BISHOP, new Bishop(colour, move.to()));
-            return Chessboard.isKingInCheck(myPieces, emptySquares, opponentsKing);
+            bishopsAndQueens = new BitSet(64);
+            bishopsAndQueens.set(move.to().bitIndex());
+            return Chessboard.isKingInCheck(myPieces, new BitSet(64), bishopsAndQueens, emptySquares, opponentsKing,
+                  false);
          case KNIGHT:
             myPieces = new HashMap<>();
             myPieces.put(PieceType.KNIGHT, new Knight(colour, move.to()));
-            return Chessboard.isKingInCheck(myPieces, emptySquares, opponentsKing);
+            return Chessboard.isKingInCheck(myPieces, new BitSet(64), new BitSet(64), emptySquares, opponentsKing,
+                  false);
          default:
             throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
          }
@@ -401,17 +392,12 @@ public class Pawn extends Piece {
          left.set(move.to().bitIndex());
          BitSet right = (BitSet) left.clone();
 
-         left.and(BitBoard.EXCEPT_FILE[0].getBitSet()); // only the pawns on the 2nd to 8th files
          left = helper.pawnCaptureLeft(left);
-         right.and(BitBoard.EXCEPT_FILE[7].getBitSet()); // only the pawns on the 1st to 7th files
          right = helper.pawnCaptureRight(right);
 
-         // now 'and' with king's bitset
-         // TODO shouldn't create every time
-         BitSet king = new BitSet(64);
-         king.set(opponentsKing.bitIndex());
-         left.and(king);
-         right.and(king);
+         // now 'and' with opponent's king's bitset
+         left.and(opponentsKingBitset);
+         right.and(opponentsKingBitset);
 
          return (!left.isEmpty() || !right.isEmpty());
       }
@@ -419,15 +405,14 @@ public class Pawn extends Piece {
 
    @Override
    public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
-      List<Move> moves = new ArrayList<>();
-      moves.addAll(captureLeft(chessboard, helper, true));
-      moves.addAll(captureRight(chessboard, helper, true));
-      for (Move move : moves) {
-         if (move.to() == targetSq) {
-            return true;
-         }
-      }
-      return false;
+      BitSet targetSquareBitSet = new BitSet(64);
+      targetSquareBitSet.set(targetSq.bitIndex());
+
+      BitSet captures = helper.pawnCaptureLeft(pieces.cloneBitSet());
+      BitSet capturesRight = helper.pawnCaptureRight(pieces.cloneBitSet());
+      captures.or(capturesRight);
+      captures.and(targetSquareBitSet);
+      return !captures.isEmpty();
    }
 
    /**
@@ -469,18 +454,25 @@ public class Pawn extends Piece {
       Colour getColour();
 
       /**
-       * The last rank (1st or 8th) depending on the colour.
+       * The last rank (1st or 8th depending on the colour).
        *
        * @return The last rank
        */
-      BitBoard lastRank();
+      BitSet lastRank();
+
+      /**
+       * All ranks apart from the last rank (1st or 8th depending on the colour).
+       *
+       * @return The last rank flipped, i.e. all ranks apart from the last rank.
+       */
+      BitSet lastRankFlipped();
 
       /**
        * The starting rank for the pawns (2nd or 6th) depending on the colour.
        *
        * @return The starting rank
        */
-      BitBoard startRank();
+      BitSet startRank();
    }
 
    /**
@@ -494,8 +486,13 @@ public class Pawn extends Piece {
       }
 
       @Override
-      public BitBoard lastRank() {
+      public BitSet lastRank() {
          return BitBoard.RANK[7];
+      }
+
+      @Override
+      public BitSet lastRankFlipped() {
+         return BitBoard.EXCEPT_RANK[7];
       }
 
       @Override
@@ -504,7 +501,7 @@ public class Pawn extends Piece {
       }
 
       @Override
-      public BitBoard startRank() {
+      public BitSet startRank() {
          return BitBoard.RANK[1];
       }
 
@@ -513,7 +510,7 @@ public class Pawn extends Piece {
          if (startPosn.isEmpty()) {
             return startPosn;
          }
-         startPosn.and(BitBoard.EXCEPT_FILE[0].getBitSet()); // only the pawns on the 2nd to 8th files
+         startPosn.and(BitBoard.EXCEPT_FILE[0]); // only the pawns on the 2nd to 8th files
          long[] longArray = startPosn.toLongArray();
          if (longArray.length == 0) {
             return new BitSet(64);
@@ -526,7 +523,7 @@ public class Pawn extends Piece {
          if (startPosn.isEmpty()) {
             return startPosn;
          }
-         startPosn.and(BitBoard.EXCEPT_FILE[7].getBitSet()); // only the pawns on the 1st to 7th files
+         startPosn.and(BitBoard.EXCEPT_FILE[7]); // only the pawns on the 1st to 7th files
          long[] longArray = startPosn.toLongArray();
          if (longArray.length == 0) {
             return new BitSet(64);
@@ -551,7 +548,7 @@ public class Pawn extends Piece {
          if (startPosn.isEmpty()) {
             return startPosn;
          }
-         startPosn.and(BitBoard.EXCEPT_FILE[7].getBitSet()); // only the pawns on the 1st to 7th files
+         startPosn.and(BitBoard.EXCEPT_FILE[7]); // only the pawns on the 1st to 7th files
          long[] longArray = startPosn.toLongArray();
          if (longArray.length == 0) {
             return new BitSet(64);
@@ -564,7 +561,7 @@ public class Pawn extends Piece {
          if (startPosn.isEmpty()) {
             return startPosn;
          }
-         startPosn.and(BitBoard.EXCEPT_FILE[0].getBitSet()); // only the pawns on the 2nd to 8th files
+         startPosn.and(BitBoard.EXCEPT_FILE[0]); // only the pawns on the 2nd to 8th files
          long[] longArray = startPosn.toLongArray();
          if (longArray.length == 0) {
             return new BitSet(64);
@@ -578,12 +575,17 @@ public class Pawn extends Piece {
       }
 
       @Override
-      public BitBoard lastRank() {
+      public BitSet lastRank() {
          return BitBoard.RANK[0];
       }
 
       @Override
-      public BitBoard startRank() {
+      public BitSet lastRankFlipped() {
+         return BitBoard.EXCEPT_RANK[0];
+      }
+
+      @Override
+      public BitSet startRank() {
          return BitBoard.RANK[6];
       }
 

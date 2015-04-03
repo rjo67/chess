@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -20,13 +21,17 @@ import java.util.Map;
 public class Perft {
 
    public static void main(String[] args) {
-
-      for (int i = 1; i < 7; i++) {
-         Game game = new Game();
-         long start = System.currentTimeMillis();
-         Map<String, Integer> moves = findMoves(game, Colour.WHITE, i);
-         System.out.println(i + "ply in " + (System.currentTimeMillis() - start) + "ms: " + moves);
-      }
+      // see PerftTest::posn6ply5
+      // 5ply: 164.075.551 moves ( 489.246 ms) ( 335,4 moves/ms) (01.04.2015)
+      // 5ply: 164.075.551 moves ( 190.683 ms) ( 860,5 moves/ms) (03.04.2015)
+      // 5ply: 164.075.551 moves ( 164.298 ms) ( 998,6 moves/ms) (03.04.2015)
+      Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
+      long start = System.currentTimeMillis();
+      Map<String, Integer> moveMap = findMoves(game, Colour.WHITE, 5);
+      long time = System.currentTimeMillis() - start;
+      int moves = Perft.countMoves(moveMap);
+      System.out.println(String.format(Locale.GERMANY, "5ply: %,12d moves (%,10d ms) (%8.1f moves/ms)", moves, time,
+            ((moves * 1.0) / time)));
    }
 
    /**

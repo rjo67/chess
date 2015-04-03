@@ -29,7 +29,8 @@ public class CheckTest {
       TestUtil.checkMoves(
             game.findMoves(Colour.WHITE),
             new HashSet<>(Arrays.asList("Kf8-f7", "Kf8-g7", "Nc6-b8", "Nc6-d8", "Bc7-b8", "Bc7-d8", "Ra1xa8", "Rd1-d8",
-                  "Qe7-d8", "Qe7-e8", "b7xa8", "b7-b8=Q", "b7-b8=R", "b7-b8=B", "b7-b8=N")));
+                  "Qe7-d8", "Qe7-e8", "b7xa8=R", "b7xa8=N", "b7xa8=B", "b7xa8=Q", "b7-b8=Q", "b7-b8=R", "b7-b8=B",
+                  "b7-b8=N")));
    }
 
    @Test

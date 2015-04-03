@@ -124,14 +124,12 @@ public class Bishop extends SlidingPiece {
 
    @Override
    public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
-      boolean attacksSquare = false;
-      int i = pieces.getBitSet().nextSetBit(0);
-      while ((!attacksSquare) && (i >= 0)) {
-         attacksSquare = attacksSquareDiagonally(chessboard.getEmptySquares().getBitSet(), Square.fromBitIndex(i),
-               targetSq);
-         i = pieces.getBitSet().nextSetBit(i + 1);
+      for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
+         if (attacksSquareDiagonally(chessboard.getEmptySquares().getBitSet(), Square.fromBitIndex(i), targetSq)) {
+            return true;
+         }
       }
-      return attacksSquare;
+      return false;
    }
 
 }

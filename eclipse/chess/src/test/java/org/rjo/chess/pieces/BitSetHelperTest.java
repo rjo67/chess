@@ -13,19 +13,19 @@ public class BitSetHelperTest {
    @Test
    public void testShiftLeft() {
       checkResult(BitSetHelper.shift(initStartBits(new int[] { 0, 8, 44, 48, 55, 56, 57 }), 3), new int[] { 3, 11, 47,
-            51, 58, 59, 60 });
+         51, 58, 59, 60 });
    }
 
    @Test
    public void testOneRankNorth() {
       checkResult(BitSetHelper.shiftOneNorth(initStartBits(new int[] { 0, 8, 44, 48, 55, 56, 57 })), new int[] { 8, 16,
-            52, 56, 63 });
+         52, 56, 63 });
    }
 
    @Test
    public void allBitsOneRankNorth() {
       BitSet expected = new BitBoard(new byte[] {
-      //@formatter:off
+            //@formatter:off
             (byte) 0b11111111,
             (byte) 0b11111111,
             (byte) 0b11111111,
@@ -43,13 +43,13 @@ public class BitSetHelperTest {
    public void testOneNorthWest() {
       // +7 excluding squares on LHS (0,8,48)
       checkResult(BitSetHelper.shiftOneNorthWest(initStartBits(new int[] { 0, 8, 44, 48, 55, 56, 57 })), new int[] {
-            51, 62 });
+         51, 62 });
    }
 
    @Test
    public void allBitsOneNorthWest() {
       BitSet expected = new BitBoard(new byte[] {
-      //@formatter:off
+            //@formatter:off
             (byte) 0b11111110,
             (byte) 0b11111110,
             (byte) 0b11111110,
@@ -73,7 +73,7 @@ public class BitSetHelperTest {
    @Test
    public void allBitsOneNorthEast() {
       BitSet expected = new BitBoard(new byte[] {
-      //@formatter:off
+            //@formatter:off
             (byte) 0b01111111,
             (byte) 0b01111111,
             (byte) 0b01111111,
@@ -97,7 +97,7 @@ public class BitSetHelperTest {
    @Test
    public void allBitsOneSouthEast() {
       BitSet expected = new BitBoard(new byte[] {
-      //@formatter:off
+            //@formatter:off
             (byte) 0b00000000,
             (byte) 0b01111111,
             (byte) 0b01111111,
@@ -115,13 +115,13 @@ public class BitSetHelperTest {
    public void testOneSouthWest() {
       // -9 excluding squares on LHS (0,8,48,56)
       checkResult(BitSetHelper.shiftOneSouthWest(initStartBits(new int[] { 0, 8, 44, 48, 55, 56, 57 })), new int[] {
-            35, 46, 48 });
+         35, 46, 48 });
    }
 
    @Test
    public void allBitsOneSouthWest() {
       BitSet expected = new BitBoard(new byte[] {
-      //@formatter:off
+            //@formatter:off
             (byte) 0b00000000,
             (byte) 0b11111110,
             (byte) 0b11111110,
@@ -138,13 +138,13 @@ public class BitSetHelperTest {
    @Test
    public void testOneRankSouth() {
       checkResult(BitSetHelper.shiftOneSouth(initStartBits(new int[] { 0, 3, 8, 44, 48, 55, 56, 57, 63 })), new int[] {
-            0, 36, 40, 47, 48, 49, 55 });
+         0, 36, 40, 47, 48, 49, 55 });
    }
 
    @Test
    public void allBitsOneRankSouth() {
       BitSet expected = new BitBoard(new byte[] {
-      //@formatter:off
+            //@formatter:off
             (byte) 0b00000000,
             (byte) 0b11111111,
             (byte) 0b11111111,
@@ -161,13 +161,13 @@ public class BitSetHelperTest {
    @Test
    public void testOneFileWest() {
       checkResult(BitSetHelper.shiftOneWest(initStartBits(new int[] { 0, 7, 8, 44, 57, 63 })), new int[] { 6, 43, 56,
-            62 });
+         62 });
    }
 
    @Test
    public void allBitsOneFileWest() {
       BitSet expected = new BitBoard(new byte[] {
-      //@formatter:off
+            //@formatter:off
             (byte) 0b11111110,
             (byte) 0b11111110,
             (byte) 0b11111110,
@@ -189,7 +189,7 @@ public class BitSetHelperTest {
    @Test
    public void allBitsOneFileEast() {
       BitSet expected = new BitBoard(new byte[] {
-      //@formatter:off
+            //@formatter:off
             (byte) 0b01111111,
             (byte) 0b01111111,
             (byte) 0b01111111,
@@ -205,32 +205,32 @@ public class BitSetHelperTest {
 
    /**
     * Sets up a bit set with the required bits.
-    * 
+    *
     * @param setBits
     *           bits to set
     * @return a new bit set with the required bits set.
     */
    private BitSet initStartBits(int[] setBits) {
       BitSet bs = new BitSet(64);
-      for (int i = 0; i < setBits.length; i++) {
-         bs.set(setBits[i]);
+      for (int setBit : setBits) {
+         bs.set(setBit);
       }
       return bs;
    }
 
    /**
     * Checks that the given bitset contains the correct bits.
-    * 
+    *
     * @param bs
     *           bitset to check. Will be modified by this method!
     * @param setBits
     *           bits that should be set
     */
    private void checkResult(BitSet bs, int[] setBits) {
-      for (int i = 0; i < setBits.length; i++) {
-         assertTrue("bit " + setBits[i] + " not set: remaining bits in result: " + bs, bs.get(setBits[i]));
+      for (int setBit : setBits) {
+         assertTrue("bit " + setBit + " not set: remaining bits in result: " + bs, bs.get(setBit));
          // blank this bit
-         bs.clear(setBits[i]);
+         bs.clear(setBit);
       }
       // now the 'bs' should be empty
       assertTrue("bit set contains extraneous bits: " + bs, bs.isEmpty());

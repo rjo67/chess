@@ -6,7 +6,7 @@ import org.rjo.chess.pieces.BitSetHelper;
 
 /**
  * A {@link MoveHelper} implementation for a move to the Northeast.
- * 
+ *
  * @author rich
  */
 public class NorthEastMoveHelper implements MoveHelper {
@@ -30,7 +30,12 @@ public class NorthEastMoveHelper implements MoveHelper {
 
    @Override
    public BitSet shiftBoard(BitSet startBoard) {
-      return BitSetHelper.shiftOneNorthEast(startBoard);
+      return shiftBoard(startBoard, true);
+   }
+
+   @Override
+   public BitSet shiftBoard(BitSet startBoard, boolean clone) {
+      return BitSetHelper.shiftOneNorthEast(startBoard);// TODO, clone);
    }
 
 }

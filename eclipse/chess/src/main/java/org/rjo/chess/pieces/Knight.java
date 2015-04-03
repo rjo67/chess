@@ -34,7 +34,7 @@ public class Knight extends Piece {
           * - blank first and 2nd file for -17 and +15
           * RHS: blank last file for +10 and -6
           * - blank 7th and 8th file for +17 and -15
-          *
+          * 
           * Don't need to blank ranks, these just 'drop off' during the bit shift.
           */
 
@@ -46,9 +46,9 @@ public class Knight extends Piece {
          // - work[4,5] == file 8 blanked
          // - work[6,7] == file 7 blanked as well
          work[0] = (BitSet) knightMoves[i].clone();
-         work[0].and(BitBoard.EXCEPT_FILE[0].getBitSet());
+         work[0].and(BitBoard.EXCEPT_FILE[0]);
          work[2] = (BitSet) work[0].clone();
-         work[2].and(BitBoard.EXCEPT_FILE[1].getBitSet());
+         work[2].and(BitBoard.EXCEPT_FILE[1]);
 
          // store another copy
          work[1] = (BitSet) work[0].clone();
@@ -60,9 +60,9 @@ public class Knight extends Piece {
          work[3] = BitSetHelper.shift(work[3], -10);// file-2,rank-1
 
          work[4] = (BitSet) knightMoves[i].clone();
-         work[4].and(BitBoard.EXCEPT_FILE[7].getBitSet());
+         work[4].and(BitBoard.EXCEPT_FILE[7]);
          work[6] = (BitSet) work[4].clone();
-         work[6].and(BitBoard.EXCEPT_FILE[6].getBitSet());
+         work[6].and(BitBoard.EXCEPT_FILE[6]);
 
          // store another copy
          work[5] = (BitSet) work[4].clone();

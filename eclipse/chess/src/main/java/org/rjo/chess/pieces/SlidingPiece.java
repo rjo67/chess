@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import org.rjo.chess.BitBoard;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
@@ -36,15 +35,23 @@ public abstract class SlidingPiece extends Piece {
     * @return true if at least one of the given pieces can attack the target square along a rank or file.
     */
    public static boolean attacksSquareOnRankOrFile(BitSet pieces, BitSet emptySquares, Square targetSquare) {
-      boolean attacksSquare = false;
-      int i = pieces.nextSetBit(0);
-      while ((!attacksSquare) && (i >= 0)) {
-         attacksSquare = attacksSquareRankOrFile(emptySquares, Square.fromBitIndex(i), targetSquare);
-         if (!attacksSquare) {
-            i = pieces.nextSetBit(i + 1);
+      // version using canReachTargetSquare is slower than attacksSquareRankOrFile...
+
+      // final BitSet targetSquareBitSet = new BitSet(64);
+      // targetSquareBitSet.set(targetSquare.bitIndex());
+      // for (MoveHelper helper : new MoveHelper[] { NorthMoveHelper.instance(), EastMoveHelper.instance(),
+      // SouthMoveHelper.instance(), WestMoveHelper.instance() }) {
+      // if (canReachTargetSquare(pieces, emptySquares, helper, targetSquareBitSet)) {
+      // return true;
+      // }
+      // }
+      // return false;
+      for (int i = pieces.nextSetBit(0); i >= 0; i = pieces.nextSetBit(i + 1)) {
+         if (attacksSquareRankOrFile(emptySquares, Square.fromBitIndex(i), targetSquare)) {
+            return true;
          }
       }
-      return attacksSquare;
+      return false;
    }
 
    /**
@@ -60,15 +67,43 @@ public abstract class SlidingPiece extends Piece {
     * @return true if at least one of the given pieces can attack the target square along a diagonal.
     */
    public static boolean attacksSquareOnDiagonal(BitSet bishopsAndQueens, BitSet emptySquares, Square targetSquare) {
-      boolean attacksSquare = false;
-      int i = bishopsAndQueens.nextSetBit(0);
-      while ((!attacksSquare) && (i >= 0)) {
-         attacksSquare = attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSquare);
-         if (!attacksSquare) {
-            i = bishopsAndQueens.nextSetBit(i + 1);
+      for (int i = bishopsAndQueens.nextSetBit(0); i >= 0; i = bishopsAndQueens.nextSetBit(i + 1)) {
+         if (attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSquare)) {
+            return true;
          }
       }
-      return attacksSquare;
+      return false;
+   }
+
+   /**
+    * Is there at least one piece on the given board with a direct line (as defined by MoveHelper) to the target square?
+    *
+    * This method does not cvurrently get called, since it's slower than
+    * {@link #attacksSquareRankOrFile(BitSet, Square, Square)}
+    *
+    *
+    * @param chessboard
+    * @param moveHelper
+    * @param targetSquare
+    * @return
+    */
+   protected static boolean canReachTargetSquare(BitSet pieces, BitSet emptySquares, MoveHelper moveHelper,
+         BitSet targetSquareBitSet) {
+      /*
+       * in each iteration, shift the board in the required direction and check for target square and non-empty squares.
+       */
+      BitSet shiftedBoard = (BitSet) pieces.clone();
+      while (!shiftedBoard.isEmpty()) {
+         shiftedBoard = moveHelper.shiftBoard(shiftedBoard, false);
+
+         if (shiftedBoard.intersects(targetSquareBitSet)) {
+            return true;
+         }
+         // remove any non-empty squares
+         shiftedBoard.and(emptySquares);
+      }
+
+      return false;
    }
 
    /**
@@ -85,14 +120,15 @@ public abstract class SlidingPiece extends Piece {
       List<Move> moves = new ArrayList<>(7);
 
       /*
-       * in each iteration, shifts the board in the required direction and checks for friendly pieces and captures,
+       * in each iteration, shifts the board in the required direction and checks for friendly pieces and captures.
        */
-      BitSet shiftedBoard = pieces.getBitSet();
+
+      BitSet shiftedBoard = (BitSet) pieces.getBitSet().clone(); // must clone here
       int offset = 0;
       final int increment = moveHelper.getIncrement();
       while (!shiftedBoard.isEmpty()) {
          offset += increment;
-         shiftedBoard = moveHelper.shiftBoard(shiftedBoard);
+         shiftedBoard = moveHelper.shiftBoard(shiftedBoard, false); // not cloning here
          // move must be to an empty square or a capture of an enemy piece,
          // therefore remove squares with friendly pieces
          shiftedBoard.andNot(chessboard.getAllPieces(getColour()).getBitSet());
@@ -207,65 +243,40 @@ public abstract class SlidingPiece extends Piece {
     * @return true if the target square is attacked (straight-line) from the start square.
     */
    protected static boolean attacksSquareRankOrFile(BitSet emptySquares, Square startSquare, Square targetSquare) {
-      // for a rook to give check, it must be on the same rank or file as the king
-      // and there can't be any pieces inbetween
-
       // give up straight away if start and target are the same
       if (startSquare == targetSquare) {
          return false;
       }
-      BitSet squaresInBetween = new BitSet(64);
-      int nbrOfSquaresInBetween = 0;
-      boolean onSameRankOrFile = false;
-
       if (startSquare.rank() == targetSquare.rank()) {
-         onSameRankOrFile = true;
-         // set squares between rook and targetSquare on this rank
+         /*
+          * Algorithm runs from smallest file to largest.
+          * If current square is not empty, then give up. Otherwise keep going until hit target square.
+          */
          int[] orderedNumbers = orderNumbers(startSquare.file(), targetSquare.file());
-         int offset = Square.fromRankAndFile(startSquare.rank(), 0).bitIndex();
-         for (int i = orderedNumbers[0] + 1; i < orderedNumbers[1]; i++) {
-            nbrOfSquaresInBetween++;
-            squaresInBetween.set(offset + i);
+         int bitIndex = Square.fromRankAndFile(startSquare.rank(), orderedNumbers[0]).bitIndex();
+         int targetBitIndex = Square.fromRankAndFile(targetSquare.rank(), orderedNumbers[1]).bitIndex();
+         for (int i = bitIndex + 1; i < targetBitIndex; i++) {
+            if (!emptySquares.get(i)) {
+               return false;
+            }
          }
+         return true;
       } else if (startSquare.file() == targetSquare.file()) {
-         onSameRankOrFile = true;
-         // set squares between rook and king on this rank
+         /*
+          * Algorithm runs from smallest rank to largest.
+          * If current square is not empty, then give up. Otherwise keep going until hit target square.
+          */
          int[] orderedNumbers = orderNumbers(startSquare.rank(), targetSquare.rank());
-         int offset = Square.fromRankAndFile(0, startSquare.file()).bitIndex();
-         for (int i = orderedNumbers[0] + 1; i < orderedNumbers[1]; i++) {
-            nbrOfSquaresInBetween++;
-            squaresInBetween.set(offset + i * 8);
+         int bitIndex = Square.fromRankAndFile(orderedNumbers[0], startSquare.file()).bitIndex();
+         int targetBitIndex = Square.fromRankAndFile(orderedNumbers[1], targetSquare.file()).bitIndex();
+         for (int i = bitIndex + 8; i < targetBitIndex; i += 8) {
+            if (!emptySquares.get(i)) {
+               return false;
+            }
          }
+         return true;
       }
-
-      if (!onSameRankOrFile) {
-         return false;
-      }
-
-      /*
-       * squaresInBetween has the squares between rook and targetSquare. nbrOfSquaresInBetween == the number of set
-       * bits.
-       * Now intersect with the appropriate part of the 'emptySquares' bitset to see if these squares are empty.
-       */
-      BitSet clonedEmptySquares = (BitSet) emptySquares.clone();
-      // remove unwanted ranks and files from 'emptySquares'
-      for (int i = 0; i < Math.min(startSquare.file(), targetSquare.file()); i++) {
-         clonedEmptySquares.and(BitBoard.EXCEPT_FILE[i].getBitSet());
-      }
-      for (int i = 7; i > Math.max(startSquare.file(), targetSquare.file()); i--) {
-         clonedEmptySquares.and(BitBoard.EXCEPT_FILE[i].getBitSet());
-      }
-      for (int i = 0; i < Math.min(startSquare.rank(), targetSquare.rank()); i++) {
-         clonedEmptySquares.and(BitBoard.EXCEPT_RANK[i].getBitSet());
-      }
-      for (int i = 7; i > Math.max(startSquare.rank(), targetSquare.rank()); i--) {
-         clonedEmptySquares.and(BitBoard.EXCEPT_RANK[i].getBitSet());
-      }
-      // remove the new position of the moved piece from 'emptySquares'
-      clonedEmptySquares.clear(startSquare.bitIndex());
-
-      squaresInBetween.and(clonedEmptySquares);
-      return squaresInBetween.cardinality() == nbrOfSquaresInBetween;
+      return false;
    }
 
    /**

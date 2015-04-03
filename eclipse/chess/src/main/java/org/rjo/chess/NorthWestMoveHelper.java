@@ -6,7 +6,7 @@ import org.rjo.chess.pieces.BitSetHelper;
 
 /**
  * A {@link MoveHelper} implementation for a move to the Northwest.
- * 
+ *
  * @author rich
  */
 public class NorthWestMoveHelper implements MoveHelper {
@@ -29,7 +29,11 @@ public class NorthWestMoveHelper implements MoveHelper {
 
    @Override
    public BitSet shiftBoard(BitSet startBoard) {
-      return BitSetHelper.shiftOneNorthWest(startBoard);
+      return shiftBoard(startBoard, true);
    }
 
+   @Override
+   public BitSet shiftBoard(BitSet startBoard, boolean clone) {
+      return BitSetHelper.shiftOneNorthWest(startBoard);// TODO, clone);
+   }
 }

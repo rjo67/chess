@@ -3,18 +3,27 @@ chess
 
 explorations in the world of chess computer programming
 
-current state: move generator seems to be bugfree.
+current state: move generator seems to be bugfree. Now working on performance.
 
 ## TODO
-* optimization of the move generator, since it maxes on ca. 300-350 moves/ms.
+* updateStructures working 100% incrementally.
+* optimizations.
 Hotspots:
     org.rjo.chess.Chessboard.updateStructures()
-    org.rjo.chess.pieces.Pawn.captureRight()
-    org.rjo.chess.pieces.Pawn.captureLeft()
-    org.rjo.chess.pieces.SlidingPiece.attacksSquareOnRankOrFile()
-    org.rjo.chess.pieces.SlidingPiece.attacksSquareOnDiagonal()
     org.rjo.chess.Chessboard.isKingInCheck()
 
+## 03.04.15
+Further optimizations. Introduction of allRooksAndQueens and allBishopsAndQueens.
+updateStructures is now incremental for non-captures.
+Optimization of attacksSquareOnRankOrFile did not work, code is commented out (see canReachTargetSquare).
+
+Speed now:
+5ply:  164.075.551 moves (   171.302 ms) (   957,8 moves/ms)
+
+Was up to ca. 1000moves/ms before allRooksAndQueens optimizations...
+
+## 02.04.15
+Optimizations e.g. updateStructures, Pawn.attacksSquare
 
 ## 31.03.15
 

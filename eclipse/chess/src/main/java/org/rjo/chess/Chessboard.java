@@ -32,6 +32,18 @@ public class Chessboard {
    private BitBoard[] allPieces;
 
    /**
+    * bitboard of all rooks and queens for a particular colour.
+    * The dimension indicates the colour {white, black}.
+    */
+   private BitBoard[] allRooksAndQueens;
+
+   /**
+    * bitboard of all bishops and queens for a particular colour.
+    * The dimension indicates the colour {white, black}.
+    */
+   private BitBoard[] allBishopsAndQueens;
+
+   /**
     * bitboard of all pieces on the board (irrespective of colour).
     */
    private BitBoard totalPieces;
@@ -76,28 +88,136 @@ public class Chessboard {
          pieces[Colour.BLACK.ordinal()].put(p.getType(), p);
       }
       allPieces = new BitBoard[Colour.values().length];
-      updateStructures();
+      allRooksAndQueens = new BitBoard[Colour.values().length];
+      allBishopsAndQueens = new BitBoard[Colour.values().length];
+      updateStructures(null, false);
 
       enpassantSquare = null;
    }
 
    /**
-    * update structures (after a move). Would be more efficient to incremently recalculate, see {@link Game#move(Move)}
-    * and {@link Game#unmove(Move)}.
+    * update the internal structures (after a move/unmove). Incremental update for non-capture moves.
+    * TODO: incremental updates for capture-moves as well.
+    *
+    * @param move
+    *           if not null, will be taken into a/c when updating
+    * @param isUnmove
+    *           true means this move is an 'unmove'. Otherwise a normal 'move'. Only relevant when move!=null.
+    *           TODO this parameter may not be required
     */
-   public void updateStructures() {
+   public void updateStructures(Move move, boolean isUnmove) {
       for (Colour colour : Colour.values()) {
-         allPieces[colour.ordinal()] = new BitBoard();
-         for (PieceType p : pieces[colour.ordinal()].keySet()) {
-            allPieces[colour.ordinal()].getBitSet().or(pieces[colour.ordinal()].get(p).getBitBoard().getBitSet());
+         // update incrementally for non-capture moves
+         if ((move != null) && !move.isCapture()) {
+            // no need to update opponent's pieces for a non-capture move
+            if (colour != move.getColour()) {
+               continue;
+            }
+            updateBitSet(allPieces[colour.ordinal()].getBitSet(), move);
+            // rooks and queens
+            if ((move.getPiece() == PieceType.ROOK) || (move.getPiece() == PieceType.QUEEN)) {
+               updateBitSet(allRooksAndQueens[colour.ordinal()].getBitSet(), move);
+            }
+            if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+               allRooksAndQueens[colour.ordinal()].getBitSet().flip(move.getRooksCastlingMove().from().bitIndex());
+               allRooksAndQueens[colour.ordinal()].getBitSet().flip(move.getRooksCastlingMove().to().bitIndex());
+            }
+            // promotion to rook or queen?
+            if (move.isPromotion()
+                  && (move.getPromotedPiece() == PieceType.QUEEN || move.getPromotedPiece() == PieceType.ROOK)) {
+               allRooksAndQueens[colour.ordinal()].getBitSet().flip(move.to().bitIndex());
+            }
+            // bishops and queens
+            if ((move.getPiece() == PieceType.BISHOP) || (move.getPiece() == PieceType.QUEEN)) {
+               updateBitSet(allBishopsAndQueens[colour.ordinal()].getBitSet(), move);
+            }
+            // promotion to bishop or queen?
+            if (move.isPromotion()
+                  && (move.getPromotedPiece() == PieceType.QUEEN || move.getPromotedPiece() == PieceType.BISHOP)) {
+               allBishopsAndQueens[colour.ordinal()].getBitSet().flip(move.to().bitIndex());
+            }
+         } else {
+            allPieces[colour.ordinal()] = new BitBoard();
+            for (PieceType p : pieces[colour.ordinal()].keySet()) {
+               allPieces[colour.ordinal()].getBitSet().or(pieces[colour.ordinal()].get(p).getBitBoard().getBitSet());
+            }
+            allRooksAndQueens[colour.ordinal()] = updateRooksAndQueens(pieces[colour.ordinal()]);
+            allBishopsAndQueens[colour.ordinal()] = updateBishopsAndQueens(pieces[colour.ordinal()]);
          }
       }
-      totalPieces = new BitBoard();
-      totalPieces.getBitSet().or(allPieces[Colour.WHITE.ordinal()].getBitSet());
-      totalPieces.getBitSet().or(allPieces[Colour.BLACK.ordinal()].getBitSet());
+      // update incrementally for non-capture moves
+      if ((move != null) && !move.isCapture()) {
+         updateBitSet(totalPieces.getBitSet(), move);
+      } else {
+         totalPieces = new BitBoard();
+         totalPieces.getBitSet().or(allPieces[Colour.WHITE.ordinal()].getBitSet());
+         totalPieces.getBitSet().or(allPieces[Colour.BLACK.ordinal()].getBitSet());
+      }
+      // update incrementally for non-capture moves
+      if ((move != null) && !move.isCapture()) {
+         updateBitSet(emptySquares.getBitSet(), move);
+      } else {
+         emptySquares = new BitBoard(totalPieces.cloneBitSet());
+         emptySquares.getBitSet().flip(0, 64);
+      }
+   }
 
-      emptySquares = new BitBoard(totalPieces.cloneBitSet());
-      emptySquares.getBitSet().flip(0, 64);
+   private BitBoard updateBishopsAndQueens(Map<PieceType, Piece> pieces) {
+      Piece queens = pieces.get(PieceType.QUEEN);
+      BitSet queensBitSet;
+      if (queens == null) {
+         queensBitSet = new BitSet(64);
+      } else {
+         queensBitSet = queens.getBitBoard().getBitSet();
+      }
+
+      Piece bishops = pieces.get(PieceType.BISHOP);
+      BitSet bishopsAndQueens;
+      if (bishops == null) {
+         bishopsAndQueens = new BitSet(64);
+      } else {
+         bishopsAndQueens = bishops.getBitBoard().cloneBitSet();
+      }
+      bishopsAndQueens.or(queensBitSet);
+      return new BitBoard(bishopsAndQueens);
+   }
+
+   private BitBoard updateRooksAndQueens(Map<PieceType, Piece> pieces) {
+      Piece queens = pieces.get(PieceType.QUEEN);
+      BitSet queensBitSet;
+      if (queens == null) {
+         queensBitSet = new BitSet(64);
+      } else {
+         queensBitSet = queens.getBitBoard().getBitSet();
+      }
+
+      Piece rooks = pieces.get(PieceType.ROOK);
+      BitSet rooksAndQueens;
+      if (rooks == null) {
+         rooksAndQueens = new BitSet(64);
+      } else {
+         rooksAndQueens = rooks.getBitBoard().cloneBitSet();
+      }
+      rooksAndQueens.or(queensBitSet);
+      return new BitBoard(rooksAndQueens);
+   }
+
+   /**
+    * Updates the given bitset to represent the move. The from and to squares will be flipped. If castling then the
+    * rook's move is also taken into a/c.
+    *
+    * @param bitset
+    *           the bitset to be updated.
+    * @param move
+    *           the move. NB only non-capture moves are supported by this method!
+    */
+   private void updateBitSet(BitSet bitset, Move move) {
+      bitset.flip(move.from().bitIndex());
+      bitset.flip(move.to().bitIndex());
+      if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+         bitset.flip(move.getRooksCastlingMove().from().bitIndex());
+         bitset.flip(move.getRooksCastlingMove().to().bitIndex());
+      }
    }
 
    /**
@@ -129,6 +249,14 @@ public class Chessboard {
     */
    public BitBoard getTotalPieces() {
       return totalPieces;
+   }
+
+   public BitBoard[] getAllRooksAndQueens() {
+      return allRooksAndQueens;
+   }
+
+   public BitBoard[] getAllBishopsAndQueens() {
+      return allBishopsAndQueens;
    }
 
    /**
@@ -222,6 +350,10 @@ public class Chessboard {
       emptySquares.set(move.from().bitIndex());
       emptySquares.clear(move.to().bitIndex());
       // don't need to consider captures here, since we're looking for a check from OUR side
+      BitSet clonedRooksAndQueens = chessboard.getAllRooksAndQueens()[colour.ordinal()].cloneBitSet();
+      BitSet clonedBishopsAndQueens = chessboard.getAllBishopsAndQueens()[colour.ordinal()].cloneBitSet();
+      updateRooksAndQueens(clonedRooksAndQueens, move);
+      updateBishopsAndQueens(clonedBishopsAndQueens, move);
 
       // take care of rook's move when castling
       if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
@@ -229,12 +361,13 @@ public class Chessboard {
          emptySquares.set(rooksMove.from().bitIndex());
          emptySquares.clear(rooksMove.to().bitIndex());
       }
-      return Chessboard.isKingInCheck(chessboard.getPieces(colour), emptySquares, opponentsKing);
+      return Chessboard.isKingInCheck(chessboard.getPieces(colour), clonedRooksAndQueens, clonedBishopsAndQueens,
+            emptySquares, opponentsKing, true);
    }
 
    /**
-    * Checks if the king is in check after the move 'move'.
-    * TODO NB does not cater for castling, since one can't castle out of check.
+    * Checks if my king is in check after the move 'move'.
+    * NB does not cater for castling, since one can't castle out of check.
     *
     * @param chessboard
     *           the chessboard
@@ -252,8 +385,11 @@ public class Chessboard {
       emptySquares.clear(move.to().bitIndex());
 
       Map<PieceType, Piece> opponentsPieces = chessboard.getPieces(opponentsColour);
+      BitSet clonedRooksAndQueens = chessboard.getAllRooksAndQueens()[opponentsColour.ordinal()].cloneBitSet();
+      BitSet clonedBishopsAndQueens = chessboard.getAllBishopsAndQueens()[opponentsColour.ordinal()].cloneBitSet();
+      // this move is not relevant for the opponent's bishops, rooks or queens -- unless it's a capture
+
       Piece originalPiece = null;
-      // TODO promotions
       if (move.isCapture()) {
          // need to remove captured piece temporarily from the appropriate Piece instance
          originalPiece = opponentsPieces.get(move.getCapturedPiece());
@@ -266,6 +402,12 @@ public class Chessboard {
                emptySquares.set(enpassantPawnSquare.bitIndex());
             } else {
                clonedPiece.removePiece(move.to());
+               if ((clonedPiece.getType() == PieceType.QUEEN) || (clonedPiece.getType() == PieceType.ROOK)) {
+                  clonedRooksAndQueens.clear(move.to().bitIndex());
+               }
+               if ((clonedPiece.getType() == PieceType.QUEEN) || (clonedPiece.getType() == PieceType.BISHOP)) {
+                  clonedBishopsAndQueens.clear(move.to().bitIndex());
+               }
             }
             // achtung: changing the 'global' state here, need to reset later!
             opponentsPieces.put(move.getCapturedPiece(), clonedPiece);
@@ -273,13 +415,41 @@ public class Chessboard {
             throw new IllegalStateException("cannot clone:", e);
          }
       }
-      boolean inCheck = Chessboard.isKingInCheck(opponentsPieces, emptySquares, king);
+      boolean inCheck = Chessboard.isKingInCheck(opponentsPieces, clonedRooksAndQueens, clonedBishopsAndQueens,
+            emptySquares, king, false);
       if (move.isCapture()) {
          // reset global state
          opponentsPieces.put(move.getCapturedPiece(), originalPiece);
       }
       return inCheck;
 
+   }
+
+   private static void updateRooksAndQueens(BitSet clonedRooksAndQueens, Move move) {
+      if ((move.getPiece() == PieceType.ROOK) || (move.getPiece() == PieceType.QUEEN)) {
+         clonedRooksAndQueens.flip(move.from().bitIndex());
+         clonedRooksAndQueens.flip(move.to().bitIndex());
+      }
+      if (move.isPromotion()
+            && (move.getPromotedPiece() == PieceType.QUEEN || move.getPromotedPiece() == PieceType.ROOK)) {
+         clonedRooksAndQueens.flip(move.to().bitIndex());
+      }
+      if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+         Move rooksMove = move.getRooksCastlingMove();
+         clonedRooksAndQueens.flip(rooksMove.from().bitIndex());
+         clonedRooksAndQueens.flip(rooksMove.to().bitIndex());
+      }
+   }
+
+   private static void updateBishopsAndQueens(BitSet clonedBishopsAndQueens, Move move) {
+      if ((move.getPiece() == PieceType.BISHOP) || (move.getPiece() == PieceType.QUEEN)) {
+         clonedBishopsAndQueens.flip(move.from().bitIndex());
+         clonedBishopsAndQueens.flip(move.to().bitIndex());
+      }
+      if (move.isPromotion()
+            && (move.getPromotedPiece() == PieceType.QUEEN || move.getPromotedPiece() == PieceType.BISHOP)) {
+         clonedBishopsAndQueens.flip(move.to().bitIndex());
+      }
    }
 
    /**
@@ -293,45 +463,27 @@ public class Chessboard {
     *           the empty squares
     * @param kingsSquare
     *           where the (opponent's) king is
+    * @param justCheckForDiscoveredCheck
+    *           if true, will only check for discovered check. (Knight and Pawn checks are not considered.)
+    *           If false, will check checks from all piece types.
     * @return true if a king on the 'kingsSquare' would be in check with this configuration of pieces and empty squares
     */
-   public static boolean isKingInCheck(Map<PieceType, Piece> myPieces, BitSet emptySquares, Square kingsSquare) {
+   public static boolean isKingInCheck(Map<PieceType, Piece> myPieces, BitSet allRooksAndQueens,
+         BitSet allBishopsAndQueens, BitSet emptySquares, Square kingsSquare, boolean justCheckForDiscoveredCheck) {
       // discovered check can only be from a rook, queen, or bishop
       boolean isCheck = false;
-      BitSet rooksAndQueens;
-      BitSet queensBitSet;
-      BitSet bishopsAndQueens;
 
-      Piece queens = myPieces.get(PieceType.QUEEN);
-      if (queens == null) {
-         queensBitSet = new BitSet(64);
-      } else {
-         queensBitSet = queens.getBitBoard().getBitSet();
+      if (!allRooksAndQueens.isEmpty()) {
+         isCheck = SlidingPiece.attacksSquareOnRankOrFile(allRooksAndQueens, emptySquares, kingsSquare);
       }
-
-      Piece rooks = myPieces.get(PieceType.ROOK);
-      if (rooks == null) {
-         rooksAndQueens = new BitSet(64);
-      } else {
-         rooksAndQueens = rooks.getBitBoard().cloneBitSet();
-      }
-      rooksAndQueens.or(queensBitSet);
-      isCheck = SlidingPiece.attacksSquareOnRankOrFile(rooksAndQueens, emptySquares, kingsSquare);
 
       // check bishops/queens if not already found check
-      if (!isCheck) {
-         Piece bishops = myPieces.get(PieceType.BISHOP);
-         if (bishops == null) {
-            bishopsAndQueens = new BitSet(64);
-         } else {
-            bishopsAndQueens = bishops.getBitBoard().cloneBitSet();
-         }
-         bishopsAndQueens.or(queensBitSet);
-         isCheck = SlidingPiece.attacksSquareOnDiagonal(bishopsAndQueens, emptySquares, kingsSquare);
+      if (!isCheck && !allBishopsAndQueens.isEmpty()) {
+         isCheck = SlidingPiece.attacksSquareOnDiagonal(allBishopsAndQueens, emptySquares, kingsSquare);
       }
 
       // for discovered check not important, but this method is also used in general to see if a king is in check
-      if (!isCheck) {
+      if (!justCheckForDiscoveredCheck && !isCheck) {
          for (PieceType pieceType : new PieceType[] { PieceType.KNIGHT, PieceType.PAWN }) {
             if (!isCheck) {
                Piece piece = myPieces.get(pieceType);
@@ -347,6 +499,7 @@ public class Chessboard {
 
    /**
     * Finds the piece at the given square.
+    * TODO optimize using Lookup?
     *
     * @param targetSquare
     *           square to use

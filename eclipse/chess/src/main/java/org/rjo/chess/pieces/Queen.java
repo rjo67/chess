@@ -115,7 +115,7 @@ public class Queen extends SlidingPiece {
       moves.addAll(search(game.getChessboard(), WEST_MOVE_HELPER));
       moves.addAll(search(game.getChessboard(), NORTHWEST_MOVE_HELPER));
 
-      // make sure king is not/no longer in check
+      // make sure my king is not/no longer in check
       Square myKing = King.findKing(colour, game.getChessboard());
       Iterator<Move> iter = moves.listIterator();
       while (iter.hasNext()) {
@@ -143,19 +143,15 @@ public class Queen extends SlidingPiece {
 
    @Override
    public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
-      boolean attacksSquare = false;
-      int i = pieces.getBitSet().nextSetBit(0);
-      while ((!attacksSquare) && (i >= 0)) {
+      for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
          Square startSquare = Square.fromBitIndex(i);
-         attacksSquare = attacksSquareRankOrFile(chessboard.getEmptySquares().getBitSet(), startSquare, targetSq);
-         if (!attacksSquare) {
-            attacksSquare = attacksSquareDiagonally(chessboard.getEmptySquares().getBitSet(), startSquare, targetSq);
+         if (attacksSquareRankOrFile(chessboard.getEmptySquares().getBitSet(), startSquare, targetSq)) {
+            return true;
          }
-         if (!attacksSquare) {
-            i = pieces.getBitSet().nextSetBit(i + 1);
+         if (attacksSquareDiagonally(chessboard.getEmptySquares().getBitSet(), startSquare, targetSq)) {
+            return true;
          }
       }
-      return attacksSquare;
+      return false;
    }
-
 }
