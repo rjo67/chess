@@ -61,7 +61,7 @@ public class PerftTest {
             long start = System.currentTimeMillis();
             int moves = Perft.countMoves(Perft.findMoves(game, sideToMove, depth + 1));
             long time = System.currentTimeMillis() - start;
-            System.out.println(String.format(Locale.GERMANY, "%s, %2dply: %,12d moves (%,10d ms) (%8.1f moves/ms)",
+            System.out.println(String.format(Locale.GERMANY, "%s, %2dply: %,12d moves (%,9d ms) (%7.1f moves/ms)",
                   testname, depth + 1, moves, time, ((moves * 1.0) / time)));
             assertEquals("wrong nbr of moves for fen: " + fenString, expectedNbrOfMoves[depth], moves);
          }

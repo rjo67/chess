@@ -25,12 +25,14 @@ public class Perft {
       // 5ply: 164.075.551 moves ( 489.246 ms) ( 335,4 moves/ms) (01.04.2015)
       // 5ply: 164.075.551 moves ( 190.683 ms) ( 860,5 moves/ms) (03.04.2015)
       // 5ply: 164.075.551 moves ( 164.298 ms) ( 998,6 moves/ms) (03.04.2015)
+      // 5ply: 164.075.551 moves ( 171.302 ms) ( 957,8 moves/ms) (regression)
+      // 5ply: 164.075.551 moves ( 142.830 ms) (1148,7 moves/ms) (updateStructures 100% incremental)
       Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
       long start = System.currentTimeMillis();
       Map<String, Integer> moveMap = findMoves(game, Colour.WHITE, 5);
       long time = System.currentTimeMillis() - start;
       int moves = Perft.countMoves(moveMap);
-      System.out.println(String.format(Locale.GERMANY, "5ply: %,12d moves (%,10d ms) (%8.1f moves/ms)", moves, time,
+      System.out.println(String.format(Locale.GERMANY, "5ply: %,12d moves (%,9d ms) (%7.1f moves/ms)", moves, time,
             ((moves * 1.0) / time)));
    }
 

@@ -12,6 +12,14 @@ Hotspots:
     org.rjo.chess.Chessboard.updateStructures()
     org.rjo.chess.Chessboard.isKingInCheck()
 
+## 03.04.15 #2
+updateStructures now completely incremental.
+Speed now:
+5ply:  164.075.551 moves (   142.830 ms) (  1148,7 moves/ms)
+
+Hotspots:
+ attacksSquareOnRankOrFile, isKingInCheck, SlidingPiece.search, attacksSquareOnDiagonal
+
 ## 03.04.15
 Further optimizations. Introduction of allRooksAndQueens and allBishopsAndQueens.
 updateStructures is now incremental for non-captures.

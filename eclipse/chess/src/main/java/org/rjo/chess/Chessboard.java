@@ -90,7 +90,19 @@ public class Chessboard {
       allPieces = new BitBoard[Colour.values().length];
       allRooksAndQueens = new BitBoard[Colour.values().length];
       allBishopsAndQueens = new BitBoard[Colour.values().length];
-      updateStructures(null, false);
+      for (Colour colour : Colour.values()) {
+         allPieces[colour.ordinal()] = new BitBoard();
+         for (PieceType p : pieces[colour.ordinal()].keySet()) {
+            allPieces[colour.ordinal()].getBitSet().or(pieces[colour.ordinal()].get(p).getBitBoard().getBitSet());
+         }
+         allRooksAndQueens[colour.ordinal()] = updateRooksAndQueens(pieces[colour.ordinal()]);
+         allBishopsAndQueens[colour.ordinal()] = updateBishopsAndQueens(pieces[colour.ordinal()]);
+      }
+      totalPieces = new BitBoard();
+      totalPieces.getBitSet().or(allPieces[Colour.WHITE.ordinal()].getBitSet());
+      totalPieces.getBitSet().or(allPieces[Colour.BLACK.ordinal()].getBitSet());
+      emptySquares = new BitBoard(totalPieces.cloneBitSet());
+      emptySquares.getBitSet().flip(0, 64);
 
       enpassantSquare = null;
    }
@@ -100,65 +112,107 @@ public class Chessboard {
     * TODO: incremental updates for capture-moves as well.
     *
     * @param move
-    *           if not null, will be taken into a/c when updating
+    *           the move
     * @param isUnmove
     *           true means this move is an 'unmove'. Otherwise a normal 'move'. Only relevant when move!=null.
     *           TODO this parameter may not be required
     */
    public void updateStructures(Move move, boolean isUnmove) {
-      for (Colour colour : Colour.values()) {
-         // update incrementally for non-capture moves
-         if ((move != null) && !move.isCapture()) {
-            // no need to update opponent's pieces for a non-capture move
-            if (colour != move.getColour()) {
-               continue;
-            }
-            updateBitSet(allPieces[colour.ordinal()].getBitSet(), move);
+      // @formatter:off
+      // (f=flip)
+      // White-Move       non-capture      capture
+      //                  d3-d4   Ra3-a4   d3xe4   d7xc8=Q  Ra4xRa8  d5xc6 e.p.
+      // allPieces   W    f  f     f  f    f  f    f  f      f   f   f  f
+      // allR+Q      W             f  f               f      f   f
+      // allB+Q      W                                f
+      // allPieces   B    f  f     f  f       f       f          f      f(c7)
+      // allR+Q      B                    (when capt.            f
+      // allB+Q      B                      piece!=RBQ)
+      // totalPieces      f  f     f  f    f       f         f       f  f f(c7)
+      // emptySquares     f  f     f  f    f       f         f       f  f f(c7)
+      //
+      // @formatter:on
+
+      final int colourOrdinal = move.getColour().ordinal();
+      final int oppositeColourOrdinal = Colour.oppositeColour(move.getColour()).ordinal();
+      final int moveFromBitIndex = move.from().bitIndex();
+      final int moveToBitIndex = move.to().bitIndex();
+
+      // update incrementally for non-capture moves
+      if (!move.isCapture()) {
+         updateBitSet(allPieces[colourOrdinal].getBitSet(), move);
+         // rooks and queens
+         if ((move.getPiece() == PieceType.ROOK) || (move.getPiece() == PieceType.QUEEN)) {
+            updateBitSet(allRooksAndQueens[colourOrdinal].getBitSet(), move);
+         }
+         if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+            allRooksAndQueens[colourOrdinal].getBitSet().flip(move.getRooksCastlingMove().from().bitIndex());
+            allRooksAndQueens[colourOrdinal].getBitSet().flip(move.getRooksCastlingMove().to().bitIndex());
+         }
+         // promotion to rook or queen?
+         if (move.isPromotion()
+               && (move.getPromotedPiece() == PieceType.QUEEN || move.getPromotedPiece() == PieceType.ROOK)) {
+            allRooksAndQueens[colourOrdinal].getBitSet().flip(moveToBitIndex);
+         }
+         // bishops and queens
+         if ((move.getPiece() == PieceType.BISHOP) || (move.getPiece() == PieceType.QUEEN)) {
+            updateBitSet(allBishopsAndQueens[colourOrdinal].getBitSet(), move);
+         }
+         // promotion to bishop or queen?
+         if (move.isPromotion()
+               && (move.getPromotedPiece() == PieceType.QUEEN || move.getPromotedPiece() == PieceType.BISHOP)) {
+            allBishopsAndQueens[colourOrdinal].getBitSet().flip(moveToBitIndex);
+         }
+         updateBitSet(totalPieces.getBitSet(), move);
+         updateBitSet(emptySquares.getBitSet(), move);
+      } else {
+         // capture move
+         if (!move.isEnpassant()) {
+            allPieces[colourOrdinal].getBitSet().flip(moveFromBitIndex);
+            allPieces[colourOrdinal].getBitSet().flip(moveToBitIndex);
+            allPieces[oppositeColourOrdinal].getBitSet().flip(moveToBitIndex);
+            totalPieces.getBitSet().flip(moveFromBitIndex);
+            emptySquares.getBitSet().flip(moveFromBitIndex);
+
             // rooks and queens
             if ((move.getPiece() == PieceType.ROOK) || (move.getPiece() == PieceType.QUEEN)) {
-               updateBitSet(allRooksAndQueens[colour.ordinal()].getBitSet(), move);
-            }
-            if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-               allRooksAndQueens[colour.ordinal()].getBitSet().flip(move.getRooksCastlingMove().from().bitIndex());
-               allRooksAndQueens[colour.ordinal()].getBitSet().flip(move.getRooksCastlingMove().to().bitIndex());
+               updateBitSet(allRooksAndQueens[colourOrdinal].getBitSet(), move);
             }
             // promotion to rook or queen?
             if (move.isPromotion()
                   && (move.getPromotedPiece() == PieceType.QUEEN || move.getPromotedPiece() == PieceType.ROOK)) {
-               allRooksAndQueens[colour.ordinal()].getBitSet().flip(move.to().bitIndex());
+               allRooksAndQueens[colourOrdinal].getBitSet().flip(moveToBitIndex);
+            }
+            // opponents rook or queen taken?
+            if ((move.getCapturedPiece() == PieceType.ROOK) || (move.getCapturedPiece() == PieceType.QUEEN)) {
+               allRooksAndQueens[oppositeColourOrdinal].getBitSet().flip(moveToBitIndex);
             }
             // bishops and queens
             if ((move.getPiece() == PieceType.BISHOP) || (move.getPiece() == PieceType.QUEEN)) {
-               updateBitSet(allBishopsAndQueens[colour.ordinal()].getBitSet(), move);
+               updateBitSet(allBishopsAndQueens[colourOrdinal].getBitSet(), move);
             }
             // promotion to bishop or queen?
             if (move.isPromotion()
                   && (move.getPromotedPiece() == PieceType.QUEEN || move.getPromotedPiece() == PieceType.BISHOP)) {
-               allBishopsAndQueens[colour.ordinal()].getBitSet().flip(move.to().bitIndex());
+               allBishopsAndQueens[colourOrdinal].getBitSet().flip(moveToBitIndex);
+            }
+            // opponents bishop or queen taken?
+            if ((move.getCapturedPiece() == PieceType.BISHOP) || (move.getCapturedPiece() == PieceType.QUEEN)) {
+               allBishopsAndQueens[oppositeColourOrdinal].getBitSet().flip(moveToBitIndex);
             }
          } else {
-            allPieces[colour.ordinal()] = new BitBoard();
-            for (PieceType p : pieces[colour.ordinal()].keySet()) {
-               allPieces[colour.ordinal()].getBitSet().or(pieces[colour.ordinal()].get(p).getBitBoard().getBitSet());
-            }
-            allRooksAndQueens[colour.ordinal()] = updateRooksAndQueens(pieces[colour.ordinal()]);
-            allBishopsAndQueens[colour.ordinal()] = updateBishopsAndQueens(pieces[colour.ordinal()]);
+            // enpassant
+            int enpassantSquareBitIndex = Square.findMoveFromEnpassantSquare(move.to()).bitIndex();
+            allPieces[colourOrdinal].getBitSet().flip(moveFromBitIndex);
+            allPieces[colourOrdinal].getBitSet().flip(moveToBitIndex);
+            allPieces[oppositeColourOrdinal].getBitSet().flip(enpassantSquareBitIndex);
+            totalPieces.getBitSet().flip(moveFromBitIndex);
+            totalPieces.getBitSet().flip(moveToBitIndex);
+            totalPieces.getBitSet().flip(enpassantSquareBitIndex);
+            emptySquares.getBitSet().flip(moveFromBitIndex);
+            emptySquares.getBitSet().flip(moveToBitIndex);
+            emptySquares.getBitSet().flip(enpassantSquareBitIndex);
          }
-      }
-      // update incrementally for non-capture moves
-      if ((move != null) && !move.isCapture()) {
-         updateBitSet(totalPieces.getBitSet(), move);
-      } else {
-         totalPieces = new BitBoard();
-         totalPieces.getBitSet().or(allPieces[Colour.WHITE.ordinal()].getBitSet());
-         totalPieces.getBitSet().or(allPieces[Colour.BLACK.ordinal()].getBitSet());
-      }
-      // update incrementally for non-capture moves
-      if ((move != null) && !move.isCapture()) {
-         updateBitSet(emptySquares.getBitSet(), move);
-      } else {
-         emptySquares = new BitBoard(totalPieces.cloneBitSet());
-         emptySquares.getBitSet().flip(0, 64);
       }
    }
 
