@@ -129,6 +129,7 @@ public class Pawn extends Piece {
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
       BitSet opponentsKingBitset = new BitSet(64);
       opponentsKingBitset.set(opponentsKing.bitIndex());
+      // probably not worth caching discovered check results for pawns
       for (Move move : moves) {
          boolean isCheck = checkIfCheck(game.getChessboard(), move, opponentsKing, opponentsKingBitset);
          // if it's already check, don't need to calculate discovered check
@@ -256,6 +257,7 @@ public class Pawn extends Piece {
 
    private List<Move> processCaptures(Chessboard chessboard, BitSet captures, boolean checkingForAttack, int offset) {
       List<Move> moves = new ArrayList<>();
+      Colour oppositeColour = Colour.oppositeColour(colour);
       for (int i = captures.nextSetBit(0); i >= 0; i = captures.nextSetBit(i + 1)) {
          Square targetSquare = Square.fromBitIndex(i);
          PieceType capturedPiece;
@@ -268,7 +270,7 @@ public class Pawn extends Piece {
                capturedPiece = PieceType.PAWN;
                enpassant = true;
             } else {
-               capturedPiece = chessboard.pieceAt(targetSquare);
+               capturedPiece = chessboard.pieceAt(targetSquare, oppositeColour);
             }
          }
 
@@ -283,10 +285,12 @@ public class Pawn extends Piece {
    private List<Move> processPromotions(Chessboard chessboard, BitSet promotedPawns, boolean checkingForAttack,
          int offset) {
       List<Move> moves = new ArrayList<>();
+      Colour oppositeColour = Colour.oppositeColour(colour);
       for (int i = promotedPawns.nextSetBit(0); i >= 0; i = promotedPawns.nextSetBit(i + 1)) {
          Square fromSquare = Square.fromBitIndex(i + offset);
          Square targetSquare = Square.fromBitIndex(i);
-         PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY : chessboard.pieceAt(targetSquare);
+         PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY : chessboard.pieceAt(targetSquare,
+               oppositeColour);
          for (PieceType type : PieceType.getPieceTypesForPromotion()) {
             Move move = new Move(PieceType.PAWN, colour, fromSquare, targetSquare, capturedPiece);
             move.setPromotionPiece(type);

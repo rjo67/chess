@@ -10,6 +10,9 @@ import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.MoveHelper;
 import org.rjo.chess.Square;
+import org.rjo.chess.ray.Ray;
+import org.rjo.chess.ray.RayInfo;
+import org.rjo.chess.ray.RayUtils;
 
 /**
  * Represents the pieces which can move over a greater distance: rooks, bishops, queens.
@@ -117,7 +120,7 @@ public abstract class SlidingPiece extends Piece {
     * @return the moves found
     */
    protected List<Move> search(Chessboard chessboard, MoveHelper moveHelper) {
-      List<Move> moves = new ArrayList<>(7);
+      List<Move> moves = new ArrayList<>(30);
 
       /*
        * in each iteration, shifts the board in the required direction and checks for friendly pieces and captures.
@@ -126,6 +129,7 @@ public abstract class SlidingPiece extends Piece {
       BitSet shiftedBoard = (BitSet) pieces.getBitSet().clone(); // must clone here
       int offset = 0;
       final int increment = moveHelper.getIncrement();
+      Colour oppositeColour = Colour.oppositeColour(colour);
       while (!shiftedBoard.isEmpty()) {
          offset += increment;
          shiftedBoard = moveHelper.shiftBoard(shiftedBoard, false); // not cloning here
@@ -142,7 +146,7 @@ public abstract class SlidingPiece extends Piece {
          for (int i = captures.nextSetBit(0); i >= 0; i = captures.nextSetBit(i + 1)) {
             Square targetSquare = Square.fromBitIndex(i);
             moves.add(new Move(this.getType(), colour, Square.fromBitIndex(i - offset), targetSquare, chessboard
-                  .pieceAt(targetSquare)));
+                  .pieceAt(targetSquare, oppositeColour)));
             // remove capture square from 'shiftedBoard'
             shiftedBoard.clear(i);
          }
@@ -151,6 +155,46 @@ public abstract class SlidingPiece extends Piece {
           */
          for (int i = shiftedBoard.nextSetBit(0); i >= 0; i = shiftedBoard.nextSetBit(i + 1)) {
             moves.add(new Move(this.getType(), colour, Square.fromBitIndex(i - offset), Square.fromBitIndex(i)));
+         }
+      }
+
+      return moves;
+   }
+
+   /**
+    * Searches for moves in the direction specified by the {@link MoveHelper} implementation.
+    * This is for rooks, bishops, and queens.
+    * <p>
+    * version using rays.
+    *
+    *
+    * @param chessboard
+    *           state of the board
+    * @param moveHelper
+    *           move helper object, see {@link MoveHelper}.
+    * @return the moves found
+    */
+   protected List<Move> search2(Chessboard chessboard, Ray ray) {
+      List<Move> moves = new ArrayList<>(30);
+
+      final Colour opponentsColour = Colour.oppositeColour(colour);
+      /*
+       * for each piece, use the ray to find emptySquares / firstPiece on the ray
+       */
+      for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
+         Square fromSquareIndex = Square.fromBitIndex(i);
+
+         RayInfo info = RayUtils.findFirstPieceOnRay(colour, chessboard.getEmptySquares().getBitSet(), chessboard
+               .getAllPieces(colour).getBitSet(), ray, i);
+         // add 'emptySquares' from result as normal moves
+         for (int emptySquareIndex : info.getEmptySquares()) {
+            moves.add(new Move(this.getType(), colour, fromSquareIndex, Square.fromBitIndex(emptySquareIndex)));
+         }
+         // if an opponent's piece was also found, add this as capture
+         if (info.foundPiece() && (info.getColour() == opponentsColour)) {
+            Square sqIndex = Square.fromBitIndex(info.getIndexOfPiece());
+            moves.add(new Move(this.getType(), colour, fromSquareIndex, sqIndex, chessboard.pieceAt(sqIndex,
+                  opponentsColour)));
          }
       }
 

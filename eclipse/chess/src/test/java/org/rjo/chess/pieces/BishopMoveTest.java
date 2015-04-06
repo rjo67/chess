@@ -8,10 +8,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
+import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -210,5 +212,19 @@ public class BishopMoveTest {
          assertTrue("square " + sq, whiteBishop.attacksSquare(chessboard, sq));
       }
       assertFalse(whiteBishop.attacksSquare(chessboard, Square.c4));
+   }
+
+   @Test
+   public void speedTest() {
+      Game game = Fen.decode("r3k2r/pp3p2/8/4B3/2p1b3/8/PPPPB2P/R3K2R w KQkq - 0 0");
+      Piece whiteBishop = game.getChessboard().getPieces(Colour.WHITE).get(PieceType.BISHOP);
+      // init
+      assertEquals(17, whiteBishop.findMoves(game).size());
+
+      long start = System.currentTimeMillis();
+      for (int i = 0; i < 100000; i++) {
+         assertEquals(17, whiteBishop.findMoves(game).size());
+      }
+      System.out.println(System.currentTimeMillis() - start);
    }
 }

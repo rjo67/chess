@@ -12,7 +12,19 @@ Hotspots:
     org.rjo.chess.Chessboard.updateStructures()
     org.rjo.chess.Chessboard.isKingInCheck()
 
-## 03.04.15 #2
+## 06.04.15
+Introdution of "Rays".
+Rewrite of discoveredCheck to use RayUtils, i.e. only checking the ray between the opponent's king and the move.from() square.
+5ply:  164.075.551 moves (  120.411 ms) ( 1362,6 moves/ms)
+
+* Caching the results of 'discoveredCheck':
+5ply:  164.075.551 moves (  117.081 ms) ( 1401,4 moves/ms)
+* After rewriting bishop search to use Rays. Not a huge difference in speed but the code is a lot simpler.
+5ply:  164.075.551 moves (  112.854 ms) ( 1453,9 moves/ms)
+* After rewriting rook and queen search to use Rays.
+5ply:  164.075.551 moves (  107.777 ms) ( 1522,4 moves/ms) -- 25% speed up compared with 03.04.15!
+
+## 03.04.15 Teil 2
 updateStructures now completely incremental.
 Speed now:
 5ply:  164.075.551 moves (   142.830 ms) (  1148,7 moves/ms)

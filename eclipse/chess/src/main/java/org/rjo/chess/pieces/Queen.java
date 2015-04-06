@@ -1,8 +1,10 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
@@ -18,6 +20,7 @@ import org.rjo.chess.SouthMoveHelper;
 import org.rjo.chess.SouthWestMoveHelper;
 import org.rjo.chess.Square;
 import org.rjo.chess.WestMoveHelper;
+import org.rjo.chess.ray.RayType;
 
 /**
  * Stores information about the queens (still) in the game.
@@ -106,15 +109,17 @@ public class Queen extends SlidingPiece {
       /*
        * search for moves in all compaass directions.
        */
-      moves.addAll(search(game.getChessboard(), NORTH_MOVE_HELPER));
-      moves.addAll(search(game.getChessboard(), NORTHEAST_MOVE_HELPER));
-      moves.addAll(search(game.getChessboard(), EAST_MOVE_HELPER));
-      moves.addAll(search(game.getChessboard(), SOUTHEAST_MOVE_HELPER));
-      moves.addAll(search(game.getChessboard(), SOUTH_MOVE_HELPER));
-      moves.addAll(search(game.getChessboard(), SOUTHWEST_MOVE_HELPER));
-      moves.addAll(search(game.getChessboard(), WEST_MOVE_HELPER));
-      moves.addAll(search(game.getChessboard(), NORTHWEST_MOVE_HELPER));
-
+      // moves.addAll(search(game.getChessboard(), NORTH_MOVE_HELPER));
+      // moves.addAll(search(game.getChessboard(), NORTHEAST_MOVE_HELPER));
+      // moves.addAll(search(game.getChessboard(), EAST_MOVE_HELPER));
+      // moves.addAll(search(game.getChessboard(), SOUTHEAST_MOVE_HELPER));
+      // moves.addAll(search(game.getChessboard(), SOUTH_MOVE_HELPER));
+      // moves.addAll(search(game.getChessboard(), SOUTHWEST_MOVE_HELPER));
+      // moves.addAll(search(game.getChessboard(), WEST_MOVE_HELPER));
+      // moves.addAll(search(game.getChessboard(), NORTHWEST_MOVE_HELPER));
+      for (RayType rayType : RayType.values()) {
+         moves.addAll(search2(game.getChessboard(), rayType.getInstance()));
+      }
       // make sure my king is not/no longer in check
       Square myKing = King.findKing(colour, game.getChessboard());
       Iterator<Move> iter = moves.listIterator();
@@ -126,6 +131,12 @@ public class Queen extends SlidingPiece {
       }
       // checks
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
+      /*
+       * many moves have the same starting square. If we've already checked for discovered check for this square,
+       * then can use the cached result. (Discovered check only looks along one ray from move.from() to the opponent's
+       * king.)
+       */
+      Map<Square, Boolean> discoveredCheckCache = new HashMap<>(5);
       for (Move move : moves) {
          boolean isCheck = findRankOrFileCheck(game, move, opponentsKing);
          if (!isCheck) {
@@ -133,7 +144,12 @@ public class Queen extends SlidingPiece {
          }
          // if it's already check, don't need to calculate discovered check
          if (!isCheck) {
-            isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+            if (discoveredCheckCache.containsKey(move.from())) {
+               isCheck = discoveredCheckCache.get(move.from());
+            } else {
+               isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+               discoveredCheckCache.put(move.from(), isCheck);
+            }
          }
          move.setCheck(isCheck);
       }

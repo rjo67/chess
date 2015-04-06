@@ -156,19 +156,20 @@ public class King extends Piece {
 
       Square opponentsKingSquare = findOpponentsKing(game.getChessboard());
       Square kingPosn = Square.fromBitIndex(pieces.getBitSet().nextSetBit(0));
+      Colour oppositeColour = Colour.oppositeColour(colour);
       // check the possibleMoves and store them as moves / captures.
       for (int i = possibleMoves.nextSetBit(0); i >= 0; i = possibleMoves.nextSetBit(i + 1)) {
          Square targetSquare = Square.fromBitIndex(i);
          // make sure we're not moving king to king
          // and not moving to a square that is being attacked
          if ((MoveDistance.calculateDistance(targetSquare, opponentsKingSquare) > 1)
-               && !game.getChessboard().squareIsAttacked(game, targetSquare, Colour.oppositeColour(colour))) {
+               && !game.getChessboard().squareIsAttacked(game, targetSquare, oppositeColour)) {
             /*
              * store move as 'move' or 'capture'
              */
             if (captures.get(i)) {
                moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare, game.getChessboard().pieceAt(
-                     targetSquare)));
+                     targetSquare, oppositeColour)));
             } else {
                moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare));
             }
@@ -223,8 +224,21 @@ public class King extends Piece {
       }
 
       // discovered checks
+      /*
+       * all king moves have the same starting square. If we've already checked for discovered check for this square,
+       * then can use the cached result. (Discovered check only looks along one ray from move.from() to the opponent's
+       * king.)
+       */
+      Map<Square, Boolean> discoveredCheckCache = new HashMap<>(2);
       for (Move move : moves) {
-         move.setCheck(Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKingSquare));
+         boolean isCheck;
+         if (discoveredCheckCache.containsKey(move.from())) {
+            isCheck = discoveredCheckCache.get(move.from());
+         } else {
+            isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKingSquare);
+            discoveredCheckCache.put(move.from(), isCheck);
+         }
+         move.setCheck(isCheck);
       }
 
       return moves;

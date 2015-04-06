@@ -2,8 +2,10 @@ package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Chessboard;
@@ -34,7 +36,7 @@ public class Knight extends Piece {
           * - blank first and 2nd file for -17 and +15
           * RHS: blank last file for +10 and -6
           * - blank 7th and 8th file for +17 and -15
-          * 
+          *
           * Don't need to blank ranks, these just 'drop off' during the bit shift.
           */
 
@@ -163,11 +165,12 @@ public class Knight extends Piece {
           * If any found, remove from 'possibleMoves' before next iteration.
           */
          BitSet captures = (BitSet) possibleMoves.clone();
-         captures.and(game.getChessboard().getAllPieces(Colour.oppositeColour(getColour())).getBitSet());
+         Colour oppositeColour = Colour.oppositeColour(colour);
+         captures.and(game.getChessboard().getAllPieces(oppositeColour).getBitSet());
          for (int j = captures.nextSetBit(0); j >= 0; j = captures.nextSetBit(j + 1)) {
             Square targetSquare = Square.fromBitIndex(j);
             moves.add(new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare, game.getChessboard().pieceAt(
-                  targetSquare)));
+                  targetSquare, oppositeColour)));
             // remove capture square
             possibleMoves.clear(j);
          }
@@ -193,11 +196,22 @@ public class Knight extends Piece {
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
       BitSet king = new BitSet(64);
       king.set(opponentsKing.bitIndex());
+      /*
+       * many moves have the same starting square. If we've already checked for discovered check for this square,
+       * then can use the cached result. (Discovered check only looks along one ray from move.from() to the opponent's
+       * king.)
+       */
+      Map<Square, Boolean> discoveredCheckCache = new HashMap<>(5);
       for (Move move : moves) {
          boolean isCheck = checkIfCheck(move, king);
          // if it's already check, don't need to calculate discovered check
          if (!isCheck) {
-            isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+            if (discoveredCheckCache.containsKey(move.from())) {
+               isCheck = discoveredCheckCache.get(move.from());
+            } else {
+               isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+               discoveredCheckCache.put(move.from(), isCheck);
+            }
          }
          move.setCheck(isCheck);
       }

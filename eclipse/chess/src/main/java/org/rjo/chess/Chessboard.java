@@ -16,6 +16,7 @@ import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
 import org.rjo.chess.pieces.SlidingPiece;
+import org.rjo.chess.ray.RayUtils;
 
 public class Chessboard {
 
@@ -109,7 +110,6 @@ public class Chessboard {
 
    /**
     * update the internal structures (after a move/unmove). Incremental update for non-capture moves.
-    * TODO: incremental updates for capture-moves as well.
     *
     * @param move
     *           the move
@@ -398,7 +398,8 @@ public class Chessboard {
     *           where the opponent's king is
     * @return true if this move leads to a discovered check
     */
-   public static boolean checkForDiscoveredCheck(Chessboard chessboard, Move move, Colour colour, Square opponentsKing) {
+   public static boolean unused_____checkForDiscoveredCheck(Chessboard chessboard, Move move, Colour colour,
+         Square opponentsKing) {
       // set up the empty square bitset *after* this move
       BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
       emptySquares.set(move.from().bitIndex());
@@ -417,6 +418,34 @@ public class Chessboard {
       }
       return Chessboard.isKingInCheck(chessboard.getPieces(colour), clonedRooksAndQueens, clonedBishopsAndQueens,
             emptySquares, opponentsKing, true);
+   }
+
+   /**
+    * Checks for a discovered check after the move 'move'.
+    *
+    * @param chessboard
+    *           the chessboard
+    * @param move
+    *           the move
+    * @param colour
+    *           which side is moving
+    * @param opponentsKing
+    *           where the opponent's king is
+    * @return true if this move leads to a discovered check
+    */
+   public static boolean checkForDiscoveredCheck(Chessboard chessboard, Move move, Colour colour, Square opponentsKing) {
+      final int moveFromIndex = move.from().bitIndex();
+
+      // set up the emptySquares and myPieces bitsets *after* this move
+      BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
+      BitSet myPieces = chessboard.getAllPieces(colour).cloneBitSet();
+
+      emptySquares.set(moveFromIndex);
+      myPieces.clear(moveFromIndex);
+
+      // can't get a discovered check from castling
+
+      return RayUtils.discoveredCheck(colour, chessboard, emptySquares, myPieces, opponentsKing, move.from());
    }
 
    /**
@@ -560,9 +589,30 @@ public class Chessboard {
     * @return the piece at this location.
     * @throws IllegalArgumentException
     *            if no piece exists at the given square.
+    * @deprecated should be possible to always rewrite using {@link #pieceAt(Square, Colour)}.
     */
+   @Deprecated
    public PieceType pieceAt(Square targetSquare) {
+      return pieceAt(targetSquare, null);
+   }
+
+   /**
+    * Finds the piece at the given square.
+    * TODO optimize using Lookup?
+    *
+    * @param targetSquare
+    *           square to use
+    * @param colour
+    *           if not null, this piece's colour is expected.
+    * @return the piece at this location.
+    * @throws IllegalArgumentException
+    *            if no piece [of the given colour] exists at the given square.
+    */
+   public PieceType pieceAt(Square targetSquare, Colour expectedColour) {
       for (Colour colour : Colour.values()) {
+         if ((expectedColour != null) && (colour != expectedColour)) {
+            continue;
+         }
          for (PieceType type : PieceType.values()) {
             Piece p = getPieces(colour).get(type);
             // null == piece-type no longer on board
@@ -575,5 +625,4 @@ public class Chessboard {
       }
       throw new IllegalArgumentException("no piece at " + targetSquare);
    }
-
 }
