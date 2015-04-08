@@ -218,4 +218,5 @@ public class RookMoveTest {
       }
       assertFalse(whiteRook.attacksSquare(chessboard, Square.c4));
    }
+
 }

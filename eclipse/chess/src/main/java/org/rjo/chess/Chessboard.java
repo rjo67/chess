@@ -16,6 +16,8 @@ import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
 import org.rjo.chess.pieces.SlidingPiece;
+import org.rjo.chess.ray.Ray;
+import org.rjo.chess.ray.RayInfo;
 import org.rjo.chess.ray.RayUtils;
 
 public class Chessboard {
@@ -63,6 +65,7 @@ public class Chessboard {
     * Creates a chessboard with default piece settings.
     */
    public Chessboard() {
+      @SuppressWarnings("unchecked")
       Set<Piece>[] pieces = new HashSet[Colour.values().length];
       for (Colour col : Colour.values()) {
          pieces[col.ordinal()] = new HashSet<Piece>(Arrays.asList(new Pawn(col, true), new Rook(col, true), new Knight(
@@ -78,6 +81,7 @@ public class Chessboard {
       initBoard(whitePieces, blackPieces);
    }
 
+   @SuppressWarnings("unchecked")
    private void initBoard(Set<Piece> whitePieces, Set<Piece> blackPieces) {
       pieces = new HashMap[Colour.values().length];
       pieces[Colour.WHITE.ordinal()] = new HashMap<>();
@@ -387,41 +391,9 @@ public class Chessboard {
 
    /**
     * Checks for a discovered check after the move 'move'.
-    *
-    * @param chessboard
-    *           the chessboard
-    * @param move
-    *           the move
-    * @param colour
-    *           which side is moving
-    * @param opponentsKing
-    *           where the opponent's king is
-    * @return true if this move leads to a discovered check
-    */
-   public static boolean unused_____checkForDiscoveredCheck(Chessboard chessboard, Move move, Colour colour,
-         Square opponentsKing) {
-      // set up the empty square bitset *after* this move
-      BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
-      emptySquares.set(move.from().bitIndex());
-      emptySquares.clear(move.to().bitIndex());
-      // don't need to consider captures here, since we're looking for a check from OUR side
-      BitSet clonedRooksAndQueens = chessboard.getAllRooksAndQueens()[colour.ordinal()].cloneBitSet();
-      BitSet clonedBishopsAndQueens = chessboard.getAllBishopsAndQueens()[colour.ordinal()].cloneBitSet();
-      updateRooksAndQueens(clonedRooksAndQueens, move);
-      updateBishopsAndQueens(clonedBishopsAndQueens, move);
-
-      // take care of rook's move when castling
-      if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-         Move rooksMove = move.getRooksCastlingMove();
-         emptySquares.set(rooksMove.from().bitIndex());
-         emptySquares.clear(rooksMove.to().bitIndex());
-      }
-      return Chessboard.isKingInCheck(chessboard.getPieces(colour), clonedRooksAndQueens, clonedBishopsAndQueens,
-            emptySquares, opponentsKing, true);
-   }
-
-   /**
-    * Checks for a discovered check after the move 'move'.
+    * <p>
+    * This will not be 100% correct for moves along the same ray to the opponent's king. But these moves are already
+    * check and not discovered check.
     *
     * @param chessboard
     *           the chessboard
@@ -443,21 +415,83 @@ public class Chessboard {
       emptySquares.set(moveFromIndex);
       myPieces.clear(moveFromIndex);
 
-      // can't get a discovered check from castling
+      // 1) do not need to set 'move.to()' -- if we're moving on the same ray, then it will be check already
+      // 2) can't get a discovered check from castling
 
       return RayUtils.discoveredCheck(colour, chessboard, emptySquares, myPieces, opponentsKing, move.from());
    }
 
    /**
+    * Returns true if a piece on 'startSquare' attacks 'targetSquare', i.e. the two squares are on the same ray and
+    * there are no intervening pieces.
+    * <p>
+    * It still depends on the piece type to determine whether there really is an attack.
+    *
+    * @param emptySquares
+    *           bitset of empty Squares
+    * @param myPieces
+    *           bitset of my pieces
+    * @param myColour
+    *           my colour
+    * @param startSquare
+    *           start square
+    * @param targetSquare
+    *           target square
+    * @return true if a piece on 'startSquare' attacks 'targetSquare'
+    */
+   public static boolean checkIfPieceOnSquare1CouldAttackSquare2(BitSet emptySquares, BitSet myPieces, Colour myColour,
+         Square startSquare, Square targetSquare) {
+      Ray ray = RayUtils.getRay(startSquare, targetSquare);
+      if (ray != null) {
+         RayInfo info = RayUtils.findFirstPieceOnRay(myColour, emptySquares, myPieces, ray, startSquare.bitIndex());
+         int targetSquareIndex = targetSquare.bitIndex();
+         if (info.foundPiece() && info.getIndexOfPiece() == targetSquareIndex) {
+            return true;
+         }
+         for (int sq : info.getEmptySquares()) {
+            if (sq == targetSquareIndex) {
+               return true;
+            }
+         }
+      }
+      return false;
+   }
+
+   /**
+    * Checks if my king is in check after my move, i.e. the piece that moved was actually pinned.
+    *
+    * @param chessboard
+    *           the chessboard
+    * @param move
+    *           the move
+    * @param colour
+    *           which side is moving
+    * @param myKing
+    *           where my king is
+    * @return true if this move is illegal since the piece that moved was pinned
+    */
+   public static boolean checkForPinnedPiece(Chessboard chessboard, Move move, Colour colour, Square myKing) {
+      // set up the bitsets *after* this move
+      BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
+      BitSet myPieces = chessboard.getAllPieces(colour).cloneBitSet();
+
+      emptySquares.set(move.from().bitIndex());
+      emptySquares.clear(move.to().bitIndex());
+      myPieces.clear(move.from().bitIndex());
+      myPieces.set(move.to().bitIndex());
+
+      return RayUtils.kingInCheck(colour, chessboard, emptySquares, myPieces, myKing, move.from());
+   }
+
+   /**
     * Checks if my king is in check after the move 'move'.
-    * NB does not cater for castling, since one can't castle out of check.
     *
     * @param chessboard
     *           the chessboard
     * @param move
     *           the move
     * @param opponentsColour
-    *           this colour's pieces will be checked
+    *           this colour's pieces will be inspected to see if they check my king
     * @param king
     *           where my king is
     * @return true if this move leaves the king in check (i.e. is an illegal move)
@@ -582,7 +616,6 @@ public class Chessboard {
 
    /**
     * Finds the piece at the given square.
-    * TODO optimize using Lookup?
     *
     * @param targetSquare
     *           square to use
@@ -625,4 +658,5 @@ public class Chessboard {
       }
       throw new IllegalArgumentException("no piece at " + targetSquare);
    }
+
 }

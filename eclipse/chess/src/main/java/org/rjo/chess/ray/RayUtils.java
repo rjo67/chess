@@ -70,6 +70,42 @@ public class RayUtils {
    }
 
    /**
+    * Finds a discovered check on the opponent's king after a move from square 'moveFromSquare'.
+    *
+    * @param myColour
+    *           my colour
+    * @param cb
+    *           the chessboard -- required for pieceAt()
+    * @param emptySquares
+    *           the empty squares
+    * @param myPieces
+    *           BitSet of my pieces
+    * @param opponentsKingsSquare
+    *           where the opponent's king is
+    * @param moveFromSquare
+    *           the square where the piece moved from
+    * @return true if the move from square 'moveFromSquare' leads to a discovered check on the king.
+    */
+   public static boolean kingInCheck(Colour kingsColour, Chessboard cb, BitSet emptySquares, BitSet kingsColourPieces,
+         Square kingsSquare, Square moveFromSquare) {
+      // if moveFromSquare is on a ray to kingsSquare,
+      // then inspect this ray for a checking bishop/queen/rook
+      Ray ray = RayUtils.getRay(kingsSquare, moveFromSquare);
+      if (ray != null) {
+         RayInfo info = RayUtils.findFirstPieceOnRay(kingsColour, emptySquares, kingsColourPieces, ray,
+               kingsSquare.bitIndex());
+         if (info.foundPiece() && (info.getColour() != kingsColour)) {
+            PieceType firstPieceFound = cb.pieceAt(Square.fromBitIndex(info.getIndexOfPiece()),
+                  Colour.oppositeColour(kingsColour));
+            if (ray.isRelevantPieceForDiscoveredCheck(firstPieceFound)) {
+               return true;
+            }
+         }
+      }
+      return false;
+   }
+
+   /**
     * Inspects the squares returned by the ray's iterator. A square with a piece on it gets recorded and the routine
     * returns immediately. Otherise, the empty square is recorded and the search repeats for the next value.
     * <p>
@@ -113,7 +149,7 @@ public class RayUtils {
             info.storePiece(sqIndex, myColour, distance);
             break;
          }
-         // assumend to be opponents piece...
+         // assumed to be opponent's piece...
          else {
             info.storePiece(sqIndex, Colour.oppositeColour(myColour), distance);
             break;
@@ -124,7 +160,7 @@ public class RayUtils {
 
    /**
     * Returns the appropriate Ray joining sq1 to sq2, or null.
-    * 
+    *
     * @param sq1
     *           first square
     * @param sq2

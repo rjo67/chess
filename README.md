@@ -6,11 +6,14 @@ explorations in the world of chess computer programming
 current state: move generator seems to be bugfree. Now working on performance.
 
 ## TODO
-* updateStructures working 100% incrementally.
-* optimizations.
-Hotspots:
-    org.rjo.chess.Chessboard.updateStructures()
-    org.rjo.chess.Chessboard.isKingInCheck()
+* rewrite isKingInCheck.
+
+## 08.04.15
+* Bug in castle move: need to check for check.
+* if previous move was not a check, then only need to check if my move exposes the king (i.e. the piece was pinned). This requires that the 'inCheck' flag always gets set properly.
+5ply:  164.075.551 moves (   79.460 ms) ( 2064,9 moves/ms)
+* pawn promotion optimisations
+5ply:  164.075.551 moves (   74.889 ms) ( 2190,9 moves/ms)
 
 ## 06.04.15
 Introdution of "Rays".

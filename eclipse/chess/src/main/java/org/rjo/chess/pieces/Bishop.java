@@ -89,15 +89,9 @@ public class Bishop extends SlidingPiece {
    public List<Move> findMoves(Game game, boolean kingInCheck) {
       List<Move> moves = new ArrayList<>(30);
 
-      /*
-       * search for moves in directions NW, SW, NE, and SE
-       */
-      // moves.addAll(search(game.getChessboard(), NorthWestMoveHelper.instance()));
-      // moves.addAll(search(game.getChessboard(), SouthWestMoveHelper.instance()));
-      // moves.addAll(search(game.getChessboard(), NorthEastMoveHelper.instance()));
-      // moves.addAll(search(game.getChessboard(), SouthEastMoveHelper.instance()));
+      // search for moves
       for (RayType rayType : new RayType[] { RayType.NORTHWEST, RayType.NORTHEAST, RayType.SOUTHWEST, RayType.SOUTHEAST }) {
-         moves.addAll(search2(game.getChessboard(), rayType.getInstance()));
+         moves.addAll(search(game.getChessboard(), rayType.getInstance()));
       }
 
       // make sure king is not/no longer in check
@@ -105,7 +99,14 @@ public class Bishop extends SlidingPiece {
       Iterator<Move> iter = moves.listIterator();
       while (iter.hasNext()) {
          Move move = iter.next();
-         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing)) {
+         boolean inCheck = false;
+         if (!kingInCheck) {
+            // just need to check for a pinned piece, i.e. if my king is in check after the move
+            inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
+         } else {
+            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing);
+         }
+         if (inCheck) {
             iter.remove();
          }
       }

@@ -8,7 +8,6 @@ import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
-import org.rjo.chess.MoveHelper;
 import org.rjo.chess.Square;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayInfo;
@@ -79,102 +78,16 @@ public abstract class SlidingPiece extends Piece {
    }
 
    /**
-    * Is there at least one piece on the given board with a direct line (as defined by MoveHelper) to the target square?
-    *
-    * This method does not cvurrently get called, since it's slower than
-    * {@link #attacksSquareRankOrFile(BitSet, Square, Square)}
-    *
-    *
-    * @param chessboard
-    * @param moveHelper
-    * @param targetSquare
-    * @return
-    */
-   protected static boolean canReachTargetSquare(BitSet pieces, BitSet emptySquares, MoveHelper moveHelper,
-         BitSet targetSquareBitSet) {
-      /*
-       * in each iteration, shift the board in the required direction and check for target square and non-empty squares.
-       */
-      BitSet shiftedBoard = (BitSet) pieces.clone();
-      while (!shiftedBoard.isEmpty()) {
-         shiftedBoard = moveHelper.shiftBoard(shiftedBoard, false);
-
-         if (shiftedBoard.intersects(targetSquareBitSet)) {
-            return true;
-         }
-         // remove any non-empty squares
-         shiftedBoard.and(emptySquares);
-      }
-
-      return false;
-   }
-
-   /**
-    * Searches for moves in the direction specified by the {@link MoveHelper} implementation.
+    * Searches for moves in the direction specified by the {@link Ray} implementation.
     * This is for rooks, bishops, and queens.
     *
     * @param chessboard
     *           state of the board
-    * @param moveHelper
-    *           move helper object, see {@link MoveHelper}.
+    * @param ray
+    *           the ray (direction) in which to search
     * @return the moves found
     */
-   protected List<Move> search(Chessboard chessboard, MoveHelper moveHelper) {
-      List<Move> moves = new ArrayList<>(30);
-
-      /*
-       * in each iteration, shifts the board in the required direction and checks for friendly pieces and captures.
-       */
-
-      BitSet shiftedBoard = (BitSet) pieces.getBitSet().clone(); // must clone here
-      int offset = 0;
-      final int increment = moveHelper.getIncrement();
-      Colour oppositeColour = Colour.oppositeColour(colour);
-      while (!shiftedBoard.isEmpty()) {
-         offset += increment;
-         shiftedBoard = moveHelper.shiftBoard(shiftedBoard, false); // not cloning here
-         // move must be to an empty square or a capture of an enemy piece,
-         // therefore remove squares with friendly pieces
-         shiftedBoard.andNot(chessboard.getAllPieces(getColour()).getBitSet());
-
-         /*
-          * check for captures in 'shiftedBoard'.
-          * If any found, remove from 'shiftedBoard' before next iteration.
-          */
-         BitSet captures = (BitSet) shiftedBoard.clone();
-         captures.and(chessboard.getAllPieces(Colour.oppositeColour(getColour())).getBitSet());
-         for (int i = captures.nextSetBit(0); i >= 0; i = captures.nextSetBit(i + 1)) {
-            Square targetSquare = Square.fromBitIndex(i);
-            moves.add(new Move(this.getType(), colour, Square.fromBitIndex(i - offset), targetSquare, chessboard
-                  .pieceAt(targetSquare, oppositeColour)));
-            // remove capture square from 'shiftedBoard'
-            shiftedBoard.clear(i);
-         }
-         /*
-          * store any remaining moves.
-          */
-         for (int i = shiftedBoard.nextSetBit(0); i >= 0; i = shiftedBoard.nextSetBit(i + 1)) {
-            moves.add(new Move(this.getType(), colour, Square.fromBitIndex(i - offset), Square.fromBitIndex(i)));
-         }
-      }
-
-      return moves;
-   }
-
-   /**
-    * Searches for moves in the direction specified by the {@link MoveHelper} implementation.
-    * This is for rooks, bishops, and queens.
-    * <p>
-    * version using rays.
-    *
-    *
-    * @param chessboard
-    *           state of the board
-    * @param moveHelper
-    *           move helper object, see {@link MoveHelper}.
-    * @return the moves found
-    */
-   protected List<Move> search2(Chessboard chessboard, Ray ray) {
+   protected List<Move> search(Chessboard chessboard, Ray ray) {
       List<Move> moves = new ArrayList<>(30);
 
       final Colour opponentsColour = Colour.oppositeColour(colour);
@@ -230,7 +143,8 @@ public abstract class SlidingPiece extends Piece {
     *           target square
     * @return true if the target square is attacked (diagonally) from the start square.
     */
-   protected static boolean attacksSquareDiagonally(BitSet emptySquares, Square startSquare, Square targetSquare) {
+   // public, is required from Pawn
+   public static boolean attacksSquareDiagonally(BitSet emptySquares, Square startSquare, Square targetSquare) {
       // give up straight away if start and target are the same
       if (startSquare == targetSquare) {
          return false;
@@ -286,7 +200,8 @@ public abstract class SlidingPiece extends Piece {
     *
     * @return true if the target square is attacked (straight-line) from the start square.
     */
-   protected static boolean attacksSquareRankOrFile(BitSet emptySquares, Square startSquare, Square targetSquare) {
+   // public, since King need this too for castling
+   public static boolean attacksSquareRankOrFile(BitSet emptySquares, Square startSquare, Square targetSquare) {
       // give up straight away if start and target are the same
       if (startSquare == targetSquare) {
          return false;

@@ -57,8 +57,6 @@ public abstract class Piece implements Cloneable {
 
    /**
     * Finds all possible moves for this piece type in the given game.
-    * <p>
-    * The parameter 'kingInCheck' is not currently used, but could potentially offer optimisation possibilities.
     *
     * @param game
     *           current game state.

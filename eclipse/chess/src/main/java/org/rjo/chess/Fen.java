@@ -248,15 +248,14 @@ public class Fen {
    private static void parseHalfmoveClock(Game game, String token) {
       try {
          Integer halfmoves = Integer.parseInt(token);
+         game.setHalfmoveClock(halfmoves);
       } catch (NumberFormatException x) {
          throw new IllegalArgumentException("Invalid FEN string: expected a number for field 5: halfmove clock");
       }
-      // TODO store halfmoves
    }
 
    private static String addHalfmoveClock(Game game) {
-      // TODO Auto-generated method stub
-      return "0";
+      return "" + game.getHalfmoveClock();
    }
 
    /**
@@ -341,6 +340,7 @@ public class Fen {
 
       // now init the pieces with the squares that have been parsed (from the map pieceMap)
       // contains all piece types -- even if no pieces of this type exist on the board
+      @SuppressWarnings("unchecked")
       Set<Piece>[] pieces = new HashSet[Colour.values().length];
       for (Colour colour : Colour.values()) {
          pieces[colour.ordinal()] = new HashSet<>();

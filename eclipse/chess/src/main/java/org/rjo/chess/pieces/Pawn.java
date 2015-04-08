@@ -2,10 +2,8 @@ package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Chessboard;
@@ -88,7 +86,7 @@ public class Pawn extends Piece {
             ? new Square[] { Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2 }
       : new Square[] { Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7, Square.h7 };
             // @formatter:on
-            initPosition(requiredSquares);
+      initPosition(requiredSquares);
    }
 
    @Override
@@ -97,7 +95,7 @@ public class Pawn extends Piece {
       /*
        * The pawn move is complicated by the different directions for white and black pawns.
        * This is the only piece to have this complication.
-       *
+       * 
        * This difference is catered for by the 'MoveHelper' implementations.
        */
 
@@ -350,45 +348,25 @@ public class Pawn extends Piece {
     */
    private boolean checkIfCheck(Chessboard chessboard, Move move, Square opponentsKing, BitSet opponentsKingBitset) {
       if (move.isPromotion()) {
-         Map<PieceType, Piece> myPieces;
-         BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
-         emptySquares.set(move.from().bitIndex());
-         emptySquares.clear(move.to().bitIndex());
+         if (move.getPromotedPiece() == PieceType.KNIGHT) {
+            return Knight.checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
+         } else {
+            BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
+            emptySquares.set(move.from().bitIndex());
+            emptySquares.clear(move.to().bitIndex());
 
-         PieceType promotedPiece = move.getPromotedPiece();
-         BitSet rooksAndQueens, bishopsAndQueens;
-         // TODO could be improved ...
-         switch (promotedPiece) {
-         case QUEEN:
-            // only interested in whether the promoted piece is giving check
-            // therefore only need to supply this piece to the check-method
-            myPieces = new HashMap<>();
-            myPieces.put(PieceType.QUEEN, new Queen(colour, move.to()));
-            rooksAndQueens = new BitSet(64);
-            rooksAndQueens.set(move.to().bitIndex());
-            return Chessboard.isKingInCheck(myPieces, rooksAndQueens, rooksAndQueens, emptySquares, opponentsKing,
-                  false);
-         case ROOK:
-            myPieces = new HashMap<>();
-            myPieces.put(PieceType.ROOK, new Rook(colour, move.to()));
-            rooksAndQueens = new BitSet(64);
-            rooksAndQueens.set(move.to().bitIndex());
-            return Chessboard.isKingInCheck(myPieces, rooksAndQueens, new BitSet(64), emptySquares, opponentsKing,
-                  false);
-         case BISHOP:
-            myPieces = new HashMap<>();
-            myPieces.put(PieceType.BISHOP, new Bishop(colour, move.to()));
-            bishopsAndQueens = new BitSet(64);
-            bishopsAndQueens.set(move.to().bitIndex());
-            return Chessboard.isKingInCheck(myPieces, new BitSet(64), bishopsAndQueens, emptySquares, opponentsKing,
-                  false);
-         case KNIGHT:
-            myPieces = new HashMap<>();
-            myPieces.put(PieceType.KNIGHT, new Knight(colour, move.to()));
-            return Chessboard.isKingInCheck(myPieces, new BitSet(64), new BitSet(64), emptySquares, opponentsKing,
-                  false);
-         default:
-            throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
+            PieceType promotedPiece = move.getPromotedPiece();
+            switch (promotedPiece) {
+            case QUEEN:
+               return SlidingPiece.attacksSquareRankOrFile(emptySquares, move.to(), opponentsKing)
+                     || SlidingPiece.attacksSquareDiagonally(emptySquares, move.to(), opponentsKing);
+            case ROOK:
+               return SlidingPiece.attacksSquareRankOrFile(emptySquares, move.to(), opponentsKing);
+            case BISHOP:
+               return SlidingPiece.attacksSquareDiagonally(emptySquares, move.to(), opponentsKing);
+            default:
+               throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
+            }
          }
       } else {
          // set up bitset with the square the pawn moved to

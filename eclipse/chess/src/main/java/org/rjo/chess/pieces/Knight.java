@@ -36,7 +36,7 @@ public class Knight extends Piece {
           * - blank first and 2nd file for -17 and +15
           * RHS: blank last file for +10 and -6
           * - blank 7th and 8th file for +17 and -15
-          *
+          * 
           * Don't need to blank ranks, these just 'drop off' during the bit shift.
           */
 
@@ -187,15 +187,21 @@ public class Knight extends Piece {
       Iterator<Move> iter = moves.listIterator();
       while (iter.hasNext()) {
          Move move = iter.next();
-         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing)) {
+         boolean inCheck = false;
+         if (!kingInCheck) {
+            // just need to check for a pinned piece, i.e. if my king is in check after the move
+            inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
+         } else {
+            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing);
+         }
+         if (inCheck) {
             iter.remove();
          }
       }
 
       // checks
-      Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
-      BitSet king = new BitSet(64);
-      king.set(opponentsKing.bitIndex());
+      final Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
+      final int opponentsKingIndex = opponentsKing.bitIndex();
       /*
        * many moves have the same starting square. If we've already checked for discovered check for this square,
        * then can use the cached result. (Discovered check only looks along one ray from move.from() to the opponent's
@@ -203,7 +209,7 @@ public class Knight extends Piece {
        */
       Map<Square, Boolean> discoveredCheckCache = new HashMap<>(5);
       for (Move move : moves) {
-         boolean isCheck = checkIfCheck(move, king);
+         boolean isCheck = checkIfMoveAttacksSquare(move, opponentsKingIndex);
          // if it's already check, don't need to calculate discovered check
          if (!isCheck) {
             if (discoveredCheckCache.containsKey(move.from())) {
@@ -219,12 +225,19 @@ public class Knight extends Piece {
       return moves;
    }
 
-   private boolean checkIfCheck(Move move, BitSet opponentsKing) {
-      // check if the king is a knight move away from the destination square of the move
-      BitSet possibleMoves = (BitSet) knightMoves[move.to().bitIndex()].clone();
-      possibleMoves.and(opponentsKing);
-
-      return !possibleMoves.isEmpty();
+   /**
+    * Checks whether the given move attacks the given square.
+    *
+    * @param move
+    *           the move
+    * @param targetSquareIndex
+    *           index of the target square
+    * @return true if the given move attacks the given square.
+    */
+   // also required by Pawn
+   public static boolean checkIfMoveAttacksSquare(Move move, int targetSquareIndex) {
+      // check if the target square is a knight move away from the destination square of the move
+      return knightMoves[move.to().bitIndex()].get(targetSquareIndex);
    }
 
    @Override

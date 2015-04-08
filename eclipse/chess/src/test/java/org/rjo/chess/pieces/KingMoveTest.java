@@ -2,6 +2,7 @@ package org.rjo.chess.pieces;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Before;
@@ -54,15 +55,15 @@ public class KingMoveTest {
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing));
       Game game = new Game(new Chessboard(whitePieces, blackPieces));
       TestUtil
-      .checkMoves(
-            whiteKing.findMoves(game),
-            new HashSet<>(Arrays.asList("Kc5-c4", "Kc5-c6", "Kc5-b4", "Kc5-b5", "Kc5-b6", "Kc5-d4", "Kc5-d5",
-                  "Kc5-d6")));
+            .checkMoves(
+                  whiteKing.findMoves(game),
+                  new HashSet<>(Arrays.asList("Kc5-c4", "Kc5-c6", "Kc5-b4", "Kc5-b5", "Kc5-b6", "Kc5-d4", "Kc5-d5",
+                        "Kc5-d6")));
       TestUtil
-      .checkMoves(
-            blackKing.findMoves(game),
-            new HashSet<>(Arrays.asList("Kf5-f4", "Kf5-f6", "Kf5-e4", "Kf5-e5", "Kf5-e6", "Kf5-g4", "Kf5-g5",
-                  "Kf5-g6")));
+            .checkMoves(
+                  blackKing.findMoves(game),
+                  new HashSet<>(Arrays.asList("Kf5-f4", "Kf5-f6", "Kf5-e4", "Kf5-e5", "Kf5-e6", "Kf5-g4", "Kf5-g5",
+                        "Kf5-g6")));
    }
 
    @Test
@@ -126,11 +127,11 @@ public class KingMoveTest {
       Game game = new Game(new Chessboard(whitePieces, blackPieces));
       TestUtil.checkMoves(whiteKing.findMoves(game),
             new HashSet<>(Arrays.asList("Kc4-b3", "Kc4-b4", "Kc4-b5", "Kc4-c3", "Kc4-c5", "Kc4-d3"
-                  // not possible because of adjacent king: "Kc4-d4", "Kc4-d5"
+            // not possible because of adjacent king: "Kc4-d4", "Kc4-d5"
                   )));
       TestUtil.checkMoves(blackKing.findMoves(game),
             new HashSet<>(Arrays.asList("Ke5-f4", "Ke5-f5", "Ke5-f6", "Ke5-e6", "Ke5-e4", "Ke5-d6"
-                  // not possible because of adjacent king: "Ke5-d5", "Ke5-d4"
+            // not possible because of adjacent king: "Ke5-d5", "Ke5-d4"
                   )));
    }
 
@@ -144,6 +145,16 @@ public class KingMoveTest {
       Game game = new Game(new Chessboard(whitePieces, blackPieces));
       game.setCastlingRights(Colour.WHITE, CastlingRights.KINGS_SIDE);
       TestUtil.checkMoves(whiteKing.findMoves(game), new HashSet<>(Arrays.asList("Ke1-d1", "Ke1-f1", "O-O")));
+   }
+
+   @Test
+   public void castleKingsSideWithCheck() {
+      Game game = Fen.decode("r3k2r/p6p/8/B7/8/8/P4K1P/R6R b kq - 0 0");
+      List<Move> moves = game.findMoves(Colour.BLACK);
+      TestUtil.checkMoves(
+            moves,
+            new HashSet<>(Arrays.asList("a7-a6", "h7-h6", "h7-h5", "Ra8-b8", "Ra8-c8", "Ra8-d8", "Rh8-g8", "Rh8-f8+",
+                  "Ke8-d7", "Ke8-e7", "Ke8-f7", "Ke8-f8", "O-O+")));
    }
 
    @Test

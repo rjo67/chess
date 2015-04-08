@@ -146,7 +146,7 @@ public class King extends Piece {
       possibleMoves.andNot(game.getChessboard().getAllPieces(colour).getBitSet());
 
       /*
-       * possibleMoves now contains the possible moves. (King-in-check, King-adjacency and moving the king to an
+       * possibleMoves now contains the possible moves apart from castling. (King-adjacency and moving the king to an
        * attacked square have not been checked yet.)
        */
 
@@ -160,10 +160,9 @@ public class King extends Piece {
       // check the possibleMoves and store them as moves / captures.
       for (int i = possibleMoves.nextSetBit(0); i >= 0; i = possibleMoves.nextSetBit(i + 1)) {
          Square targetSquare = Square.fromBitIndex(i);
-         // make sure we're not moving king to king
-         // and not moving to a square that is being attacked
-         if ((MoveDistance.calculateDistance(targetSquare, opponentsKingSquare) > 1)
-               && !game.getChessboard().squareIsAttacked(game, targetSquare, oppositeColour)) {
+         // Make sure we're not moving king to king.
+         // The check that we're not moving to a square that is being attacked is performed later.
+         if (MoveDistance.calculateDistance(targetSquare, opponentsKingSquare) > 1) {
             /*
              * store move as 'move' or 'capture'
              */
@@ -213,7 +212,6 @@ public class King extends Piece {
       }
 
       // make sure king is not/no longer in check
-      // maybe should be done in Chessboard.squareIsAttacked (see above)?
       Iterator<Move> iter = moves.listIterator();
       while (iter.hasNext()) {
          Move move = iter.next();
@@ -223,7 +221,8 @@ public class King extends Piece {
          }
       }
 
-      // discovered checks
+      // checks: a king move can only give check if (a) castled with check or (b) discovered check
+
       /*
        * all king moves have the same starting square. If we've already checked for discovered check for this square,
        * then can use the cached result. (Discovered check only looks along one ray from move.from() to the opponent's
@@ -237,6 +236,12 @@ public class King extends Piece {
          } else {
             isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKingSquare);
             discoveredCheckCache.put(move.from(), isCheck);
+         }
+         if (!isCheck) {
+            if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+               isCheck = SlidingPiece.attacksSquareRankOrFile(game.getChessboard().getEmptySquares().getBitSet(), move
+                     .getRooksCastlingMove().to(), opponentsKingSquare);
+            }
          }
          move.setCheck(isCheck);
       }

@@ -1,6 +1,8 @@
 package org.rjo.chess;
 
 import java.util.BitSet;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import org.rjo.chess.pieces.PieceType;
@@ -38,6 +40,31 @@ public class ChessboardTest {
          game.getChessboard().updateStructures(move, false);
       }
       System.out.println("1E06 capture move:" + (System.currentTimeMillis() - start));
+   }
+
+   @Test
+   public void blockCheck() {
+      Game game = Fen.decode("3r4/4k3/8/R7/4P3/3K4/1BN1P3/8 w - - 10 10");
+      List<Move> moves = game.findMoves(Colour.WHITE);
+      System.out.println(moves);
+   }
+
+   @Test
+   public void pinnedPiece() {
+      Game game = Fen.decode("3r4/4k3/8/8/3RP3/3K4/8/8 w - - 10 10");
+      long start = System.currentTimeMillis();
+      for (int i = 0; i < 100000; i++) {
+         List<Move> moves = game.findMoves(Colour.WHITE);// 1344
+      }
+      System.out.println(System.currentTimeMillis() - start);
+   }
+
+   @Test
+   public void posn2ply2() {
+      Game game = Fen.decode("r3kr1Q/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQ-q - 0 1");
+      Map<String, Integer> moveMap = Perft.findMoves(game, Colour.BLACK, 1);
+      int moves = Perft.countMoves(moveMap);
+      assertEquals("found moves" + moveMap, 35, moves);
    }
 
    @Test

@@ -8,18 +8,9 @@ import java.util.Map;
 
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
-import org.rjo.chess.EastMoveHelper;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
-import org.rjo.chess.MoveHelper;
-import org.rjo.chess.NorthEastMoveHelper;
-import org.rjo.chess.NorthMoveHelper;
-import org.rjo.chess.NorthWestMoveHelper;
-import org.rjo.chess.SouthEastMoveHelper;
-import org.rjo.chess.SouthMoveHelper;
-import org.rjo.chess.SouthWestMoveHelper;
 import org.rjo.chess.Square;
-import org.rjo.chess.WestMoveHelper;
 import org.rjo.chess.ray.RayType;
 
 /**
@@ -28,14 +19,6 @@ import org.rjo.chess.ray.RayType;
  * @author rich
  */
 public class Queen extends SlidingPiece {
-   private static MoveHelper NORTHWEST_MOVE_HELPER = NorthWestMoveHelper.instance();
-   private static MoveHelper SOUTHWEST_MOVE_HELPER = SouthWestMoveHelper.instance();
-   private static MoveHelper NORTHEAST_MOVE_HELPER = NorthEastMoveHelper.instance();
-   private static MoveHelper SOUTHEAST_MOVE_HELPER = SouthEastMoveHelper.instance();
-   private static MoveHelper NORTH_MOVE_HELPER = NorthMoveHelper.instance();
-   private static MoveHelper SOUTH_MOVE_HELPER = SouthMoveHelper.instance();
-   private static MoveHelper WEST_MOVE_HELPER = WestMoveHelper.instance();
-   private static MoveHelper EAST_MOVE_HELPER = EastMoveHelper.instance();
 
    /**
     * Constructs the Queen class -- with no pieces on the board. Delegates to Queen(Colour, boolean) with parameter
@@ -107,25 +90,24 @@ public class Queen extends SlidingPiece {
       List<Move> moves = new ArrayList<>(30);
 
       /*
-       * search for moves in all compaass directions.
+       * search for moves in all compass directions.
        */
-      // moves.addAll(search(game.getChessboard(), NORTH_MOVE_HELPER));
-      // moves.addAll(search(game.getChessboard(), NORTHEAST_MOVE_HELPER));
-      // moves.addAll(search(game.getChessboard(), EAST_MOVE_HELPER));
-      // moves.addAll(search(game.getChessboard(), SOUTHEAST_MOVE_HELPER));
-      // moves.addAll(search(game.getChessboard(), SOUTH_MOVE_HELPER));
-      // moves.addAll(search(game.getChessboard(), SOUTHWEST_MOVE_HELPER));
-      // moves.addAll(search(game.getChessboard(), WEST_MOVE_HELPER));
-      // moves.addAll(search(game.getChessboard(), NORTHWEST_MOVE_HELPER));
       for (RayType rayType : RayType.values()) {
-         moves.addAll(search2(game.getChessboard(), rayType.getInstance()));
+         moves.addAll(search(game.getChessboard(), rayType.getInstance()));
       }
       // make sure my king is not/no longer in check
       Square myKing = King.findKing(colour, game.getChessboard());
       Iterator<Move> iter = moves.listIterator();
       while (iter.hasNext()) {
          Move move = iter.next();
-         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing)) {
+         boolean inCheck = false;
+         if (!kingInCheck) {
+            // just need to check for a pinned piece, i.e. if my king is in check after the move
+            inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
+         } else {
+            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing);
+         }
+         if (inCheck) {
             iter.remove();
          }
       }

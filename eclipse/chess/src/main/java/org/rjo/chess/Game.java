@@ -23,6 +23,8 @@ public class Game {
    private Deque<Move> moves;
    /** move number of the next move. Not calculated from size of 'moves' since we don't have to start at move 1 */
    private int moveNbr;
+   /** half-moves. Not used as yet. */
+   private int halfmoveClock;
    private EnumSet<CastlingRights>[] castling;
    /** which side is to move */
    private Colour sideToMove;
@@ -51,6 +53,7 @@ public class Game {
       init(EnumSet.noneOf(CastlingRights.class), EnumSet.noneOf(CastlingRights.class));
    }
 
+   @SuppressWarnings("unchecked")
    private void init(EnumSet<CastlingRights> whiteCastlingRights, EnumSet<CastlingRights> blackCastlingRights) {
       moves = new ArrayDeque<>();
       castling = new EnumSet[Colour.values().length];
@@ -69,6 +72,14 @@ public class Game {
     */
    public void setMoveNumber(int moveNbr) {
       this.moveNbr = moveNbr;
+   }
+
+   public int getHalfmoveClock() {
+      return halfmoveClock;
+   }
+
+   public void setHalfmoveClock(int halfmoveClock) {
+      this.halfmoveClock = halfmoveClock;
    }
 
    public boolean canCastle(Colour colour, CastlingRights rights) {
@@ -162,10 +173,10 @@ public class Game {
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
-                     .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
+               .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
             } else {
                chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
-               .removePiece(move.to());
+                     .removePiece(move.to());
             }
          }
          // promotion: add the promoted piece
@@ -283,10 +294,10 @@ public class Game {
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-                     .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
+               .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
             } else {
                chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-                     .addPiece(move.to());
+               .addPiece(move.to());
             }
          }
          // promotion: remove the promoted piece

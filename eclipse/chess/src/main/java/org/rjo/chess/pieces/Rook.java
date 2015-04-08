@@ -8,14 +8,9 @@ import java.util.Map;
 
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
-import org.rjo.chess.EastMoveHelper;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
-import org.rjo.chess.MoveHelper;
-import org.rjo.chess.NorthMoveHelper;
-import org.rjo.chess.SouthMoveHelper;
 import org.rjo.chess.Square;
-import org.rjo.chess.WestMoveHelper;
 import org.rjo.chess.ray.RayType;
 
 /**
@@ -24,11 +19,6 @@ import org.rjo.chess.ray.RayType;
  * @author rich
  */
 public class Rook extends SlidingPiece {
-
-   private static MoveHelper NORTH_MOVE_HELPER = NorthMoveHelper.instance();
-   private static MoveHelper SOUTH_MOVE_HELPER = SouthMoveHelper.instance();
-   private static MoveHelper WEST_MOVE_HELPER = WestMoveHelper.instance();
-   private static MoveHelper EAST_MOVE_HELPER = EastMoveHelper.instance();
 
    /**
     * Constructs the Rook class -- with no pieces on the board. Delegates to Rook(Colour, boolean) with parameter
@@ -99,24 +89,25 @@ public class Rook extends SlidingPiece {
    public List<Move> findMoves(Game game, boolean kingInCheck) {
       List<Move> moves = new ArrayList<>(30);
 
-      /*
-       * search for moves in directions N, S, W, and E
-       */
-      // moves.addAll(search(game.getChessboard(), NORTH_MOVE_HELPER));
-      // moves.addAll(search(game.getChessboard(), SOUTH_MOVE_HELPER));
-      // moves.addAll(search(game.getChessboard(), WEST_MOVE_HELPER));
-      // moves.addAll(search(game.getChessboard(), EAST_MOVE_HELPER));
-
+      // search for moves
       for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
-         moves.addAll(search2(game.getChessboard(), rayType.getInstance()));
+         moves.addAll(search(game.getChessboard(), rayType.getInstance()));
       }
 
       // make sure king is not/no longer in check
       Square myKing = King.findKing(colour, game.getChessboard());
       Iterator<Move> iter = moves.listIterator();
+      Colour opponentsColour = Colour.oppositeColour(colour);
       while (iter.hasNext()) {
          Move move = iter.next();
-         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing)) {
+         boolean inCheck = false;
+         if (!kingInCheck) {
+            // just need to check for a pinned piece, i.e. if king is in check after the move
+            inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
+         } else {
+            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing);
+         }
+         if (inCheck) {
             iter.remove();
          }
       }
