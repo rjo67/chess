@@ -173,10 +173,10 @@ public class Game {
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
-               .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
+                     .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
             } else {
                chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
-                     .removePiece(move.to());
+               .removePiece(move.to());
             }
          }
          // promotion: add the promoted piece
@@ -184,7 +184,7 @@ public class Game {
             chessboard.getPieces(sideToMove).get(move.getPromotedPiece()).addPiece(move.to());
          }
       }
-      chessboard.updateStructures(move, false);
+      chessboard.updateStructures(move);
 
       updateCastlingRightsAfterMove(move, debugWriter);
       if (move.isPawnMoveTwoSquaresForward()) {
@@ -294,10 +294,10 @@ public class Game {
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-               .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
+                     .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
             } else {
                chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-               .addPiece(move.to());
+                     .addPiece(move.to());
             }
          }
          // promotion: remove the promoted piece
@@ -306,7 +306,7 @@ public class Game {
          }
       }
 
-      chessboard.updateStructures(move, true);
+      chessboard.updateStructures(move);
 
       // reset castling rights if necessary
       // if ((PieceType.KING == move.getPiece()) || (PieceType.ROOK == move.getPiece())) {

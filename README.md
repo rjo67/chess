@@ -7,10 +7,18 @@ current state: move generator seems to be bugfree. Now working on performance.
 
 ## TODO
 * rewrite isKingInCheck.
+* optimize King to not use bitboard? findKing().  Maybe other pieces too.
+
+## 10.04.15
+pawn optimisations:
+5ply:  164.075.551 moves (   74.889 ms) ( 2190,9 moves/ms)
+5ply:  164.075.551 moves (   72.033 ms) ( 2277,8 moves/ms)
+5ply:  164.075.551 moves (   69.508 ms) ( 2360,5 moves/ms)
 
 ## 08.04.15
 * Bug in castle move: need to check for check.
-* if previous move was not a check, then only need to check if my move exposes the king (i.e. the piece was pinned). This requires that the 'inCheck' flag always gets set properly.
+* if previous move was not a check, then only need to check if my move exposes the king (i.e. the piece was pinned).
+This requires that the 'inCheck' flag always gets set properly.
 5ply:  164.075.551 moves (   79.460 ms) ( 2064,9 moves/ms)
 * pawn promotion optimisations
 5ply:  164.075.551 moves (   74.889 ms) ( 2190,9 moves/ms)

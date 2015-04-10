@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
@@ -215,6 +216,7 @@ public class BishopMoveTest {
    }
 
    @Test
+   @Ignore
    public void speedTest() {
       Game game = Fen.decode("r3k2r/pp3p2/8/4B3/2p1b3/8/PPPPB2P/R3K2R w KQkq - 0 0");
       Piece whiteBishop = game.getChessboard().getPieces(Colour.WHITE).get(PieceType.BISHOP);

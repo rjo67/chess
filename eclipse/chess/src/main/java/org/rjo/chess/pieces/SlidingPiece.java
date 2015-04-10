@@ -20,6 +20,17 @@ import org.rjo.chess.ray.RayUtils;
  */
 public abstract class SlidingPiece extends Piece {
 
+   final static boolean[][] ON_SAME_DIAGONAL = new boolean[64][64];
+   static {
+      for (int sq1Index = 0; sq1Index < 64; sq1Index++) {
+         Square sq1 = Square.fromBitIndex(sq1Index);
+         for (int sq2Index = 0; sq2Index < 64; sq2Index++) {
+            Square sq2 = Square.fromBitIndex(sq2Index);
+            ON_SAME_DIAGONAL[sq1Index][sq2Index] = onSameDiagonal(sq1, sq2);
+         }
+      }
+   }
+
    protected SlidingPiece(Colour colour, PieceType type) {
       super(colour, type);
    }
@@ -149,7 +160,7 @@ public abstract class SlidingPiece extends Piece {
       if (startSquare == targetSquare) {
          return false;
       }
-      if (!onSameDiagonal(startSquare, targetSquare)) {
+      if (!ON_SAME_DIAGONAL[startSquare.bitIndex()][targetSquare.bitIndex()]) {
          return false;
       }
       int rankOffset = startSquare.rank() > targetSquare.rank() ? -1 : 1;

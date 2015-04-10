@@ -114,11 +114,20 @@ public class Pawn extends Piece {
       moves.addAll(captureRight(game.getChessboard(), helper, false));
 
       // make sure king is not/no longer in check
-      Square myKing = King.findKing(colour, game.getChessboard());
+      final Square myKing = King.findKing(colour, game.getChessboard());
+      final Colour opponentsColour = Colour.oppositeColour(colour);
       Iterator<Move> iter = moves.listIterator();
       while (iter.hasNext()) {
          Move move = iter.next();
-         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing)) {
+         // make sure my king is not/no longer in check
+         boolean inCheck = false;
+         if (!kingInCheck) {
+            // just need to check for a pinned piece, i.e. if my king is in check after the move
+            inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
+         } else {
+            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing);
+         }
+         if (inCheck) {
             iter.remove();
          }
       }
@@ -172,18 +181,16 @@ public class Pawn extends Piece {
       // extra check for pawns on the 8th rank
       BitSet oneSquareForward = helper.moveOneRank(pieces.getBitSet());
       oneSquareForward.and(chessboard.getEmptySquares().getBitSet()); // move must be to an empty square
-      BitSet promotedPawns = (BitSet) oneSquareForward.clone(); // copy this bitset
-      promotedPawns.and(helper.lastRank()); // just the promoted pawns
-      oneSquareForward.and(helper.lastRankFlipped()); // remove promoted pawns
       int offset = helper.getColour() == Colour.WHITE ? -8 : 8;
       for (int i = oneSquareForward.nextSetBit(0); i >= 0; i = oneSquareForward.nextSetBit(i + 1)) {
-         moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
-      }
-      for (int i = promotedPawns.nextSetBit(0); i >= 0; i = promotedPawns.nextSetBit(i + 1)) {
-         for (PieceType type : PieceType.getPieceTypesForPromotion()) {
-            Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i));
-            move.setPromotionPiece(type);
-            moves.add(move);
+         if (helper.onLastRank(i)) {
+            for (PieceType type : PieceType.getPieceTypesForPromotion()) {
+               Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i));
+               move.setPromotionPiece(type);
+               moves.add(move);
+            }
+         } else {
+            moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
          }
       }
       return moves;
@@ -218,6 +225,80 @@ public class Pawn extends Piece {
    }
 
    /**
+    * Helper method to check for captures 'left' or 'right'.
+    *
+    * @param chessboard
+    *           state of the board
+    * @param helper
+    *           distinguishes between white and black sides, since the pawns move in different directions
+    * @param captureLeft
+    *           if true, check for captures 'left'. Otherwise, 'right'.
+    * @param checkingForAttack
+    *           if true, this routine returns all possible moves to the 'left'. The normal value of false returns only
+    *           moves which are captures i.e. the opponent's pieces are taken into account.
+    * @return list of moves found by this method
+    */
+   private List<Move> capture(Chessboard chessboard, MoveHelper helper, boolean captureLeft, boolean checkingForAttack) {
+
+      BitSet captures;
+      if (captureLeft) {
+         captures = helper.pawnCaptureLeft(pieces.cloneBitSet());
+      } else {
+         captures = helper.pawnCaptureRight(pieces.cloneBitSet());
+      }
+
+      if (!checkingForAttack) {
+         // move must be a capture, therefore AND with opponent's pieces
+         BitSet opponentsPieces = chessboard.getAllPieces(Colour.oppositeColour(helper.getColour())).cloneBitSet();
+         // 5) enpassant: add in enpassant square if available
+         addEnpassantSquare(chessboard, opponentsPieces);
+         captures.and(opponentsPieces);
+      }
+
+      int offset;
+      if (captureLeft) {
+         offset = helper.getColour() == Colour.WHITE ? -7 : 9;
+      } else {
+         offset = helper.getColour() == Colour.WHITE ? -9 : 7;
+      }
+
+      List<Move> moves = new ArrayList<>();
+      Colour oppositeColour = Colour.oppositeColour(colour);
+      for (int i = captures.nextSetBit(0); i >= 0; i = captures.nextSetBit(i + 1)) {
+         Square targetSquare = Square.fromBitIndex(i);
+         if (helper.onLastRank(i)) {
+            // capture with promotion
+            Square fromSquare = Square.fromBitIndex(i + offset);
+            PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY : chessboard.pieceAt(targetSquare,
+                  oppositeColour);
+            for (PieceType type : PieceType.getPieceTypesForPromotion()) {
+               Move move = new Move(PieceType.PAWN, colour, fromSquare, targetSquare, capturedPiece);
+               move.setPromotionPiece(type);
+               moves.add(move);
+            }
+         } else {
+            PieceType capturedPiece;
+            boolean enpassant = false;
+            // no piece present on the attack square if 'checkingForAttack'
+            if (checkingForAttack) {
+               capturedPiece = PieceType.DUMMY;
+            } else {
+               if (targetSquare == chessboard.getEnpassantSquare()) {
+                  capturedPiece = PieceType.PAWN;
+                  enpassant = true;
+               } else {
+                  capturedPiece = chessboard.pieceAt(targetSquare, oppositeColour);
+               }
+            }
+            Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
+            move.setEnpassant(enpassant);
+            moves.add(move);
+         }
+      }
+      return moves;
+   }
+
+   /**
     * Captures 'left' from white's POV e.g. b3xa4 or for a black move e.g. b6xa5.
     *
     * @param chessboard
@@ -230,72 +311,7 @@ public class Pawn extends Piece {
     * @return list of moves found by this method
     */
    private List<Move> captureLeft(Chessboard chessboard, MoveHelper helper, boolean checkingForAttack) {
-      List<Move> moves = new ArrayList<>();
-      // 3) capture left
-      // shift by 7 (for white) or 9 (for black) and AND with opposition pieces
-
-      BitSet captureLeft = helper.pawnCaptureLeft(pieces.cloneBitSet());
-
-      if (!checkingForAttack) {
-         // move must be a capture, therefore AND with opponent's pieces
-         BitSet opponentsPieces = chessboard.getAllPieces(Colour.oppositeColour(helper.getColour())).cloneBitSet();
-         // 5) enpassant: add in enpassant square if available
-         addEnpassantSquare(chessboard, opponentsPieces);
-         captureLeft.and(opponentsPieces);
-      }
-      BitSet promotedPawns = (BitSet) captureLeft.clone(); // copy this bitset
-      promotedPawns.and(helper.lastRank()); // just the promoted pawns
-      captureLeft.and(helper.lastRankFlipped()); // remove promoted pawns
-
-      int offset = helper.getColour() == Colour.WHITE ? -7 : 9;
-      moves.addAll(processCaptures(chessboard, captureLeft, checkingForAttack, offset));
-      moves.addAll(processPromotions(chessboard, promotedPawns, checkingForAttack, offset));
-      return moves;
-   }
-
-   private List<Move> processCaptures(Chessboard chessboard, BitSet captures, boolean checkingForAttack, int offset) {
-      List<Move> moves = new ArrayList<>();
-      Colour oppositeColour = Colour.oppositeColour(colour);
-      for (int i = captures.nextSetBit(0); i >= 0; i = captures.nextSetBit(i + 1)) {
-         Square targetSquare = Square.fromBitIndex(i);
-         PieceType capturedPiece;
-         boolean enpassant = false;
-         // no piece present on the attack square if 'checkingForAttack'
-         if (checkingForAttack) {
-            capturedPiece = PieceType.DUMMY;
-         } else {
-            if (targetSquare == chessboard.getEnpassantSquare()) {
-               capturedPiece = PieceType.PAWN;
-               enpassant = true;
-            } else {
-               capturedPiece = chessboard.pieceAt(targetSquare, oppositeColour);
-            }
-         }
-
-         Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
-         move.setEnpassant(enpassant);
-         moves.add(move);
-      }
-
-      return moves;
-   }
-
-   private List<Move> processPromotions(Chessboard chessboard, BitSet promotedPawns, boolean checkingForAttack,
-         int offset) {
-      List<Move> moves = new ArrayList<>();
-      Colour oppositeColour = Colour.oppositeColour(colour);
-      for (int i = promotedPawns.nextSetBit(0); i >= 0; i = promotedPawns.nextSetBit(i + 1)) {
-         Square fromSquare = Square.fromBitIndex(i + offset);
-         Square targetSquare = Square.fromBitIndex(i);
-         PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY : chessboard.pieceAt(targetSquare,
-               oppositeColour);
-         for (PieceType type : PieceType.getPieceTypesForPromotion()) {
-            Move move = new Move(PieceType.PAWN, colour, fromSquare, targetSquare, capturedPiece);
-            move.setPromotionPiece(type);
-            moves.add(move);
-         }
-      }
-      return moves;
+      return capture(chessboard, helper, true, checkingForAttack);
    }
 
    /**
@@ -312,25 +328,7 @@ public class Pawn extends Piece {
     * @return list of moves found by this method
     */
    private List<Move> captureRight(Chessboard chessboard, MoveHelper helper, boolean checkingForAttack) {
-      List<Move> moves = new ArrayList<>();
-      // 4) capture right
-      // shift by 9 (for white) or 7 (for black) and AND with opposition pieces
-      BitSet captureRight = helper.pawnCaptureRight(pieces.cloneBitSet());
-      if (!checkingForAttack) {
-         // move must be a capture, therefore AND with opponent's pieces
-         BitSet opponentsPieces = chessboard.getAllPieces(Colour.oppositeColour(this.colour)).cloneBitSet();
-         // 5) enpassant: add in enpassant square if available
-         addEnpassantSquare(chessboard, opponentsPieces);
-         captureRight.and(opponentsPieces);
-      }
-      BitSet promotedPawns = (BitSet) captureRight.clone(); // copy this bitset
-      promotedPawns.and(helper.lastRank()); // just the promoted pawns
-      captureRight.and(helper.lastRankFlipped()); // remove promoted pawns
-
-      int offset = helper.getColour() == Colour.WHITE ? -9 : 7;
-      moves.addAll(processCaptures(chessboard, captureRight, checkingForAttack, offset));
-      moves.addAll(processPromotions(chessboard, promotedPawns, checkingForAttack, offset));
-      return moves;
+      return capture(chessboard, helper, false, checkingForAttack);
    }
 
    /**
@@ -409,6 +407,15 @@ public class Pawn extends Piece {
        * @return shifted bitset
        */
       BitSet moveOneRank(BitSet bs);
+
+      /**
+       * returns true if the given bitIndex is on the 'last rank' of the board.
+       *
+       * @param bitIndex
+       *           the bitIndex
+       * @return true if on last rank.
+       */
+      boolean onLastRank(int bitIndex);
 
       /**
        * Given the starting bitset, returns a new bitset representing the pawn capture 'to the right' as seen from
@@ -513,6 +520,11 @@ public class Pawn extends Piece {
          return BitSet.valueOf(new long[] { (longArray[0] << 9) });
       }
 
+      @Override
+      public boolean onLastRank(int bitIndex) {
+         return bitIndex > 55;
+      }
+
    }
 
    /**
@@ -571,6 +583,10 @@ public class Pawn extends Piece {
          return BitBoard.RANK[6];
       }
 
+      @Override
+      public boolean onLastRank(int bitIndex) {
+         return bitIndex < 8;
+      }
    }
 
 }

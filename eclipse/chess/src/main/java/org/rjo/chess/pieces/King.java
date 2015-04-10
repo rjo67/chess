@@ -55,6 +55,37 @@ public class King extends Piece {
    }
 
    /**
+    * Valid squares to move to
+    */
+   private static final BitSet[] MOVES = new BitSet[64];
+   static {
+      for (int i = 0; i < 64; i++) {
+         BitSet myBitSet = new BitSet(64);
+         myBitSet.set(i);
+
+         /*
+          * calculate left and right attack
+          * then shift up and down one rank
+          */
+         BitSet combined = BitSetHelper.shiftOneWest(myBitSet);
+         BitSet east = BitSetHelper.shiftOneEast(myBitSet);
+         combined.or(east);
+
+         // save the current state
+         BitSet possibleMoves = (BitSet) combined.clone();
+         // now add the king's position again and shift up and down one rank
+         combined.or(myBitSet);
+         BitSet north = BitSetHelper.shiftOneNorth(combined);
+         BitSet south = BitSetHelper.shiftOneSouth(combined);
+         // add to result
+         possibleMoves.or(north);
+         possibleMoves.or(south);
+
+         MOVES[i] = possibleMoves;
+      }
+   }
+
+   /**
     * Constructs the King class -- with no pieces on the board. Delegates to King(Colour, boolean) with parameter
     * false.
     *
@@ -120,27 +151,10 @@ public class King extends Piece {
 
    @Override
    public List<Move> findMoves(Game game, boolean kingInCheck) {
-      // TODO: generate the move tables statically
-
       List<Move> moves = new ArrayList<>();
 
-      /*
-       * calculate left and right attack
-       * then shift up and down one rank
-       */
-      BitSet west = BitSetHelper.shiftOneWest(pieces.getBitSet());
-      BitSet east = BitSetHelper.shiftOneEast(pieces.getBitSet());
-      BitSet combined = (BitSet) west.clone();
-      combined.or(east);
-      // save the current state
-      BitSet possibleMoves = (BitSet) combined.clone();
-      // now add the king's position again and shift up and down one rank
-      combined.or(pieces.getBitSet());
-      BitSet north = BitSetHelper.shiftOneNorth(combined);
-      BitSet south = BitSetHelper.shiftOneSouth(combined);
-      // add to result
-      possibleMoves.or(north);
-      possibleMoves.or(south);
+      Square kingPosn = Square.fromBitIndex(pieces.getBitSet().nextSetBit(0));
+      BitSet possibleMoves = (BitSet) MOVES[kingPosn.bitIndex()].clone();
 
       // move can't be to a square with a piece of the same colour on it
       possibleMoves.andNot(game.getChessboard().getAllPieces(colour).getBitSet());
@@ -155,7 +169,6 @@ public class King extends Piece {
       captures.and(game.getChessboard().getAllPieces(Colour.oppositeColour(getColour())).getBitSet());
 
       Square opponentsKingSquare = findOpponentsKing(game.getChessboard());
-      Square kingPosn = Square.fromBitIndex(pieces.getBitSet().nextSetBit(0));
       Colour oppositeColour = Colour.oppositeColour(colour);
       // check the possibleMoves and store them as moves / captures.
       for (int i = possibleMoves.nextSetBit(0); i >= 0; i = possibleMoves.nextSetBit(i + 1)) {

@@ -117,11 +117,8 @@ public class Chessboard {
     *
     * @param move
     *           the move
-    * @param isUnmove
-    *           true means this move is an 'unmove'. Otherwise a normal 'move'. Only relevant when move!=null.
-    *           TODO this parameter may not be required
     */
-   public void updateStructures(Move move, boolean isUnmove) {
+   public void updateStructures(Move move) {
       // @formatter:off
       // (f=flip)
       // White-Move       non-capture      capture
@@ -142,7 +139,7 @@ public class Chessboard {
       final int moveFromBitIndex = move.from().bitIndex();
       final int moveToBitIndex = move.to().bitIndex();
 
-      // update incrementally for non-capture moves
+      // update incrementally
       if (!move.isCapture()) {
          updateBitSet(allPieces[colourOrdinal].getBitSet(), move);
          // rooks and queens
@@ -477,6 +474,9 @@ public class Chessboard {
 
       emptySquares.set(move.from().bitIndex());
       emptySquares.clear(move.to().bitIndex());
+      if (move.isEnpassant()) {
+         emptySquares.set(Square.findMoveFromEnpassantSquare(move.to()).bitIndex());
+      }
       myPieces.clear(move.from().bitIndex());
       myPieces.set(move.to().bitIndex());
 
@@ -533,7 +533,7 @@ public class Chessboard {
          }
       }
       boolean inCheck = Chessboard.isKingInCheck(opponentsPieces, clonedRooksAndQueens, clonedBishopsAndQueens,
-            emptySquares, king, false);
+            emptySquares, king);
       if (move.isCapture()) {
          // reset global state
          opponentsPieces.put(move.getCapturedPiece(), originalPiece);
@@ -542,35 +542,8 @@ public class Chessboard {
 
    }
 
-   private static void updateRooksAndQueens(BitSet clonedRooksAndQueens, Move move) {
-      if ((move.getPiece() == PieceType.ROOK) || (move.getPiece() == PieceType.QUEEN)) {
-         clonedRooksAndQueens.flip(move.from().bitIndex());
-         clonedRooksAndQueens.flip(move.to().bitIndex());
-      }
-      if (move.isPromotion()
-            && (move.getPromotedPiece() == PieceType.QUEEN || move.getPromotedPiece() == PieceType.ROOK)) {
-         clonedRooksAndQueens.flip(move.to().bitIndex());
-      }
-      if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-         Move rooksMove = move.getRooksCastlingMove();
-         clonedRooksAndQueens.flip(rooksMove.from().bitIndex());
-         clonedRooksAndQueens.flip(rooksMove.to().bitIndex());
-      }
-   }
-
-   private static void updateBishopsAndQueens(BitSet clonedBishopsAndQueens, Move move) {
-      if ((move.getPiece() == PieceType.BISHOP) || (move.getPiece() == PieceType.QUEEN)) {
-         clonedBishopsAndQueens.flip(move.from().bitIndex());
-         clonedBishopsAndQueens.flip(move.to().bitIndex());
-      }
-      if (move.isPromotion()
-            && (move.getPromotedPiece() == PieceType.QUEEN || move.getPromotedPiece() == PieceType.BISHOP)) {
-         clonedBishopsAndQueens.flip(move.to().bitIndex());
-      }
-   }
-
    /**
-    * Helper method to check for a discovered check using a freely definable set of pieces and empty squares.
+    * Helper method to check if the king is in check using a freely definable set of pieces and empty squares.
     * Should normally not be called directly, see instead
     * {@link Chessboard#checkForDiscoveredCheck(Chessboard, Move, Colour, Square)}.
     *
@@ -580,13 +553,10 @@ public class Chessboard {
     *           the empty squares
     * @param kingsSquare
     *           where the (opponent's) king is
-    * @param justCheckForDiscoveredCheck
-    *           if true, will only check for discovered check. (Knight and Pawn checks are not considered.)
-    *           If false, will check checks from all piece types.
     * @return true if a king on the 'kingsSquare' would be in check with this configuration of pieces and empty squares
     */
    public static boolean isKingInCheck(Map<PieceType, Piece> myPieces, BitSet allRooksAndQueens,
-         BitSet allBishopsAndQueens, BitSet emptySquares, Square kingsSquare, boolean justCheckForDiscoveredCheck) {
+         BitSet allBishopsAndQueens, BitSet emptySquares, Square kingsSquare) {
       // discovered check can only be from a rook, queen, or bishop
       boolean isCheck = false;
 
@@ -599,8 +569,7 @@ public class Chessboard {
          isCheck = SlidingPiece.attacksSquareOnDiagonal(allBishopsAndQueens, emptySquares, kingsSquare);
       }
 
-      // for discovered check not important, but this method is also used in general to see if a king is in check
-      if (!justCheckForDiscoveredCheck && !isCheck) {
+      if (!isCheck) {
          for (PieceType pieceType : new PieceType[] { PieceType.KNIGHT, PieceType.PAWN }) {
             if (!isCheck) {
                Piece piece = myPieces.get(pieceType);

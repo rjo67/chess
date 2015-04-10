@@ -3,7 +3,6 @@ package org.rjo.chess.pieces;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -151,6 +150,7 @@ public class Knight extends Piece {
    @Override
    public List<Move> findMoves(Game game, boolean kingInCheck) {
       List<Move> moves = new ArrayList<>(20);
+      final Square myKing = King.findKing(colour, game.getChessboard());
       /*
        * for each knight on the board, finds its moves using the lookup table
        */
@@ -159,43 +159,30 @@ public class Knight extends Piece {
          // move can't be to a square with a piece of the same colour on it
          possibleMoves.andNot(game.getChessboard().getAllPieces(colour).getBitSet());
 
-         Square knightStartSquare = Square.fromBitIndex(i);
-         /*
-          * check for captures in 'possibleMoves'.
-          * If any found, remove from 'possibleMoves' before next iteration.
-          */
-         BitSet captures = (BitSet) possibleMoves.clone();
+         final Square knightStartSquare = Square.fromBitIndex(i);
          Colour oppositeColour = Colour.oppositeColour(colour);
-         captures.and(game.getChessboard().getAllPieces(oppositeColour).getBitSet());
-         for (int j = captures.nextSetBit(0); j >= 0; j = captures.nextSetBit(j + 1)) {
-            Square targetSquare = Square.fromBitIndex(j);
-            moves.add(new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare, game.getChessboard().pieceAt(
-                  targetSquare, oppositeColour)));
-            // remove capture square
-            possibleMoves.clear(j);
-         }
-         /*
-          * store any remaining moves.
-          */
-         for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
-            moves.add(new Move(PieceType.KNIGHT, colour, knightStartSquare, Square.fromBitIndex(k)));
-         }
-      }
 
-      // make sure king is not/no longer in check
-      Square myKing = King.findKing(colour, game.getChessboard());
-      Iterator<Move> iter = moves.listIterator();
-      while (iter.hasNext()) {
-         Move move = iter.next();
-         boolean inCheck = false;
-         if (!kingInCheck) {
-            // just need to check for a pinned piece, i.e. if my king is in check after the move
-            inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
-         } else {
-            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing);
-         }
-         if (inCheck) {
-            iter.remove();
+         for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
+            Square targetSquare = Square.fromBitIndex(k);
+            Move move;
+            if (game.getChessboard().getAllPieces(oppositeColour).getBitSet().get(k)) {
+               // capture
+               move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare, game.getChessboard().pieceAt(
+                     targetSquare, oppositeColour));
+            } else {
+               move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare);
+            }
+            // make sure my king is not/no longer in check
+            boolean inCheck = false;
+            if (!kingInCheck) {
+               // just need to check for a pinned piece, i.e. if my king is in check after the move
+               inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
+            } else {
+               inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, oppositeColour, myKing);
+            }
+            if (!inCheck) {
+               moves.add(move);
+            }
          }
       }
 
@@ -242,9 +229,8 @@ public class Knight extends Piece {
 
    @Override
    public boolean attacksSquare(Chessboard notUsed, Square targetSq) {
-      BitSet possibleMovesFromTargetSquare = (BitSet) knightMoves[targetSq.bitIndex()].clone();
-      possibleMovesFromTargetSquare.and(pieces.getBitSet());
-      return !possibleMovesFromTargetSquare.isEmpty();
+      BitSet possibleMovesFromTargetSquare = knightMoves[targetSq.bitIndex()];
+      return possibleMovesFromTargetSquare.intersects(pieces.getBitSet());
    }
 
 }

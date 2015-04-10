@@ -4,6 +4,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.rjo.chess.pieces.PieceType;
 
@@ -25,7 +26,7 @@ public class ChessboardTest {
 
       long start = System.currentTimeMillis();
       for (int i = 0; i < 1000000; i++) {
-         game.getChessboard().updateStructures(move, false);
+         game.getChessboard().updateStructures(move);
       }
       System.out.println("1E06 noncapture move: " + (System.currentTimeMillis() - start));
    }
@@ -37,7 +38,7 @@ public class ChessboardTest {
 
       long start = System.currentTimeMillis();
       for (int i = 0; i < 1000000; i++) {
-         game.getChessboard().updateStructures(move, false);
+         game.getChessboard().updateStructures(move);
       }
       System.out.println("1E06 capture move:" + (System.currentTimeMillis() - start));
    }
@@ -45,11 +46,13 @@ public class ChessboardTest {
    @Test
    public void blockCheck() {
       Game game = Fen.decode("3r4/4k3/8/R7/4P3/3K4/1BN1P3/8 w - - 10 10");
+      game.setInCheck(true);
       List<Move> moves = game.findMoves(Colour.WHITE);
-      System.out.println(moves);
+      assertEquals("found moves" + moves, 6, moves.size());
    }
 
    @Test
+   @Ignore
    public void pinnedPiece() {
       Game game = Fen.decode("3r4/4k3/8/8/3RP3/3K4/8/8 w - - 10 10");
       long start = System.currentTimeMillis();
