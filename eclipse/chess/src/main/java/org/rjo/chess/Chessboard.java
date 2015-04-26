@@ -625,7 +625,11 @@ public class Chessboard {
             }
          }
       }
-      throw new IllegalArgumentException("no piece at " + targetSquare);
+      if (expectedColour != null) {
+         throw new IllegalArgumentException("no " + expectedColour + " piece at " + targetSquare);
+      } else {
+         throw new IllegalArgumentException("no piece at " + targetSquare);
+      }
    }
 
 }
