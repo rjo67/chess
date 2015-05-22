@@ -105,6 +105,10 @@ public class Game {
       this.inCheck = inCheck;
    }
 
+   public boolean isInCheck() {
+      return inCheck;
+   }
+
    public Chessboard getChessboard() {
       return chessboard;
    }
@@ -173,10 +177,10 @@ public class Game {
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
-                     .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
+               .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
             } else {
                chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
-               .removePiece(move.to());
+                     .removePiece(move.to());
             }
          }
          // promotion: add the promoted piece
@@ -197,6 +201,88 @@ public class Game {
       if (Colour.WHITE == sideToMove) {
          moveNbr++;
       }
+   }
+
+   /**
+    * Calculates a static value for the position after the given move.
+    *
+    * @param move
+    *           the move
+    * @return a value in centipawns
+    */
+   public int evaluate(Move move) {
+      this.move(move);
+      int value = evaluate();
+      this.unmove(move);
+      return value;
+   }
+
+   /**
+    * Calculates a static value for the current position.
+    * In order for NegaMax to work, it is important to return the score relative to the side being evaluated.
+    *
+    * @return a value in centipawns
+    */
+   public int evaluate() {
+      /*
+       * materialScore = kingWt * (wK-bK)
+       * + queenWt * (wQ-bQ)
+       * + rookWt * (wR-bR)
+       * + knightWt* (wN-bN)
+       * + bishopWt* (wB-bB)
+       * + pawnWt * (wP-bP)
+       * mobilityScore = mobilityWt * (wMobility-bMobility)
+       */
+      int materialScore = 0;
+      for (PieceType type : PieceType.getPieceTypes()) {
+         int pieceScore = 0;
+         Piece piece = chessboard.getPieces(Colour.WHITE).get(type);
+         if (piece != null) {
+            pieceScore += piece.calculatePieceSquareValue();
+         }
+         piece = chessboard.getPieces(Colour.BLACK).get(type);
+         if (piece != null) {
+            pieceScore -= piece.calculatePieceSquareValue();
+         }
+         materialScore += pieceScore;
+      }
+
+      // mobility
+      // the sidetomove could be in check; for simplicity this is assumed, i.e. 'kingInCheck'==TRUE
+      // the other side (who has just moved) cannot be in check
+      // if enpassant square is set, this can only apply to the sidetomove
+      int whiteMobility, blackMobility;
+      Square enpassantSquare = null;
+      List<Move> moves = new ArrayList<>(60);
+      if (getSideToMove() != Colour.WHITE) {
+         enpassantSquare = getChessboard().getEnpassantSquare();
+         getChessboard().setEnpassantSquare(null);
+      }
+      for (PieceType type : PieceType.getPieceTypes()) {
+         Piece p = chessboard.getPieces(Colour.WHITE).get(type);
+         moves.addAll(p.findMoves(this, (getSideToMove() == Colour.WHITE ? true : false)));
+      }
+      if (getSideToMove() != Colour.WHITE) {
+         getChessboard().setEnpassantSquare(enpassantSquare);
+      }
+      whiteMobility = moves.size();
+      moves = new ArrayList<>(60);
+      if (getSideToMove() != Colour.BLACK) {
+         enpassantSquare = getChessboard().getEnpassantSquare();
+         getChessboard().setEnpassantSquare(null);
+      }
+      for (PieceType type : PieceType.getPieceTypes()) {
+         Piece p = chessboard.getPieces(Colour.BLACK).get(type);
+         moves.addAll(p.findMoves(this, (getSideToMove() == Colour.BLACK ? true : false)));
+      }
+      if (getSideToMove() != Colour.BLACK) {
+         getChessboard().setEnpassantSquare(enpassantSquare);
+      }
+      blackMobility = moves.size();
+
+      final int MOBILITY_WEIGHTING = 2;
+      int mobilityScore = MOBILITY_WEIGHTING * (whiteMobility - blackMobility);
+      return (mobilityScore + materialScore) * (getSideToMove() == Colour.WHITE ? 1 : -1);
    }
 
    private void updateCastlingRightsAfterMove(Move move, Writer debugWriter) {
@@ -224,21 +310,23 @@ public class Game {
          // "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
       }
       // update OPPONENT's castling rights if necessary
-      Colour opponentsColour = Colour.oppositeColour(sideToMove);
-      {
+      if (move.isCapture()) {
+         final Colour opponentsColour = Colour.oppositeColour(sideToMove);
          Square targetSquare = (sideToMove == Colour.WHITE) ? Square.h8 : Square.h1;
-         if (move.isCapture() && move.to().equals(targetSquare)) {
+         boolean processed = false;
+         if (move.to().equals(targetSquare)) {
             move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
             castling[opponentsColour.ordinal()].remove(CastlingRights.KINGS_SIDE);
+            processed = true;
             // writeDebug(debugWriter, "move: " + move + ", removed kings side castling for " + opponentsColour);
          }
-      }
-      {
-         Square targetSquare = (sideToMove == Colour.WHITE) ? Square.a8 : Square.a1;
-         if (move.isCapture() && move.to().equals(targetSquare)) {
-            move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
-            castling[opponentsColour.ordinal()].remove(CastlingRights.QUEENS_SIDE);
-            // writeDebug(debugWriter, "move: " + move + ", removed queens side castling for " + opponentsColour);
+         if (!processed) {
+            targetSquare = (sideToMove == Colour.WHITE) ? Square.a8 : Square.a1;
+            if (move.to().equals(targetSquare)) {
+               move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
+               castling[opponentsColour.ordinal()].remove(CastlingRights.QUEENS_SIDE);
+               // writeDebug(debugWriter, "move: " + move + ", removed queens side castling for " + opponentsColour);
+            }
          }
       }
 
@@ -294,10 +382,10 @@ public class Game {
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-                     .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
+               .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
             } else {
                chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-                     .addPiece(move.to());
+               .addPiece(move.to());
             }
          }
          // promotion: remove the promoted piece

@@ -6,12 +6,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 import org.rjo.chess.ray.RayType;
+import org.rjo.chess.util.Stopwatch;
 
 /**
  * Stores information about the rooks (still) in the game.
@@ -19,6 +22,30 @@ import org.rjo.chess.ray.RayType;
  * @author rich
  */
 public class Rook extends SlidingPiece {
+
+   private static final Logger LOG = LogManager.getLogger(Rook.class);
+
+   /** piece value in centipawns */
+   private static final int PIECE_VALUE = 500;
+
+   private static int[] SQUARE_VALUE =
+// @formatter:off
+         new int[] {
+      0,  0,  0,  5,  5,  0,  0,  0,
+      -5,  0,  0,  0,  0,  0,  0, -5,
+      -5,  0,  0,  0,  0,  0,  0, -5,
+      -5,  0,  0,  0,  0,  0,  0, -5,
+      -5,  0,  0,  0,  0,  0,  0, -5,
+      -5,  0,  0,  0,  0,  0,  0, -5,
+      5, 10, 10, 10, 10, 10, 10,  5,
+      0,  0,  0,  0,  0,  0,  0,  0,
+   };
+   // @formatter:on
+
+   @Override
+   public int calculatePieceSquareValue() {
+      return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE);
+   }
 
    /**
     * Constructs the Rook class -- with no pieces on the board. Delegates to Rook(Colour, boolean) with parameter
@@ -87,6 +114,8 @@ public class Rook extends SlidingPiece {
 
    @Override
    public List<Move> findMoves(Game game, boolean kingInCheck) {
+      Stopwatch stopwatch = new Stopwatch();
+
       List<Move> moves = new ArrayList<>(30);
 
       // search for moves
@@ -134,6 +163,10 @@ public class Rook extends SlidingPiece {
          move.setCheck(isCheck);
       }
 
+      long time = stopwatch.read();
+      if (time != 0) {
+         LOG.debug("found " + moves.size() + " moves in " + time);
+      }
       return moves;
    }
 

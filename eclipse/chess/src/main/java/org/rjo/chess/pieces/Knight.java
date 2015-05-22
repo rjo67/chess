@@ -6,12 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.Stopwatch;
 
 /**
  * Stores information about the knights (still) in the game.
@@ -19,6 +22,31 @@ import org.rjo.chess.Square;
  * @author rich
  */
 public class Knight extends Piece {
+   private static final Logger LOG = LogManager.getLogger(Knight.class);
+
+   /** piece value in centipawns */
+   private static final int PIECE_VALUE = 320;
+
+   /** stores the piece-square values. http://chessprogramming.wikispaces.com/Simplified+evaluation+function */
+   // Important: array value [0] corresponds to square a1; [63] == h8.
+   private static int[] SQUARE_VALUE =
+// @formatter:off
+         new int[] {
+      -50,-40,-30,-30,-30,-30,-40,-50,
+      -40,-20,  0,  5,  5,  0,-20,-40,
+      -30,  5, 10, 15, 15, 10,  5,-30,
+      -30,  0, 15, 20, 20, 15,  0,-30,
+      -30,  5, 15, 20, 20, 15,  5,-30,
+      -30,  0, 10, 15, 15, 10,  0,-30,
+      -40,-20,  0,  0,  0,  0,-20,-40,
+      -50,-40,-30,-30,-30,-30,-40,-50,
+   };
+   // @formatter:on
+
+   @Override
+   public int calculatePieceSquareValue() {
+      return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE);
+   }
 
    /**
     * Stores for each square on the board the possible moves for a knight on that square.
@@ -35,7 +63,7 @@ public class Knight extends Piece {
           * - blank first and 2nd file for -17 and +15
           * RHS: blank last file for +10 and -6
           * - blank 7th and 8th file for +17 and -15
-          * 
+          *
           * Don't need to blank ranks, these just 'drop off' during the bit shift.
           */
 
@@ -149,23 +177,27 @@ public class Knight extends Piece {
 
    @Override
    public List<Move> findMoves(Game game, boolean kingInCheck) {
+      Stopwatch stopwatch = new Stopwatch();
       List<Move> moves = new ArrayList<>(20);
       final Square myKing = King.findKing(colour, game.getChessboard());
+      final Colour oppositeColour = Colour.oppositeColour(colour);
+      final BitSet allMyPiecesBitSet = game.getChessboard().getAllPieces(colour).getBitSet();
+      final BitSet allOpponentsPiecesBitSet = game.getChessboard().getAllPieces(oppositeColour).getBitSet();
+
       /*
        * for each knight on the board, finds its moves using the lookup table
        */
       for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
          BitSet possibleMoves = (BitSet) knightMoves[i].clone();
          // move can't be to a square with a piece of the same colour on it
-         possibleMoves.andNot(game.getChessboard().getAllPieces(colour).getBitSet());
+         possibleMoves.andNot(allMyPiecesBitSet);
 
          final Square knightStartSquare = Square.fromBitIndex(i);
-         Colour oppositeColour = Colour.oppositeColour(colour);
 
          for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
             Square targetSquare = Square.fromBitIndex(k);
             Move move;
-            if (game.getChessboard().getAllPieces(oppositeColour).getBitSet().get(k)) {
+            if (allOpponentsPiecesBitSet.get(k)) {
                // capture
                move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare, game.getChessboard().pieceAt(
                      targetSquare, oppositeColour));
@@ -209,6 +241,10 @@ public class Knight extends Piece {
          move.setCheck(isCheck);
       }
 
+      long time = stopwatch.read();
+      if (time != 0) {
+         LOG.debug("found " + moves.size() + " moves in " + time);
+      }
       return moves;
    }
 

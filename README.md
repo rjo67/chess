@@ -9,6 +9,20 @@ current state: move generator seems to be bugfree. Now working on performance.
 * rewrite isKingInCheck.
 * optimize King to not use bitboard? findKing().  Maybe other pieces too.
 
+* iterative deepening
+* thread for search, interrupt from uci controller
+
+## 22.05.15
+
+* use log4j
+* rays - static init
+5ply:  162.934.523 moves (   66.558 ms) ( 2448,0 moves/ms)
+5ply:  162.934.523 moves (   64.057 ms) ( 2543,6 moves/ms)
+
+## 12.05.15
+alpha-beta search
+
+
 ## 10.04.15
 pawn optimisations:
 5ply:  164.075.551 moves (   74.889 ms) ( 2190,9 moves/ms)

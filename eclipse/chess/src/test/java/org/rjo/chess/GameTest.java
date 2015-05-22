@@ -271,6 +271,14 @@ public class GameTest {
       assertMoveNotPresent(moves, "O-O");
    }
 
+   @Test
+   public void eval() {
+      Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KkQq - 0 1");
+      System.out.println(game.evaluate());
+      game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KkQq - 0 1");
+      System.out.println(game.evaluate());
+   }
+
    private void assertMoveNotPresent(List<Move> moves, String requiredMove) {
       for (Move move : moves) {
          if (requiredMove.equals(move.toString())) {

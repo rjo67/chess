@@ -7,13 +7,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.rjo.chess.CastlingRights;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
+import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.MoveDistance;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.Stopwatch;
 
 /**
  * Stores information about the king in the game.
@@ -22,6 +26,44 @@ import org.rjo.chess.Square;
  * @see http://chessprogramming.wikispaces.com/King+Pattern
  */
 public class King extends Piece {
+   private static final Logger LOG = LogManager.getLogger(King.class);
+
+   /** piece value in centipawns */
+   private static final int PIECE_VALUE = 20000;
+
+   /** stores the piece-square values. http://chessprogramming.wikispaces.com/Simplified+evaluation+function */
+   // Important: array value [0] corresponds to square a1; [63] == h8.
+   private static final int[] SQUARE_VALUE_MIDDLEGAME =
+// @formatter:off
+         new int[] {
+      20, 30, 10,  0,  0, 10, 30, 20,
+      20, 20,  0,  0,  0,  0, 20, 20,
+      -10,-20,-20,-20,-20,-20,-20,-10,
+      -20,-30,-30,-40,-40,-30,-30,-20,
+      -30,-40,-40,-50,-50,-40,-40,-30,
+      -30,-40,-40,-50,-50,-40,-40,-30,
+      -30,-40,-40,-50,-50,-40,-40,-30,
+      -30,-40,-40,-50,-50,-40,-40,-30,
+   };
+   // @formatter:on
+   private static final int[] SQUARE_VALUE_ENDGAME =
+// @formatter:off
+         new int[] {
+      -50,-30,-30,-30,-30,-30,-30,-50,
+      -30,-30,  0,  0,  0,  0,-30,-30,
+      -30,-10, 20, 30, 30, 20,-10,-30,
+      -30,-10, 30, 40, 40, 30,-10,-30,
+      -30,-10, 30, 40, 40, 30,-10,-30,
+      -30,-10, 20, 30, 30, 20,-10,-30,
+      -30,-20,-10,  0,  0,-10,-20,-30,
+      -50,-40,-30,-20,-20,-30,-40,-50,
+   };
+   // @formatter:on
+
+   @Override
+   public int calculatePieceSquareValue() {
+      return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE_MIDDLEGAME); // TODO ENDGAME
+   }
 
    /**
     * Which squares cannot be attacked when castling.
@@ -41,17 +83,29 @@ public class King extends Piece {
    /**
     * Which squares need to be empty when castling.
     */
-   private static final Map<Colour, Map<CastlingRights, Square[]>> CASTLING_SQUARES_WHICH_MUST_BE_EMPTY;
+   private static final Map<CastlingRights, BitSet>[] CASTLING_SQUARES_WHICH_MUST_BE_EMPTY;
    static {
-      CASTLING_SQUARES_WHICH_MUST_BE_EMPTY = new HashMap<>();
-      Map<CastlingRights, Square[]> tmp = new HashMap<>();
-      tmp.put(CastlingRights.KINGS_SIDE, new Square[] { Square.f1, Square.g1 });
-      tmp.put(CastlingRights.QUEENS_SIDE, new Square[] { Square.b1, Square.c1, Square.d1 });
-      CASTLING_SQUARES_WHICH_MUST_BE_EMPTY.put(Colour.WHITE, tmp);
-      tmp = new HashMap<>();
-      tmp.put(CastlingRights.KINGS_SIDE, new Square[] { Square.f8, Square.g8 });
-      tmp.put(CastlingRights.QUEENS_SIDE, new Square[] { Square.b8, Square.c8, Square.d8 });
-      CASTLING_SQUARES_WHICH_MUST_BE_EMPTY.put(Colour.BLACK, tmp);
+      CASTLING_SQUARES_WHICH_MUST_BE_EMPTY = new Map[2];
+      BitSet bs = new BitSet(64);
+      bs.set(Square.f1.bitIndex());
+      bs.set(Square.g1.bitIndex());
+      CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()] = new HashMap<>(2);
+      CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()].put(CastlingRights.KINGS_SIDE, bs);
+      bs = new BitSet(64);
+      bs.set(Square.b1.bitIndex());
+      bs.set(Square.c1.bitIndex());
+      bs.set(Square.d1.bitIndex());
+      CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()].put(CastlingRights.QUEENS_SIDE, bs);
+      bs = new BitSet(64);
+      bs.set(Square.f8.bitIndex());
+      bs.set(Square.g8.bitIndex());
+      CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()] = new HashMap<>(2);
+      CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()].put(CastlingRights.KINGS_SIDE, bs);
+      bs = new BitSet(64);
+      bs.set(Square.b8.bitIndex());
+      bs.set(Square.c8.bitIndex());
+      bs.set(Square.d8.bitIndex());
+      CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()].put(CastlingRights.QUEENS_SIDE, bs);
    }
 
    /**
@@ -151,55 +205,55 @@ public class King extends Piece {
 
    @Override
    public List<Move> findMoves(Game game, boolean kingInCheck) {
+      Stopwatch stopwatch = new Stopwatch();
       List<Move> moves = new ArrayList<>();
 
       Square kingPosn = Square.fromBitIndex(pieces.getBitSet().nextSetBit(0));
+      Square opponentsKingSquare = findOpponentsKing(game.getChessboard());
+
       BitSet possibleMoves = (BitSet) MOVES[kingPosn.bitIndex()].clone();
 
       // move can't be to a square with a piece of the same colour on it
       possibleMoves.andNot(game.getChessboard().getAllPieces(colour).getBitSet());
+
+      // can't move adjacent to opponent's king
+      possibleMoves.andNot(MOVES[opponentsKingSquare.bitIndex()]);
 
       /*
        * possibleMoves now contains the possible moves apart from castling. (King-adjacency and moving the king to an
        * attacked square have not been checked yet.)
        */
 
-      // set up captures bitset
-      BitSet captures = (BitSet) possibleMoves.clone();
-      captures.and(game.getChessboard().getAllPieces(Colour.oppositeColour(getColour())).getBitSet());
-
-      Square opponentsKingSquare = findOpponentsKing(game.getChessboard());
-      Colour oppositeColour = Colour.oppositeColour(colour);
+      final Colour oppositeColour = Colour.oppositeColour(colour);
+      BitSet opponentsPieces = game.getChessboard().getAllPieces(oppositeColour).getBitSet();
       // check the possibleMoves and store them as moves / captures.
       for (int i = possibleMoves.nextSetBit(0); i >= 0; i = possibleMoves.nextSetBit(i + 1)) {
          Square targetSquare = Square.fromBitIndex(i);
-         // Make sure we're not moving king to king.
-         // The check that we're not moving to a square that is being attacked is performed later.
-         if (MoveDistance.calculateDistance(targetSquare, opponentsKingSquare) > 1) {
-            /*
-             * store move as 'move' or 'capture'
-             */
-            if (captures.get(i)) {
-               moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare, game.getChessboard().pieceAt(
-                     targetSquare, oppositeColour)));
-            } else {
-               moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare));
-            }
+         /*
+          * store move as 'move' or 'capture'
+          */
+         if (opponentsPieces.get(i)) {
+            moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare, game.getChessboard().pieceAt(
+                  targetSquare, oppositeColour)));
+         } else {
+            moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare));
          }
       }
+      long time1 = stopwatch.read();
 
       // castling -- can't castle out of check
       if (!kingInCheck && game.canCastle(colour, CastlingRights.KINGS_SIDE)) {
-         BitSet emptySquaresBitset = game.getChessboard().getEmptySquares().getBitSet();
-         boolean canCastle = true;
          // check squares are empty
-         for (Square sq : CASTLING_SQUARES_WHICH_MUST_BE_EMPTY.get(colour).get(CastlingRights.KINGS_SIDE)) {
-            canCastle = canCastle && emptySquaresBitset.get(sq.bitIndex());
-         }
-         // check squares are not attacked by an enemy piece
-         for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(colour).get(CastlingRights.KINGS_SIDE)) {
-            if (canCastle) {
-               canCastle = canCastle && !game.getChessboard().squareIsAttacked(game, sq, Colour.oppositeColour(colour));
+         BitSet bs = (BitSet) CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[colour.ordinal()].get(CastlingRights.KINGS_SIDE)
+               .clone();
+         bs.and(game.getChessboard().getEmptySquares().getBitSet());
+         boolean canCastle = bs.cardinality() == 2;
+         if (canCastle) {
+            // check squares are not attacked by an enemy piece
+            for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(colour).get(CastlingRights.KINGS_SIDE)) {
+               if (canCastle) {
+                  canCastle = canCastle && !game.getChessboard().squareIsAttacked(game, sq, oppositeColour);
+               }
             }
          }
          if (canCastle) {
@@ -207,22 +261,24 @@ public class King extends Piece {
          }
       }
       if (!kingInCheck && game.canCastle(colour, CastlingRights.QUEENS_SIDE)) {
-         BitSet emptySquaresBitset = game.getChessboard().getEmptySquares().getBitSet();
-         boolean canCastle = true;
          // check squares are empty
-         for (Square sq : CASTLING_SQUARES_WHICH_MUST_BE_EMPTY.get(colour).get(CastlingRights.QUEENS_SIDE)) {
-            canCastle = canCastle && emptySquaresBitset.get(sq.bitIndex());
-         }
-         // check squares are not attacked by an enemy piece
-         for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(colour).get(CastlingRights.QUEENS_SIDE)) {
-            if (canCastle) {
-               canCastle = canCastle && !game.getChessboard().squareIsAttacked(game, sq, Colour.oppositeColour(colour));
+         BitSet bs = (BitSet) CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[colour.ordinal()].get(CastlingRights.QUEENS_SIDE)
+               .clone();
+         bs.and(game.getChessboard().getEmptySquares().getBitSet());
+         boolean canCastle = bs.cardinality() == 3;
+         if (canCastle) {
+            // check squares are not attacked by an enemy piece
+            for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(colour).get(CastlingRights.QUEENS_SIDE)) {
+               if (canCastle) {
+                  canCastle = canCastle && !game.getChessboard().squareIsAttacked(game, sq, oppositeColour);
+               }
             }
          }
          if (canCastle) {
             moves.add(Move.castleQueensSide(colour));
          }
       }
+      long time2 = stopwatch.read();
 
       // make sure king is not/no longer in check
       Iterator<Move> iter = moves.listIterator();
@@ -234,6 +290,7 @@ public class King extends Piece {
          }
       }
 
+      long time3 = stopwatch.read();
       // checks: a king move can only give check if (a) castled with check or (b) discovered check
 
       /*
@@ -259,6 +316,11 @@ public class King extends Piece {
          move.setCheck(isCheck);
       }
 
+      long time4 = stopwatch.read();
+      if (time4 != 0) {
+         LOG.debug("found " + moves.size() + " moves in " + time1 + "," + time2 + "," + time3 + "," + time4 + ", fen: "
+               + Fen.encode(game));
+      }
       return moves;
    }
 

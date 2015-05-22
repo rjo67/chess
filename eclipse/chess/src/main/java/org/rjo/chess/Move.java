@@ -128,6 +128,16 @@ public class Move {
       return sb.toString();
    }
 
+   public String toUCIString() {
+      if (isCastleKingsSide()) {
+         return (colour == Colour.WHITE ? "e1g1" : "e8g8");
+      } else if (isCastleQueensSide()) {
+         return (colour == Colour.WHITE ? "e1c1" : "e8c8");
+      } else {
+         return from().name() + to().name();
+      }
+   }
+
    public static Move castleKingsSide(Colour colour) {
       Move move;
       if (Colour.WHITE == colour) {
@@ -154,6 +164,50 @@ public class Move {
                Square.a8, Square.d8));
       }
       return move;
+   }
+
+   /**
+    * converts from uci style move to a move object
+    *
+    * @param moveStr
+    *           uci move e.g. b7d5
+    * @return move object. Whether 'Check' is not examined!
+    */
+   public static Move fromUCIString(String moveStr, final Game game) {
+      Square from = Square.fromString(moveStr.substring(0, 2));
+      Square to = Square.fromString(moveStr.substring(2, 4));
+      PieceType piece = game.getChessboard().pieceAt(from, game.getSideToMove());
+      boolean kingsMove = piece == PieceType.KING;
+      Move m;
+      if (kingsMove && from == Square.e1 && to == Square.g1) {
+         m = Move.castleKingsSide(Colour.WHITE);
+      } else if (kingsMove && from == Square.e8 && to == Square.g8) {
+         m = Move.castleKingsSide(Colour.BLACK);
+      } else if (kingsMove && from == Square.e1 && to == Square.c1) {
+         m = Move.castleQueensSide(Colour.WHITE);
+      } else if (kingsMove && from == Square.e8 && to == Square.c8) {
+         m = Move.castleQueensSide(Colour.BLACK);
+      } else {
+         PieceType capture = null;
+         try {
+            capture = game.getChessboard().pieceAt(to, Colour.oppositeColour(game.getSideToMove()));
+            m = new Move(piece, game.getSideToMove(), from, to, capture);
+         } catch (IllegalArgumentException x) {
+            // not a capture -- unless enpassant
+            Square enpassantSquare = game.getChessboard().getEnpassantSquare();
+            if (enpassantSquare != null && piece == PieceType.PAWN && to == enpassantSquare) {
+               m = new Move(piece, game.getSideToMove(), from, to, PieceType.PAWN);
+               m.setEnpassant(true);
+            } else {
+               m = new Move(piece, game.getSideToMove(), from, to);
+            }
+         }
+         if (piece == PieceType.PAWN && to.rank() == 7) {
+            PieceType promotedPiece = PieceType.getPieceTypeFromSymbol(moveStr.substring(4, 5));
+            m.setPromotionPiece(promotedPiece);
+         }
+      }
+      return m;
    }
 
    public void setCheck(boolean check) {

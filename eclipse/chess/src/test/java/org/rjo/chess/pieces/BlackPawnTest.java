@@ -12,7 +12,7 @@ import org.rjo.chess.Game;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
 
-public class BlackPawnMoveTest {
+public class BlackPawnTest {
    private King opponentsKing;
    private King myKing;
 
@@ -168,4 +168,5 @@ public class BlackPawnMoveTest {
       Game game = new Game(new Chessboard(opponentsPieces, myPieces));
       TestUtil.checkMoves(pawn.findMoves(game), new HashSet<>(Arrays.asList("d5xe4+")));
    }
+
 }

@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.rjo.chess.pieces.Bishop;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Knight;
@@ -21,6 +23,8 @@ import org.rjo.chess.ray.RayInfo;
 import org.rjo.chess.ray.RayUtils;
 
 public class Chessboard {
+
+   private static final Logger LOG = LogManager.getLogger(Chessboard.class);
 
    /**
     * Stores the pieces in the game.
@@ -374,8 +378,8 @@ public class Chessboard {
       Map<PieceType, Piece> opponentsPieces = getPieces(opponentsColour);
       // iterate over the pieces
       // TODO instead of treating queens separately, should 'merge' them with the rooks and the bishops
-      for (PieceType type : new PieceType[] { PieceType.PAWN, PieceType.KNIGHT, PieceType.KING, PieceType.ROOK,
-            PieceType.BISHOP, PieceType.QUEEN }) {
+      for (PieceType type : new PieceType[] { PieceType.PAWN, PieceType.KNIGHT, PieceType.ROOK, PieceType.BISHOP,
+            PieceType.QUEEN, PieceType.KING }) {
          Piece piece = opponentsPieces.get(type);
          if (piece != null) {
             if (piece.attacksSquare(game.getChessboard(), targetSquare)) {
@@ -497,6 +501,7 @@ public class Chessboard {
     * @return true if this move leaves the king in check (i.e. is an illegal move)
     */
    public static boolean isKingInCheck(Chessboard chessboard, Move move, Colour opponentsColour, Square king) {
+      long start = System.currentTimeMillis();
       BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
       emptySquares.set(move.from().bitIndex());
       emptySquares.clear(move.to().bitIndex());
@@ -532,14 +537,18 @@ public class Chessboard {
             throw new IllegalStateException("cannot clone:", e);
          }
       }
+      long stop1 = System.currentTimeMillis() - start;
       boolean inCheck = Chessboard.isKingInCheck(opponentsPieces, clonedRooksAndQueens, clonedBishopsAndQueens,
             emptySquares, king);
       if (move.isCapture()) {
          // reset global state
          opponentsPieces.put(move.getCapturedPiece(), originalPiece);
       }
+      long stop2 = System.currentTimeMillis() - start;
+      if (stop2 != 0) {
+         LOG.debug("isKingInCheck: " + stop1 + ", total: " + stop2);
+      }
       return inCheck;
-
    }
 
    /**
@@ -615,13 +624,11 @@ public class Chessboard {
          if ((expectedColour != null) && (colour != expectedColour)) {
             continue;
          }
-         for (PieceType type : PieceType.values()) {
+         for (PieceType type : PieceType.getPieceTypes()) {
             Piece p = getPieces(colour).get(type);
             // null == piece-type no longer on board
-            if (p != null) {
-               if (p.pieceAt(targetSquare)) {
-                  return type;
-               }
+            if ((p != null) && (p.pieceAt(targetSquare))) {
+               return type;
             }
          }
       }

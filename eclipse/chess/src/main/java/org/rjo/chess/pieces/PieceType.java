@@ -69,4 +69,13 @@ public enum PieceType {
       return new PieceType[] { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING };
    }
 
+   public static PieceType getPieceTypeFromSymbol(String symbol) {
+      for (PieceType pt : PieceType.values()) {
+         if (symbol.toUpperCase().equals(pt.getSymbol())) {
+            return pt;
+         }
+      }
+      return null;
+   }
+
 }

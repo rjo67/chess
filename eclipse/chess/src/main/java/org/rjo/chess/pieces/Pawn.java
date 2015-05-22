@@ -5,12 +5,15 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.Stopwatch;
 
 /**
  * Stores information about the pawns (still) in the game.
@@ -18,8 +21,37 @@ import org.rjo.chess.Square;
  * @author rich
  */
 public class Pawn extends Piece {
+   private static final Logger LOG = LogManager.getLogger(Pawn.class);
+
+   /** piece value in centipawns */
+   private static final int PIECE_VALUE = 100;
+
+   /**
+    * Stores the piece-square values. http://chessprogramming.wikispaces.com/Simplified+evaluation+function.
+    * These values (mirrored for black) should be added to VALUE to get a piece-square value for each pawn.
+    *
+    * Important: array value [0] corresponds to square a1; [63] == h8.
+    * For black, the position as given below corresponds to the actual board, i.e. a1 is bottom RHS [63]
+    */
+   private static int[] SQUARE_VALUE =
+// @formatter:off
+         new int[] {
+      0,  0,  0,  0,  0,  0,  0,  0,
+      5, 10, 10,-20,-20, 10, 10,  5,
+      5, -5,-10,  0,  0,-10, -5,  5,
+      0,  0,  0, 20, 20,  0,  0,  0,
+      5,  5, 10, 25, 25, 10,  5,  5,
+      10, 10, 20, 30, 30, 20, 10, 10,
+      50, 50, 50, 50, 50, 50, 50, 50,
+      0,  0,  0,  0,  0,  0,  0,  0};
+   // @formatter:on
 
    private MoveHelper helper;
+
+   @Override
+   public int calculatePieceSquareValue() {
+      return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE);
+   }
 
    /**
     * Constructs the Pawn class -- with no pawns on the board. Delegates to Pawn(Colour, boolean) with parameter false.
@@ -91,6 +123,7 @@ public class Pawn extends Piece {
 
    @Override
    public List<Move> findMoves(Game game, boolean kingInCheck) {
+      Stopwatch stopwatch = new Stopwatch();
 
       /*
        * The pawn move is complicated by the different directions for white and black pawns.
@@ -146,6 +179,10 @@ public class Pawn extends Piece {
          move.setCheck(isCheck);
       }
 
+      long time = stopwatch.read();
+      if (time != 0) {
+         LOG.debug("found " + moves.size() + " moves in " + time);
+      }
       return moves;
    }
 

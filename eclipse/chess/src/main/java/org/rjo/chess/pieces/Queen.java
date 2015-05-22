@@ -6,12 +6,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 import org.rjo.chess.ray.RayType;
+import org.rjo.chess.util.Stopwatch;
 
 /**
  * Stores information about the queens (still) in the game.
@@ -19,6 +22,30 @@ import org.rjo.chess.ray.RayType;
  * @author rich
  */
 public class Queen extends SlidingPiece {
+   private static final Logger LOG = LogManager.getLogger(Queen.class);
+
+   /** piece value in centipawns */
+   private static final int PIECE_VALUE = 900;
+
+   /** stores the piece-square values. http://chessprogramming.wikispaces.com/Simplified+evaluation+function */
+   // Important: array value [0] corresponds to square a1; [63] == h8.
+   private static int[] SQUARE_VALUE =
+// @formatter:off
+         new int[] {
+      -20,-10,-10, -5, -5,-10,-10,-20,
+      -10,  0,  5,  0,  0,  0,  0,-10,
+      -10,  0,  5,  5,  5,  5,  0,-10,
+      0,  0,  5,  5,  5,  5,  0, -5,
+      -5,  0,  5,  5,  5,  5,  0, -5,
+      -10,  5,  5,  5,  5,  5,  0,-10,
+      -10,  0,  0,  0,  0,  0,  0,-10,
+      -20,-10,-10, -5, -5,-10,-10,-20};
+   // @formatter:on
+
+   @Override
+   public int calculatePieceSquareValue() {
+      return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE);
+   }
 
    /**
     * Constructs the Queen class -- with no pieces on the board. Delegates to Queen(Colour, boolean) with parameter
@@ -86,6 +113,7 @@ public class Queen extends SlidingPiece {
 
    @Override
    public List<Move> findMoves(Game game, boolean kingInCheck) {
+      Stopwatch stopwatch = new Stopwatch();
 
       List<Move> moves = new ArrayList<>(30);
 
@@ -136,6 +164,10 @@ public class Queen extends SlidingPiece {
          move.setCheck(isCheck);
       }
 
+      long time = stopwatch.read();
+      if (time != 0) {
+         LOG.debug("found " + moves.size() + " moves in " + time);
+      }
       return moves;
    }
 
