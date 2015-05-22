@@ -168,6 +168,25 @@ public class RayUtils {
     * @return the Ray object joining the two squares, or null if not on a ray.
     */
    public static Ray getRay(Square sq1, Square sq2) {
+      final int startIndex = sq1.bitIndex();
+      int reqdIndex = sq2.bitIndex();
+      RayType[] raysToCheck;
+      if (sq1.rank() == sq2.rank()) {
+         raysToCheck = RayType.RAY_TYPES_HORIZONTAL;
+      } else if (sq1.file() == sq2.file()) {
+         raysToCheck = RayType.RAY_TYPES_VERTICAL;
+      } else {
+         raysToCheck = RayType.RAY_TYPES_DIAGONAL;
+      }
+      for (RayType ray : raysToCheck) {
+         if (RAY_MAP[startIndex][ray.ordinal()].get(reqdIndex)) {
+            return ray.getInstance();
+         }
+      }
+      return null;
+   }
+
+   public static Ray getRayORIGINAL(Square sq1, Square sq2) {
       int reqdIndex = sq2.bitIndex();
       for (RayType ray : RayType.values()) {
          if (RAY_MAP[sq1.bitIndex()][ray.ordinal()].get(reqdIndex)) {

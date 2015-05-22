@@ -1,6 +1,7 @@
 package org.rjo.chess;
 
 import java.util.BitSet;
+import java.util.Random;
 
 import org.junit.Test;
 import org.rjo.chess.ray.Ray;
@@ -31,7 +32,7 @@ public class RayTest {
          }
          assertEquals("bad sq " + Square.fromBitIndex(i), expectedEmptySquares[i], nbrEmptySquares);
       }
-      System.out.println(System.currentTimeMillis() - start);
+      System.out.println("emptySquares: " + (System.currentTimeMillis() - start));
 
    }
 
@@ -103,6 +104,20 @@ public class RayTest {
    }
 
    @Test
+   public void speedOfGetRay() {
+      long start = System.currentTimeMillis();
+      int cnt = 0;
+      Random rnd = new Random();
+      for (int i = 0; i < 1000000; i++) {
+         Ray ray = RayUtils.getRay(Square.fromBitIndex(rnd.nextInt(64)), Square.fromBitIndex(rnd.nextInt(64)));
+         if (ray != null) {
+            cnt++;
+         }
+      }
+      System.out.println("getRay: " + cnt + ", " + (System.currentTimeMillis() - start));
+   }
+
+   @Test
    public void speed() {
       BitSet emptySquares = BitSet.valueOf(new long[] { -1 });
       BitSet myPieces = BitSet.valueOf(new long[] { 0 });
@@ -114,6 +129,6 @@ public class RayTest {
          // attacksSquareDiagonally(emptySquares, startSquare, targetSquare);
          RayUtils.findFirstPieceOnRay(Colour.WHITE, emptySquares, myPieces, ray, startSquare.bitIndex());
       }
-      System.out.println(System.currentTimeMillis() - start);
+      System.out.println("speed: " + (System.currentTimeMillis() - start));
    }
 }

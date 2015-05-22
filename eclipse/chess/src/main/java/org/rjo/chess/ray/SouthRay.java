@@ -1,13 +1,27 @@
 package org.rjo.chess.ray;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
-import org.rjo.chess.Square;
 import org.rjo.chess.pieces.PieceType;
 
 public class SouthRay extends BaseRay {
 
    private static SouthRay instance;
+   private static final List<Integer>[] RAY_SQUARES;
+   static {
+      final int offset = -8;
+      RAY_SQUARES = new List[64];
+      for (int i = 0; i < 64; i++) {
+         RAY_SQUARES[i] = new ArrayList<>(8);
+         int startSquareIndex = i + offset;
+         while (startSquareIndex >= 0) {
+            RAY_SQUARES[i].add(startSquareIndex);
+            startSquareIndex += offset;
+         }
+      }
+   }
 
    private SouthRay() {
       super(new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
@@ -21,33 +35,7 @@ public class SouthRay extends BaseRay {
    }
 
    @Override
-   public Iterator<Integer> squaresFrom(Square startSquare) {
-      return squaresFrom(startSquare.bitIndex());
-   }
-
-   @Override
    public Iterator<Integer> squaresFrom(int startSquareIndex) {
-      return new Itr(startSquareIndex);
-   }
-
-   private class Itr implements Iterator<Integer> {
-      final int offset = -8;
-      private int startSquareIndex;
-
-      public Itr(int startSquareIndex) {
-         this.startSquareIndex = startSquareIndex;
-      }
-
-      @Override
-      public boolean hasNext() {
-         return startSquareIndex + offset >= 0;
-      }
-
-      @Override
-      public Integer next() {
-         startSquareIndex += offset;
-         return startSquareIndex;
-      }
-
+      return RAY_SQUARES[startSquareIndex].iterator();
    }
 }
