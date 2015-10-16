@@ -21,6 +21,7 @@ import org.rjo.chess.pieces.SlidingPiece;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayInfo;
 import org.rjo.chess.ray.RayUtils;
+import org.rjo.chess.util.Stopwatch;
 
 public class Chessboard {
 
@@ -501,18 +502,18 @@ public class Chessboard {
     * @return true if this move leaves the king in check (i.e. is an illegal move)
     */
    public static boolean isKingInCheck(Chessboard chessboard, Move move, Colour opponentsColour, Square king) {
-      long start = System.currentTimeMillis();
       BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
       emptySquares.set(move.from().bitIndex());
       emptySquares.clear(move.to().bitIndex());
 
       Map<PieceType, Piece> opponentsPieces = chessboard.getPieces(opponentsColour);
-      BitSet clonedRooksAndQueens = chessboard.getAllRooksAndQueens()[opponentsColour.ordinal()].cloneBitSet();
-      BitSet clonedBishopsAndQueens = chessboard.getAllBishopsAndQueens()[opponentsColour.ordinal()].cloneBitSet();
-      // this move is not relevant for the opponent's bishops, rooks or queens -- unless it's a capture
 
+      // this move is not relevant for the opponent's bishops, rooks or queens -- unless it's a capture
       Piece originalPiece = null;
+      boolean inCheck;
       if (move.isCapture()) {
+         BitSet clonedRooksAndQueens = chessboard.getAllRooksAndQueens()[opponentsColour.ordinal()].cloneBitSet();
+         BitSet clonedBishopsAndQueens = chessboard.getAllBishopsAndQueens()[opponentsColour.ordinal()].cloneBitSet();
          // need to remove captured piece temporarily from the appropriate Piece instance
          originalPiece = opponentsPieces.get(move.getCapturedPiece());
          try {
@@ -536,17 +537,17 @@ public class Chessboard {
          } catch (CloneNotSupportedException e) {
             throw new IllegalStateException("cannot clone:", e);
          }
-      }
-      long stop1 = System.currentTimeMillis() - start;
-      boolean inCheck = Chessboard.isKingInCheck(opponentsPieces, clonedRooksAndQueens, clonedBishopsAndQueens,
-            emptySquares, king);
-      if (move.isCapture()) {
+         inCheck = Chessboard.isKingInCheck(opponentsPieces, clonedRooksAndQueens, clonedBishopsAndQueens,
+               emptySquares, king);
          // reset global state
          opponentsPieces.put(move.getCapturedPiece(), originalPiece);
       }
-      long stop2 = System.currentTimeMillis() - start;
-      if (stop2 != 0) {
-         LOG.debug("isKingInCheck: " + stop1 + ", total: " + stop2);
+      // non-capture
+      else {
+         inCheck = Chessboard.isKingInCheck(opponentsPieces,
+               chessboard.getAllRooksAndQueens()[opponentsColour.ordinal()].getBitSet(),
+               chessboard.getAllBishopsAndQueens()[opponentsColour.ordinal()].getBitSet(), emptySquares, king);
+
       }
       return inCheck;
    }
@@ -566,6 +567,7 @@ public class Chessboard {
     */
    public static boolean isKingInCheck(Map<PieceType, Piece> myPieces, BitSet allRooksAndQueens,
          BitSet allBishopsAndQueens, BitSet emptySquares, Square kingsSquare) {
+      Stopwatch stopwatch = new Stopwatch();
       // discovered check can only be from a rook, queen, or bishop
       boolean isCheck = false;
 
@@ -573,20 +575,30 @@ public class Chessboard {
          isCheck = SlidingPiece.attacksSquareOnRankOrFile(allRooksAndQueens, emptySquares, kingsSquare);
       }
 
+      long stop1 = stopwatch.read();
       // check bishops/queens if not already found check
       if (!isCheck && !allBishopsAndQueens.isEmpty()) {
          isCheck = SlidingPiece.attacksSquareOnDiagonal(allBishopsAndQueens, emptySquares, kingsSquare);
       }
+      long stop2 = stopwatch.read();
 
+      long[] stop = new long[2];
+      int cnt = 0;
       if (!isCheck) {
-         for (PieceType pieceType : new PieceType[] { PieceType.KNIGHT, PieceType.PAWN }) {
+         for (PieceType pieceType : PieceType.KNIGHT_PAWN) {
             if (!isCheck) {
                Piece piece = myPieces.get(pieceType);
                if (piece != null) {
                   isCheck = piece.attacksSquare(null, kingsSquare);
                }
+               stop[cnt] = stopwatch.read();
+               cnt++;
             }
          }
+      }
+      long stop3 = stopwatch.read();
+      if (LOG.isDebugEnabled() && (stop3 != 0)) {
+         LOG.debug("isKingInCheck2: " + stop1 + "/" + stop2 + "/" + stop[0] + "/" + stop[1] + "/" + stop3);
       }
 
       return isCheck;

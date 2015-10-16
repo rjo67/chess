@@ -6,7 +6,8 @@
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.rjo.chess.pieces.King" level="debug"/>
+		<Logger name="org.rjo.chess.pieces" level="debug"/>
+		<Logger name="org.rjo.chess.Chessboard" level="debug"/>
 		<Root level="warn">
 			<AppenderRef ref="Console" />
 		</Root>

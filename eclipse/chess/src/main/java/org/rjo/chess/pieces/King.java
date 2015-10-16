@@ -220,8 +220,8 @@ public class King extends Piece {
       possibleMoves.andNot(MOVES[opponentsKingSquare.bitIndex()]);
 
       /*
-       * possibleMoves now contains the possible moves apart from castling. (King-adjacency and moving the king to an
-       * attacked square have not been checked yet.)
+       * possibleMoves now contains the possible moves apart from castling. (Moving the king to an
+       * attacked square has not been checked yet.)
        */
 
       final Colour oppositeColour = Colour.oppositeColour(colour);

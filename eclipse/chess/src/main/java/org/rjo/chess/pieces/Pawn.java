@@ -421,15 +421,37 @@ public class Pawn extends Piece {
    }
 
    @Override
-   public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
-      BitSet targetSquareBitSet = new BitSet(64);
-      targetSquareBitSet.set(targetSq.bitIndex());
+   public boolean attacksSquare(Chessboard notused, Square targetSq) {
+      if (colour == Colour.WHITE) {
+         if (targetSq.rank() < 2) {
+            return false;
+         }
+         final int index = targetSq.bitIndex();
+         // attack from left
+         if ((targetSq.file() > 0) && (pieces.getBitSet().get(index - 9))) {
+            return true;
+         }
+         // attack from right
+         if ((targetSq.file() < 7) && (pieces.getBitSet().get(index - 7))) {
+            return true;
+         }
+         return false;
 
-      BitSet captures = helper.pawnCaptureLeft(pieces.cloneBitSet());
-      BitSet capturesRight = helper.pawnCaptureRight(pieces.cloneBitSet());
-      captures.or(capturesRight);
-      captures.and(targetSquareBitSet);
-      return !captures.isEmpty();
+      } else {
+         if (targetSq.rank() > 5) {
+            return false;
+         }
+         final int index = targetSq.bitIndex();
+         // attack from left
+         if ((targetSq.file() > 0) && (pieces.getBitSet().get(index + 7))) {
+            return true;
+         }
+         // attack from right
+         if ((targetSq.file() < 7) && (pieces.getBitSet().get(index + 9))) {
+            return true;
+         }
+         return false;
+      }
    }
 
    /**

@@ -31,6 +31,11 @@ public enum PieceType {
     */
    DUMMY("?");
 
+   public final static PieceType[] ALL_PIECE_TYPES = new PieceType[] { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING };
+
+   public final static PieceType[] PROMOTION_RELEVANT_PIECE_TYPES = new PieceType[] { ROOK, KNIGHT, BISHOP, QUEEN };
+   public final static PieceType[] KNIGHT_PAWN = new PieceType[] { KNIGHT, PAWN };
+
    private String symbol;
 
    private PieceType(String symbol) {
@@ -59,14 +64,14 @@ public enum PieceType {
     * @return pieces which a pawn can promote to
     */
    public static PieceType[] getPieceTypesForPromotion() {
-      return new PieceType[] { ROOK, KNIGHT, BISHOP, QUEEN };
+      return PROMOTION_RELEVANT_PIECE_TYPES;
    }
 
    /**
     * @return all piece types -- apart from {@link PieceType#DUMMY}.
     */
    public static PieceType[] getPieceTypes() {
-      return new PieceType[] { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING };
+      return ALL_PIECE_TYPES;
    }
 
    public static PieceType getPieceTypeFromSymbol(String symbol) {

@@ -22,12 +22,21 @@ public enum Square {
    //@formatter:on
 
    // look up map
-   private static Map<Integer, Square> bitIndexToSquare = new HashMap<>(64);
+   private final static Map<Integer, Square> bitIndexToSquare = new HashMap<>(64);
+   static {
+      for (Square sq : Square.values()) {
+         bitIndexToSquare.put(sq.bitIndex(), sq);
+      }
+   }
 
    private int bitIndex;
+   private int rank;// Rank of this square (0..7)
+   private int file;// File of this square (0..7)
 
    private Square(int bitIndex) {
       this.bitIndex = bitIndex;
+      this.rank = bitIndex / 8;
+      this.file = bitIndex % 8;
    }
 
    /**
@@ -36,7 +45,7 @@ public enum Square {
     * @return
     */
    public int rank() {
-      return bitIndex / 8;
+      return rank;
    }
 
    /**
@@ -45,7 +54,7 @@ public enum Square {
     * @return
     */
    public int file() {
-      return bitIndex % 8;
+      return file;
    }
 
    /**
@@ -65,12 +74,6 @@ public enum Square {
     * @return the matching square or null
     */
    public static Square fromBitIndex(int bitIndex) {
-      // build static map the first time
-      if (bitIndexToSquare.isEmpty()) {
-         for (Square sq : Square.values()) {
-            bitIndexToSquare.put(sq.bitIndex(), sq);
-         }
-      }
       return bitIndexToSquare.get(bitIndex);
    }
 
