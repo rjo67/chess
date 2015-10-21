@@ -103,10 +103,6 @@ public class ChessboardTest {
       assertTrue(expectedAllPiecesBlack.get(Square.h6.bitIndex()));
       expectedAllPiecesBlack.clear(Square.h6.bitIndex());
 
-      assertEquals(prevState.allRooksAndQueens[0], newState.allRooksAndQueens[0]);
-      assertEquals(prevState.allRooksAndQueens[1], newState.allRooksAndQueens[1]);
-      assertEquals(expectedBishopsAndQueens, newState.allBishopsAndQueens[0]);
-      assertEquals(prevState.allBishopsAndQueens[1], newState.allBishopsAndQueens[1]);
       assertEquals(expectedEmptySquares, newState.emptySquares);
       assertEquals(expectedTotalPieces, newState.totalPieces);
       assertEquals(expectedAllPiecesWhite, newState.allPiecesWhite);
@@ -148,10 +144,6 @@ public class ChessboardTest {
       assertTrue(expectedAllPiecesBlack.get(Square.d5.bitIndex()));
       expectedAllPiecesBlack.clear(Square.d5.bitIndex());
 
-      assertEquals(prevState.allRooksAndQueens[0], newState.allRooksAndQueens[0]);
-      assertEquals(prevState.allRooksAndQueens[1], newState.allRooksAndQueens[1]);
-      assertEquals(prevState.allBishopsAndQueens[0], newState.allBishopsAndQueens[0]);
-      assertEquals(prevState.allBishopsAndQueens[1], newState.allBishopsAndQueens[1]);
       assertEquals(expectedEmptySquares, newState.emptySquares);
       assertEquals(expectedTotalPieces, newState.totalPieces);
       assertEquals(expectedAllPiecesWhite, newState.allPiecesWhite);
@@ -206,10 +198,6 @@ public class ChessboardTest {
       assertTrue(expectedAllPiecesBlack.get(Square.a8.bitIndex()));
       expectedAllPiecesBlack.clear(Square.a8.bitIndex());
 
-      assertEquals(expectedRooksAndQueensWhite, newState.allRooksAndQueens[0]);
-      assertEquals(expectedRooksAndQueensBlack, newState.allRooksAndQueens[1]);
-      assertEquals(expectedBishopsAndQueensWhite, newState.allBishopsAndQueens[0]);
-      assertEquals(prevState.allBishopsAndQueens[1], newState.allBishopsAndQueens[1]);
       assertEquals(expectedEmptySquares, newState.emptySquares);
       assertEquals(expectedTotalPieces, newState.totalPieces);
       assertEquals(expectedAllPiecesWhite, newState.allPiecesWhite);
@@ -255,10 +243,6 @@ public class ChessboardTest {
       expectedAllPiecesBlack.clear(Square.b4.bitIndex());
       expectedAllPiecesBlack.set(Square.a3.bitIndex());
 
-      assertEquals(prevState.allRooksAndQueens[0], newState.allRooksAndQueens[0]);
-      assertEquals(prevState.allRooksAndQueens[1], newState.allRooksAndQueens[1]);
-      assertEquals(prevState.allBishopsAndQueens[0], newState.allBishopsAndQueens[0]);
-      assertEquals(prevState.allBishopsAndQueens[1], newState.allBishopsAndQueens[1]);
       assertEquals(expectedEmptySquares, newState.emptySquares);
       assertEquals(expectedTotalPieces, newState.totalPieces);
       assertEquals(expectedAllPiecesWhite, newState.allPiecesWhite);
@@ -270,18 +254,12 @@ public class ChessboardTest {
    }
 
    class InternalState {
-      BitSet[] allBishopsAndQueens = new BitSet[2];
-      BitSet[] allRooksAndQueens = new BitSet[2];
       BitSet emptySquares;
       BitSet allPiecesWhite;
       BitSet allPiecesBlack;
       BitSet totalPieces;
 
       InternalState(Chessboard cb) {
-         allBishopsAndQueens[0] = cb.getAllBishopsAndQueens()[0].cloneBitSet();
-         allBishopsAndQueens[1] = cb.getAllBishopsAndQueens()[1].cloneBitSet();
-         allRooksAndQueens[0] = cb.getAllRooksAndQueens()[0].cloneBitSet();
-         allRooksAndQueens[1] = cb.getAllRooksAndQueens()[1].cloneBitSet();
          emptySquares = cb.getEmptySquares().cloneBitSet();
          allPiecesWhite = cb.getAllPieces(Colour.WHITE).cloneBitSet();
          allPiecesBlack = cb.getAllPieces(Colour.BLACK).cloneBitSet();
@@ -294,18 +272,6 @@ public class ChessboardTest {
             return false;
          }
          InternalState other = (InternalState) obj;
-         if (!this.allBishopsAndQueens[0].equals(other.allBishopsAndQueens[0])) {
-            return false;
-         }
-         if (!this.allBishopsAndQueens[1].equals(other.allBishopsAndQueens[1])) {
-            return false;
-         }
-         if (!this.allRooksAndQueens[0].equals(other.allRooksAndQueens[0])) {
-            return false;
-         }
-         if (!this.allRooksAndQueens[1].equals(other.allRooksAndQueens[1])) {
-            return false;
-         }
          if (!this.emptySquares.equals(other.emptySquares)) {
             return false;
          }

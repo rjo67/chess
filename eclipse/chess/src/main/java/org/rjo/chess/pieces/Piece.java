@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.rjo.chess.BitBoard;
-import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
@@ -70,13 +69,13 @@ public abstract class Piece implements Cloneable {
    /**
     * Checks to see if the given square is attacked by one or more pieces of this piece type.
     *
-    * @param chessboard
-    *           the board
+    * @param emptySquares
+    *           empty square bitset
     * @param targetSq
     *           the square to check.
     * @return true if it is attacked, otherwise false.
     */
-   abstract public boolean attacksSquare(Chessboard chessboard, Square targetSq);
+   abstract public boolean attacksSquare(BitSet emptySquares, Square targetSq);
 
    /**
     * Carries out the move for this piece type, i.e. updates internal structures.

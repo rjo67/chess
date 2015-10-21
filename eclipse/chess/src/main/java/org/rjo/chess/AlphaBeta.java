@@ -65,7 +65,7 @@ public class AlphaBeta implements SearchStrategy {
          // show current move even if not best (not uci relevant)
          if (!newMoveFound) {
             LOG.debug(String.format("(%7s, %8d, %8d, %5dms)%s", move, score, nbrNodesEvaluated,
-                  (System.currentTimeMillis() - startTime), newMoveFound ? " ** " + moveInfo.getLine() : ""));
+                  (System.currentTimeMillis() - startTime), ""));
          }
       }
       long overallStopTime = System.currentTimeMillis();

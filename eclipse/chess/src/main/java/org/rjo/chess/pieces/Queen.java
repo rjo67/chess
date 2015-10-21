@@ -1,6 +1,7 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -172,13 +173,13 @@ public class Queen extends SlidingPiece {
    }
 
    @Override
-   public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
+   public boolean attacksSquare(BitSet emptySquares, Square targetSq) {
       for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
          Square startSquare = Square.fromBitIndex(i);
-         if (attacksSquareRankOrFile(chessboard.getEmptySquares().getBitSet(), startSquare, targetSq)) {
+         if (attacksSquareRankOrFile(emptySquares, startSquare, targetSq)) {
             return true;
          }
-         if (attacksSquareDiagonally(chessboard.getEmptySquares().getBitSet(), startSquare, targetSq)) {
+         if (attacksSquareDiagonally(emptySquares, startSquare, targetSq)) {
             return true;
          }
       }

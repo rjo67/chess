@@ -52,10 +52,8 @@ public class BishopMoveTest {
       Pawn pawn = new Pawn(Colour.BLACK, Square.g7);
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
       Game game = new Game(new Chessboard(whitePieces, opponentsPieces));
-      TestUtil.checkMoves(
-            whiteBishop.findMoves(game),
-            new HashSet<>(Arrays.asList("Bd4-e5", "Bd4-f6", "Bd4xg7", "Bd4-c5", "Bd4-b6", "Bd4-a7", "Bd4-e3", "Bd4-f2",
-                  "Bd4-g1", "Bd4-c3", "Bd4-b2", "Bd4-a1")));
+      TestUtil.checkMoves(whiteBishop.findMoves(game), new HashSet<>(Arrays.asList("Bd4-e5", "Bd4-f6", "Bd4xg7",
+            "Bd4-c5", "Bd4-b6", "Bd4-a7", "Bd4-e3", "Bd4-f2", "Bd4-g1", "Bd4-c3", "Bd4-b2", "Bd4-a1")));
    }
 
    @Test
@@ -210,9 +208,9 @@ public class BishopMoveTest {
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
       Chessboard chessboard = new Chessboard(whitePieces, opponentsPieces);
       for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
-         assertTrue("square " + sq, whiteBishop.attacksSquare(chessboard, sq));
+         assertTrue("square " + sq, whiteBishop.attacksSquare(chessboard.getEmptySquares().getBitSet(), sq));
       }
-      assertFalse(whiteBishop.attacksSquare(chessboard, Square.c4));
+      assertFalse(whiteBishop.attacksSquare(chessboard.getEmptySquares().getBitSet(), Square.c4));
    }
 
    @Test

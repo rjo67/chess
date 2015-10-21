@@ -1,6 +1,7 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -108,8 +109,8 @@ public class Bishop extends SlidingPiece {
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
-      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.c1, Square.f1 } : new Square[] { Square.c8,
-            Square.f8 };
+      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.c1, Square.f1 }
+            : new Square[] { Square.c8, Square.f8 };
       initPosition(requiredSquares);
    }
 
@@ -119,7 +120,8 @@ public class Bishop extends SlidingPiece {
       List<Move> moves = new ArrayList<>(30);
 
       // search for moves
-      for (RayType rayType : new RayType[] { RayType.NORTHWEST, RayType.NORTHEAST, RayType.SOUTHWEST, RayType.SOUTHEAST }) {
+      for (RayType rayType : new RayType[] { RayType.NORTHWEST, RayType.NORTHEAST, RayType.SOUTHWEST,
+            RayType.SOUTHEAST }) {
          moves.addAll(search(game.getChessboard(), rayType.getInstance()));
       }
 
@@ -168,9 +170,9 @@ public class Bishop extends SlidingPiece {
    }
 
    @Override
-   public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
+   public boolean attacksSquare(BitSet emptySquares, Square targetSq) {
       for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-         if (attacksSquareDiagonally(chessboard.getEmptySquares().getBitSet(), Square.fromBitIndex(i), targetSq)) {
+         if (attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSq)) {
             return true;
          }
       }

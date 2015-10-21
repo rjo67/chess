@@ -33,10 +33,8 @@ public class WhitePawnTest {
    public void startPosition() {
       Game game = new Game();
       Pawn pawn = new Pawn(Colour.WHITE, true);
-      TestUtil.checkMoves(
-            pawn.findMoves(game),
-            new HashSet<>(Arrays.asList("a2-a3", "a2-a4", "b2-b3", "b2-b4", "c2-c3", "c2-c4", "d2-d3", "d2-d4",
-                  "e2-e3", "e2-e4", "f2-f3", "f2-f4", "g2-g3", "g2-g4", "h2-h3", "h2-h4")));
+      TestUtil.checkMoves(pawn.findMoves(game), new HashSet<>(Arrays.asList("a2-a3", "a2-a4", "b2-b3", "b2-b4", "c2-c3",
+            "c2-c4", "d2-d3", "d2-d4", "e2-e3", "e2-e4", "f2-f3", "f2-f4", "g2-g3", "g2-g4", "h2-h3", "h2-h4")));
    }
 
    @Test
@@ -232,8 +230,8 @@ public class WhitePawnTest {
       King king = new King(Colour.BLACK, Square.f7);
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(king));
       Chessboard chessboard = new Chessboard(myPieces, opponentsPieces);
-      assertTrue(pawn.attacksSquare(chessboard, Square.e6));
-      assertFalse(pawn.attacksSquare(chessboard, Square.d6));
-      assertFalse(pawn.attacksSquare(chessboard, Square.e7));
+      assertTrue(pawn.attacksSquare(chessboard.getEmptySquares().getBitSet(), Square.e6));
+      assertFalse(pawn.attacksSquare(chessboard.getEmptySquares().getBitSet(), Square.d6));
+      assertFalse(pawn.attacksSquare(chessboard.getEmptySquares().getBitSet(), Square.e7));
    }
 }

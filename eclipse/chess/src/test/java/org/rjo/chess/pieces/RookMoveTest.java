@@ -38,8 +38,7 @@ public class RookMoveTest {
       Rook whiteRook = new Rook(Colour.WHITE, Square.d4);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook, myKing));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(
-            whiteRook.findMoves(game),
+      TestUtil.checkMoves(whiteRook.findMoves(game),
             new HashSet<>(Arrays.asList("Rd4-d5", "Rd4-d6", "Rd4-d7", "Rd4-d8+", "Rd4-e4+", "Rd4-f4", "Rd4-g4",
                   "Rd4-h4", "Rd4-d3", "Rd4-d2", "Rd4-d1", "Rd4-c4", "Rd4-b4", "Rd4-a4")));
    }
@@ -49,10 +48,8 @@ public class RookMoveTest {
       Rook whiteRook = new Rook(Colour.WHITE, Square.a1);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook, new King(Colour.WHITE, Square.b6)));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(
-            whiteRook.findMoves(game),
-            new HashSet<>(Arrays.asList("Ra1-a2", "Ra1-a3", "Ra1-a4", "Ra1-a5", "Ra1-a6", "Ra1-a7", "Ra1-a8+",
-                  "Ra1-b1", "Ra1-c1", "Ra1-d1", "Ra1-e1+", "Ra1-f1", "Ra1-g1", "Ra1-h1")));
+      TestUtil.checkMoves(whiteRook.findMoves(game), new HashSet<>(Arrays.asList("Ra1-a2", "Ra1-a3", "Ra1-a4", "Ra1-a5",
+            "Ra1-a6", "Ra1-a7", "Ra1-a8+", "Ra1-b1", "Ra1-c1", "Ra1-d1", "Ra1-e1+", "Ra1-f1", "Ra1-g1", "Ra1-h1")));
    }
 
    /**
@@ -88,10 +85,8 @@ public class RookMoveTest {
       Rook whiteRook = new Rook(Colour.WHITE, Square.h1);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook, new King(Colour.WHITE, Square.b6)));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(
-            whiteRook.findMoves(game),
-            new HashSet<>(Arrays.asList("Rh1-h2", "Rh1-h3", "Rh1-h4", "Rh1-h5", "Rh1-h6", "Rh1-h7", "Rh1-h8+",
-                  "Rh1-g1", "Rh1-f1", "Rh1-e1+", "Rh1-d1", "Rh1-c1", "Rh1-b1", "Rh1-a1")));
+      TestUtil.checkMoves(whiteRook.findMoves(game), new HashSet<>(Arrays.asList("Rh1-h2", "Rh1-h3", "Rh1-h4", "Rh1-h5",
+            "Rh1-h6", "Rh1-h7", "Rh1-h8+", "Rh1-g1", "Rh1-f1", "Rh1-e1+", "Rh1-d1", "Rh1-c1", "Rh1-b1", "Rh1-a1")));
    }
 
    /**
@@ -128,8 +123,7 @@ public class RookMoveTest {
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook, myKing));
       opponentsKing = new King(Colour.BLACK, Square.b5);
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(
-            whiteRook.findMoves(game),
+      TestUtil.checkMoves(whiteRook.findMoves(game),
             new HashSet<>(Arrays.asList("Ra8-a7", "Ra8-a6", "Ra8-a5+", "Ra8-a4", "Ra8-a3", "Ra8-a2", "Ra8-a1",
                   "Ra8-b8+", "Ra8-c8", "Ra8-d8", "Ra8-e8", "Ra8-f8", "Ra8-g8", "Ra8-h8")));
    }
@@ -168,10 +162,9 @@ public class RookMoveTest {
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteRook, myKing));
       opponentsKing = new King(Colour.BLACK, Square.b5);
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(
-            whiteRook.findMoves(game),
-            new HashSet<>(Arrays.asList("Rh8-h7", "Rh8-h6", "Rh8-h5+", "Rh8-h4", "Rh8-h3", "Rh8-h2", "Rh8-h1",
-                  "Rh8-g8", "Rh8-f8", "Rh8-e8", "Rh8-d8", "Rh8-c8", "Rh8-b8+", "Rh8-a8")));
+      TestUtil.checkMoves(whiteRook.findMoves(game),
+            new HashSet<>(Arrays.asList("Rh8-h7", "Rh8-h6", "Rh8-h5+", "Rh8-h4", "Rh8-h3", "Rh8-h2", "Rh8-h1", "Rh8-g8",
+                  "Rh8-f8", "Rh8-e8", "Rh8-d8", "Rh8-c8", "Rh8-b8+", "Rh8-a8")));
    }
 
    /**
@@ -214,9 +207,9 @@ public class RookMoveTest {
       Chessboard chessboard = new Chessboard(whitePieces, opponentsPieces);
       for (Square sq : new Square[] { Square.e8, Square.e6, Square.d7, Square.c7, Square.b7, Square.a7, Square.f7,
             Square.g7, Square.h7 }) {
-         assertTrue("square " + sq, whiteRook.attacksSquare(chessboard, sq));
+         assertTrue("square " + sq, whiteRook.attacksSquare(chessboard.getEmptySquares().getBitSet(), sq));
       }
-      assertFalse(whiteRook.attacksSquare(chessboard, Square.c4));
+      assertFalse(whiteRook.attacksSquare(chessboard.getEmptySquares().getBitSet(), Square.c4));
    }
 
 }

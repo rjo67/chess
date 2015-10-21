@@ -6,16 +6,26 @@ explorations in the world of chess computer programming
 current state: move generator seems to be bugfree. Now working on performance.
 
 ## TODO
+* implement interface for BitSet, and 'normal' / immutable versions
+* change various methods to return immutable version
+
+
 * rewrite isKingInCheck.
 * optimize King to not use bitboard? findKing().  Maybe other pieces too.
 
 * iterative deepening
 * thread for search, interrupt from uci controller
 
+## 21.10.15
+* removed extra data structures rookAndQueen, bishopAndQueen.
+5ply:  164.075.551 moves (   71.325 ms) ( 2300,4 moves/ms)
+
 ## 22.05.15
 
 * use log4j
 * rays - static init
+
+(oops, regression here ...)
 5ply:  162.934.523 moves (   66.558 ms) ( 2448,0 moves/ms)
 5ply:  162.934.523 moves (   64.057 ms) ( 2543,6 moves/ms)
 

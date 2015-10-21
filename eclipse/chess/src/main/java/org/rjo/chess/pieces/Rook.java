@@ -1,6 +1,7 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -107,8 +108,8 @@ public class Rook extends SlidingPiece {
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
-      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.a1, Square.h1 } : new Square[] { Square.a8,
-            Square.h8 };
+      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.a1, Square.h1 }
+            : new Square[] { Square.a8, Square.h8 };
       initPosition(requiredSquares);
    }
 
@@ -171,9 +172,9 @@ public class Rook extends SlidingPiece {
    }
 
    @Override
-   public boolean attacksSquare(Chessboard chessboard, Square targetSq) {
+   public boolean attacksSquare(BitSet emptySquares, Square targetSq) {
       for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-         if (attacksSquareRankOrFile(chessboard.getEmptySquares().getBitSet(), Square.fromBitIndex(i), targetSq)) {
+         if (attacksSquareRankOrFile(emptySquares, Square.fromBitIndex(i), targetSq)) {
             return true;
          }
       }

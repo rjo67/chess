@@ -71,8 +71,8 @@ public class PerftTest {
       System.out.println("Running all tests");
       long start = System.currentTimeMillis();
       new PerftTest().allTests();
-      System.out.println(String.format(Locale.GERMANY, "Finished in %,6d s",
-            (System.currentTimeMillis() - start) / 1000));
+      System.out
+            .println(String.format(Locale.GERMANY, "Finished in %,6d s", (System.currentTimeMillis() - start) / 1000));
    }
 
    /**
@@ -88,7 +88,8 @@ public class PerftTest {
     * @param expectedNbrOfMoves
     *           int array with expected number of moves.
     */
-   private void doTest(String testname, String fenString, Colour sideToMove, int[] expectedNbrOfMoves, boolean printout) {
+   private void doTest(String testname, String fenString, Colour sideToMove, int[] expectedNbrOfMoves,
+         boolean printout) {
       for (int depth = 0; depth < expectedNbrOfMoves.length; depth++) {
          if (expectedNbrOfMoves[depth] != -1) {
             Game game = Fen.decode(fenString);
@@ -101,8 +102,9 @@ public class PerftTest {
                System.out.println(String.format(Locale.GERMANY, "%40s %2dply: %,12d moves (%,9d ms) (%7.1f moves/ms)",
                      testname, depth + 1, moves, time, ((moves * 1.0) / time)));
             }
-            assertEquals("wrong nbr of moves at depth " + (depth + 1) + " for fen: " + fenString + ", moveMap: "
-                  + moveMap, expectedNbrOfMoves[depth], moves);
+            assertEquals(
+                  "wrong nbr of moves at depth " + (depth + 1) + " for fen: " + fenString + ", moveMap: " + moveMap,
+                  expectedNbrOfMoves[depth], moves);
          }
       }
    }
@@ -163,7 +165,7 @@ public class PerftTest {
    }
 
    @Test
-   // @Ignore("too slow for normal junit tests. See Perft::main")
+   @Ignore("too slow for normal junit tests. See Perft::main")
    // posn6, 5ply: 164.075.551 moves ( 192.403 ms) ( 852,8 moves/ms)
    public void posn6ply5() throws IOException {
       doTest("posn6", "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10", Colour.WHITE,
@@ -237,15 +239,15 @@ public class PerftTest {
    public void promotion() {
       Object[] d = new Object[] { "promotion www.rocechess.ch/perft.html", "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1",
             Colour.BLACK, new int[] { 24, 496, 9483, 182838 } };
-      doTest((String) d[0], (String) d[1], (Colour) d[2], (int[]) d[3], false);
+      doTest((String) d[0], (String) d[1], (Colour) d[2], (int[]) d[3], true);
    }
 
    @Test
    public void underpromoteToGiveCheck() throws IOException {
-      doTest("underpromoteToGiveCheck", "8/P1k5/K7/8/8/8/8/8 w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, -1, -1,
-            92683 }, false);
-      doTest("underpromoteToGiveCheck", "8/8/8/8/8/k7/p1K5/8 b - - 0 1", Colour.BLACK, new int[] { -1, -1, -1, -1, -1,
-            92683 }, false);
+      doTest("underpromoteToGiveCheck", "8/P1k5/K7/8/8/8/8/8 w - - 0 1", Colour.WHITE,
+            new int[] { -1, -1, -1, -1, -1, 92683 }, false);
+      doTest("underpromoteToGiveCheck", "8/8/8/8/8/k7/p1K5/8 b - - 0 1", Colour.BLACK,
+            new int[] { -1, -1, -1, -1, -1, 92683 }, false);
    }
 
    @Test

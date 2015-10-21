@@ -128,7 +128,7 @@ public class Pawn extends Piece {
       /*
        * The pawn move is complicated by the different directions for white and black pawns.
        * This is the only piece to have this complication.
-       * 
+       *
        * This difference is catered for by the 'MoveHelper' implementations.
        */
 
@@ -275,7 +275,8 @@ public class Pawn extends Piece {
     *           moves which are captures i.e. the opponent's pieces are taken into account.
     * @return list of moves found by this method
     */
-   private List<Move> capture(Chessboard chessboard, MoveHelper helper, boolean captureLeft, boolean checkingForAttack) {
+   private List<Move> capture(Chessboard chessboard, MoveHelper helper, boolean captureLeft,
+         boolean checkingForAttack) {
 
       BitSet captures;
       if (captureLeft) {
@@ -306,8 +307,8 @@ public class Pawn extends Piece {
          if (helper.onLastRank(i)) {
             // capture with promotion
             Square fromSquare = Square.fromBitIndex(i + offset);
-            PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY : chessboard.pieceAt(targetSquare,
-                  oppositeColour);
+            PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY
+                  : chessboard.pieceAt(targetSquare, oppositeColour);
             for (PieceType type : PieceType.getPieceTypesForPromotion()) {
                Move move = new Move(PieceType.PAWN, colour, fromSquare, targetSquare, capturedPiece);
                move.setPromotionPiece(type);
@@ -421,7 +422,7 @@ public class Pawn extends Piece {
    }
 
    @Override
-   public boolean attacksSquare(Chessboard notused, Square targetSq) {
+   public boolean attacksSquare(BitSet notused, Square targetSq) {
       if (colour == Colour.WHITE) {
          if (targetSq.rank() < 2) {
             return false;

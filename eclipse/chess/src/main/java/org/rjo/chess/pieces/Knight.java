@@ -170,8 +170,8 @@ public class Knight extends Piece {
    @Override
    public void initPosition() {
       Square[] requiredSquares = null;
-      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.b1, Square.g1 } : new Square[] { Square.b8,
-            Square.g8 };
+      requiredSquares = colour == Colour.WHITE ? new Square[] { Square.b1, Square.g1 }
+            : new Square[] { Square.b8, Square.g8 };
       initPosition(requiredSquares);
    }
 
@@ -199,8 +199,8 @@ public class Knight extends Piece {
             Move move;
             if (allOpponentsPiecesBitSet.get(k)) {
                // capture
-               move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare, game.getChessboard().pieceAt(
-                     targetSquare, oppositeColour));
+               move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare,
+                     game.getChessboard().pieceAt(targetSquare, oppositeColour));
             } else {
                move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare);
             }
@@ -264,7 +264,7 @@ public class Knight extends Piece {
    }
 
    @Override
-   public boolean attacksSquare(Chessboard notUsed, Square targetSq) {
+   public boolean attacksSquare(BitSet notUsed, Square targetSq) {
       BitSet possibleMovesFromTargetSquare = knightMoves[targetSq.bitIndex()];
       return possibleMovesFromTargetSquare.intersects(pieces.getBitSet());
    }

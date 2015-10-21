@@ -69,6 +69,7 @@ public class King extends Piece {
     * Which squares cannot be attacked when castling.
     */
    private static final Map<Colour, Map<CastlingRights, Square[]>> CASTLING_SQUARES_NOT_IN_CHECK;
+
    static {
       CASTLING_SQUARES_NOT_IN_CHECK = new HashMap<>();
       Map<CastlingRights, Square[]> tmp = new HashMap<>();
@@ -80,10 +81,12 @@ public class King extends Piece {
       tmp.put(CastlingRights.QUEENS_SIDE, new Square[] { Square.c8, Square.d8 });
       CASTLING_SQUARES_NOT_IN_CHECK.put(Colour.BLACK, tmp);
    }
+
    /**
     * Which squares need to be empty when castling.
     */
    private static final Map<CastlingRights, BitSet>[] CASTLING_SQUARES_WHICH_MUST_BE_EMPTY;
+
    static {
       CASTLING_SQUARES_WHICH_MUST_BE_EMPTY = new Map[2];
       BitSet bs = new BitSet(64);
@@ -112,6 +115,7 @@ public class King extends Piece {
     * Valid squares to move to
     */
    private static final BitSet[] MOVES = new BitSet[64];
+
    static {
       for (int i = 0; i < 64; i++) {
          BitSet myBitSet = new BitSet(64);
@@ -233,8 +237,8 @@ public class King extends Piece {
           * store move as 'move' or 'capture'
           */
          if (opponentsPieces.get(i)) {
-            moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare, game.getChessboard().pieceAt(
-                  targetSquare, oppositeColour)));
+            moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare,
+                  game.getChessboard().pieceAt(targetSquare, oppositeColour)));
          } else {
             moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare));
          }
@@ -309,8 +313,8 @@ public class King extends Piece {
          }
          if (!isCheck) {
             if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-               isCheck = SlidingPiece.attacksSquareRankOrFile(game.getChessboard().getEmptySquares().getBitSet(), move
-                     .getRooksCastlingMove().to(), opponentsKingSquare);
+               isCheck = SlidingPiece.attacksSquareRankOrFile(game.getChessboard().getEmptySquares().getBitSet(),
+                     move.getRooksCastlingMove().to(), opponentsKingSquare);
             }
          }
          move.setCheck(isCheck);
@@ -357,7 +361,7 @@ public class King extends Piece {
    }
 
    @Override
-   public boolean attacksSquare(Chessboard chessboard, Square sq) {
+   public boolean attacksSquare(BitSet notused, Square sq) {
       return MoveDistance.calculateDistance(getLocations()[0], sq) == 1;
    }
 }

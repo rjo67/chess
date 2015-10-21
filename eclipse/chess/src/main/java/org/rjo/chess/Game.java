@@ -7,6 +7,11 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.pieces.PieceType;
@@ -33,6 +38,9 @@ public class Game {
     * delibarately for tests.
     */
    private boolean inCheck;
+
+   // thread pool for findMove()
+   private ExecutorService threadPool = Executors.newFixedThreadPool(PieceType.getPieceTypes().length);
 
    /**
     * Constructs a game with the default start position.
@@ -129,11 +137,45 @@ public class Game {
     * @return all moves for this colour.
     */
    public List<Move> findMoves(Colour colour) {
+      // return findMovesParallel(colour);
       List<Move> moves = new ArrayList<>(60);
       for (PieceType type : PieceType.getPieceTypes()) {
          Piece p = chessboard.getPieces(colour).get(type);
          moves.addAll(p.findMoves(this, inCheck));
       }
+      return moves;
+   }
+
+   public List<Move> findMovesParallel(Colour colour) {
+      // set up tasks
+      List<Callable<List<Move>>> tasks = new ArrayList<>();
+      for (PieceType type : PieceType.getPieceTypes()) {
+         tasks.add(new Callable<List<Move>>() {
+
+            @Override
+            public List<Move> call() throws Exception {
+               Piece p = chessboard.getPieces(colour).get(type);
+               return p.findMoves(Game.this, inCheck);
+            }
+
+         });
+      }
+
+      // and execute
+      List<Move> moves = new ArrayList<>(60);
+      try {
+         List<Future<List<Move>>> results = threadPool.invokeAll(tasks);
+
+         for (Future<List<Move>> f : results) {
+            moves.addAll(f.get());
+         }
+      } catch (InterruptedException e) {
+         // TODO Auto-generated catch block
+         throw new RuntimeException("got InterruptedException from future (findMovesParallel)", e);
+      } catch (ExecutionException e) {
+         throw new RuntimeException("got ExecutionException from future (findMovesParallel)", e);
+      }
+
       return moves;
    }
 
@@ -177,7 +219,7 @@ public class Game {
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
-               .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
+                     .removePiece(Square.findMoveFromEnpassantSquare(move.to()));
             } else {
                chessboard.getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
                      .removePiece(move.to());
@@ -382,10 +424,10 @@ public class Game {
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-               .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
+                     .addPiece(Square.findMoveFromEnpassantSquare(move.to()));
             } else {
                chessboard.getPieces(Colour.oppositeColour(move.getColour())).get(move.getCapturedPiece())
-               .addPiece(move.to());
+                     .addPiece(move.to());
             }
          }
          // promotion: remove the promoted piece
