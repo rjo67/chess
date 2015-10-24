@@ -6,12 +6,12 @@ explorations in the world of chess computer programming
 current state: move generator seems to be bugfree. Now working on performance.
 
 ## TODO
+
+* Chessboard:isKingInCheck should take parameter isKingInCheck and call the
+appropriate KingCheck method.
+
 * implement interface for BitSet, and 'normal' / immutable versions
 * change various methods to return immutable version
-
-
-* rewrite isKingInCheck.
-* optimize King to not use bitboard? findKing().  Maybe other pieces too.
 
 * iterative deepening
 * thread for search, interrupt from uci controller

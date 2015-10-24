@@ -12,4 +12,8 @@ public interface Ray {
    public Iterator<Integer> squaresFrom(int startSquareIndex);
 
    public boolean isRelevantPieceForDiscoveredCheck(PieceType piece);
+
+   public RayType getRayType();
+
+   public boolean isDiagonal();
 }

@@ -14,6 +14,7 @@ import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
+import org.rjo.chess.ray.RayFactory;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.Stopwatch;
 
@@ -120,9 +121,8 @@ public class Bishop extends SlidingPiece {
       List<Move> moves = new ArrayList<>(30);
 
       // search for moves
-      for (RayType rayType : new RayType[] { RayType.NORTHWEST, RayType.NORTHEAST, RayType.SOUTHWEST,
-            RayType.SOUTHEAST }) {
-         moves.addAll(search(game.getChessboard(), rayType.getInstance()));
+      for (RayType rayType : RayType.RAY_TYPES_DIAGONAL) {
+         moves.addAll(search(game.getChessboard(), RayFactory.getRay(rayType)));
       }
 
       // make sure king is not/no longer in check
@@ -130,18 +130,13 @@ public class Bishop extends SlidingPiece {
       Iterator<Move> iter = moves.listIterator();
       while (iter.hasNext()) {
          Move move = iter.next();
-         boolean inCheck = false;
-         if (!kingInCheck) {
-            // just need to check for a pinned piece, i.e. if my king is in check after the move
-            inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
-         } else {
-            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing);
-         }
+         boolean inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing,
+               kingInCheck);
          if (inCheck) {
             iter.remove();
          }
       }
-      // checks
+      // check of the opponent's king
       Square opponentsKing = King.findOpponentsKing(colour, game.getChessboard());
       /*
        * many moves have the same starting square. If we've already checked for discovered check for this square,

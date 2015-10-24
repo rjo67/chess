@@ -10,6 +10,7 @@ public class WestRay extends BaseRay {
 
    private static WestRay instance;
    private static final List<Integer>[] RAY_SQUARES;
+
    static {
       final int offset = -1;
       RAY_SQUARES = new List[64];
@@ -24,7 +25,7 @@ public class WestRay extends BaseRay {
    }
 
    private WestRay() {
-      super(new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
+      super(RayType.WEST, false, new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
    }
 
    public static WestRay instance() {

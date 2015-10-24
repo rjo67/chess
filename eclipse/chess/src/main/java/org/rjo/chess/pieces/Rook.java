@@ -14,6 +14,7 @@ import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
+import org.rjo.chess.ray.RayFactory;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.Stopwatch;
 
@@ -121,7 +122,7 @@ public class Rook extends SlidingPiece {
 
       // search for moves
       for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
-         moves.addAll(search(game.getChessboard(), rayType.getInstance()));
+         moves.addAll(search(game.getChessboard(), RayFactory.getRay(rayType)));
       }
 
       // make sure king is not/no longer in check
@@ -135,7 +136,7 @@ public class Rook extends SlidingPiece {
             // just need to check for a pinned piece, i.e. if king is in check after the move
             inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
          } else {
-            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing);
+            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing, kingInCheck);
          }
          if (inCheck) {
             iter.remove();

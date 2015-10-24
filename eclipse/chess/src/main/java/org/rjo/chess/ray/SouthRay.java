@@ -10,6 +10,7 @@ public class SouthRay extends BaseRay {
 
    private static SouthRay instance;
    private static final List<Integer>[] RAY_SQUARES;
+
    static {
       final int offset = -8;
       RAY_SQUARES = new List[64];
@@ -24,7 +25,7 @@ public class SouthRay extends BaseRay {
    }
 
    private SouthRay() {
-      super(new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
+      super(RayType.SOUTH, false, new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
    }
 
    public static SouthRay instance() {

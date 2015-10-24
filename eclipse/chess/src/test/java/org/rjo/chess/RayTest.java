@@ -5,6 +5,7 @@ import java.util.Random;
 
 import org.junit.Test;
 import org.rjo.chess.ray.Ray;
+import org.rjo.chess.ray.RayFactory;
 import org.rjo.chess.ray.RayInfo;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.ray.RayUtils;
@@ -24,9 +25,10 @@ public class RayTest {
       long start = System.currentTimeMillis();
       for (int i = 0; i < expectedEmptySquares.length; i++) {
          int nbrEmptySquares = 0;
-         for (RayType ray : RayType.values()) {
-            RayInfo info = RayUtils.findFirstPieceOnRay(Colour.BLACK, game.getChessboard().getEmptySquares()
-                  .getBitSet(), game.getChessboard().getAllPieces(Colour.WHITE).getBitSet(), ray.getInstance(), i);
+         for (RayType rayType : RayType.values()) {
+            RayInfo info = RayUtils.findFirstPieceOnRay(Colour.BLACK,
+                  game.getChessboard().getEmptySquares().getBitSet(),
+                  game.getChessboard().getAllPieces(Colour.WHITE).getBitSet(), RayFactory.getRay(rayType), i);
             // System.out.println(ray + " " + info);
             nbrEmptySquares += info.getEmptySquares().size();
          }
@@ -45,8 +47,8 @@ public class RayTest {
       emptySquares.set(Square.e4.bitIndex());
       BitSet myPieces = game.getChessboard().getAllPieces(Colour.BLACK).getBitSet();
       myPieces.clear(Square.e4.bitIndex());
-      assertTrue(RayUtils.discoveredCheck(Colour.BLACK, game.getChessboard(), emptySquares, myPieces, Square.e1,
-            Square.e4));
+      assertTrue(
+            RayUtils.discoveredCheck(Colour.BLACK, game.getChessboard(), emptySquares, myPieces, Square.e1, Square.e4));
    }
 
    @Test
@@ -58,8 +60,8 @@ public class RayTest {
       emptySquares.set(Square.b5.bitIndex());
       BitSet myPieces = game.getChessboard().getAllPieces(Colour.WHITE).getBitSet();
       myPieces.clear(Square.b5.bitIndex());
-      assertTrue(RayUtils.discoveredCheck(Colour.WHITE, game.getChessboard(), emptySquares, myPieces, Square.e8,
-            Square.b5));
+      assertTrue(
+            RayUtils.discoveredCheck(Colour.WHITE, game.getChessboard(), emptySquares, myPieces, Square.e8, Square.b5));
    }
 
    @Test
@@ -71,8 +73,8 @@ public class RayTest {
       emptySquares.set(Square.e4.bitIndex());
       BitSet myPieces = game.getChessboard().getAllPieces(Colour.BLACK).getBitSet();
       myPieces.clear(Square.e4.bitIndex());
-      assertFalse(RayUtils.discoveredCheck(Colour.BLACK, game.getChessboard(), emptySquares, myPieces, Square.e1,
-            Square.e4));
+      assertFalse(
+            RayUtils.discoveredCheck(Colour.BLACK, game.getChessboard(), emptySquares, myPieces, Square.e1, Square.e4));
    }
 
    private static boolean onSameDiagonal(Square sq1, Square sq2) {

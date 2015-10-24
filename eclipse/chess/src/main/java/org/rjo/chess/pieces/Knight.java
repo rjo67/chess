@@ -51,7 +51,7 @@ public class Knight extends Piece {
    /**
     * Stores for each square on the board the possible moves for a knight on that square.
     */
-   private static BitSet[] knightMoves = new BitSet[64];
+   private static final BitSet[] knightMoves = new BitSet[64];
 
    // set up knight moves look up table
    static {
@@ -210,7 +210,7 @@ public class Knight extends Piece {
                // just need to check for a pinned piece, i.e. if my king is in check after the move
                inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
             } else {
-               inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, oppositeColour, myKing);
+               inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, oppositeColour, myKing, kingInCheck);
             }
             if (!inCheck) {
                moves.add(move);
@@ -265,8 +265,21 @@ public class Knight extends Piece {
 
    @Override
    public boolean attacksSquare(BitSet notUsed, Square targetSq) {
+      return Knight.attacksSquare(targetSq, pieces.getBitSet());
+   }
+
+   /**
+    * Whether one or more of the knights described in 'knights' attack the square 'targetSq'.
+    *
+    * @param targetSq
+    *           square to be attacked
+    * @param knights
+    *           bitset describing where the knights are
+    * @return true if 'targetSq' is attacked by one or more knights
+    */
+   public static boolean attacksSquare(Square targetSq, BitSet knights) {
       BitSet possibleMovesFromTargetSquare = knightMoves[targetSq.bitIndex()];
-      return possibleMovesFromTargetSquare.intersects(pieces.getBitSet());
+      return possibleMovesFromTargetSquare.intersects(knights);
    }
 
 }

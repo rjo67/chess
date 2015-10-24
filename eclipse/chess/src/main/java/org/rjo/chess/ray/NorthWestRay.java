@@ -10,6 +10,7 @@ public class NorthWestRay extends BaseRay {
 
    private static NorthWestRay instance;
    private static final List<Integer>[] RAY_SQUARES;
+
    static {
       final int offset = 7;
       RAY_SQUARES = new List[64];
@@ -24,7 +25,7 @@ public class NorthWestRay extends BaseRay {
    }
 
    private NorthWestRay() {
-      super(new PieceType[] { PieceType.QUEEN, PieceType.BISHOP });
+      super(RayType.NORTHWEST, true, new PieceType[] { PieceType.QUEEN, PieceType.BISHOP });
    }
 
    public static NorthWestRay instance() {

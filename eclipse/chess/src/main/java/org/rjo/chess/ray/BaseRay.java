@@ -7,10 +7,24 @@ import org.rjo.chess.pieces.PieceType;
 
 public abstract class BaseRay implements Ray {
 
+   private RayType rayType;
+   private boolean diagonal;
    protected PieceType[] piecesThatCanGiveCheckOnThisRay;
 
-   protected BaseRay(PieceType[] pieceTypes) {
+   protected BaseRay(RayType rayType, boolean diagonal, PieceType[] pieceTypes) {
+      this.rayType = rayType;
+      this.diagonal = diagonal;
       this.piecesThatCanGiveCheckOnThisRay = pieceTypes;
+   }
+
+   @Override
+   public RayType getRayType() {
+      return rayType;
+   }
+
+   @Override
+   public boolean isDiagonal() {
+      return diagonal;
    }
 
    @Override

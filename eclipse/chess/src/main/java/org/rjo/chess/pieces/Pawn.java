@@ -158,7 +158,7 @@ public class Pawn extends Piece {
             // just need to check for a pinned piece, i.e. if my king is in check after the move
             inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
          } else {
-            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing);
+            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing, kingInCheck);
          }
          if (inCheck) {
             iter.remove();
@@ -328,8 +328,12 @@ public class Pawn extends Piece {
                   capturedPiece = chessboard.pieceAt(targetSquare, oppositeColour);
                }
             }
-            Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
-            move.setEnpassant(enpassant);
+            Move move;
+            if (enpassant) {
+               move = Move.enpassant(colour, Square.fromBitIndex(i + offset), targetSquare);
+            } else {
+               move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
+            }
             moves.add(move);
          }
       }
@@ -421,37 +425,67 @@ public class Pawn extends Piece {
       }
    }
 
+   private static boolean doWhitePawnsAttackSquare(Square targetSq, BitSet whitePawns) {
+      if (targetSq.rank() < 2) {
+         return false;
+      }
+      final int index = targetSq.bitIndex();
+      // attack from left
+      if ((targetSq.file() > 0) && (whitePawns.get(index - 9))) {
+         return true;
+      }
+      // attack from right
+      if ((targetSq.file() < 7) && (whitePawns.get(index - 7))) {
+         return true;
+      }
+      return false;
+   }
+
+   private static boolean doBlackPawnsAttackSquare(Square targetSq, BitSet blackPawns) {
+      if (targetSq.rank() > 5) {
+         return false;
+      }
+      final int index = targetSq.bitIndex();
+      // attack from left
+      if ((targetSq.file() > 0) && (blackPawns.get(index + 7))) {
+         return true;
+      }
+      // attack from right
+      if ((targetSq.file() < 7) && (blackPawns.get(index + 9))) {
+         return true;
+      }
+      return false;
+   }
+
    @Override
    public boolean attacksSquare(BitSet notused, Square targetSq) {
       if (colour == Colour.WHITE) {
-         if (targetSq.rank() < 2) {
-            return false;
-         }
-         final int index = targetSq.bitIndex();
-         // attack from left
-         if ((targetSq.file() > 0) && (pieces.getBitSet().get(index - 9))) {
-            return true;
-         }
-         // attack from right
-         if ((targetSq.file() < 7) && (pieces.getBitSet().get(index - 7))) {
-            return true;
-         }
-         return false;
-
+         return doWhitePawnsAttackSquare(targetSq, pieces.getBitSet());
       } else {
-         if (targetSq.rank() > 5) {
-            return false;
-         }
-         final int index = targetSq.bitIndex();
-         // attack from left
-         if ((targetSq.file() > 0) && (pieces.getBitSet().get(index + 7))) {
-            return true;
-         }
-         // attack from right
-         if ((targetSq.file() < 7) && (pieces.getBitSet().get(index + 9))) {
-            return true;
-         }
-         return false;
+         return doBlackPawnsAttackSquare(targetSq, pieces.getBitSet());
+
+      }
+   }
+
+   /**
+    * Whether one or more of the pawns described in 'pawns' attack the square 'targetSq'.
+    *
+    * @param targetSq
+    *           square to be attacked
+    * @param colour
+    *           colour of the pawns in 'pawns'.
+    * @param pawns
+    *           bitset describing where the pawns are
+    * @return true if 'targetSq' is attacked by one or more pawns
+    */
+   public static boolean attacksSquare(Square targetSq, Colour colour, BitSet pawns) {
+      switch (colour) {
+      case WHITE:
+         return doWhitePawnsAttackSquare(targetSq, pawns);
+      case BLACK:
+         return doBlackPawnsAttackSquare(targetSq, pawns);
+      default:
+         throw new IllegalArgumentException("bad value for colour!? : " + colour);
       }
    }
 

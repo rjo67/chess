@@ -289,7 +289,7 @@ public class King extends Piece {
       while (iter.hasNext()) {
          Move move = iter.next();
          Square myKing = move.to();
-         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing)) {
+         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing, kingInCheck)) {
             iter.remove();
          }
       }

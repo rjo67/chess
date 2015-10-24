@@ -35,7 +35,7 @@ public class Chessboard {
     * bitboard of all pieces for a particular colour.
     * The dimension indicates the colour {white, black}.
     */
-   private BitBoard[] allPieces;
+   private BitBoard[] allEnemyPieces;
 
    /**
     * bitboard of all pieces on the board (irrespective of colour).
@@ -83,16 +83,16 @@ public class Chessboard {
       for (Piece p : blackPieces) {
          pieces[Colour.BLACK.ordinal()].put(p.getType(), p);
       }
-      allPieces = new BitBoard[Colour.values().length];
+      allEnemyPieces = new BitBoard[Colour.values().length];
       for (Colour colour : Colour.values()) {
-         allPieces[colour.ordinal()] = new BitBoard();
+         allEnemyPieces[colour.ordinal()] = new BitBoard();
          for (PieceType p : pieces[colour.ordinal()].keySet()) {
-            allPieces[colour.ordinal()].getBitSet().or(pieces[colour.ordinal()].get(p).getBitBoard().getBitSet());
+            allEnemyPieces[colour.ordinal()].getBitSet().or(pieces[colour.ordinal()].get(p).getBitBoard().getBitSet());
          }
       }
       totalPieces = new BitBoard();
-      totalPieces.getBitSet().or(allPieces[Colour.WHITE.ordinal()].getBitSet());
-      totalPieces.getBitSet().or(allPieces[Colour.BLACK.ordinal()].getBitSet());
+      totalPieces.getBitSet().or(allEnemyPieces[Colour.WHITE.ordinal()].getBitSet());
+      totalPieces.getBitSet().or(allEnemyPieces[Colour.BLACK.ordinal()].getBitSet());
       emptySquares = new BitBoard(totalPieces.cloneBitSet());
       emptySquares.getBitSet().flip(0, 64);
 
@@ -128,24 +128,24 @@ public class Chessboard {
 
       // update incrementally
       if (!move.isCapture()) {
-         updateBitSet(allPieces[colourOrdinal].getBitSet(), move);
+         updateBitSet(allEnemyPieces[colourOrdinal].getBitSet(), move);
          updateBitSet(totalPieces.getBitSet(), move);
          updateBitSet(emptySquares.getBitSet(), move);
       } else {
          // capture move
          if (!move.isEnpassant()) {
-            allPieces[colourOrdinal].getBitSet().flip(moveFromBitIndex);
-            allPieces[colourOrdinal].getBitSet().flip(moveToBitIndex);
-            allPieces[oppositeColourOrdinal].getBitSet().flip(moveToBitIndex);
+            allEnemyPieces[colourOrdinal].getBitSet().flip(moveFromBitIndex);
+            allEnemyPieces[colourOrdinal].getBitSet().flip(moveToBitIndex);
+            allEnemyPieces[oppositeColourOrdinal].getBitSet().flip(moveToBitIndex);
             totalPieces.getBitSet().flip(moveFromBitIndex);
             emptySquares.getBitSet().flip(moveFromBitIndex);
 
          } else {
             // enpassant
             int enpassantSquareBitIndex = Square.findMoveFromEnpassantSquare(move.to()).bitIndex();
-            allPieces[colourOrdinal].getBitSet().flip(moveFromBitIndex);
-            allPieces[colourOrdinal].getBitSet().flip(moveToBitIndex);
-            allPieces[oppositeColourOrdinal].getBitSet().flip(enpassantSquareBitIndex);
+            allEnemyPieces[colourOrdinal].getBitSet().flip(moveFromBitIndex);
+            allEnemyPieces[colourOrdinal].getBitSet().flip(moveToBitIndex);
+            allEnemyPieces[oppositeColourOrdinal].getBitSet().flip(enpassantSquareBitIndex);
             totalPieces.getBitSet().flip(moveFromBitIndex);
             totalPieces.getBitSet().flip(moveToBitIndex);
             totalPieces.getBitSet().flip(enpassantSquareBitIndex);
@@ -233,7 +233,7 @@ public class Chessboard {
     * @return a BitBoard containing all the pieces of a given colour.
     */
    public BitBoard getAllPieces(Colour colour) {
-      return allPieces[colour.ordinal()];
+      return allEnemyPieces[colour.ordinal()];
    }
 
    /**
@@ -257,7 +257,7 @@ public class Chessboard {
    public void debug() {
       for (Colour colour : Colour.values()) {
          System.out.println(colour + " all pieces");
-         System.out.println(allPieces[colour.ordinal()].display());
+         System.out.println(allEnemyPieces[colour.ordinal()].display());
          System.out.println("---");
       }
       System.out.println("pieces");
@@ -425,77 +425,31 @@ public class Chessboard {
     *           this colour's pieces will be inspected to see if they check my king
     * @param king
     *           where my king is
+    * @param kingIsAlreadyInCheck
+    *           true if the king was already in check before the 'move'
     * @return true if this move leaves the king in check (i.e. is an illegal move)
     */
-   public static boolean isKingInCheck(Chessboard chessboard, Move move, Colour opponentsColour, Square king) {
-      BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
-      emptySquares.set(move.from().bitIndex());
-      emptySquares.clear(move.to().bitIndex());
+   public static boolean isKingInCheck(Chessboard chessboard, Move move, Colour opponentsColour, Square king,
+         boolean kingIsAlreadyInCheck) {
 
-      Map<PieceType, Piece> opponentsPieces = chessboard.getPieces(opponentsColour);
+      BitSet friendlyPieces = chessboard.getAllPieces(Colour.oppositeColour(opponentsColour)).getBitSet();
+      Map<PieceType, BitSet> enemyPieces = setupEnemyBitsets(chessboard.getPieces(opponentsColour));
 
-      // this move is not relevant for the opponent's bishops, rooks or queens -- unless it's a capture
-      Piece originalPiece = null;
-      boolean inCheck;
-      if (move.isCapture()) {
-         // need to remove captured piece temporarily from the appropriate Piece instance
-         originalPiece = opponentsPieces.get(move.getCapturedPiece());
-         try {
-            Piece clonedPiece = (Piece) originalPiece.clone();
-            if (move.isEnpassant()) {
-               Square enpassantPawnSquare = Square.findMoveFromEnpassantSquare(move.to());
-               clonedPiece.removePiece(enpassantPawnSquare);
-               // blank the square where the pawn is which has been taken e.p.
-               emptySquares.set(enpassantPawnSquare.bitIndex());
-            } else {
-               clonedPiece.removePiece(move.to());
-            }
-            // TODO: need to change this for the parallel algorithm
-            // achtung: changing the 'global' state here, need to reset later!
-            opponentsPieces.put(move.getCapturedPiece(), clonedPiece);
-         } catch (CloneNotSupportedException e) {
-            throw new IllegalStateException("cannot clone:", e);
-         }
-         inCheck = Chessboard.isKingInCheck(opponentsPieces, emptySquares, king);
-         // reset global state
-         opponentsPieces.put(move.getCapturedPiece(), originalPiece);
+      if (kingIsAlreadyInCheck) {
+         return KingCheck.isKingInCheckAfterMove_PreviouslyWasInCheck(king, Colour.oppositeColour(opponentsColour),
+               friendlyPieces, enemyPieces, move);
+      } else {
+         return KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(king, Colour.oppositeColour(opponentsColour),
+               friendlyPieces, enemyPieces, move);
       }
-      // non-capture
-      else {
-         inCheck = Chessboard.isKingInCheck(opponentsPieces, emptySquares, king);
-
-      }
-      return inCheck;
    }
 
-   /**
-    * Helper method to check if the king is in check using a freely definable set of pieces and empty squares.
-    * Should normally not be called directly, see instead
-    * {@link Chessboard#checkForDiscoveredCheck(Chessboard, Move, Colour, Square)}.
-    *
-    * @param myPieces
-    *           my pieces on the board
-    * @param emptySquares
-    *           the empty squares
-    * @param kingsSquare
-    *           where the (opponent's) king is
-    * @return true if a king on the 'kingsSquare' would be in check with this configuration of pieces and empty squares
-    */
-   public static boolean isKingInCheck(Map<PieceType, Piece> myPieces, BitSet emptySquares, Square kingsSquare) {
-      boolean isCheck = false;
-
-      if (!isCheck) {
-         for (PieceType pieceType : PieceType.ALL_PIECE_TYPES_EXCEPT_KING) {
-            if (!isCheck) {
-               Piece piece = myPieces.get(pieceType);
-               if (piece != null) {
-                  isCheck = piece.attacksSquare(emptySquares, kingsSquare);
-               }
-            }
-         }
+   private static Map<PieceType, BitSet> setupEnemyBitsets(Map<PieceType, Piece> map) {
+      Map<PieceType, BitSet> enemyPieces = new HashMap<>();
+      for (PieceType type : PieceType.ALL_PIECE_TYPES) {
+         enemyPieces.put(type, map.get(type).getBitBoard().getBitSet());
       }
-
-      return isCheck;
+      return enemyPieces;
    }
 
    /**

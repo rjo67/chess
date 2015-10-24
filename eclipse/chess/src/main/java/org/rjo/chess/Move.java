@@ -33,6 +33,7 @@ public class Move {
 
    /** if promotion info -- if not null, implies that this move was a promotion */
    private PromotionInfo promotionInfo;
+
    /** true if enpassant move */
    private boolean enpassant;
 
@@ -142,12 +143,12 @@ public class Move {
       Move move;
       if (Colour.WHITE == colour) {
          move = new Move(PieceType.KING, Colour.WHITE, Square.e1, Square.g1);
-         move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(PieceType.ROOK, Colour.WHITE,
-               Square.h1, Square.f1));
+         move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE,
+               new Move(PieceType.ROOK, Colour.WHITE, Square.h1, Square.f1));
       } else {
          move = new Move(PieceType.KING, Colour.BLACK, Square.e8, Square.g8);
-         move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(PieceType.ROOK, Colour.BLACK,
-               Square.h8, Square.f8));
+         move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE,
+               new Move(PieceType.ROOK, Colour.BLACK, Square.h8, Square.f8));
       }
       return move;
    }
@@ -156,13 +157,19 @@ public class Move {
       Move move;
       if (Colour.WHITE == colour) {
          move = new Move(PieceType.KING, Colour.WHITE, Square.e1, Square.c1);
-         move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(PieceType.ROOK, Colour.WHITE,
-               Square.a1, Square.d1));
+         move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE,
+               new Move(PieceType.ROOK, Colour.WHITE, Square.a1, Square.d1));
       } else {
          move = new Move(PieceType.KING, Colour.BLACK, Square.e8, Square.c8);
-         move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(PieceType.ROOK, Colour.BLACK,
-               Square.a8, Square.d8));
+         move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE,
+               new Move(PieceType.ROOK, Colour.BLACK, Square.a8, Square.d8));
       }
+      return move;
+   }
+
+   public static Move enpassant(Colour colour, Square from, Square to) {
+      Move move = new Move(PieceType.PAWN, colour, from, to, PieceType.PAWN);
+      move.enpassant = true;
       return move;
    }
 
@@ -196,8 +203,7 @@ public class Move {
             // not a capture -- unless enpassant
             Square enpassantSquare = game.getChessboard().getEnpassantSquare();
             if (enpassantSquare != null && piece == PieceType.PAWN && to == enpassantSquare) {
-               m = new Move(piece, game.getSideToMove(), from, to, PieceType.PAWN);
-               m.setEnpassant(true);
+               m = Move.enpassant(game.getSideToMove(), from, to);
             } else {
                m = new Move(piece, game.getSideToMove(), from, to);
             }
@@ -212,10 +218,6 @@ public class Move {
 
    public void setCheck(boolean check) {
       this.check = check;
-   }
-
-   public void setEnpassant(boolean enpassant) {
-      this.enpassant = enpassant;
    }
 
    public boolean isCheck() {

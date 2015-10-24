@@ -17,14 +17,15 @@ public class RayUtils {
       final BitSet allSquaresSet = BitSet.valueOf(new long[] { -1 });
       final BitSet allEmptySquares = new BitSet(64);
       for (int sq = 0; sq < 64; sq++) {
-         for (RayType ray : RayType.values()) {
+         for (RayType rayType : RayType.values()) {
             // findFirstPieceOnRay with empty pieces returns all squares for this ray
-            RayInfo info = findFirstPieceOnRay(Colour.WHITE, allSquaresSet, allEmptySquares, ray.getInstance(), sq);
+            RayInfo info = findFirstPieceOnRay(Colour.WHITE, allSquaresSet, allEmptySquares, RayFactory.getRay(rayType),
+                  sq);
             BitSet rayBitSet = new BitSet(64);
             for (int sqIndex : info.getEmptySquares()) {
                rayBitSet.set(sqIndex);
             }
-            RAY_MAP[sq][ray.ordinal()] = rayBitSet;
+            RAY_MAP[sq][rayType.ordinal()] = rayBitSet;
          }
       }
    }
@@ -178,9 +179,9 @@ public class RayUtils {
       } else {
          raysToCheck = RayType.RAY_TYPES_DIAGONAL;
       }
-      for (RayType ray : raysToCheck) {
-         if (RAY_MAP[startIndex][ray.ordinal()].get(reqdIndex)) {
-            return ray.getInstance();
+      for (RayType rayType : raysToCheck) {
+         if (RAY_MAP[startIndex][rayType.ordinal()].get(reqdIndex)) {
+            return RayFactory.getRay(rayType);
          }
       }
       return null;
@@ -188,9 +189,9 @@ public class RayUtils {
 
    public static Ray getRayORIGINAL(Square sq1, Square sq2) {
       int reqdIndex = sq2.bitIndex();
-      for (RayType ray : RayType.values()) {
-         if (RAY_MAP[sq1.bitIndex()][ray.ordinal()].get(reqdIndex)) {
-            return ray.getInstance();
+      for (RayType rayType : RayType.values()) {
+         if (RAY_MAP[sq1.bitIndex()][rayType.ordinal()].get(reqdIndex)) {
+            return RayFactory.getRay(rayType);
          }
       }
       return null;

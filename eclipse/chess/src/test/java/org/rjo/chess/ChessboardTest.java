@@ -213,8 +213,7 @@ public class ChessboardTest {
       Game game = Fen.decode("r3k2r/pP3p2/5npp/n2p4/Pp1PPB2/6P1/3N1PBP/R3K2R b KQkq a3 0 10");
       Chessboard cb = game.getChessboard();
 
-      Move move = new Move(PieceType.PAWN, Colour.BLACK, Square.b4, Square.a3, PieceType.PAWN);
-      move.setEnpassant(true);
+      Move move = Move.enpassant(Colour.BLACK, Square.b4, Square.a3);
 
       InternalState prevState = new InternalState(cb);
       game.move(move);

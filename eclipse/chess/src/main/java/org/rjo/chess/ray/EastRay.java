@@ -11,6 +11,7 @@ public class EastRay extends BaseRay {
    private static EastRay instance;
 
    private static final List<Integer>[] RAY_SQUARES;
+
    static {
       final int offset = 1;
       RAY_SQUARES = new List[64];
@@ -25,7 +26,7 @@ public class EastRay extends BaseRay {
    }
 
    private EastRay() {
-      super(new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
+      super(RayType.EAST, false, new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
    }
 
    public static EastRay instance() {

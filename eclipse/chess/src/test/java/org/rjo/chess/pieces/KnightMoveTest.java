@@ -33,8 +33,7 @@ public class KnightMoveTest {
    public void startPosition() {
       Game game = new Game();
       Knight whiteKnight = new Knight(Colour.WHITE, true);
-      TestUtil.checkMoves(whiteKnight.findMoves(game),
-            new HashSet<>(Arrays.asList("Nb1-a3", "Nb1-c3", "Ng1-f3", "Ng1-h3")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Nb1-a3", "Nb1-c3", "Ng1-f3", "Ng1-h3");
    }
 
    @Test
@@ -44,8 +43,8 @@ public class KnightMoveTest {
       Pawn pawn = new Pawn(Colour.BLACK, Square.f3);
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
       Game game = new Game(new Chessboard(whitePieces, opponentsPieces));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(
-            Arrays.asList("Nd4-e6", "Nd4-f5", "Nd4xf3", "Nd4-e2", "Nd4-c2", "Nd4-b3", "Nd4-c6", "Nd4-b5")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Nd4-e6", "Nd4-f5", "Nd4xf3", "Nd4-e2", "Nd4-c2", "Nd4-b3",
+            "Nd4-c6", "Nd4-b5");
    }
 
    @Test
@@ -53,7 +52,7 @@ public class KnightMoveTest {
       Knight whiteKnight = new Knight(Colour.WHITE, Square.a1);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKnight, myKing));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Na1-b3", "Na1-c2")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Na1-b3", "Na1-c2");
    }
 
    /**
@@ -65,7 +64,7 @@ public class KnightMoveTest {
       King king = new King(Colour.WHITE, Square.c2);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(king, whiteKnight));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Na1-b3")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Na1-b3");
    }
 
    /**
@@ -78,7 +77,7 @@ public class KnightMoveTest {
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKnight, myKing));
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
       Game game = new Game(new Chessboard(whitePieces, opponentsPieces));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Na1-b3", "Na1xc2")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Na1-b3", "Na1xc2");
    }
 
    @Test
@@ -86,7 +85,7 @@ public class KnightMoveTest {
       Knight whiteKnight = new Knight(Colour.WHITE, Square.h1);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKnight, myKing));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Nh1-g3", "Nh1-f2")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Nh1-g3", "Nh1-f2");
    }
 
    /**
@@ -98,7 +97,7 @@ public class KnightMoveTest {
       King king = new King(Colour.WHITE, Square.f2);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(king, whiteKnight));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Nh1-g3")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Nh1-g3");
    }
 
    /**
@@ -112,7 +111,7 @@ public class KnightMoveTest {
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(king, whiteKnight));
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
       Game game = new Game(new Chessboard(whitePieces, opponentsPieces));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Nh1xg3")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Nh1xg3");
    }
 
    @Test
@@ -120,7 +119,7 @@ public class KnightMoveTest {
       Knight whiteKnight = new Knight(Colour.WHITE, Square.a8);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKnight, myKing));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Na8-b6", "Na8-c7+")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Na8-b6", "Na8-c7+");
    }
 
    /**
@@ -132,7 +131,7 @@ public class KnightMoveTest {
       King king = new King(Colour.WHITE, Square.c7);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(king, whiteKnight));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Na8-b6")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Na8-b6");
    }
 
    /**
@@ -145,7 +144,7 @@ public class KnightMoveTest {
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKnight, myKing));
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
       Game game = new Game(new Chessboard(whitePieces, opponentsPieces));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Na8-b6", "Na8xc7+")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Na8-b6", "Na8xc7+");
    }
 
    @Test
@@ -153,7 +152,7 @@ public class KnightMoveTest {
       Knight whiteKnight = new Knight(Colour.WHITE, Square.h8);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKnight, myKing));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Nh8-g6", "Nh8-f7")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Nh8-g6", "Nh8-f7");
    }
 
    /**
@@ -165,7 +164,7 @@ public class KnightMoveTest {
       King king = new King(Colour.WHITE, Square.f7);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(king, whiteKnight));
       Game game = new Game(new Chessboard(whitePieces, new HashSet<>(Arrays.asList(opponentsKing))));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Nh8-g6")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Nh8-g6");
    }
 
    /**
@@ -178,17 +177,16 @@ public class KnightMoveTest {
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKnight, myKing));
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
       Game game = new Game(new Chessboard(whitePieces, opponentsPieces));
-      TestUtil.checkMoves(whiteKnight.findMoves(game), new HashSet<>(Arrays.asList("Nh8-g6", "Nh8xf7")));
+      TestUtil.checkMoves(whiteKnight.findMoves(game), "Nh8-g6", "Nh8xf7");
    }
 
    @Test
    public void discoveredCheck() {
       Game game = Fen.decode("8/8/8/1k4NR/8/4K3/8/8 w - - 0 10");
       List<Move> moves = game.findMoves(Colour.WHITE);
-      TestUtil.checkMoves(moves,
-            new HashSet<>(Arrays.asList("Rh5-h6", "Rh5-h7", "Rh5-h8", "Rh5-h4", "Rh5-h3", "Rh5-h2", "Rh5-h1", "Ke3-d2",
-                  "Ke3-d3", "Ke3-d4", "Ke3-e2", "Ke3-e4", "Ke3-f2", "Ke3-f3", "Ke3-f4", "Ng5-h3+", "Ng5-f3+", "Ng5-e4+",
-                  "Ng5-e6+", "Ng5-f7+", "Ng5-h7+")));
+      TestUtil.checkMoves(moves, "Rh5-h6", "Rh5-h7", "Rh5-h8", "Rh5-h4", "Rh5-h3", "Rh5-h2", "Rh5-h1", "Ke3-d2",
+            "Ke3-d3", "Ke3-d4", "Ke3-e2", "Ke3-e4", "Ke3-f2", "Ke3-f3", "Ke3-f4", "Ng5-h3+", "Ng5-f3+", "Ng5-e4+",
+            "Ng5-e6+", "Ng5-f7+", "Ng5-h7+");
    }
 
    @Test

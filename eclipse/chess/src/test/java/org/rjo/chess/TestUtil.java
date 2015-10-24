@@ -1,6 +1,8 @@
 package org.rjo.chess;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -10,6 +12,10 @@ import static org.junit.Assert.assertTrue;
 public class TestUtil {
 
    private TestUtil() {
+   }
+
+   public static void checkMoves(List<Move> moves, String... requiredMoves) {
+      checkMoves(moves, new HashSet<>(Arrays.asList(requiredMoves)));
    }
 
    public static void checkMoves(List<Move> moves, Set<String> requiredMoves) {
