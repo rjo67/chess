@@ -9,8 +9,8 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.rjo.chess.Chessboard" level="trace"/>
-		<Root level="debug">
+	<!-- 	<Logger name="org.rjo.chess.Chessboard" level="trace"/> -->
+		<Root level="info">
 			<AppenderRef ref="File" />
 		</Root>
 	</Loggers>

@@ -131,13 +131,7 @@ public class Rook extends SlidingPiece {
       Colour opponentsColour = Colour.oppositeColour(colour);
       while (iter.hasNext()) {
          Move move = iter.next();
-         boolean inCheck = false;
-         if (!kingInCheck) {
-            // just need to check for a pinned piece, i.e. if king is in check after the move
-            inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
-         } else {
-            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing, kingInCheck);
-         }
+         boolean inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing, kingInCheck);
          if (inCheck) {
             iter.remove();
          }

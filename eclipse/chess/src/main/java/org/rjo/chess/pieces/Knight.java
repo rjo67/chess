@@ -12,6 +12,7 @@ import org.rjo.chess.BitBoard;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
+import org.rjo.chess.KingChecker;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 import org.rjo.chess.util.Stopwatch;
@@ -194,23 +195,25 @@ public class Knight extends Piece {
 
          final Square knightStartSquare = Square.fromBitIndex(i);
 
+         KingChecker kingChecker = new KingChecker(game.getChessboard(), Colour.oppositeColour(colour), myKing);
+
+         /*
+          * Iterates over all possible moves and stores them as moves or captures.
+          * If the move would leave our king in check, it is illegal and is not stored.
+          * 
+          */
          for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
             Square targetSquare = Square.fromBitIndex(k);
             Move move;
+            boolean inCheck = false;
             if (allOpponentsPiecesBitSet.get(k)) {
                // capture
                move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare,
                      game.getChessboard().pieceAt(targetSquare, oppositeColour));
+               inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, oppositeColour, myKing, kingInCheck);
             } else {
                move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare);
-            }
-            // make sure my king is not/no longer in check
-            boolean inCheck = false;
-            if (!kingInCheck) {
-               // just need to check for a pinned piece, i.e. if my king is in check after the move
-               inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
-            } else {
-               inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, oppositeColour, myKing, kingInCheck);
+               inCheck = kingChecker.isKingInCheck(move, kingInCheck);
             }
             if (!inCheck) {
                moves.add(move);

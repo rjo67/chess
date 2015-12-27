@@ -9,23 +9,29 @@ import org.rjo.chess.Square;
 import org.rjo.chess.pieces.PieceType;
 
 public class RayUtils {
-   // stores all the squares for each of the 8 rays for each square on the board
-   final static BitSet[][] RAY_MAP = new BitSet[64][RayType.values().length];
+   // lookup table for each square sq1, storing the raytype for every other square relative to sq1
+   private final static RayType[][] RAYS = new RayType[64][64];
 
-   // set up RAY_MAP
+   // set up static lookups
    static {
-      final BitSet allSquaresSet = BitSet.valueOf(new long[] { -1 });
-      final BitSet allEmptySquares = new BitSet(64);
-      for (int sq = 0; sq < 64; sq++) {
-         for (RayType rayType : RayType.values()) {
-            // findFirstPieceOnRay with empty pieces returns all squares for this ray
-            RayInfo info = findFirstPieceOnRay(Colour.WHITE, allSquaresSet, allEmptySquares, RayFactory.getRay(rayType),
-                  sq);
-            BitSet rayBitSet = new BitSet(64);
-            for (int sqIndex : info.getEmptySquares()) {
-               rayBitSet.set(sqIndex);
+      for (int sq1 = 0; sq1 < 64; sq1++) {
+         for (int sq2 = 0; sq2 < 64; sq2++) {
+            if (sq1 == sq2) {
+               continue;
             }
-            RAY_MAP[sq][rayType.ordinal()] = rayBitSet;
+            boolean found = false;
+            for (RayType rayType : RayType.values()) {
+               if (found) {
+                  break;
+               }
+               Iterator<Integer> iter = RayFactory.getRay(rayType).squaresFrom(sq1);
+               while (iter.hasNext() && !found) {
+                  if (sq2 == iter.next()) {
+                     found = true;
+                     RAYS[sq1][sq2] = rayType;
+                  }
+               }
+            }
          }
       }
    }
@@ -168,32 +174,13 @@ public class RayUtils {
     *           second square
     * @return the Ray object joining the two squares, or null if not on a ray.
     */
-   public static Ray getRay(Square sq1, Square sq2) {
-      final int startIndex = sq1.bitIndex();
-      int reqdIndex = sq2.bitIndex();
-      RayType[] raysToCheck;
-      if (sq1.rank() == sq2.rank()) {
-         raysToCheck = RayType.RAY_TYPES_HORIZONTAL;
-      } else if (sq1.file() == sq2.file()) {
-         raysToCheck = RayType.RAY_TYPES_VERTICAL;
+   public static Ray getRay(Square start, Square finish) {
+      RayType rayType = RAYS[start.bitIndex()][finish.bitIndex()];
+      if (rayType != null) {
+         return RayFactory.getRay(rayType);
       } else {
-         raysToCheck = RayType.RAY_TYPES_DIAGONAL;
+         return null;
       }
-      for (RayType rayType : raysToCheck) {
-         if (RAY_MAP[startIndex][rayType.ordinal()].get(reqdIndex)) {
-            return RayFactory.getRay(rayType);
-         }
-      }
-      return null;
    }
 
-   public static Ray getRayORIGINAL(Square sq1, Square sq2) {
-      int reqdIndex = sq2.bitIndex();
-      for (RayType rayType : RayType.values()) {
-         if (RAY_MAP[sq1.bitIndex()][rayType.ordinal()].get(reqdIndex)) {
-            return RayFactory.getRay(rayType);
-         }
-      }
-      return null;
-   }
 }

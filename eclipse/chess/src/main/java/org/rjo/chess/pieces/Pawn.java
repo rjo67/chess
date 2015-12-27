@@ -153,13 +153,7 @@ public class Pawn extends Piece {
       while (iter.hasNext()) {
          Move move = iter.next();
          // make sure my king is not/no longer in check
-         boolean inCheck = false;
-         if (!kingInCheck) {
-            // just need to check for a pinned piece, i.e. if my king is in check after the move
-            inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
-         } else {
-            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing, kingInCheck);
-         }
+         boolean inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing, kingInCheck);
          if (inCheck) {
             iter.remove();
          }

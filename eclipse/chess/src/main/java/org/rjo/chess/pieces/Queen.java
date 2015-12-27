@@ -130,14 +130,8 @@ public class Queen extends SlidingPiece {
       Iterator<Move> iter = moves.listIterator();
       while (iter.hasNext()) {
          Move move = iter.next();
-         boolean inCheck = false;
-         if (!kingInCheck) {
-            // just need to check for a pinned piece, i.e. if my king is in check after the move
-            inCheck = Chessboard.checkForPinnedPiece(game.getChessboard(), move, colour, myKing);
-         } else {
-            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing,
-                  kingInCheck);
-         }
+         boolean inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing,
+               kingInCheck);
          if (inCheck) {
             iter.remove();
          }

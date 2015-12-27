@@ -336,6 +336,11 @@ public class Chessboard {
          Square opponentsKing) {
       final int moveFromIndex = move.from().bitIndex();
 
+      // optimization (see RayUtils.discoveredCheck)
+      if (null == RayUtils.getRay(opponentsKing, move.from())) {
+         return false;
+      }
+
       // set up the emptySquares and myPieces bitsets *after* this move
       BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
       BitSet myPieces = chessboard.getAllPieces(colour).cloneBitSet();
@@ -431,6 +436,14 @@ public class Chessboard {
     */
    public static boolean isKingInCheck(Chessboard chessboard, Move move, Colour opponentsColour, Square king,
          boolean kingIsAlreadyInCheck) {
+
+      // short circuit if king was not in check beforehand (therefore only need to check for a pinned piece) and the
+      // moving piece's original square is not on a ray to the king
+      if ((move.getPiece() != PieceType.KING) && !kingIsAlreadyInCheck) {
+         if (null == RayUtils.getRay(king, move.from())) {
+            return false;
+         }
+      }
 
       BitSet friendlyPieces = chessboard.getAllPieces(Colour.oppositeColour(opponentsColour)).getBitSet();
       Map<PieceType, BitSet> enemyPieces = setupEnemyBitsets(chessboard.getPieces(opponentsColour));

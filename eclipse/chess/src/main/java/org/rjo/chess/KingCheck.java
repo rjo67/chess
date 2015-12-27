@@ -208,6 +208,22 @@ public class KingCheck {
    public static boolean isKingInCheckAfterMove(Square kingsSquare, Colour kingsColour, BitSet friendlyPieces,
          Map<PieceType, BitSet> enemyPieces, Move move, boolean kingWasInCheck) {
 
+      boolean kingMoved = false;
+      Ray rayFromKingToMoveOrigin = null;
+
+      // update 'kingsSquare' if king has moved
+      if (move.getPiece() == PieceType.KING) {
+         kingsSquare = move.to();
+         kingMoved = true;
+      }
+      if (!(kingMoved || kingWasInCheck)) {
+         // can optimize by only searching the ray given by the direction kingsSquare -> move.from()
+         rayFromKingToMoveOrigin = RayUtils.getRay(kingsSquare, move.from());
+         if (rayFromKingToMoveOrigin == null) {
+            return false;
+         }
+      }
+
       friendlyPieces = (BitSet) friendlyPieces.clone();
       friendlyPieces.set(move.to().bitIndex());
       friendlyPieces.clear(move.from().bitIndex());
@@ -231,25 +247,12 @@ public class KingCheck {
          opponentsCapturedPiece.clear(capturedPieceSquare.bitIndex());
       }
 
-      boolean kingMoved = false;
-
-      // update 'kingsSquare' if king has moved
-      if (move.getPiece() == PieceType.KING) {
-         kingsSquare = move.to();
-         kingMoved = true;
-      }
-
       // no optimizations if the king moved or was in check beforehand
       if (kingMoved || kingWasInCheck) {
          return isKingInCheck(kingsSquare, kingsColour, friendlyPieces, enemyPieces);
       } else {
-         // can optimize by only searching the ray given by the direction kingsSquare -> move.from()
-         Ray ray = RayUtils.getRay(kingsSquare, move.from());
-         if (ray == null) {
-            return false;
-         } else {
-            return isKingInCheck(kingsSquare, kingsColour, friendlyPieces, enemyPieces, ray.getRayType());
-         }
+         return isKingInCheck(kingsSquare, kingsColour, friendlyPieces, enemyPieces,
+               rayFromKingToMoveOrigin.getRayType());
       }
    }
 

@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
+import org.rjo.chess.KingChecker;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 import org.rjo.chess.ray.RayFactory;
@@ -128,10 +129,16 @@ public class Bishop extends SlidingPiece {
       // make sure king is not/no longer in check
       Square myKing = King.findKing(colour, game.getChessboard());
       Iterator<Move> iter = moves.listIterator();
+      KingChecker kingChecker = new KingChecker(game.getChessboard(), Colour.oppositeColour(colour), myKing);
       while (iter.hasNext()) {
          Move move = iter.next();
-         boolean inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing,
-               kingInCheck);
+         boolean inCheck = false;
+         if (!move.isCapture()) {
+            inCheck = kingChecker.isKingInCheck(move, kingInCheck);
+         } else {
+            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing,
+                  kingInCheck);
+         }
          if (inCheck) {
             iter.remove();
          }
