@@ -12,6 +12,7 @@ import org.rjo.chess.ray.RayUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class RayTest {
@@ -77,32 +78,11 @@ public class RayTest {
             RayUtils.discoveredCheck(Colour.BLACK, game.getChessboard(), emptySquares, myPieces, Square.e1, Square.e4));
    }
 
-   private static boolean onSameDiagonal(Square sq1, Square sq2) {
-      return Math.abs(sq1.rank() - sq2.rank()) == Math.abs(sq1.file() - sq2.file());
-   }
-
-   protected static boolean attacksSquareDiagonally(BitSet emptySquares, Square startSquare, Square targetSquare) {
-      // give up straight away if start and target are the same
-      if (startSquare == targetSquare) {
-         return false;
-      }
-      if (!onSameDiagonal(startSquare, targetSquare)) {
-         return false;
-      }
-      int rankOffset = startSquare.rank() > targetSquare.rank() ? -1 : 1;
-      int fileOffset = startSquare.file() > targetSquare.file() ? -1 : 1;
-      int bitPosn = startSquare.bitIndex();
-      boolean reachedTargetSquare = false;
-      boolean foundNonEmptySquare = false;
-      while (!reachedTargetSquare && !foundNonEmptySquare) {
-         bitPosn += (8 * rankOffset) + fileOffset;
-         if (bitPosn == targetSquare.bitIndex()) {
-            reachedTargetSquare = true;
-         } else if (!emptySquares.get(bitPosn)) {
-            foundNonEmptySquare = true;
-         }
-      }
-      return reachedTargetSquare;
+   @Test
+   public void rayFromA3ToC1() {
+      Ray ray = RayUtils.getRay(Square.a3, Square.c1);
+      assertNotNull(ray);
+      assertEquals(RayType.SOUTHEAST, ray.getRayType());
    }
 
    @Test
@@ -128,7 +108,6 @@ public class RayTest {
       long start = System.currentTimeMillis();
       Ray ray = RayUtils.getRay(startSquare, targetSquare);
       for (int i = 0; i < 1000000; i++) {
-         // attacksSquareDiagonally(emptySquares, startSquare, targetSquare);
          RayUtils.findFirstPieceOnRay(Colour.WHITE, emptySquares, myPieces, ray, startSquare.bitIndex());
       }
       System.out.println("speed: " + (System.currentTimeMillis() - start));

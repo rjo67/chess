@@ -195,12 +195,15 @@ public class BishopMoveTest {
       setupGame("r3k2r/pp3p2/8/4B3/2p1b3/8/PPPPB2P/R3K2R w KQkq - 0 0");
       // init
       assertEquals(17, whiteBishop.findMoves(game).size());
-
+      int repeats = 10;
       long start = System.currentTimeMillis();
-      for (int i = 0; i < 10000; i++) {
-         assertEquals(17, whiteBishop.findMoves(game).size());
+      for (int loop = 0; loop < repeats; loop++) {
+         for (int i = 0; i < 10000; i++) {
+            assertEquals(17, whiteBishop.findMoves(game).size());
+         }
       }
       long timeTaken = System.currentTimeMillis() - start;
-      assertTrue("took longer than 250ms: " + timeTaken, timeTaken < 250);
+      assertTrue("took longer than 250ms: " + timeTaken, (timeTaken / repeats) < 250);
+      System.out.println(timeTaken);
    }
 }

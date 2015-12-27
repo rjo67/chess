@@ -1,25 +1,18 @@
 package org.rjo.chess.pieces;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.junit.Before;
 import org.junit.Test;
-import org.rjo.chess.Chessboard;
 import org.rjo.chess.Colour;
+import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
-import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
 
 public class BlackPawnTest {
-   private King opponentsKing;
-   private King myKing;
+   private Piece pawn;
+   private Game game;
 
-   @Before
-   public void setup() {
-      opponentsKing = new King(Colour.WHITE, true);
-      myKing = new King(Colour.BLACK, true);
+   private void setupGame(String fen) {
+      game = Fen.decode(fen);
+      pawn = game.getChessboard().getPieces(Colour.BLACK).get(PieceType.PAWN);
    }
 
    @Test
@@ -32,135 +25,79 @@ public class BlackPawnTest {
 
    @Test
    public void blockedPawn() {
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing));
-      Pawn pawn = new Pawn(Colour.BLACK, Square.a7, Square.a6);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
+      setupGame("4k3/p7/p7/8/8/8/8/4K3 b - - 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "a6-a5");
    }
 
    @Test
    public void captureLeft() {
-      Pawn pawn = new Pawn(Colour.BLACK, Square.b5);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Pawn opponentsPawn = new Pawn(Colour.WHITE, Square.a4, Square.b4);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsPawn, opponentsKing));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
+      setupGame("4k3/8/8/1p6/PP6/8/8/4K3 b - - 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "b5xa4");
    }
 
    @Test
    public void captureLeftPromotion() {
-      Pawn pawn = new Pawn(Colour.BLACK, Square.b2);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Pawn opponentsPawn = new Pawn(Colour.WHITE, Square.a1);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsPawn, new King(Colour.WHITE, Square.b1)));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
+      setupGame("4k3/8/8/8/8/8/1p6/RK6 b - - 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "b2xa1=R+", "b2xa1=N", "b2xa1=B", "b2xa1=Q+");
    }
 
    @Test
    public void captureRight() {
-      Pawn pawn = new Pawn(Colour.BLACK, Square.a4);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Pawn opponentsPawn = new Pawn(Colour.WHITE, Square.a3, Square.b3);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsPawn, opponentsKing));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
+      setupGame("4k3/8/8/8/p7/PP6/8/4K3 b - - 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "a4xb3");
    }
 
    @Test
    public void captureRightPromotion() {
-      Pawn pawn = new Pawn(Colour.BLACK, Square.c2);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Pawn opponentsPawn = new Pawn(Colour.WHITE, Square.d1);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsPawn, new King(Colour.WHITE, Square.c1)));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
+      setupGame("4k3/8/8/8/8/8/2p5/2KR4 b - - 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "c2xd1=R+", "c2xd1=N", "c2xd1=B", "c2xd1=Q+");
    }
 
    @Test
    public void promotion() {
-      Pawn pawn = new Pawn(Colour.BLACK, Square.a2);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
+      setupGame("4k3/8/8/8/8/8/p7/4K3 b - - 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "a2-a1=Q+", "a2-a1=B", "a2-a1=N", "a2-a1=R+");
    }
 
    @Test
    public void enpassantRight() {
-      Pawn pawn = new Pawn(Colour.BLACK, Square.a4);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Pawn opponentsPawns = new Pawn(Colour.WHITE, Square.b4);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing, opponentsPawns));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
-      game.getChessboard().setEnpassantSquare(Square.b3);
+      setupGame("4k3/8/8/8/pP6/8/8/4K3 b - b3 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "a4-a3", "a4xb3");
    }
 
    @Test
    public void enpassantLeft() {
-      Pawn pawn = new Pawn(Colour.BLACK, Square.b4);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Pawn opponentsPawns = new Pawn(Colour.WHITE, Square.a4);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing, opponentsPawns));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
-      game.getChessboard().setEnpassantSquare(Square.a3);
+      setupGame("4k3/8/8/8/Pp6/8/8/4K3 b - a3 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "b4-b3", "b4xa3");
    }
 
    @Test
    public void enpassantWithTwoCandidatePawns() {
-      Pawn pawn = new Pawn(Colour.BLACK, Square.b4, Square.d4);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Pawn opponentsPawns = new Pawn(Colour.WHITE, Square.c4);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(opponentsKing, opponentsPawns));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
-      game.getChessboard().setEnpassantSquare(Square.c3);
+      setupGame("4k3/8/8/8/1pPp4/8/8/4K3 b - c3 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "b4-b3", "b4xc3", "d4-d3", "d4xc3");
    }
 
    @Test
    public void checkLeft() {
-      King king = new King(Colour.WHITE, Square.c3);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(king));
-      Pawn pawn = new Pawn(Colour.BLACK, Square.d5);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
+      setupGame("4k3/8/8/3p4/8/2K5/8/8 b - - 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "d5-d4+");
    }
 
    @Test
    public void checkRight() {
-      King king = new King(Colour.WHITE, Square.e3);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(king));
-      Pawn pawn = new Pawn(Colour.BLACK, Square.d5);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
+      setupGame("4k3/8/8/3p4/8/4K3/8/8 b - - 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "d5-d4+");
    }
 
    @Test
    public void checkCaptureLeft() {
-      King king = new King(Colour.WHITE, Square.b3);
-      Pawn opponentsPawn = new Pawn(Colour.WHITE, Square.c4);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(king, opponentsPawn));
-
-      Pawn pawn = new Pawn(Colour.BLACK, Square.d5);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
+      setupGame("4k3/8/8/3p4/2P5/1K6/8/8 b - - 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "d5-d4", "d5xc4+");
    }
 
    @Test
    public void checkCaptureRight() {
-      King king = new King(Colour.WHITE, Square.f3);
-      Pawn opponentsPawn = new Pawn(Colour.WHITE, Square.e4, Square.d4);
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(king, opponentsPawn));
-      Pawn pawn = new Pawn(Colour.BLACK, Square.d5);
-      Set<Piece> myPieces = new HashSet<>(Arrays.asList(pawn, myKing));
-      Game game = new Game(new Chessboard(opponentsPieces, myPieces));
+      setupGame("4k3/8/8/3p4/3PP3/5K2/8/8 b - - 0 0");
       TestUtil.checkMoves(pawn.findMoves(game), "d5xe4+");
    }
 
