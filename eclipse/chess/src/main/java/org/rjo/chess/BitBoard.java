@@ -230,6 +230,31 @@ public class BitBoard {
       this.bs = bs;
    }
 
+   public int getValueForRank(int startOfRankAsBitIndex) {
+      int val = 0;
+      int mask = 1;
+      // BitSet.toByteArray() is unfortunately little-endian, we have the least sig bit on the RHS
+      for (int i = (startOfRankAsBitIndex * 8) + 7; i >= (startOfRankAsBitIndex * 8); i--) {
+         if (this.bs.get(i)) {
+            val += mask;
+         }
+         mask *= 2;
+      }
+      return val;
+   }
+
+   public int getValueForFile(int startOfFileAsBitIndex) {
+      int val = 0;
+      // we're counting 'down' from most significant bit
+      for (int i = startOfFileAsBitIndex; i < 64; i += 8) {
+         val = val << 1;
+         if (this.bs.get(i)) {
+            val += 1;
+         }
+      }
+      return val;
+   }
+
    /**
     * Initialise a bitboard.
     *
@@ -242,16 +267,16 @@ public class BitBoard {
     *
     *           <pre>
     * new byte[] { (byte) 0b1110_0010, ... };
-    * </pre>
+    *           </pre>
     *
     *           This will lead to the bits 56, 57, 58 and 62 being set in the BitSet.
     *           <p>
     *           The advantage of this format is that the initialisation byte array can be read like a chessboard, e.g.:
     *
     *           <pre>
-    * new BitBoard(new byte[] { (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111,
-    *       (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111 });
-    * </pre>
+    *           new BitBoard(new byte[] { (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111,
+    *                 (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111 });
+    *           </pre>
     *
     *           <B>This is not the same order as used by the BitSet.parse(byte[]) method!!</B>
     */

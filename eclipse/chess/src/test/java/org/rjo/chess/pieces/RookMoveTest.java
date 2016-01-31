@@ -1,11 +1,13 @@
 package org.rjo.chess.pieces;
 
 import java.util.HashSet;
+import java.util.List;
 
 import org.junit.Test;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
+import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
 
@@ -20,6 +22,18 @@ public class RookMoveTest {
    private void setupGame(String fen) {
       game = Fen.decode(fen);
       whiteRook = game.getChessboard().getPieces(Colour.WHITE).get(PieceType.ROOK);
+   }
+
+   @Test
+   public void newFindMoves() {
+      String[] moves = new String[] { "R7", "R6p", "R5P1", "R5pP", "1R6", "1R5p", "1R4Pp", "1R2p3", "2R5", "2R2pPP",
+            "2R3p1", "2R3PP", "3R4", "3R3p", "p2R2p1", };
+      for (String move : moves) {
+         setupGame("4k3/8/8/8/" + move + "/8/8/4K3 w - - 0 0");
+         List<Move> m = ((Rook) whiteRook).findMovesNew(game);
+         System.out.println(m);
+      }
+
    }
 
    @Test
