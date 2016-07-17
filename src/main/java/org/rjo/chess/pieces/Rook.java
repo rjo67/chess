@@ -18,8 +18,8 @@ import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 import org.rjo.chess.ray.RayFactory;
 import org.rjo.chess.ray.RayType;
-import org.rjo.chess.util.Stopwatch;
 import org.rjo.chess.util.BitValueCalculator;
+import org.rjo.chess.util.Stopwatch;
 
 /**
  * Stores information about the rooks (still) in the game.
@@ -300,18 +300,36 @@ public class Rook extends SlidingPiece {
       Colour opponentsColour = Colour.oppositeColour(colour);
       BitBoard allPieces = game.getChessboard().getTotalPieces();
       BitSet opponentsPieces = game.getChessboard().getAllPieces(opponentsColour).getBitSet();
+
+      // rank, getValueForRank()
+      Map<Integer, Integer> rankValueCache = new HashMap<>();
+      Map<Integer, Integer> fileValueCache = new HashMap<>();
       for (int bitIndex = pieces.getBitSet().nextSetBit(0); bitIndex >= 0; bitIndex = pieces.getBitSet()
             .nextSetBit(bitIndex + 1)) {
          Square fromSquareIndex = Square.fromBitIndex(bitIndex);
          // System.out.println("on square " + fromSquareIndex);
          int file = fromSquareIndex.file();
          int rank = fromSquareIndex.rank();
+         int rankVal;
+         if (rankValueCache.containsKey(rank)) {
+            rankVal = rankValueCache.get(rank);
+         } else {
+            rankVal = allPieces.getValueForRank(rank);
+            rankValueCache.put(rank, rankVal);
+         }
 
          addMoves(game.getChessboard(), moves, opponentsColour, opponentsPieces, bitIndex, fromSquareIndex,
-               moveMap[file].get(allPieces.getValueForRank(rank)));
+               moveMap[file].get(rankVal));
 
+         int fileVal;
+         if (fileValueCache.containsKey(file)) {
+            fileVal = fileValueCache.get(file);
+         } else {
+            fileVal = allPieces.getValueForFile(file);
+            fileValueCache.put(file, fileVal);
+         }
          addMoves(game.getChessboard(), moves, opponentsColour, opponentsPieces, bitIndex, fromSquareIndex,
-               vertMoveMap[rank].get(allPieces.getValueForFile(file)));
+               vertMoveMap[rank].get(fileVal));
       }
 
       return moves;

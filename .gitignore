@@ -1,3 +1,8 @@
+.settings/
+.classpath
+.project
+target/
+*.out
 *.class
 # vim backup files
 *.*~
