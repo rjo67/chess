@@ -19,29 +19,29 @@ alpha-beta search
 
 ## 10.04.15
 pawn optimisations:
-5ply:  164.075.551 moves (   74.889 ms) ( 2190,9 moves/ms)
-5ply:  164.075.551 moves (   72.033 ms) ( 2277,8 moves/ms)
-5ply:  164.075.551 moves (   69.508 ms) ( 2360,5 moves/ms)
+* 5ply:  164.075.551 moves (   74.889 ms) ( 2190,9 moves/ms)
+* 5ply:  164.075.551 moves (   72.033 ms) ( 2277,8 moves/ms)
+* 5ply:  164.075.551 moves (   69.508 ms) ( 2360,5 moves/ms)
 
 ## 08.04.15
 * Bug in castle move: need to check for check.
 * if previous move was not a check, then only need to check if my move exposes the king (i.e. the piece was pinned).
 This requires that the 'inCheck' flag always gets set properly.
-5ply:  164.075.551 moves (   79.460 ms) ( 2064,9 moves/ms)
+** 5ply:  164.075.551 moves (   79.460 ms) ( 2064,9 moves/ms)
 * pawn promotion optimisations
-5ply:  164.075.551 moves (   74.889 ms) ( 2190,9 moves/ms)
+** 5ply:  164.075.551 moves (   74.889 ms) ( 2190,9 moves/ms)
 
 ## 06.04.15
 Introdution of "Rays".
 Rewrite of discoveredCheck to use RayUtils, i.e. only checking the ray between the opponent's king and the move.from() square.
-5ply:  164.075.551 moves (  120.411 ms) ( 1362,6 moves/ms)
+* 5ply:  164.075.551 moves (  120.411 ms) ( 1362,6 moves/ms)
 
 * Caching the results of 'discoveredCheck':
-5ply:  164.075.551 moves (  117.081 ms) ( 1401,4 moves/ms)
+** 5ply:  164.075.551 moves (  117.081 ms) ( 1401,4 moves/ms)
 * After rewriting bishop search to use Rays. Not a huge difference in speed but the code is a lot simpler.
-5ply:  164.075.551 moves (  112.854 ms) ( 1453,9 moves/ms)
+** 5ply:  164.075.551 moves (  112.854 ms) ( 1453,9 moves/ms)
 * After rewriting rook and queen search to use Rays.
-5ply:  164.075.551 moves (  107.777 ms) ( 1522,4 moves/ms) -- 25% speed up compared with 03.04.15!
+** 5ply:  164.075.551 moves (  107.777 ms) ( 1522,4 moves/ms) -- 25% speed up compared with 03.04.15!
 
 ## 03.04.15 Teil 2
 updateStructures now completely incremental.

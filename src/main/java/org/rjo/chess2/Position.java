@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
@@ -20,6 +21,8 @@ import org.rjo.chess.pieces.Rook;
 
 /**
  * an immutable object which stores the board position after a particular move.
+ * 
+ * more or less replaces Chessboard in the previous implementation.
  *
  * @author rich
  * @since 2016-09-04
@@ -37,11 +40,31 @@ public class Position {
 	 */
 	private Map<PieceType, Piece>[] pieces;
 
+	/**
+	 * bitboard of all pieces for a particular colour. The dimension indicates
+	 * the colour {white, black}.
+	 */
+	private BitBoard[] allEnemyPieces;
+
+	/**
+	 * bitboard of all pieces on the board (irrespective of colour).
+	 */
+	private BitBoard totalPieces;
+
+	/**
+	 * bitboard of all empty squares on the board. Logical NOT of
+	 * {@link #totalPieces}.
+	 */
+	private BitBoard emptySquares;
+
 	public static Position startPosition() {
 		Position p = new Position();
 		return p;
 	}
 
+	/**
+	 * Constructs a new position, pieces are initialised to the start position.
+	 */
 	public Position() {
 		@SuppressWarnings("unchecked")
 		Set<Piece>[] pieces = new HashSet[Colour.values().length];
@@ -64,6 +87,8 @@ public class Position {
 			}
 		}
 
+		totalPieces = new BitBoard(posn.totalPieces.cloneBitSet());
+		emptySquares = new BitBoard(posn.emptySquares.cloneBitSet());
 		enpassantSquare = posn.enpassantSquare;
 	}
 
@@ -101,7 +126,11 @@ public class Position {
 		for (Piece p : blackPieces) {
 			pieces[Colour.BLACK.ordinal()].put(p.getType(), p);
 		}
-
+		totalPieces = new BitBoard();
+		totalPieces.getBitSet().or(allEnemyPieces[Colour.WHITE.ordinal()].getBitSet());
+		totalPieces.getBitSet().or(allEnemyPieces[Colour.BLACK.ordinal()].getBitSet());
+		emptySquares = new BitBoard(totalPieces.cloneBitSet());
+		emptySquares.getBitSet().flip(0, 64);
 		enpassantSquare = null;
 	}
 
