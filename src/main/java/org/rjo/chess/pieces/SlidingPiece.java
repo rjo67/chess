@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import org.rjo.chess.Chessboard;
+import org.rjo.chess.Position;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
@@ -98,7 +98,7 @@ public abstract class SlidingPiece extends Piece {
     *           the ray (direction) in which to search
     * @return the moves found
     */
-   protected List<Move> search(Chessboard chessboard, Ray ray) {
+   protected List<Move> search(Position chessboard, Ray ray) {
       List<Move> moves = new ArrayList<>(30);
 
       final Colour opponentsColour = Colour.oppositeColour(colour);

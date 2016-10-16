@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
-import org.rjo.chess.Chessboard;
+import org.rjo.chess.Position;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
@@ -153,7 +153,7 @@ public class Pawn extends Piece {
       while (iter.hasNext()) {
          Move move = iter.next();
          // make sure my king is not/no longer in check
-         boolean inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing, kingInCheck);
+         boolean inCheck = Position.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing, kingInCheck);
          if (inCheck) {
             iter.remove();
          }
@@ -168,7 +168,7 @@ public class Pawn extends Piece {
          boolean isCheck = checkIfCheck(game.getChessboard(), move, opponentsKing, opponentsKingBitset);
          // if it's already check, don't need to calculate discovered check
          if (!isCheck) {
-            isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+            isCheck = Position.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
          }
          move.setCheck(isCheck);
       }
@@ -188,7 +188,7 @@ public class Pawn extends Piece {
     * @param opponentsPieces
     *           bit set of opponent's pieces. **May be modified by this method**.
     */
-   private void addEnpassantSquare(Chessboard chessboard, BitSet opponentsPieces) {
+   private void addEnpassantSquare(Position chessboard, BitSet opponentsPieces) {
       Square enpassantSquare = chessboard.getEnpassantSquare();
       if (enpassantSquare != null) {
          opponentsPieces.set(enpassantSquare.bitIndex());
@@ -204,7 +204,7 @@ public class Pawn extends Piece {
     *           distinguishes between white and black sides, since the pawns move in different directions
     * @return list of moves found by this method
     */
-   private List<Move> moveOneSquareForward(Chessboard chessboard, MoveHelper helper) {
+   private List<Move> moveOneSquareForward(Position chessboard, MoveHelper helper) {
       List<Move> moves = new ArrayList<>();
       // 1) one square forward:
       // shift by 8 and check if empty square
@@ -236,7 +236,7 @@ public class Pawn extends Piece {
     *           distinguishes between white and black sides, since the pawns move in different directions
     * @return list of moves found by this method
     */
-   private List<Move> moveTwoSquaresForward(Chessboard chessboard, MoveHelper helper) {
+   private List<Move> moveTwoSquaresForward(Position chessboard, MoveHelper helper) {
       List<Move> moves = new ArrayList<>();
       // 2) two squares forward:
       // first just take the pawns on the 2nd rank (relative to colour), since only these can still move two squares
@@ -269,7 +269,7 @@ public class Pawn extends Piece {
     *           moves which are captures i.e. the opponent's pieces are taken into account.
     * @return list of moves found by this method
     */
-   private List<Move> capture(Chessboard chessboard, MoveHelper helper, boolean captureLeft,
+   private List<Move> capture(Position chessboard, MoveHelper helper, boolean captureLeft,
          boolean checkingForAttack) {
 
       BitSet captures;
@@ -346,7 +346,7 @@ public class Pawn extends Piece {
     *           moves which are captures i.e. the opponent's pieces are taken into account.
     * @return list of moves found by this method
     */
-   private List<Move> captureLeft(Chessboard chessboard, MoveHelper helper, boolean checkingForAttack) {
+   private List<Move> captureLeft(Position chessboard, MoveHelper helper, boolean checkingForAttack) {
       return capture(chessboard, helper, true, checkingForAttack);
    }
 
@@ -363,7 +363,7 @@ public class Pawn extends Piece {
     *           which are captures i.e. the opponent's pieces are taken into account.
     * @return list of moves found by this method
     */
-   private List<Move> captureRight(Chessboard chessboard, MoveHelper helper, boolean checkingForAttack) {
+   private List<Move> captureRight(Position chessboard, MoveHelper helper, boolean checkingForAttack) {
       return capture(chessboard, helper, false, checkingForAttack);
    }
 
@@ -380,7 +380,7 @@ public class Pawn extends Piece {
     *           bitset for the opponent's king (passed in as optimization)
     * @return true if this move leaves the king in check
     */
-   private boolean checkIfCheck(Chessboard chessboard, Move move, Square opponentsKing, BitSet opponentsKingBitset) {
+   private boolean checkIfCheck(Position chessboard, Move move, Square opponentsKing, BitSet opponentsKingBitset) {
       if (move.isPromotion()) {
          if (move.getPromotedPiece() == PieceType.KNIGHT) {
             return Knight.checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());

@@ -9,7 +9,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.rjo.chess.Chessboard;
+import org.rjo.chess.Position;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.KingChecker;
@@ -136,7 +136,7 @@ public class Bishop extends SlidingPiece {
          if (!move.isCapture()) {
             inCheck = kingChecker.isKingInCheck(move, kingInCheck);
          } else {
-            inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing,
+            inCheck = Position.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing,
                   kingInCheck);
          }
          if (inCheck) {
@@ -158,7 +158,7 @@ public class Bishop extends SlidingPiece {
             if (discoveredCheckCache.containsKey(move.from())) {
                isCheck = discoveredCheckCache.get(move.from());
             } else {
-               isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+               isCheck = Position.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
                discoveredCheckCache.put(move.from(), isCheck);
             }
          }

@@ -32,7 +32,7 @@ public class KingCheckTest {
    public void pinnedOnFileMovesAway() {
       setup("3r4/4k3/6b1/8/3RP3/3K4/8/8 w - - 10 10");
       Move move = new Move(PieceType.ROOK, Colour.WHITE, Square.d4, Square.c4);
-      assertTrue(Chessboard.isKingInCheck(game.getChessboard(), move, Colour.BLACK, Square.d3, false));
+      assertTrue(Position.isKingInCheck(game.getChessboard(), move, Colour.BLACK, Square.d3, false));
    }
 
    /**
@@ -42,7 +42,7 @@ public class KingCheckTest {
    public void pinnedOnDiagonalMovesAway() {
       setup("3r4/4k3/6b1/8/3RP3/3K4/8/8 w - - 10 10");
       Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.e4, Square.e5);
-      assertTrue(Chessboard.isKingInCheck(game.getChessboard(), move, Colour.BLACK, Square.d3, false));
+      assertTrue(Position.isKingInCheck(game.getChessboard(), move, Colour.BLACK, Square.d3, false));
    }
 
    /**
@@ -52,7 +52,7 @@ public class KingCheckTest {
    public void pinnedOnFileStaysOnFile() {
       setup("3r4/4k3/6b1/8/3RP3/3K4/8/8 w - - 10 10");
       Move move = new Move(PieceType.ROOK, Colour.WHITE, Square.d4, Square.d5);
-      assertFalse(Chessboard.isKingInCheck(game.getChessboard(), move, Colour.BLACK, Square.d3, false));
+      assertFalse(Position.isKingInCheck(game.getChessboard(), move, Colour.BLACK, Square.d3, false));
    }
 
    /**
@@ -62,7 +62,7 @@ public class KingCheckTest {
    public void checkingPieceGetsCaptured() {
       setup("8/4k3/6b1/8/4P3/3K3r/8/5Q2 w - - 10 10");
       Move move = new Move(PieceType.QUEEN, Colour.WHITE, Square.f1, Square.h3, PieceType.ROOK);
-      assertFalse(Chessboard.isKingInCheck(game.getChessboard(), move, Colour.BLACK, Square.d3, false));
+      assertFalse(Position.isKingInCheck(game.getChessboard(), move, Colour.BLACK, Square.d3, false));
    }
 
    /**
@@ -228,11 +228,11 @@ public class KingCheckTest {
             getWhitePieces(game.getChessboard()), enemyPieces, move));
    }
 
-   private BitSet getWhitePieces(Chessboard chessboard) {
+   private BitSet getWhitePieces(Position chessboard) {
       return chessboard.getAllPieces(Colour.WHITE).getBitSet();
    }
 
-   private Map<PieceType, BitSet> setupBlackBitsets(Chessboard chessboard) {
+   private Map<PieceType, BitSet> setupBlackBitsets(Position chessboard) {
       Map<PieceType, BitSet> enemyPieces = new HashMap<>();
       for (PieceType type : PieceType.ALL_PIECE_TYPES) {
          enemyPieces.put(type, chessboard.getPieces(Colour.BLACK).get(type).getBitBoard().getBitSet());

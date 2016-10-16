@@ -8,7 +8,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.rjo.chess.CastlingRights;
-import org.rjo.chess.Chessboard;
+import org.rjo.chess.Position;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
@@ -151,7 +151,7 @@ public class KingMoveTest {
       blackKing.initPosition(Square.h7);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing, new Rook(Colour.WHITE, Square.a1)));
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing));
-      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      Game game = new Game(new Position(whitePieces, blackPieces));
       game.setSideToMove(Colour.WHITE);
       game.setCastlingRights(Colour.WHITE, CastlingRights.QUEENS_SIDE);
       String previousFen = Fen.encode(game);
@@ -168,7 +168,7 @@ public class KingMoveTest {
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing,
             new Pawn(Colour.BLACK, Square.d7, Square.e7, Square.f7), new Rook(Colour.BLACK, Square.h8)));
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing));
-      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      Game game = new Game(new Position(whitePieces, blackPieces));
       game.setSideToMove(Colour.BLACK);
       game.setCastlingRights(Colour.BLACK, CastlingRights.KINGS_SIDE);
       String previousFen = Fen.encode(game);
@@ -184,7 +184,7 @@ public class KingMoveTest {
       blackKing.initPosition(Square.e8);
       Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing, new Rook(Colour.BLACK, Square.a8)));
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing));
-      Game game = new Game(new Chessboard(whitePieces, blackPieces));
+      Game game = new Game(new Position(whitePieces, blackPieces));
       game.setSideToMove(Colour.BLACK);
       game.setCastlingRights(Colour.BLACK, CastlingRights.QUEENS_SIDE);
       String previousFen = Fen.encode(game);

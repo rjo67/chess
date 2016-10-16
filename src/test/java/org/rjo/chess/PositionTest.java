@@ -1,0 +1,300 @@
+package org.rjo.chess;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.BitSet;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Ignore;
+import org.junit.Test;
+import org.rjo.chess.pieces.PieceType;
+
+/**
+ * Test the updating of Position::'internalStructures'.
+ *
+ * @author rich
+ */
+public class PositionTest {
+
+	@Test
+	public void checkImmutable() {
+		Position p = Position.startPosition();
+		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.a2, Square.a4);
+		Position p2 = p.calculateNewPosition(move);
+
+		// System.out.println(p);
+		// System.out.println(p2);
+		assertFalse("positions are the same -- objects not immutable!?", p.toString().equals(p2.toString()));
+	}
+
+	@Test
+	public void noncaptureMove() {
+		Game game = Fen.decode("r3k2r/pb3p2/5npp/n2p4/1p1PPB2/6P1/P2N1PBP/R3K2R b KQkq - 0 10");
+		Move move = new Move(PieceType.KNIGHT, Colour.WHITE, Square.d2, Square.b3);
+
+		long start = System.currentTimeMillis();
+		for (int i = 0; i < 1000000; i++) {
+			game.getChessboard().updateStructures(move);
+		}
+		System.out.println("1E06 noncapture move: " + (System.currentTimeMillis() - start));
+	}
+
+	@Test
+	public void captureMove() {
+		Game game = Fen.decode("r3k2r/pb3p2/5npp/n2p4/1p1PPB2/6P1/P2N1PBP/R3K2R b KQkq - 0 10");
+		Move move = new Move(PieceType.BISHOP, Colour.WHITE, Square.f4, Square.h6, PieceType.PAWN);
+
+		long start = System.currentTimeMillis();
+		for (int i = 0; i < 1000000; i++) {
+			game.getChessboard().updateStructures(move);
+		}
+		System.out.println("1E06 capture move:" + (System.currentTimeMillis() - start));
+	}
+
+	@Test
+	public void blockCheck() {
+		Game game = Fen.decode("3r4/4k3/8/R7/4P3/3K4/1BN1P3/8 w - - 10 10");
+		game.setInCheck(true);
+		List<Move> moves = game.findMoves(Colour.WHITE);
+		assertEquals("found moves" + moves, 6, moves.size());
+	}
+
+	@Test
+	@Ignore
+	public void pinnedPiece() {
+		Game game = Fen.decode("3r4/4k3/8/8/3RP3/3K4/8/8 w - - 10 10");
+		long start = System.currentTimeMillis();
+		for (int i = 0; i < 100000; i++) {
+			List<Move> moves = game.findMoves(Colour.WHITE);// 1344
+		}
+		System.out.println(System.currentTimeMillis() - start);
+	}
+
+	@Test
+	public void posn2ply2() {
+		Game game = Fen.decode("r3kr1Q/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQ-q - 0 1");
+		Map<String, Integer> moveMap = Perft.findMoves(game, Colour.BLACK, 1);
+		int moves = Perft.countMoves(moveMap);
+		assertEquals("found moves" + moveMap, 35, moves);
+	}
+
+	@Test
+	public void bishopCapture() {
+		Game game = Fen.decode("r3k2r/pb3p2/5npp/n2p4/1p1PPB2/6P1/P2N1PBP/R3K2R w KQkq - 0 10");
+		Position cb = game.getChessboard();
+
+		Move move = new Move(PieceType.BISHOP, Colour.WHITE, Square.f4, Square.h6, PieceType.PAWN);
+
+		InternalState prevState = new InternalState(cb);
+		game.move(move);
+		InternalState newState = new InternalState(cb);
+
+		BitSet expectedBishopsAndQueens = new BitSet(64);
+		expectedBishopsAndQueens.set(14);
+		expectedBishopsAndQueens.set(47);
+
+		BitSet expectedEmptySquares = (BitSet) prevState.emptySquares.clone();
+		assertFalse(expectedEmptySquares.get(Square.f4.bitIndex()));
+		expectedEmptySquares.set(Square.f4.bitIndex());
+
+		BitSet expectedTotalPieces = (BitSet) prevState.totalPieces.clone();
+		assertTrue(expectedTotalPieces.get(Square.f4.bitIndex()));
+		expectedTotalPieces.clear(Square.f4.bitIndex());
+
+		BitSet expectedAllPiecesWhite = (BitSet) prevState.allPiecesWhite.clone();
+		assertTrue(expectedAllPiecesWhite.get(Square.f4.bitIndex()));
+		assertFalse(expectedAllPiecesWhite.get(Square.h6.bitIndex()));
+		expectedAllPiecesWhite.clear(Square.f4.bitIndex());
+		expectedAllPiecesWhite.set(Square.h6.bitIndex());
+
+		BitSet expectedAllPiecesBlack = (BitSet) prevState.allPiecesBlack.clone();
+		assertTrue(expectedAllPiecesBlack.get(Square.h6.bitIndex()));
+		expectedAllPiecesBlack.clear(Square.h6.bitIndex());
+
+		assertEquals(expectedEmptySquares, newState.emptySquares);
+		assertEquals(expectedTotalPieces, newState.totalPieces);
+		assertEquals(expectedAllPiecesWhite, newState.allPiecesWhite);
+		assertEquals(expectedAllPiecesBlack, newState.allPiecesBlack);
+
+		game.unmove(move);
+		InternalState newState2 = new InternalState(cb);
+		assertEquals(prevState, newState2);
+	}
+
+	@Test
+	public void pawnCapture() {
+		Game game = Fen.decode("r3k2r/pb3p2/5npp/n2p4/1p1PPB2/6P1/P2N1PBP/R3K2R w KQkq - 0 10");
+		Position cb = game.getChessboard();
+
+		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.e4, Square.d5, PieceType.PAWN);
+
+		InternalState prevState = new InternalState(cb);
+		game.move(move);
+		InternalState newState = new InternalState(cb);
+
+		BitSet expectedEmptySquares = (BitSet) prevState.emptySquares.clone();
+		assertFalse(expectedEmptySquares.get(Square.e4.bitIndex()));
+		assertFalse(expectedEmptySquares.get(Square.d5.bitIndex()));
+		expectedEmptySquares.set(Square.e4.bitIndex());
+
+		BitSet expectedTotalPieces = (BitSet) prevState.totalPieces.clone();
+		assertTrue(expectedTotalPieces.get(Square.e4.bitIndex()));
+		assertTrue(expectedTotalPieces.get(Square.d5.bitIndex()));
+		expectedTotalPieces.clear(Square.e4.bitIndex());
+
+		BitSet expectedAllPiecesWhite = (BitSet) prevState.allPiecesWhite.clone();
+		assertTrue(expectedAllPiecesWhite.get(Square.e4.bitIndex()));
+		assertFalse(expectedAllPiecesWhite.get(Square.d5.bitIndex()));
+		expectedAllPiecesWhite.clear(Square.e4.bitIndex());
+		expectedAllPiecesWhite.set(Square.d5.bitIndex());
+
+		BitSet expectedAllPiecesBlack = (BitSet) prevState.allPiecesBlack.clone();
+		assertTrue(expectedAllPiecesBlack.get(Square.d5.bitIndex()));
+		expectedAllPiecesBlack.clear(Square.d5.bitIndex());
+
+		assertEquals(expectedEmptySquares, newState.emptySquares);
+		assertEquals(expectedTotalPieces, newState.totalPieces);
+		assertEquals(expectedAllPiecesWhite, newState.allPiecesWhite);
+		assertEquals(expectedAllPiecesBlack, newState.allPiecesBlack);
+
+		game.unmove(move);
+		InternalState newState2 = new InternalState(cb);
+		assertEquals(prevState, newState2);
+	}
+
+	@Test
+	public void pawnPromotionToQueen() {
+		Game game = Fen.decode("r3k2r/pP3p2/5npp/n2p4/1p1PPB2/6P1/P2N1PBP/R3K2R w KQkq - 0 10");
+		Position cb = game.getChessboard();
+
+		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.b7, Square.a8, PieceType.ROOK);
+		move.setPromotionPiece(PieceType.QUEEN);
+
+		InternalState prevState = new InternalState(cb);
+		game.move(move);
+		InternalState newState = new InternalState(cb);
+
+		BitSet expectedRooksAndQueensWhite = new BitSet(64);
+		expectedRooksAndQueensWhite.set(Square.a1.bitIndex());
+		expectedRooksAndQueensWhite.set(Square.h1.bitIndex());
+		expectedRooksAndQueensWhite.set(Square.a8.bitIndex());
+		BitSet expectedRooksAndQueensBlack = new BitSet(64);
+		expectedRooksAndQueensBlack.set(Square.h8.bitIndex());
+
+		BitSet expectedBishopsAndQueensWhite = new BitSet(64);
+		expectedBishopsAndQueensWhite.set(Square.g2.bitIndex());
+		expectedBishopsAndQueensWhite.set(Square.f4.bitIndex());
+		expectedBishopsAndQueensWhite.set(Square.a8.bitIndex());
+
+		BitSet expectedEmptySquares = (BitSet) prevState.emptySquares.clone();
+		assertFalse(expectedEmptySquares.get(Square.b7.bitIndex()));
+		assertFalse(expectedEmptySquares.get(Square.a8.bitIndex()));
+		expectedEmptySquares.set(Square.b7.bitIndex());
+
+		BitSet expectedTotalPieces = (BitSet) prevState.totalPieces.clone();
+		assertTrue(expectedTotalPieces.get(Square.b7.bitIndex()));
+		assertTrue(expectedTotalPieces.get(Square.a8.bitIndex()));
+		expectedTotalPieces.clear(Square.b7.bitIndex());
+
+		BitSet expectedAllPiecesWhite = (BitSet) prevState.allPiecesWhite.clone();
+		assertTrue(expectedAllPiecesWhite.get(Square.b7.bitIndex()));
+		assertFalse(expectedAllPiecesWhite.get(Square.a8.bitIndex()));
+		expectedAllPiecesWhite.clear(Square.b7.bitIndex());
+		expectedAllPiecesWhite.set(Square.a8.bitIndex());
+
+		BitSet expectedAllPiecesBlack = (BitSet) prevState.allPiecesBlack.clone();
+		assertTrue(expectedAllPiecesBlack.get(Square.a8.bitIndex()));
+		expectedAllPiecesBlack.clear(Square.a8.bitIndex());
+
+		assertEquals(expectedEmptySquares, newState.emptySquares);
+		assertEquals(expectedTotalPieces, newState.totalPieces);
+		assertEquals(expectedAllPiecesWhite, newState.allPiecesWhite);
+		assertEquals(expectedAllPiecesBlack, newState.allPiecesBlack);
+
+		game.unmove(move);
+		InternalState newState2 = new InternalState(cb);
+		assertEquals(prevState, newState2);
+	}
+
+	@Test
+	public void blackPawnCapturesEnpassant() {
+		Game game = Fen.decode("r3k2r/pP3p2/5npp/n2p4/Pp1PPB2/6P1/3N1PBP/R3K2R b KQkq a3 0 10");
+		Position cb = game.getChessboard();
+
+		Move move = Move.enpassant(Colour.BLACK, Square.b4, Square.a3);
+
+		InternalState prevState = new InternalState(cb);
+		game.move(move);
+		InternalState newState = new InternalState(cb);
+
+		BitSet expectedEmptySquares = (BitSet) prevState.emptySquares.clone();
+		assertFalse(expectedEmptySquares.get(Square.b4.bitIndex()));
+		assertFalse(expectedEmptySquares.get(Square.a4.bitIndex()));
+		expectedEmptySquares.set(Square.b4.bitIndex());
+		expectedEmptySquares.set(Square.a4.bitIndex());
+		expectedEmptySquares.clear(Square.a3.bitIndex());
+
+		BitSet expectedTotalPieces = (BitSet) prevState.totalPieces.clone();
+		assertTrue(expectedTotalPieces.get(Square.b4.bitIndex()));
+		assertTrue(expectedTotalPieces.get(Square.a4.bitIndex()));
+		expectedTotalPieces.clear(Square.b4.bitIndex());
+		expectedTotalPieces.clear(Square.a4.bitIndex());
+		expectedTotalPieces.set(Square.a3.bitIndex());
+
+		BitSet expectedAllPiecesWhite = (BitSet) prevState.allPiecesWhite.clone();
+		assertTrue(expectedAllPiecesWhite.get(Square.a4.bitIndex()));
+		expectedAllPiecesWhite.clear(Square.a4.bitIndex());
+
+		BitSet expectedAllPiecesBlack = (BitSet) prevState.allPiecesBlack.clone();
+		assertTrue(expectedAllPiecesBlack.get(Square.b4.bitIndex()));
+		expectedAllPiecesBlack.clear(Square.b4.bitIndex());
+		expectedAllPiecesBlack.set(Square.a3.bitIndex());
+
+		assertEquals(expectedEmptySquares, newState.emptySquares);
+		assertEquals(expectedTotalPieces, newState.totalPieces);
+		assertEquals(expectedAllPiecesWhite, newState.allPiecesWhite);
+		assertEquals(expectedAllPiecesBlack, newState.allPiecesBlack);
+
+		game.unmove(move);
+		InternalState newState2 = new InternalState(cb);
+		assertEquals(prevState, newState2);
+	}
+
+	class InternalState {
+		BitSet emptySquares;
+		BitSet allPiecesWhite;
+		BitSet allPiecesBlack;
+		BitSet totalPieces;
+
+		InternalState(Position cb) {
+			emptySquares = cb.getEmptySquares().cloneBitSet();
+			allPiecesWhite = cb.getAllPieces(Colour.WHITE).cloneBitSet();
+			allPiecesBlack = cb.getAllPieces(Colour.BLACK).cloneBitSet();
+			totalPieces = cb.getTotalPieces().cloneBitSet();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof InternalState)) {
+				return false;
+			}
+			InternalState other = (InternalState) obj;
+			if (!this.emptySquares.equals(other.emptySquares)) {
+				return false;
+			}
+			if (!this.allPiecesWhite.equals(other.allPiecesWhite)) {
+				return false;
+			}
+			if (!this.allPiecesBlack.equals(other.allPiecesBlack)) {
+				return false;
+			}
+			if (!this.totalPieces.equals(other.totalPieces)) {
+				return false;
+			}
+			return true;
+		}
+	}
+}

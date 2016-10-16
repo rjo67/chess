@@ -10,7 +10,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.CastlingRights;
-import org.rjo.chess.Chessboard;
+import org.rjo.chess.Position;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
@@ -289,7 +289,7 @@ public class King extends Piece {
       while (iter.hasNext()) {
          Move move = iter.next();
          Square myKing = move.to();
-         if (Chessboard.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing, kingInCheck)) {
+         if (Position.isKingInCheck(game.getChessboard(), move, Colour.oppositeColour(colour), myKing, kingInCheck)) {
             iter.remove();
          }
       }
@@ -308,7 +308,7 @@ public class King extends Piece {
          if (discoveredCheckCache.containsKey(move.from())) {
             isCheck = discoveredCheckCache.get(move.from());
          } else {
-            isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKingSquare);
+            isCheck = Position.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKingSquare);
             discoveredCheckCache.put(move.from(), isCheck);
          }
          if (!isCheck) {
@@ -328,7 +328,7 @@ public class King extends Piece {
       return moves;
    }
 
-   private Square findOpponentsKing(Chessboard chessboard) {
+   private Square findOpponentsKing(Position chessboard) {
       return findOpponentsKing(colour, chessboard);
    }
 
@@ -343,7 +343,7 @@ public class King extends Piece {
     *           the board
     * @return location of the other colour's king.
     */
-   public static Square findOpponentsKing(Colour myColour, Chessboard chessboard) {
+   public static Square findOpponentsKing(Colour myColour, Position chessboard) {
       return findKing(Colour.oppositeColour(myColour), chessboard);
    }
 
@@ -356,7 +356,7 @@ public class King extends Piece {
     *           the board
     * @return location of this colour's king.
     */
-   public static Square findKing(Colour colour, Chessboard chessboard) {
+   public static Square findKing(Colour colour, Position chessboard) {
       return chessboard.getPieces(colour).get(PieceType.KING).getLocations()[0];
    }
 

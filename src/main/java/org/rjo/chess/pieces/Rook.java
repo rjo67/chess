@@ -11,7 +11,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
-import org.rjo.chess.Chessboard;
+import org.rjo.chess.Position;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
@@ -353,7 +353,7 @@ public class Rook extends SlidingPiece {
     * @param moveinfo
     *           the MoveInfo object corresponding to the file (or rank) which we're currently looking at.
     */
-   private void addMoves(Chessboard chessboard, List<Move> moves, Colour opponentsColour, BitSet opponentsPieces,
+   private void addMoves(Position chessboard, List<Move> moves, Colour opponentsColour, BitSet opponentsPieces,
          int bitIndexOfPiece, Square fromSquareIndex, MoveInfo moveinfo) {
 
       // System.out.printf("val=%d, map entry=%s%n", val, moveinfo);
@@ -391,7 +391,7 @@ public class Rook extends SlidingPiece {
       Colour opponentsColour = Colour.oppositeColour(colour);
       while (iter.hasNext()) {
          Move move = iter.next();
-         boolean inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing, kingInCheck);
+         boolean inCheck = Position.isKingInCheck(game.getChessboard(), move, opponentsColour, myKing, kingInCheck);
          if (inCheck) {
             iter.remove();
          }
@@ -412,7 +412,7 @@ public class Rook extends SlidingPiece {
             if (discoveredCheckCache.containsKey(move.from())) {
                isCheck = discoveredCheckCache.get(move.from());
             } else {
-               isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+               isCheck = Position.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
                discoveredCheckCache.put(move.from(), isCheck);
             }
          }

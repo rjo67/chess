@@ -21,7 +21,7 @@ public class KingChecker {
    private Colour myColour;
    private Colour opponentsColour;
 
-   public KingChecker(Chessboard chessboard, Colour opponentsColour, Square myKing) {
+   public KingChecker(Position chessboard, Colour opponentsColour, Square myKing) {
       this.opponentsColour = opponentsColour;
       this.myColour = Colour.oppositeColour(opponentsColour);
       friendlyPieces = chessboard.getAllPieces(myColour).getBitSet();

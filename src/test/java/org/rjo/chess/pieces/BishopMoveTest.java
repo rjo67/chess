@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.rjo.chess.Chessboard;
+import org.rjo.chess.Position;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
@@ -168,7 +168,7 @@ public class BishopMoveTest {
       King king = new King(Colour.WHITE, Square.f8);
       Set<Piece> whitePieces = new HashSet<>(Arrays.asList(king, whiteBishop));
       Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
-      Chessboard chessboard = new Chessboard(whitePieces, opponentsPieces);
+      Position chessboard = new Position(whitePieces, opponentsPieces);
       for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
          assertTrue("square " + sq, whiteBishop.attacksSquare(chessboard.getEmptySquares().getBitSet(), sq));
       }

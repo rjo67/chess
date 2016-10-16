@@ -3,7 +3,7 @@ package org.rjo.chess.ray;
 import java.util.BitSet;
 import java.util.Iterator;
 
-import org.rjo.chess.Chessboard;
+import org.rjo.chess.Position;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Square;
 import org.rjo.chess.pieces.PieceType;
@@ -57,7 +57,7 @@ public class RayUtils {
     *           the square where the piece moved from
     * @return true if the move from square 'moveFromSquare' leads to a discovered check on the king.
     */
-   public static boolean discoveredCheck(Colour myColour, Chessboard cb, BitSet emptySquares, BitSet myPieces,
+   public static boolean discoveredCheck(Colour myColour, Position cb, BitSet emptySquares, BitSet myPieces,
          Square opponentsKingsSquare, Square moveFromSquare) {
       // if moveFromSquare is on a ray to kingsSquare,
       // then inspect this ray for a checking bishop/queen/rook
@@ -93,7 +93,7 @@ public class RayUtils {
     *           the square where the piece moved from
     * @return true if the move from square 'moveFromSquare' leads to a discovered check on the king.
     */
-   public static boolean kingInCheck(Colour kingsColour, Chessboard cb, BitSet emptySquares, BitSet kingsColourPieces,
+   public static boolean kingInCheck(Colour kingsColour, Position cb, BitSet emptySquares, BitSet kingsColourPieces,
          Square kingsSquare, Square moveFromSquare) {
       // if moveFromSquare is on a ray to kingsSquare,
       // then inspect this ray for a checking bishop/queen/rook

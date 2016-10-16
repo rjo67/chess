@@ -9,7 +9,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
-import org.rjo.chess.Chessboard;
+import org.rjo.chess.Position;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.KingChecker;
@@ -210,7 +210,7 @@ public class Knight extends Piece {
                // capture
                move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare,
                      game.getChessboard().pieceAt(targetSquare, oppositeColour));
-               inCheck = Chessboard.isKingInCheck(game.getChessboard(), move, oppositeColour, myKing, kingInCheck);
+               inCheck = Position.isKingInCheck(game.getChessboard(), move, oppositeColour, myKing, kingInCheck);
             } else {
                move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare);
                inCheck = kingChecker.isKingInCheck(move, kingInCheck);
@@ -237,7 +237,7 @@ public class Knight extends Piece {
             if (discoveredCheckCache.containsKey(move.from())) {
                isCheck = discoveredCheckCache.get(move.from());
             } else {
-               isCheck = Chessboard.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
+               isCheck = Position.checkForDiscoveredCheck(game.getChessboard(), move, colour, opponentsKing);
                discoveredCheckCache.put(move.from(), isCheck);
             }
          }
