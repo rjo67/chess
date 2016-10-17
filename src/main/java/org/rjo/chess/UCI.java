@@ -63,7 +63,7 @@ public class UCI {
 
 	private void processCommandGo(Scanner lineScanner) {
 		boolean infinite = lineScanner.hasNext() && "infinite".equals(lineScanner.next());
-		moveinfo = strategy.findMove(game);
+		moveinfo = strategy.findMove(game.getPosition());
 		if (!infinite) {
 			System.out.println("bestmove " + moveinfo.getMove().toUCIString());
 		}
@@ -98,13 +98,13 @@ public class UCI {
 				boolean lastmove = !lineScanner.hasNext();
 				Move m = Move.fromUCIString(moveStr, game);
 				// only worry about check for the last move
-				game.move(m);
+				game.getPosition().move(m);
 				if (lastmove) {
-					Square kingsSquare = King.findKing(game.getChessboard().getSideToMove(), game.getChessboard());
-					boolean incheck = game.getChessboard().squareIsAttacked(kingsSquare,
-							Colour.oppositeColour(game.getChessboard().getSideToMove()));
+					Square kingsSquare = King.findKing(game.getPosition().getSideToMove(), game.getPosition());
+					boolean incheck = game.getPosition().squareIsAttacked(kingsSquare,
+							Colour.oppositeColour(game.getPosition().getSideToMove()));
 					m.setCheck(incheck);
-					game.setInCheck(incheck);
+					game.getPosition().setInCheck(incheck);
 					System.out.println("after move " + m + ", fen:" + Fen.encode(game));
 				}
 			}

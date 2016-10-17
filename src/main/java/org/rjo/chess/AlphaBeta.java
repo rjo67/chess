@@ -33,7 +33,7 @@ public class AlphaBeta implements SearchStrategy {
 	}
 
 	@Override
-	public MoveInfo findMove(Game game) {
+	public MoveInfo findMove(Position posn) {
 		final int depth = MAX_DEPTH;
 		nbrNodesEvaluated = 0;
 		// always store at least one move (even if all moves are equally bad
@@ -41,14 +41,14 @@ public class AlphaBeta implements SearchStrategy {
 		int max = MIN_INT - 1;
 		MoveInfo moveInfo = new MoveInfo();
 		long overallStartTime = System.currentTimeMillis();
-		List<Move> moves = game.findMoves(game.getChessboard().getSideToMove());
+		List<Move> moves = posn.findMoves(posn.getSideToMove());
 		for (Move move : moves) {
 			boolean newMoveFound = false;
 			long startTime = System.currentTimeMillis();
 			Line line = new Line();
-			game.move(move);
+			Position posnAfterMove = posn.move(move);
 			LOG.debug("           ".substring(depth) + " " + depth + " " + move);
-			int score = -alphaBeta(MIN_INT, MAX_INT, depth - 1, game, line);
+			int score = -alphaBeta(MIN_INT, MAX_INT, depth - 1, posnAfterMove, line);
 			if (score > max) {
 				max = score;
 				moveInfo.setMove(move);
@@ -62,7 +62,6 @@ public class AlphaBeta implements SearchStrategy {
 				}
 				outputStream.println("score cp " + score);
 			}
-			game.unmove(move);
 			// show current move even if not best (not uci relevant)
 			if (!newMoveFound) {
 				LOG.debug(String.format("(%7s, %8d, %8d, %5dms)%s", move, score, nbrNodesEvaluated,
@@ -76,20 +75,19 @@ public class AlphaBeta implements SearchStrategy {
 		return moveInfo;
 	}
 
-	private int alphaBeta(int alpha, int beta, int depth, Game game, Line currentLine) {
+	private int alphaBeta(int alpha, int beta, int depth, Position posn, Line currentLine) {
 		if (depth == 0) {
 			nbrNodesEvaluated++;
 			currentLine.clearMoves();
-			return game.getChessboard().evaluate();
+			return posn.evaluate();
 		}
-		List<Move> moves = game.findMoves(game.getChessboard().getSideToMove());
+		List<Move> moves = posn.findMoves(posn.getSideToMove());
 		for (Move move : moves) {
 			Line line = new Line();
-			game.move(move);
+			Position posnAfterMove = posn.move(move);
 			LOG.debug("           ".substring(depth) + " " + depth + " " + move);
-			int score = -alphaBeta(-beta, -alpha, depth - 1, game, line);
+			int score = -alphaBeta(-beta, -alpha, depth - 1, posnAfterMove, line);
 			LOG.debug("           ".substring(depth) + " " + depth + " " + move + " " + score + " -- " + line);
-			game.unmove(move);
 			if (score >= beta) {
 				return beta; // fail hard beta-cutoff
 			}
@@ -112,18 +110,17 @@ public class AlphaBeta implements SearchStrategy {
 
 	// ------------------------------------------------------------------
 
-	private int alphaBetaMax(int alpha, int beta, int depth, Game game, Line currentLine) {
+	private int alphaBetaMax(int alpha, int beta, int depth, Position posn, Line currentLine) {
 		Line line = new Line();
 		if (depth == 0) {
 			nbrNodesEvaluated++;
 			currentLine.clearMoves();
-			return game.getChessboard().evaluate();
+			return posn.evaluate();
 		}
-		List<Move> moves = game.findMoves(game.getChessboard().getSideToMove());
+		List<Move> moves = posn.findMoves(posn.getSideToMove());
 		for (Move move : moves) {
-			game.move(move);
-			int score = alphaBetaMin(alpha, beta, depth - 1, game, line);
-			game.unmove(move);
+			Position posnAfterMove = posn.move(move);
+			int score = alphaBetaMin(alpha, beta, depth - 1, posnAfterMove, line);
 			if (score >= beta) {
 				return beta; // fail hard beta-cutoff
 			}
@@ -140,18 +137,17 @@ public class AlphaBeta implements SearchStrategy {
 		return alpha;
 	}
 
-	private int alphaBetaMin(int alpha, int beta, int depth, Game game, Line currentLine) {
+	private int alphaBetaMin(int alpha, int beta, int depth, Position posn, Line currentLine) {
 		Line line = new Line();
 		if (depth == 0) {
 			nbrNodesEvaluated++;
 			currentLine.clearMoves();
-			return -game.getChessboard().evaluate();
+			return -posn.evaluate();
 		}
-		List<Move> moves = game.findMoves(game.getChessboard().getSideToMove());
+		List<Move> moves = posn.findMoves(posn.getSideToMove());
 		for (Move move : moves) {
-			game.move(move);
-			int score = alphaBetaMax(alpha, beta, depth - 1, game, line);
-			game.unmove(move);
+			Position posnAfterMove = posn.move(move);
+			int score = alphaBetaMax(alpha, beta, depth - 1, posnAfterMove, line);
 			if (score <= alpha) {
 				return alpha; // fail hard alpha-cutoff
 			}

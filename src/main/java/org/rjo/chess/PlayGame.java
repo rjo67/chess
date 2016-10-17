@@ -29,18 +29,18 @@ public class PlayGame {
 				try {
 					Move humanMove = getMove(game, in);
 					checkValidity(humanMove, game);
-					game.move(humanMove);
-					MoveInfo mi = strategy.findMove(game);
+					game.getPosition().move(humanMove);
+					MoveInfo mi = strategy.findMove(game.getPosition());
 					if (mi.getMove() == null) {
 						finished = true;
-						if (game.isInCheck()) {
+						if (game.getPosition().isInCheck()) {
 							System.out.println("checkmate!");
 						} else {
 							System.out.println("stalemate!");
 						}
 					} else {
 						System.out.println(game.getMoveNumber() + "... " + mi.getMove());
-						game.move(mi.getMove());
+						game.getPosition().move(mi.getMove());
 					}
 				} catch (IllegalArgumentException x) {
 					System.out.println(x.getMessage());
@@ -51,17 +51,17 @@ public class PlayGame {
 
 	private void checkValidity(Move move, Game game) throws IllegalArgumentException {
 		// piece at given square?
-		if (move.getPiece() != game.getChessboard().pieceAt(move.from(), game.getChessboard().getSideToMove())) {
+		if (move.getPiece() != game.getPosition().pieceAt(move.from(), game.getPosition().getSideToMove())) {
 			throw new IllegalArgumentException("no " + move.getPiece() + " at " + move.from());
 		}
 		if (!move.isCapture()) {
-			if (!game.getChessboard().getEmptySquares().getBitSet().get(move.to().bitIndex())) {
+			if (!game.getPosition().getEmptySquares().getBitSet().get(move.to().bitIndex())) {
 				throw new IllegalArgumentException("square " + move.to() + " not empty");
 			}
 		} else {
 			// if capture: opponent's piece at given square?
-			if (!game.getChessboard().getAllPieces(Colour.oppositeColour(game.getChessboard().getSideToMove()))
-					.getBitSet().get(move.to().bitIndex())) {
+			if (!game.getPosition().getAllPieces(Colour.oppositeColour(game.getPosition().getSideToMove())).getBitSet()
+					.get(move.to().bitIndex())) {
 				throw new IllegalArgumentException("no opponent's piece at " + move.to());
 			}
 		}
@@ -73,9 +73,9 @@ public class PlayGame {
 		Move m;
 		String moveStr = in.readLine();
 		if ("O-O".equals(moveStr)) {
-			m = Move.castleKingsSide(game.getChessboard().getSideToMove());
+			m = Move.castleKingsSide(game.getPosition().getSideToMove());
 		} else if ("O-O-O".equals(moveStr)) {
-			m = Move.castleQueensSide(game.getChessboard().getSideToMove());
+			m = Move.castleQueensSide(game.getPosition().getSideToMove());
 		} else {
 			PieceType pt = convertStringToPieceType(moveStr.charAt(0));
 			int reqdStrLen = 6;
@@ -99,17 +99,17 @@ public class PlayGame {
 						"invalid input. Expected 'x' or '-' at position " + (startOfFromSquare + 3));
 			}
 			Square from = Square.fromString(moveStr.substring(startOfFromSquare, startOfFromSquare + 2));
-			if (game.getChessboard().pieceAt(from, game.getChessboard().getSideToMove()) != pt) {
+			if (game.getPosition().pieceAt(from, game.getPosition().getSideToMove()) != pt) {
 				throw new IllegalArgumentException("error: no " + pt + " at square " + from);
 			}
 			boolean capture = moveStr.charAt(startOfFromSquare + 2) == 'x';
 			Square to = Square.fromString(moveStr.substring(startOfFromSquare + 3, startOfFromSquare + 5));
 			if (capture) {
-				PieceType capturedPiece = game.getChessboard().pieceAt(to,
-						Colour.oppositeColour(game.getChessboard().getSideToMove()));
-				m = new Move(pt, game.getChessboard().getSideToMove(), from, to, capturedPiece);
+				PieceType capturedPiece = game.getPosition().pieceAt(to,
+						Colour.oppositeColour(game.getPosition().getSideToMove()));
+				m = new Move(pt, game.getPosition().getSideToMove(), from, to, capturedPiece);
 			} else {
-				m = new Move(pt, game.getChessboard().getSideToMove(), from, to);
+				m = new Move(pt, game.getPosition().getSideToMove(), from, to);
 			}
 			if ((pt == PieceType.PAWN) && (to.rank() == 7)) {
 				System.out.println("promote to? ");

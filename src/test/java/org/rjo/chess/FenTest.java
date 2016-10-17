@@ -25,7 +25,7 @@ public class FenTest {
    @Test
    @Ignore
    public void fromStartPosition() {
-      Fen.decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1").getChessboard().debug();
+      Fen.decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1").getPosition().debug();
    }
 
    @Test

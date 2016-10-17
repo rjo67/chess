@@ -10,15 +10,15 @@ public class SimpleStrategy implements SearchStrategy {
 	private static Random rand = new Random();
 
 	@Override
-	public MoveInfo findMove(Game game) {
+	public MoveInfo findMove(Position posn) {
 		MoveInfo moveInfo = new MoveInfo();
-		List<Move> computerMoves = game.findMoves(game.getChessboard().getSideToMove());
+		List<Move> computerMoves = posn.findMoves(posn.getSideToMove());
 		if (computerMoves.size() == 0) {
 			return null;
 		} else {
 			List<MoveEval> evalList = new ArrayList<>();
 			for (Move move : computerMoves) {
-				evalList.add(new MoveEval(game.getChessboard().evaluate(move), move));
+				evalList.add(new MoveEval(posn.evaluate(move), move));
 			}
 			int PLAY_BEST_MOVE = 95; // play 'best' move x% of the time
 			evalList.sort(new Comparator<MoveEval>() {

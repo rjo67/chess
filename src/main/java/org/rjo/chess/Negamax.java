@@ -8,17 +8,17 @@ public class Negamax implements SearchStrategy {
 	private int nbrNodesEvaluated;
 
 	@Override
-	public MoveInfo findMove(Game game) {
+	public MoveInfo findMove(Position posn) {
 		final int depth = 4;
 		nbrNodesEvaluated = 0;
 		int max = MIN_INT;
 		MoveInfo moveInfo = new MoveInfo();
 		long overallStartTime = System.currentTimeMillis();
-		List<Move> moves = game.findMoves(game.getChessboard().getSideToMove());
+		List<Move> moves = posn.findMoves(posn.getSideToMove());
 		for (Move move : moves) {
 			long startTime = System.currentTimeMillis();
-			game.move(move);
-			int score = -negaMax(depth - 1, game);
+			Position posnAfterMove = posn.move(move);
+			int score = -negaMax(depth - 1, posnAfterMove);
 			// System.out.println(Fen.encode(game) + ", score=" + score +
 			// ",depth=" + depth + ",max=" + max);
 			if (score > max) {
@@ -26,7 +26,6 @@ public class Negamax implements SearchStrategy {
 				moveInfo.setMove(move);
 				System.out.println("******   (" + move + ": " + score + ")");
 			}
-			game.unmove(move);
 			System.out.println(String.format("(%7s,%5d,%7d,%5dms)", move, score, nbrNodesEvaluated,
 					(System.currentTimeMillis() - startTime)));
 		}
@@ -36,23 +35,22 @@ public class Negamax implements SearchStrategy {
 		return moveInfo;
 	}
 
-	private int negaMax(int depth, Game game) {
+	private int negaMax(int depth, Position posn) {
 		if (depth == 0) {
 			nbrNodesEvaluated++;
-			return game.getChessboard().evaluate();
+			return posn.evaluate();
 		}
 		int max = MIN_INT;
-		List<Move> moves = game.findMoves(game.getChessboard().getSideToMove());
+		List<Move> moves = posn.findMoves(posn.getSideToMove());
 		for (Move move : moves) {
-			game.move(move);
-			int score = -negaMax(depth - 1, game);
+			Position posnAfterMove = posn.move(move);
+			int score = -negaMax(depth - 1, posnAfterMove);
 			// System.out
 			// .println(game.getSideToMove() + ": " + move + ", score=" + score
 			// + ",depth=" + depth + ",max=" + max);
 			if (score > max) {
 				max = score;
 			}
-			game.unmove(move);
 		}
 		return max;
 	}

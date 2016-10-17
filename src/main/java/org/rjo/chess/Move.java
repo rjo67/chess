@@ -185,7 +185,7 @@ public class Move {
 	public static Move fromUCIString(String moveStr, final Game game) {
 		Square from = Square.fromString(moveStr.substring(0, 2));
 		Square to = Square.fromString(moveStr.substring(2, 4));
-		PieceType piece = game.getChessboard().pieceAt(from, game.getChessboard().getSideToMove());
+		PieceType piece = game.getPosition().pieceAt(from, game.getPosition().getSideToMove());
 		boolean kingsMove = piece == PieceType.KING;
 		Move m;
 		if (kingsMove && from == Square.e1 && to == Square.g1) {
@@ -199,15 +199,15 @@ public class Move {
 		} else {
 			PieceType capture = null;
 			try {
-				capture = game.getChessboard().pieceAt(to, Colour.oppositeColour(game.getChessboard().getSideToMove()));
-				m = new Move(piece, game.getChessboard().getSideToMove(), from, to, capture);
+				capture = game.getPosition().pieceAt(to, Colour.oppositeColour(game.getPosition().getSideToMove()));
+				m = new Move(piece, game.getPosition().getSideToMove(), from, to, capture);
 			} catch (IllegalArgumentException x) {
 				// not a capture -- unless enpassant
-				Square enpassantSquare = game.getChessboard().getEnpassantSquare();
+				Square enpassantSquare = game.getPosition().getEnpassantSquare();
 				if (enpassantSquare != null && piece == PieceType.PAWN && to == enpassantSquare) {
-					m = Move.enpassant(game.getChessboard().getSideToMove(), from, to);
+					m = Move.enpassant(game.getPosition().getSideToMove(), from, to);
 				} else {
-					m = new Move(piece, game.getChessboard().getSideToMove(), from, to);
+					m = new Move(piece, game.getPosition().getSideToMove(), from, to);
 				}
 			}
 			if (piece == PieceType.PAWN && to.rank() == 7) {

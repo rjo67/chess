@@ -1,5 +1,11 @@
 # Diary #
 
+## 17.10.16
+
+after refactoring: 'Piece' is not yet immutable, therefore need to clone everything every time:
+
+* 5ply:  164.075.551 moves (  524.974 ms) (  312,5 moves/ms)
+
 ## 21.10.15
 * removed extra data structures rookAndQueen, bishopAndQueen.
 5ply:  164.075.551 moves (   71.325 ms) ( 2300,4 moves/ms)

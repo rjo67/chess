@@ -134,11 +134,11 @@ public class Fen {
 	}
 
 	/**
-	 * Parses a FEN notation to create a position state.
+	 * Parses a FEN notation to create a game state.
 	 *
 	 * @param fen
 	 *            a FEN representation of a chess position
-	 * @return a Position object
+	 * @return a Game object, containing a Position
 	 */
 	public static Game decode(String fen) {
 

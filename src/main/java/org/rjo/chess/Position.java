@@ -11,6 +11,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,6 +42,9 @@ import org.rjo.chess.ray.RayUtils;
 public class Position {
 
 	private static final Logger LOG = LogManager.getLogger(Position.class);
+
+	// thread pool for findMove()
+	private ExecutorService threadPool = Executors.newFixedThreadPool(PieceType.getPieceTypes().length);
 
 	/**
 	 * Stores the pieces in the game. The dimension indicates the colour {white,
@@ -69,6 +77,12 @@ public class Position {
 
 	/** which side is to move */
 	private Colour sideToMove;
+
+	/**
+	 * if the king (of the sideToMove) is currently in check. Normally deduced
+	 * from the last move but can be set delibarately for tests.
+	 */
+	private boolean inCheck;
 
 	public static Position startPosition() {
 		Position p = new Position();
@@ -131,39 +145,29 @@ public class Position {
 			int ordinal = colour.ordinal();
 			pieces[ordinal] = new HashMap<>();
 			for (Piece p : posn.pieces[ordinal].values()) {
-				pieces[ordinal].put(p.getType(), p);
+				try {
+					// TODO: piece must be made immutable
+					pieces[ordinal].put(p.getType(), (Piece) p.clone());
+				} catch (CloneNotSupportedException e) {
+					throw new RuntimeException("could not clone piece");
+				}
 			}
 		}
 
 		totalPieces = new BitBoard(posn.totalPieces.cloneBitSet());
 		emptySquares = new BitBoard(posn.emptySquares.cloneBitSet());
+
+		allEnemyPieces = new BitBoard[Colour.values().length];
+
+		for (Colour colour : Colour.values()) {
+			allEnemyPieces[colour.ordinal()] = new BitBoard(posn.allEnemyPieces[colour.ordinal()].cloneBitSet());
+		}
+
 		enpassantSquare = posn.enpassantSquare;
 		sideToMove = posn.sideToMove;
+		castling = new EnumSet[2];
 		castling[0] = posn.castling[0].clone();
 		castling[1] = posn.castling[1].clone();
-	}
-
-	/**
-	 * calculates the new position after the given move.
-	 *
-	 * @param move
-	 *            the move
-	 * @return the new position
-	 */
-	public Position calculateNewPosition(Move move) {
-		Position newPosn = new Position(this);
-
-		PieceType movingPiece = move.getPiece();
-		Colour sideToMove = move.getColour();
-		// piece must be made immutable
-		try {
-			Piece piece = (Piece) pieces[sideToMove.ordinal()].get(movingPiece).clone();
-			piece.move(move);
-			newPosn.pieces[sideToMove.ordinal()].put(movingPiece, piece);
-			return newPosn;
-		} catch (CloneNotSupportedException e) {
-			throw new RuntimeException("piece not cloneable?", e);
-		}
 	}
 
 	public boolean canCastle(Colour colour, CastlingRights rights) {
@@ -283,13 +287,53 @@ public class Position {
 	}
 
 	/**
-	 * Execute the given move without debug.
+	 * Find all moves for the given colour from the current position.
 	 *
-	 * @param move
-	 *            the move
+	 * @param colour
+	 *            the required colour
+	 * @return all moves for this colour.
 	 */
-	public void move(Move move) {
-		move(move, null);
+	public List<Move> findMoves(Colour colour) {
+		// return findMovesParallel(colour);
+		List<Move> moves = new ArrayList<>(60);
+		for (PieceType type : PieceType.getPieceTypes()) {
+			Piece p = getPieces(colour).get(type);
+			moves.addAll(p.findMoves(this, inCheck));
+		}
+		return moves;
+	}
+
+	public List<Move> findMovesParallel(Colour colour) {
+		// set up tasks
+		List<Callable<List<Move>>> tasks = new ArrayList<>();
+		for (PieceType type : PieceType.getPieceTypes()) {
+			tasks.add(new Callable<List<Move>>() {
+
+				@Override
+				public List<Move> call() throws Exception {
+					Piece p = getPieces(colour).get(type);
+					return p.findMoves(Position.this, inCheck);
+				}
+
+			});
+		}
+
+		// and execute
+		List<Move> moves = new ArrayList<>(60);
+		try {
+			List<Future<List<Move>>> results = threadPool.invokeAll(tasks);
+
+			for (Future<List<Move>> f : results) {
+				moves.addAll(f.get());
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException("got InterruptedException from future (findMovesParallel)", e);
+		} catch (ExecutionException e) {
+			throw new RuntimeException("got ExecutionException from future (findMovesParallel)", e);
+		}
+
+		return moves;
 	}
 
 	private void writeDebug(Writer debugWriter, String string) {
@@ -303,18 +347,43 @@ public class Position {
 	}
 
 	/**
-	 * Execute the given move.
+	 * return the new position after the given move, without debug.
+	 *
+	 * @param move
+	 *            the move
+	 * @return a new Position object with the position after the given move
+	 */
+	public Position move(Move move) {
+		return move(move, null);
+	}
+
+	/**
+	 * returns the new position after the given move.
 	 *
 	 * @param move
 	 *            the move
 	 * @param debugWriter
 	 *            if not null, debug info will be written here
+	 * @return a new Position object with the position after the given move
 	 */
-	public void move(Move move, Writer debugWriter) {
+	public Position move(Move move, Writer debugWriter) {
+		Position newPosn = new Position(this);
+		newPosn.internalMove(move, debugWriter);
+		return newPosn;
+	}
+
+	/**
+	 * Performs the given move, updating internal data structures.
+	 * 
+	 * @param move
+	 *            the move
+	 * @param debugWriter
+	 *            if not null, debug info will be written here
+	 */
+	private void internalMove(Move move, Writer debugWriter) {
 		if (move.getColour() != sideToMove) {
 			throw new IllegalArgumentException("move is for '" + move.getColour() + "' but sideToMove=" + sideToMove);
 		}
-		this.moves.add(move);
 		PieceType movingPiece = move.getPiece();
 
 		if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
@@ -352,9 +421,21 @@ public class Position {
 		}
 		setSideToMove(Colour.oppositeColour(sideToMove));
 		inCheck = move.isCheck();
-		if (Colour.WHITE == sideToMove) {
-			moveNbr++;
-		}
+	}
+
+	/**
+	 * Just for tests: indicate that in this position the king of the side to
+	 * move is in check.
+	 *
+	 * @param inCheck
+	 *            true when the king is in check.
+	 */
+	public void setInCheck(boolean inCheck) {
+		this.inCheck = inCheck;
+	}
+
+	public boolean isInCheck() {
+		return inCheck;
 	}
 
 	/**
@@ -365,10 +446,8 @@ public class Position {
 	 * @return a value in centipawns
 	 */
 	public int evaluate(Move move) {
-		this.move(move);
-		int value = evaluate();
-		this.unmove(move);
-		return value;
+		Position newPosn = move(move);
+		return newPosn.evaluate();
 	}
 
 	/**
@@ -488,6 +567,7 @@ public class Position {
 
 	}
 
+	// displays the board (always from white POV, a1 in bottom LHS)
 	@Override
 	public String toString() {
 		String[][] board = new String[8][8];
@@ -507,7 +587,7 @@ public class Position {
 			}
 		}
 
-		StringBuilder sb = new StringBuilder(64 + 8);
+		StringBuilder sb = new StringBuilder(80);
 		for (int rank = 7; rank >= 0; rank--) {
 			for (int file = 0; file < 8; file++) {
 				sb.append(board[rank][file]);
