@@ -55,10 +55,29 @@ import org.rjo.chess.pieces.Rook;
 public class Fen {
 
 	/**
-	 * Creates a FEN notation for the given position.
+	 * Creates a FEN notation for the given game.
 	 *
-	 * @param posn
+	 * @param game
 	 *            state of the game
+	 * @return a FEN string
+	 */
+	public static String encode(Game game) {
+
+		StringBuilder fen = new StringBuilder(encode(game.getPosition()));
+
+		fen.append(" ").append(addHalfmoveClock(game));
+		fen.append(" ").append(addFullmoveNumber(game));
+
+		return fen.toString();
+	}
+
+	/**
+	 * Creates a FEN notation for the given position. NB: not a complete FEN
+	 * string, since information about the move nbr / halfmove clock is only
+	 * available from the 'Game' object.
+	 *
+	 * @param position
+	 *            state of the positino
 	 * @return a FEN string
 	 */
 	public static String encode(Position posn) {
@@ -110,8 +129,6 @@ public class Fen {
 		fen.append(" ").append(addActiveColour(posn));
 		fen.append(" ").append(addCastlingRights(posn));
 		fen.append(" ").append(addEnpassantSquare(posn));
-		fen.append(" ").append(addHalfmoveClock(posn));
-		fen.append(" ").append(addFullmoveNumber(posn));
 
 		return fen.toString();
 	}
@@ -123,7 +140,7 @@ public class Fen {
 	 *            a FEN representation of a chess position
 	 * @return a Position object
 	 */
-	public static Position decode(String fen) {
+	public static Game decode(String fen) {
 
 		StringTokenizer fenTokenizer = new StringTokenizer(fen, " ");
 		if (fenTokenizer.countTokens() != 6) {
@@ -135,10 +152,12 @@ public class Fen {
 		parseActiveColour(posn, fenTokenizer.nextToken());
 		parseCastlingRights(posn, fenTokenizer.nextToken());
 		parseEnpassantSquare(posn, fenTokenizer.nextToken());
-		parseHalfmoveClock(posn, fenTokenizer.nextToken());
-		parseFullmoveNumber(posn, fenTokenizer.nextToken());
 
-		return posn;
+		Game game = new Game(posn);
+		parseHalfmoveClock(game, fenTokenizer.nextToken());
+		parseFullmoveNumber(game, fenTokenizer.nextToken());
+
+		return game;
 	}
 
 	/**
@@ -256,17 +275,17 @@ public class Fen {
 	 *
 	 * @param token
 	 */
-	private static void parseHalfmoveClock(Position posn, String token) {
+	private static void parseHalfmoveClock(Game game, String token) {
 		try {
 			Integer halfmoves = Integer.parseInt(token);
-			posn.setHalfmoveClock(halfmoves);
+			game.setHalfmoveClock(halfmoves);
 		} catch (NumberFormatException x) {
 			throw new IllegalArgumentException("Invalid FEN string: expected a number for field 5: halfmove clock");
 		}
 	}
 
-	private static String addHalfmoveClock(Position posn) {
-		return "" + posn.getHalfmoveClock();
+	private static String addHalfmoveClock(Game game) {
+		return "" + game.getHalfmoveClock();
 	}
 
 	/**
@@ -277,17 +296,17 @@ public class Fen {
 	 *
 	 * @param token
 	 */
-	private static void parseFullmoveNumber(Position posn, String token) {
+	private static void parseFullmoveNumber(Game game, String token) {
 		try {
 			Integer fullmoves = Integer.parseInt(token);
-			posn.setMoveNumber(fullmoves);
+			game.setMoveNumber(fullmoves);
 		} catch (NumberFormatException x) {
 			throw new IllegalArgumentException("Invalid FEN string: expected a number for field 6: fullmove clock");
 		}
 	}
 
-	private static String addFullmoveNumber(Position posn) {
-		return "" + posn.getMoveNumber();
+	private static String addFullmoveNumber(Game game) {
+		return "" + game.getMoveNumber();
 	}
 
 	private static Position parsePosition(String fen) {

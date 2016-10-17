@@ -1,10 +1,14 @@
 package org.rjo.chess;
 
+import java.io.IOException;
+import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,9 +66,6 @@ public class Position {
 
 	/** which sides can still castle */
 	private EnumSet<CastlingRights>[] castling;
-
-	/** half-moves. Not used as yet. */
-	private int halfmoveClock;
 
 	/** which side is to move */
 	private Colour sideToMove;
@@ -178,14 +179,6 @@ public class Position {
 		}
 	}
 
-	public int getHalfmoveClock() {
-		return halfmoveClock;
-	}
-
-	public void setHalfmoveClock(int halfmoveClock) {
-		this.halfmoveClock = halfmoveClock;
-	}
-
 	public Colour getSideToMove() {
 		return sideToMove;
 	}
@@ -287,6 +280,212 @@ public class Position {
 				emptySquares.getBitSet().flip(enpassantSquareBitIndex);
 			}
 		}
+	}
+
+	/**
+	 * Execute the given move without debug.
+	 *
+	 * @param move
+	 *            the move
+	 */
+	public void move(Move move) {
+		move(move, null);
+	}
+
+	private void writeDebug(Writer debugWriter, String string) {
+		if (debugWriter != null) {
+			try {
+				debugWriter.write(string + System.lineSeparator());
+			} catch (IOException e) {
+				throw new RuntimeException("could not write debug info", e);
+			}
+		}
+	}
+
+	/**
+	 * Execute the given move.
+	 *
+	 * @param move
+	 *            the move
+	 * @param debugWriter
+	 *            if not null, debug info will be written here
+	 */
+	public void move(Move move, Writer debugWriter) {
+		if (move.getColour() != sideToMove) {
+			throw new IllegalArgumentException("move is for '" + move.getColour() + "' but sideToMove=" + sideToMove);
+		}
+		this.moves.add(move);
+		PieceType movingPiece = move.getPiece();
+
+		if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+			Move rooksMove = move.getRooksCastlingMove();
+			getPieces(sideToMove).get(movingPiece).move(move);
+			getPieces(sideToMove).get(PieceType.ROOK).move(rooksMove);
+			// castling rights are reset later on
+		} else {
+			if (!move.isCapture() && !getEmptySquares().getBitSet().get(move.to().bitIndex())) {
+				throw new IllegalArgumentException("square " + move.to() + " is not empty. Move=" + move);
+			}
+			// update structures for the moving piece
+			getPieces(sideToMove).get(movingPiece).move(move);
+			// capture: remove the captured piece
+			if (move.isCapture()) {
+				if (move.isEnpassant()) {
+					getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
+							.removePiece(Square.findMoveFromEnpassantSquare(move.to()));
+				} else {
+					getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece()).removePiece(move.to());
+				}
+			}
+			// promotion: add the promoted piece
+			if (move.isPromotion()) {
+				getPieces(sideToMove).get(move.getPromotedPiece()).addPiece(move.to());
+			}
+		}
+		updateStructures(move);
+
+		updateCastlingRightsAfterMove(move, debugWriter);
+		if (move.isPawnMoveTwoSquaresForward()) {
+			setEnpassantSquare(Square.findEnpassantSquareFromMove(move.to()));
+		} else {
+			setEnpassantSquare(null);
+		}
+		setSideToMove(Colour.oppositeColour(sideToMove));
+		inCheck = move.isCheck();
+		if (Colour.WHITE == sideToMove) {
+			moveNbr++;
+		}
+	}
+
+	/**
+	 * Calculates a static value for the position after the given move.
+	 *
+	 * @param move
+	 *            the move
+	 * @return a value in centipawns
+	 */
+	public int evaluate(Move move) {
+		this.move(move);
+		int value = evaluate();
+		this.unmove(move);
+		return value;
+	}
+
+	/**
+	 * Calculates a static value for the current position. In order for NegaMax
+	 * to work, it is important to return the score relative to the side being
+	 * evaluated.
+	 *
+	 * @return a value in centipawns
+	 */
+	public int evaluate() {
+		/*
+		 * materialScore = kingWt * (wK-bK) + queenWt * (wQ-bQ) + rookWt *
+		 * (wR-bR) + knightWt* (wN-bN) + bishopWt* (wB-bB) + pawnWt * (wP-bP)
+		 * mobilityScore = mobilityWt * (wMobility-bMobility)
+		 */
+		int materialScore = 0;
+		for (PieceType type : PieceType.getPieceTypes()) {
+			int pieceScore = 0;
+			Piece piece = getPieces(Colour.WHITE).get(type);
+			if (piece != null) {
+				pieceScore += piece.calculatePieceSquareValue();
+			}
+			piece = getPieces(Colour.BLACK).get(type);
+			if (piece != null) {
+				pieceScore -= piece.calculatePieceSquareValue();
+			}
+			materialScore += pieceScore;
+		}
+
+		// mobility
+		// the sidetomove could be in check; for simplicity this is assumed,
+		// i.e. 'kingInCheck'==TRUE
+		// the other side (who has just moved) cannot be in check
+		// if enpassant square is set, this can only apply to the sidetomove
+		int whiteMobility, blackMobility;
+		Square enpassantSquare = null;
+		List<Move> moves = new ArrayList<>(60);
+		if (getSideToMove() != Colour.WHITE) {
+			enpassantSquare = getEnpassantSquare();
+			setEnpassantSquare(null);
+		}
+		for (PieceType type : PieceType.getPieceTypes()) {
+			Piece p = getPieces(Colour.WHITE).get(type);
+			moves.addAll(p.findMoves(this, (getSideToMove() == Colour.WHITE ? true : false)));
+		}
+		if (getSideToMove() != Colour.WHITE) {
+			setEnpassantSquare(enpassantSquare);
+		}
+		whiteMobility = moves.size();
+		moves = new ArrayList<>(60);
+		if (getSideToMove() != Colour.BLACK) {
+			enpassantSquare = getEnpassantSquare();
+			setEnpassantSquare(null);
+		}
+		for (PieceType type : PieceType.getPieceTypes()) {
+			Piece p = getPieces(Colour.BLACK).get(type);
+			moves.addAll(p.findMoves(this, (getSideToMove() == Colour.BLACK ? true : false)));
+		}
+		if (getSideToMove() != Colour.BLACK) {
+			setEnpassantSquare(enpassantSquare);
+		}
+		blackMobility = moves.size();
+
+		final int MOBILITY_WEIGHTING = 2;
+		int mobilityScore = MOBILITY_WEIGHTING * (whiteMobility - blackMobility);
+		return (mobilityScore + materialScore) * (getSideToMove() == Colour.WHITE ? 1 : -1);
+	}
+
+	private void updateCastlingRightsAfterMove(Move move, Writer debugWriter) {
+		if (PieceType.KING == move.getPiece()) {
+			move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
+			castling[sideToMove.ordinal()].clear();
+			// writeDebug(debugWriter,
+			// "move: " + move + ", sideToMove: " + sideToMove + ", castling=" +
+			// castling[sideToMove.ordinal()]);
+		} else if (PieceType.ROOK == move.getPiece()) {
+			// remove castling rights if rook has moved
+			move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
+			if (castling[sideToMove.ordinal()].contains(CastlingRights.KINGS_SIDE)) {
+				Square targetSquare = (sideToMove == Colour.WHITE) ? Square.h1 : Square.h8;
+				if (move.from() == targetSquare) {
+					castling[sideToMove.ordinal()].remove(CastlingRights.KINGS_SIDE);
+				}
+			}
+			if (castling[sideToMove.ordinal()].contains(CastlingRights.QUEENS_SIDE)) {
+				Square targetSquare = (sideToMove == Colour.WHITE) ? Square.a1 : Square.a8;
+				if (move.from() == targetSquare) {
+					castling[sideToMove.ordinal()].remove(CastlingRights.QUEENS_SIDE);
+				}
+			}
+			// writeDebug(debugWriter,
+			// "move: " + move + ", sideToMove: " + sideToMove + ", castling=" +
+			// castling[sideToMove.ordinal()]);
+		}
+		// update OPPONENT's castling rights if necessary
+		if (move.isCapture()) {
+			final Colour opponentsColour = Colour.oppositeColour(sideToMove);
+			Square targetSquare = (sideToMove == Colour.WHITE) ? Square.h8 : Square.h1;
+			boolean processed = false;
+			if (move.to().equals(targetSquare)) {
+				move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
+				castling[opponentsColour.ordinal()].remove(CastlingRights.KINGS_SIDE);
+				processed = true;
+				// writeDebug(debugWriter, "move: " + move + ", removed kings
+				// side castling for " + opponentsColour);
+			}
+			if (!processed) {
+				targetSquare = (sideToMove == Colour.WHITE) ? Square.a8 : Square.a1;
+				if (move.to().equals(targetSquare)) {
+					move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
+					castling[opponentsColour.ordinal()].remove(CastlingRights.QUEENS_SIDE);
+					// writeDebug(debugWriter, "move: " + move + ", removed
+					// queens side castling for " + opponentsColour);
+				}
+			}
+		}
+
 	}
 
 	@Override
@@ -464,7 +663,7 @@ public class Position {
 	 *            the colour of the opponent
 	 * @return true if this square is attacked by the opponent
 	 */
-	public boolean squareIsAttacked(Game game, Square targetSquare, Colour opponentsColour) {
+	public boolean squareIsAttacked(Square targetSquare, Colour opponentsColour) {
 		Map<PieceType, Piece> opponentsPieces = getPieces(opponentsColour);
 		// iterate over the pieces
 		// TODO instead of treating queens separately, should 'merge' them with
@@ -472,7 +671,7 @@ public class Position {
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece piece = opponentsPieces.get(type);
 			if (piece != null) {
-				if (piece.attacksSquare(game.getChessboard().getEmptySquares().getBitSet(), targetSquare)) {
+				if (piece.attacksSquare(getEmptySquares().getBitSet(), targetSquare)) {
 					return true;
 				}
 			}
@@ -487,7 +686,7 @@ public class Position {
 	 * opponent's king. But these moves are already check and not discovered
 	 * check.
 	 *
-	 * @param chessboard
+	 * @param posn
 	 *            the chessboard
 	 * @param move
 	 *            the move
@@ -497,7 +696,7 @@ public class Position {
 	 *            where the opponent's king is
 	 * @return true if this move leads to a discovered check
 	 */
-	public static boolean checkForDiscoveredCheck(Position chessboard, Move move, Colour colour, Square opponentsKing) {
+	public static boolean checkForDiscoveredCheck(Position posn, Move move, Colour colour, Square opponentsKing) {
 		final int moveFromIndex = move.from().bitIndex();
 
 		// optimization (see RayUtils.discoveredCheck)
@@ -506,8 +705,8 @@ public class Position {
 		}
 
 		// set up the emptySquares and myPieces bitsets *after* this move
-		BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
-		BitSet myPieces = chessboard.getAllPieces(colour).cloneBitSet();
+		BitSet emptySquares = posn.getEmptySquares().cloneBitSet();
+		BitSet myPieces = posn.getAllPieces(colour).cloneBitSet();
 
 		emptySquares.set(moveFromIndex);
 		myPieces.clear(moveFromIndex);
@@ -516,7 +715,7 @@ public class Position {
 		// then it will be check already
 		// 2) can't get a discovered check from castling
 
-		return RayUtils.discoveredCheck(colour, chessboard, emptySquares, myPieces, opponentsKing, move.from());
+		return RayUtils.discoveredCheck(colour, posn, emptySquares, myPieces, opponentsKing, move.from());
 	}
 
 	/**
@@ -560,8 +759,8 @@ public class Position {
 	 * Checks if my king is in check after my move, i.e. the piece that moved
 	 * was actually pinned.
 	 *
-	 * @param chessboard
-	 *            the chessboard
+	 * @param posn
+	 *            the current posn
 	 * @param move
 	 *            the move
 	 * @param colour
@@ -571,10 +770,10 @@ public class Position {
 	 * @return true if this move is illegal since the piece that moved was
 	 *         pinned
 	 */
-	public static boolean checkForPinnedPiece(Position chessboard, Move move, Colour colour, Square myKing) {
+	public static boolean checkForPinnedPiece(Position posn, Move move, Colour colour, Square myKing) {
 		// set up the bitsets *after* this move
-		BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
-		BitSet myPieces = chessboard.getAllPieces(colour).cloneBitSet();
+		BitSet emptySquares = posn.getEmptySquares().cloneBitSet();
+		BitSet myPieces = posn.getAllPieces(colour).cloneBitSet();
 
 		emptySquares.set(move.from().bitIndex());
 		emptySquares.clear(move.to().bitIndex());
@@ -584,13 +783,13 @@ public class Position {
 		myPieces.clear(move.from().bitIndex());
 		myPieces.set(move.to().bitIndex());
 
-		return RayUtils.kingInCheck(colour, chessboard, emptySquares, myPieces, myKing, move.from());
+		return RayUtils.kingInCheck(colour, posn, emptySquares, myPieces, myKing, move.from());
 	}
 
 	/**
 	 * Checks if my king is in check after the move 'move'.
 	 *
-	 * @param chessboard
+	 * @param posn
 	 *            the chessboard
 	 * @param move
 	 *            the move
@@ -604,7 +803,7 @@ public class Position {
 	 * @return true if this move leaves the king in check (i.e. is an illegal
 	 *         move)
 	 */
-	public static boolean isKingInCheck(Position chessboard, Move move, Colour opponentsColour, Square king,
+	public static boolean isKingInCheck(Position posn, Move move, Colour opponentsColour, Square king,
 			boolean kingIsAlreadyInCheck) {
 
 		// short circuit if king was not in check beforehand (therefore only
@@ -616,8 +815,8 @@ public class Position {
 			}
 		}
 
-		BitSet friendlyPieces = chessboard.getAllPieces(Colour.oppositeColour(opponentsColour)).getBitSet();
-		Map<PieceType, BitSet> enemyPieces = setupEnemyBitsets(chessboard.getPieces(opponentsColour));
+		BitSet friendlyPieces = posn.getAllPieces(Colour.oppositeColour(opponentsColour)).getBitSet();
+		Map<PieceType, BitSet> enemyPieces = setupEnemyBitsets(posn.getPieces(opponentsColour));
 
 		if (kingIsAlreadyInCheck) {
 			return KingCheck.isKingInCheckAfterMove_PreviouslyWasInCheck(king, Colour.oppositeColour(opponentsColour),

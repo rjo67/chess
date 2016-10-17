@@ -1,209 +1,209 @@
 package org.rjo.chess.pieces;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.rjo.chess.Position;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
+import org.rjo.chess.Position;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 public class BishopMoveTest {
 
-   private King opponentsKing;
-   private King myKing;
+	private King opponentsKing;
+	private King myKing;
 
-   private Game game;
-   private Piece whiteBishop;
-   private Piece blackBishop;
+	private Game game;
+	private Piece whiteBishop;
+	private Piece blackBishop;
 
-   private void setupGame(String fen) {
-      game = Fen.decode(fen);
-      whiteBishop = game.getChessboard().getPieces(Colour.WHITE).get(PieceType.BISHOP);
-      blackBishop = game.getChessboard().getPieces(Colour.BLACK).get(PieceType.BISHOP);
-   }
+	private void setupGame(String fen) {
+		game = Fen.decode(fen);
+		whiteBishop = game.getChessboard().getPieces(Colour.WHITE).get(PieceType.BISHOP);
+		blackBishop = game.getChessboard().getPieces(Colour.BLACK).get(PieceType.BISHOP);
+	}
 
-   @Before
-   public void setup() {
-      opponentsKing = new King(Colour.BLACK, true);
-      myKing = new King(Colour.WHITE, true);
-   }
+	@Before
+	public void setup() {
+		opponentsKing = new King(Colour.BLACK, true);
+		myKing = new King(Colour.WHITE, true);
+	}
 
-   @Test
-   public void locations() {
-      Bishop b = new Bishop(Colour.WHITE, true);
-      Square[] locn = b.getLocations();
-      Set<Square> set = new HashSet<>(Arrays.asList(locn));
-      assertTrue(set.contains(Square.c1));
-      assertTrue(set.contains(Square.f1));
-   }
+	@Test
+	public void locations() {
+		Bishop b = new Bishop(Colour.WHITE, true);
+		Square[] locn = b.getLocations();
+		Set<Square> set = new HashSet<>(Arrays.asList(locn));
+		assertTrue(set.contains(Square.c1));
+		assertTrue(set.contains(Square.f1));
+	}
 
-   @Test
-   public void startPosition() {
-      Game game = new Game();
-      Bishop whiteBishop = new Bishop(Colour.WHITE);
-      TestUtil.checkMoves(whiteBishop.findMoves(game), new HashSet<>());
-   }
+	@Test
+	public void startPosition() {
+		Game game = new Game();
+		Bishop whiteBishop = new Bishop(Colour.WHITE);
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), new HashSet<>());
+	}
 
-   @Test
-   public void moveFromMiddleOfBoard() {
-      setupGame("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Bd4-e5", "Bd4-f6", "Bd4xg7", "Bd4-c5", "Bd4-b6", "Bd4-a7",
-            "Bd4-e3", "Bd4-f2", "Bd4-g1", "Bd4-c3", "Bd4-b2", "Bd4-a1");
-   }
+	@Test
+	public void moveFromMiddleOfBoard() {
+		setupGame("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Bd4-e5", "Bd4-f6", "Bd4xg7", "Bd4-c5",
+				"Bd4-b6", "Bd4-a7", "Bd4-e3", "Bd4-f2", "Bd4-g1", "Bd4-c3", "Bd4-b2", "Bd4-a1");
+	}
 
-   @Test
-   public void moveFromA1() {
-      setupGame("4k3/8/8/8/8/8/8/B3K3 w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Ba1-b2", "Ba1-c3", "Ba1-d4", "Ba1-e5", "Ba1-f6", "Ba1-g7",
-            "Ba1-h8");
-   }
+	@Test
+	public void moveFromA1() {
+		setupGame("4k3/8/8/8/8/8/8/B3K3 w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Ba1-b2", "Ba1-c3", "Ba1-d4", "Ba1-e5",
+				"Ba1-f6", "Ba1-g7", "Ba1-h8");
+	}
 
-   /**
-    * blocked by own pieces
-    */
-   @Test
-   public void moveFromA1WithBlockade() {
-      setupGame("4k3/8/8/8/3P4/2K5/8/B7 w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Ba1-b2");
-   }
+	/**
+	 * blocked by own pieces
+	 */
+	@Test
+	public void moveFromA1WithBlockade() {
+		setupGame("4k3/8/8/8/3P4/2K5/8/B7 w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Ba1-b2");
+	}
 
-   /**
-    * blocked by enemy pieces
-    */
-   @Test
-   public void moveFromA1WithCapture() {
-      setupGame("4k3/8/8/8/3b4/8/8/B3K3 w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Ba1-b2", "Ba1-c3", "Ba1xd4");
-   }
+	/**
+	 * blocked by enemy pieces
+	 */
+	@Test
+	public void moveFromA1WithCapture() {
+		setupGame("4k3/8/8/8/3b4/8/8/B3K3 w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Ba1-b2", "Ba1-c3", "Ba1xd4");
+	}
 
-   @Test
-   public void moveFromH1() {
-      setupGame("4k3/8/8/8/8/8/8/4K2B w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Bh1-g2", "Bh1-f3", "Bh1-e4", "Bh1-d5", "Bh1-c6+", "Bh1-b7",
-            "Bh1-a8");
-   }
+	@Test
+	public void moveFromH1() {
+		setupGame("4k3/8/8/8/8/8/8/4K2B w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Bh1-g2", "Bh1-f3", "Bh1-e4", "Bh1-d5",
+				"Bh1-c6+", "Bh1-b7", "Bh1-a8");
+	}
 
-   /**
-    * blocked by own pieces
-    */
-   @Test
-   public void moveFromH1WithBlockade() {
-      setupGame("4k3/8/8/8/4P3/8/8/4K2B w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Bh1-g2", "Bh1-f3");
-   }
+	/**
+	 * blocked by own pieces
+	 */
+	@Test
+	public void moveFromH1WithBlockade() {
+		setupGame("4k3/8/8/8/4P3/8/8/4K2B w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Bh1-g2", "Bh1-f3");
+	}
 
-   /**
-    * blocked by enemy pieces
-    */
-   @Test
-   public void moveFromH1WithCapture() {
-      setupGame("4k3/8/8/8/4p3/8/8/4K2B w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Bh1-g2", "Bh1-f3", "Bh1xe4");
-   }
+	/**
+	 * blocked by enemy pieces
+	 */
+	@Test
+	public void moveFromH1WithCapture() {
+		setupGame("4k3/8/8/8/4p3/8/8/4K2B w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Bh1-g2", "Bh1-f3", "Bh1xe4");
+	}
 
-   @Test
-   public void moveFromA8() {
-      setupGame("B3k3/8/8/8/8/8/8/4K3 w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Ba8-b7", "Ba8-c6+", "Ba8-d5", "Ba8-e4", "Ba8-f3", "Ba8-g2",
-            "Ba8-h1");
-   }
+	@Test
+	public void moveFromA8() {
+		setupGame("B3k3/8/8/8/8/8/8/4K3 w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Ba8-b7", "Ba8-c6+", "Ba8-d5", "Ba8-e4",
+				"Ba8-f3", "Ba8-g2", "Ba8-h1");
+	}
 
-   /**
-    * blocked by own pieces
-    */
-   @Test
-   public void moveFromA8WithBlockade() {
-      setupGame("B3k3/8/8/3P4/8/8/8/4K3 w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Ba8-b7", "Ba8-c6+");
-   }
+	/**
+	 * blocked by own pieces
+	 */
+	@Test
+	public void moveFromA8WithBlockade() {
+		setupGame("B3k3/8/8/3P4/8/8/8/4K3 w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Ba8-b7", "Ba8-c6+");
+	}
 
-   /**
-    * blocked by enemy pieces
-    */
-   @Test
-   public void moveFromA8WithCapture() {
-      setupGame("B3k3/8/8/3p4/8/8/8/4K3 w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Ba8-b7", "Ba8-c6+", "Ba8xd5");
-   }
+	/**
+	 * blocked by enemy pieces
+	 */
+	@Test
+	public void moveFromA8WithCapture() {
+		setupGame("B3k3/8/8/3p4/8/8/8/4K3 w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Ba8-b7", "Ba8-c6+", "Ba8xd5");
+	}
 
-   @Test
-   public void moveFromH8() {
-      setupGame("4k2B/8/8/8/8/8/8/4K3 w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Bh8-g7", "Bh8-f6", "Bh8-e5", "Bh8-d4", "Bh8-c3", "Bh8-b2",
-            "Bh8-a1");
-   }
+	@Test
+	public void moveFromH8() {
+		setupGame("4k2B/8/8/8/8/8/8/4K3 w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Bh8-g7", "Bh8-f6", "Bh8-e5", "Bh8-d4",
+				"Bh8-c3", "Bh8-b2", "Bh8-a1");
+	}
 
-   /**
-    * blocked by own pieces
-    */
-   @Test
-   public void moveFromH8WithBlockade() {
-      setupGame("4k2B/8/8/4P3/8/8/8/4K3 w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Bh8-g7", "Bh8-f6");
-   }
+	/**
+	 * blocked by own pieces
+	 */
+	@Test
+	public void moveFromH8WithBlockade() {
+		setupGame("4k2B/8/8/4P3/8/8/8/4K3 w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Bh8-g7", "Bh8-f6");
+	}
 
-   /**
-    * blocked by enemy pieces
-    */
-   @Test
-   public void moveFromH8WithCapture() {
-      setupGame("4k2B/8/8/4p3/8/8/8/4K3 w - - 0 0");
-      TestUtil.checkMoves(whiteBishop.findMoves(game), "Bh8-g7", "Bh8-f6", "Bh8xe5");
-   }
+	/**
+	 * blocked by enemy pieces
+	 */
+	@Test
+	public void moveFromH8WithCapture() {
+		setupGame("4k2B/8/8/4p3/8/8/8/4K3 w - - 0 0");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getChessboard()), "Bh8-g7", "Bh8-f6", "Bh8xe5");
+	}
 
-   @Test
-   public void attacksSquare() {
-      Bishop whiteBishop = new Bishop(Colour.WHITE, Square.d8);
-      Pawn pawn = new Pawn(Colour.BLACK, Square.e5);
-      King king = new King(Colour.WHITE, Square.f8);
-      Set<Piece> whitePieces = new HashSet<>(Arrays.asList(king, whiteBishop));
-      Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
-      Position chessboard = new Position(whitePieces, opponentsPieces);
-      for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
-         assertTrue("square " + sq, whiteBishop.attacksSquare(chessboard.getEmptySquares().getBitSet(), sq));
-      }
-      assertFalse(whiteBishop.attacksSquare(chessboard.getEmptySquares().getBitSet(), Square.c4));
-   }
+	@Test
+	public void attacksSquare() {
+		Bishop whiteBishop = new Bishop(Colour.WHITE, Square.d8);
+		Pawn pawn = new Pawn(Colour.BLACK, Square.e5);
+		King king = new King(Colour.WHITE, Square.f8);
+		Set<Piece> whitePieces = new HashSet<>(Arrays.asList(king, whiteBishop));
+		Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
+		Position chessboard = new Position(whitePieces, opponentsPieces);
+		for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
+			assertTrue("square " + sq, whiteBishop.attacksSquare(chessboard.getEmptySquares().getBitSet(), sq));
+		}
+		assertFalse(whiteBishop.attacksSquare(chessboard.getEmptySquares().getBitSet(), Square.c4));
+	}
 
-   @Test
-   public void pinnedBishops() {
-      setupGame("rnbqkbnr/ppppppp1/8/b4r2/P3r3/1B6/2PBB3/2B1K3 w - - 0 4");
-      TestUtil.checkMoves(game.findMoves(Colour.WHITE), "c2-c3", "c2-c4", "Bb3-a2", "Bb3-c4", "Bb3-d5", "Bb3-e6",
-            "Bb3xf7+", "Bc1-b2", "Bc1-a3", "Bd2-c3", "Bd2-b4", "Bd2xa5", "Ke1-d1");
-   }
+	@Test
+	public void pinnedBishops() {
+		setupGame("rnbqkbnr/ppppppp1/8/b4r2/P3r3/1B6/2PBB3/2B1K3 w - - 0 4");
+		TestUtil.checkMoves(game.findMoves(Colour.WHITE), "c2-c3", "c2-c4", "Bb3-a2", "Bb3-c4", "Bb3-d5", "Bb3-e6",
+				"Bb3xf7+", "Bc1-b2", "Bc1-a3", "Bd2-c3", "Bd2-b4", "Bd2xa5", "Ke1-d1");
+	}
 
-   /** same as pinnedBishops, but extra black bishop puts the king in check */
-   @Test
-   public void pinnedBishopsKingInCheck() {
-      setupGame("rnbqkbnr/ppppppp1/8/b4r2/P3r2b/1B6/2PBB3/2B1K3 w - - 0 4");
-      game.setInCheck(true);
-      TestUtil.checkMoves(game.findMoves(Colour.WHITE), "Ke1-d1");
-   }
+	/** same as pinnedBishops, but extra black bishop puts the king in check */
+	@Test
+	public void pinnedBishopsKingInCheck() {
+		setupGame("rnbqkbnr/ppppppp1/8/b4r2/P3r2b/1B6/2PBB3/2B1K3 w - - 0 4");
+		game.setInCheck(true);
+		TestUtil.checkMoves(game.findMoves(Colour.WHITE), "Ke1-d1");
+	}
 
-   @Test
-   public void speedTest() {
-      setupGame("r3k2r/pp3p2/8/4B3/2p1b3/8/PPPPB2P/R3K2R w KQkq - 0 0");
-      // init
-      assertEquals(17, whiteBishop.findMoves(game).size());
-      int repeats = 10;
-      long start = System.currentTimeMillis();
-      for (int loop = 0; loop < repeats; loop++) {
-         for (int i = 0; i < 10000; i++) {
-            assertEquals(17, whiteBishop.findMoves(game).size());
-         }
-      }
-      long timeTaken = System.currentTimeMillis() - start;
-      assertTrue("took longer than 250ms: " + timeTaken, (timeTaken / repeats) < 250);
-      System.out.println(timeTaken);
-   }
+	@Test
+	public void speedTest() {
+		setupGame("r3k2r/pp3p2/8/4B3/2p1b3/8/PPPPB2P/R3K2R w KQkq - 0 0");
+		// init
+		assertEquals(17, whiteBishop.findMoves(game.getChessboard()).size());
+		int repeats = 10;
+		long start = System.currentTimeMillis();
+		for (int loop = 0; loop < repeats; loop++) {
+			for (int i = 0; i < 10000; i++) {
+				assertEquals(17, whiteBishop.findMoves(game.getChessboard()).size());
+			}
+		}
+		long timeTaken = System.currentTimeMillis() - start;
+		assertTrue("took longer than 250ms: " + timeTaken, (timeTaken / repeats) < 250);
+		System.out.println(timeTaken);
+	}
 }
