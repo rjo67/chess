@@ -26,7 +26,7 @@ public abstract class Piece implements Cloneable {
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		Piece piece = (Piece) super.clone();
-		piece.pieces = new BitBoard(pieces.cloneBitSet());
+		piece.pieces = new BitBoard(pieces);
 		return piece;
 	}
 

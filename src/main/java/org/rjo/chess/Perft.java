@@ -38,23 +38,15 @@ public class Perft {
 	}
 
 	/**
-	 * Find the number of possible moves at the given depth, starting at the
-	 * current position given by 'game'. I.e., for a depth of 2 and start colour
-	 * white, all of black's moves will be returned for each of the possible
-	 * white moves.
+	 * Find the number of possible moves at the given depth, starting at the current position given
+	 * by 'game'. I.e., for a depth of 2 and start colour white, all of black's moves will be
+	 * returned for each of the possible white moves. NB: Only leaf nodes are counted.
 	 *
-	 * NB: Only leaf nodes are counted.
-	 *
-	 * @param posn
-	 *            a game position
-	 * @param sideToMove
-	 *            the starting colour
-	 * @param depth
-	 *            the required depth to search
-	 *
-	 * @return a map containing all the start moves for the 'sideToMove' and for
-	 *         each map entry, a number representing how many leaf nodes there
-	 *         are from this starting move.
+	 * @param posn a game position
+	 * @param sideToMove the starting colour
+	 * @param depth the required depth to search
+	 * @return a map containing all the start moves for the 'sideToMove' and for each map entry, a
+	 *         number representing how many leaf nodes there are from this starting move.
 	 */
 	public static Map<String, Integer> findMoves(Position posn, Colour sideToMove, int depth) {
 		if (depth < 1) {
@@ -70,8 +62,8 @@ public class Perft {
 	}
 
 	/**
-	 * Helper routine to return the total number of moves found, given a map as
-	 * returned from findMoves.
+	 * Helper routine to return the total number of moves found, given a map as returned from
+	 * findMoves.
 	 */
 	public static int countMoves(Map<String, Integer> moveMap) {
 		int nbrMoves = 0;
@@ -82,23 +74,16 @@ public class Perft {
 	}
 
 	/**
-	 * Find the number of possible moves at the given depth, starting at the
-	 * current position given by 'game'. I.e., for a depth of 2 and start colour
-	 * white, all of black's moves will be returned for each of the possible
-	 * white moves.
+	 * Find the number of possible moves at the given depth, starting at the current position given
+	 * by 'game'. I.e., for a depth of 2 and start colour white, all of black's moves will be
+	 * returned for each of the possible white moves. NB: Only leaf nodes are counted.
 	 *
-	 * NB: Only leaf nodes are counted.
-	 *
-	 * @param posn
-	 *            the game position
-	 * @param sideToMove
-	 *            the starting colour
-	 * @param depth
-	 *            the required depth to search
-	 *
+	 * @param posn the game position
+	 * @param sideToMove the starting colour
+	 * @param depth the required depth to search
 	 * @return the total number of moves (leaf nodes) found from this position.
 	 */
-	private static int findMovesInternal(Position posn, Colour sideToMove, int depth) {
+	private static int findMovesInternal(final Position posn, Colour sideToMove, int depth) {
 		if (depth == 0) {
 			return 1;
 		}
@@ -111,23 +96,16 @@ public class Perft {
 	}
 
 	/**
-	 * Like {@link #findMoves(Game, Colour, int)} but with the option of storing
-	 * the moves in a file. Uses more memory than the other method and is
-	 * therefore not recommended.
+	 * Like {@link #findMoves(Game, Colour, int)} but with the option of storing the moves in a file.
+	 * Uses more memory than the other method and is therefore not recommended. <b>This is mainly for
+	 * PerftTests</b>. We return List of String instead of List of Move to try to conserve memory.
 	 *
-	 * <b>This is mainly for PerftTests</b>. We return List of String instead of
-	 * List of Move to try to conserve memory.
-	 *
-	 * @param game
-	 *            the game
-	 * @param sideToMove
-	 *            the starting colour
-	 * @param depth
-	 *            the required depth to search
-	 * @return the list of possible moves at the given depth. The string
-	 *         representation is stored in order to save memory.
-	 * @throws IOException
-	 *             if can't write to temp file
+	 * @param game the game
+	 * @param sideToMove the starting colour
+	 * @param depth the required depth to search
+	 * @return the list of possible moves at the given depth. The string representation is stored in
+	 *         order to save memory.
+	 * @throws IOException if can't write to temp file
 	 */
 	public static List<String> findMovesDebug(Game game, Colour sideToMove, int depth) throws IOException {
 		File file = File.createTempFile("perft", null);
@@ -139,24 +117,16 @@ public class Perft {
 	}
 
 	/**
-	 * Internal method for finding the number of possible moves at the given
-	 * depth.
+	 * Internal method for finding the number of possible moves at the given depth.
 	 *
-	 * @param posn
-	 *            the game position
-	 * @param sideToMove
-	 *            the starting colour
-	 * @param depth
-	 *            the required depth to search
-	 * @param movesSoFar
-	 *            for debugging purposes: the moves up to this point
-	 * @param totalMoves
-	 *            stores all moves found
-	 * @param debugWriter
-	 *            if not null, debug-info will be written to this file
-	 *
-	 * @return the list of possible moves at the given depth. The string
-	 *         representation is stored in order to save memory.
+	 * @param posn the game position
+	 * @param sideToMove the starting colour
+	 * @param depth the required depth to search
+	 * @param movesSoFar for debugging purposes: the moves up to this point
+	 * @param totalMoves stores all moves found
+	 * @param debugWriter if not null, debug-info will be written to this file
+	 * @return the list of possible moves at the given depth. The string representation is stored in
+	 *         order to save memory.
 	 */
 	private static List<String> findMovesInternalDebug(Position posn, Colour sideToMove, int depth,
 			Deque<String> movesSoFar, List<String> totalMoves, Writer debugWriter) {
@@ -200,8 +170,8 @@ public class Perft {
 					capture = movesSoFar.peekLast().contains("x");
 				}
 				try {
-					debugWriter.write((check ? "CHECK" : "") + (capture ? "CAPTURE" : "") + " moves: " + movesSoFar
-							+ " -> " + movesAtThisLevel.size() + ":" + movesAtThisLevel + System.lineSeparator());
+					debugWriter.write((check ? "CHECK" : "") + (capture ? "CAPTURE" : "") + " moves: " + movesSoFar + " -> "
+							+ movesAtThisLevel.size() + ":" + movesAtThisLevel + System.lineSeparator());
 				} catch (IOException e) {
 					throw new RuntimeException("could not write to file", e);
 				}

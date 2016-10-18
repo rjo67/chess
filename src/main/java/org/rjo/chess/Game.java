@@ -17,8 +17,8 @@ public class Game {
 	private int halfmoveClock;
 
 	/**
-	 * move number of the next move. Not calculated from size of 'gameProgress'
-	 * since we don't have to start at move 1.
+	 * move number of the next move. Not calculated from size of 'gameProgress' since we don't have
+	 * to start at move 1.
 	 */
 	private int moveNbr;
 
@@ -35,23 +35,22 @@ public class Game {
 	/**
 	 * Inits a game with the given position.
 	 *
-	 * @param position
-	 *            the position
+	 * @param position the position
 	 */
 	public Game(Position position) {
 		gameProgress = new ArrayList<>();
 		gameProgress.add(new MovePosition(null, position));
-		moveNbr = 0;
+		moveNbr = 1;
 		currentMoveOffset = 0;
 	}
 
 	public void makeMove(Move move) {
-		gameProgress.add(new MovePosition(move, gameProgress.get(moveNbr).getPosition().move(move)));
+		gameProgress.add(new MovePosition(move, gameProgress.get(currentMoveOffset).getPosition().move(move)));
+		currentMoveOffset++;
 		halfmoveClock++;
-		if (Colour.WHITE == move.getColour()) {
+		if (Colour.BLACK == move.getColour()) {
 			moveNbr++;
 		}
-		currentMoveOffset++;
 	}
 
 	public Position getPosition() {

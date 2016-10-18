@@ -30,9 +30,9 @@ public class GameTest {
 	@Test
 	public void moveNbr() {
 		Game game = new Game();
-		Position newPosn = game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.b2, Square.b4));
+		game.makeMove(new Move(PieceType.PAWN, Colour.WHITE, Square.b2, Square.b4));
 		assertEquals(1, game.getMoveNumber());
-		newPosn = newPosn.move(new Move(PieceType.KNIGHT, Colour.BLACK, Square.b8, Square.a6));
+		game.makeMove(new Move(PieceType.KNIGHT, Colour.BLACK, Square.b8, Square.a6));
 		assertEquals(2, game.getMoveNumber());
 	}
 

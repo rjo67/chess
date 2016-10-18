@@ -6,16 +6,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.Arrays;
 import java.util.BitSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.pieces.PieceType;
 
 /**
@@ -24,59 +20,6 @@ import org.rjo.chess.pieces.PieceType;
  * @author rich
  */
 public class PositionTest {
-
-	/**
-	 * helper method to check that the objects stored in Position.pieceMgr get cloned as required
-	 * after a move.
-	 * 
-	 * @param before previous position
-	 * @param after position after move
-	 * @param allowedChangesWhite which white pieces should have been cloned
-	 * @param allowedChangesBlack which black pieces should have been cloned
-	 */
-	private void checkPieceObjects(Position before, Position after, Set<PieceType> allowedChangesWhite,
-			Set<PieceType> allowedChangesBlack) {
-		Map<PieceType, Piece> whitePiecesBefore = before.getPieceManager().getPiecesForColour(Colour.WHITE);
-		Map<PieceType, Piece> whitePiecesAfter = after.getPieceManager().getPiecesForColour(Colour.WHITE);
-		Map<PieceType, Piece> blackPiecesBefore = before.getPieceManager().getPiecesForColour(Colour.BLACK);
-		Map<PieceType, Piece> blackPiecesAfter = after.getPieceManager().getPiecesForColour(Colour.BLACK);
-
-		for (PieceType pt : PieceType.values()) {
-			if (System.identityHashCode(whitePiecesBefore.get(pt)) != System.identityHashCode(whitePiecesAfter.get(pt))) {
-				if (!allowedChangesWhite.contains(pt)) {
-					fail("white " + pt + " changed incorrectly");
-				}
-			} else {
-				if (allowedChangesWhite.contains(pt)) {
-					fail("white " + pt + " NOT changed as expected");
-				}
-			}
-			if (System.identityHashCode(blackPiecesBefore.get(pt)) != System.identityHashCode(blackPiecesAfter.get(pt))) {
-				if (!allowedChangesBlack.contains(pt)) {
-					fail("black " + pt + " changed incorrectly");
-				}
-			} else {
-				if (allowedChangesBlack.contains(pt)) {
-					fail("black " + pt + " NOT changed as expected");
-				}
-			}
-		}
-	}
-
-	@Test
-	public void pieceMgrPawnMove() {
-		Position p = Position.startPosition();
-		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.a2, Square.a4);
-		Position p2 = p.move(move);
-
-		// System.out.println(p.getPieceManager());
-		// System.out.println("----");
-		// System.out.println(p2.getPieceManager());
-
-		checkPieceObjects(p, p2, new HashSet<PieceType>(Arrays.asList(PieceType.PAWN)), new HashSet<PieceType>());
-	}
-
-	// TODO extra tests for other pieces, castling, captures...
 
 	@Test
 	public void testToString() {

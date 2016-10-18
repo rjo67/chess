@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +24,7 @@ import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Knight;
 import org.rjo.chess.pieces.Pawn;
 import org.rjo.chess.pieces.Piece;
+import org.rjo.chess.pieces.PieceManager;
 import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
@@ -113,10 +113,11 @@ public class Position {
 	/**
 	 * Creates a chessboard with the given piece settings and castling rights.
 	 */
+	@SuppressWarnings("unchecked")
 	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, EnumSet<CastlingRights> whiteCastlingRights,
 			EnumSet<CastlingRights> blackCastlingRights) {
 		initBoard(whitePieces, blackPieces);
-		castling = new EnumSet[Colour.values().length];
+		castling = new EnumSet[2];
 		castling[Colour.WHITE.ordinal()] = whiteCastlingRights;
 		castling[Colour.BLACK.ordinal()] = blackCastlingRights;
 		sideToMove = Colour.WHITE;
@@ -125,33 +126,23 @@ public class Position {
 	/**
 	 * copy constructor
 	 */
+	@SuppressWarnings("unchecked")
 	public Position(final Position posn) {
-		pieceMgr = new PieceManager();
-		for (Colour colour : Colour.values()) {
-			for (Piece p : posn.getPieces(colour).values()) {
-				// references the same 'pieces' as before.
-				// Need to clone iff these objects get changed
-				pieceMgr.getPiecesForColour(colour).put(p.getType(), p);
-			}
+		pieceMgr = new PieceManager(posn.getPieceManager());
+
+		// need to clone here, since these structures are changed incrementally in updateStructures()
+
+		totalPieces = new BitBoard(posn.totalPieces);
+		emptySquares = new BitBoard(posn.emptySquares);
+
+		allEnemyPieces = new BitBoard[2];
+		castling = new EnumSet[2];
+		for (int i = 0; i < 2; i++) {
+			allEnemyPieces[i] = new BitBoard(posn.allEnemyPieces[i]);
+			castling[i] = posn.castling[i].clone();
 		}
-
-		// TODO no need for cloning here!?
-
-		totalPieces = new BitBoard(posn.totalPieces.cloneBitSet());
-		emptySquares = new BitBoard(posn.emptySquares.cloneBitSet());
-
-		allEnemyPieces = new BitBoard[Colour.values().length];
-
-		for (Colour colour : Colour.values()) {
-			// TODO: is it necessary to clone here?
-			allEnemyPieces[colour.ordinal()] = new BitBoard(posn.allEnemyPieces[colour.ordinal()].cloneBitSet());
-		}
-
 		enpassantSquare = posn.enpassantSquare;
 		sideToMove = posn.sideToMove;
-		castling = new EnumSet[Colour.values().length];
-		castling[0] = posn.castling[0].clone();
-		castling[1] = posn.castling[1].clone();
 	}
 
 	public boolean canCastle(Colour colour, CastlingRights rights) {
@@ -193,7 +184,7 @@ public class Position {
 		totalPieces = new BitBoard();
 		totalPieces.getBitSet().or(allEnemyPieces[Colour.WHITE.ordinal()].getBitSet());
 		totalPieces.getBitSet().or(allEnemyPieces[Colour.BLACK.ordinal()].getBitSet());
-		emptySquares = new BitBoard(totalPieces.cloneBitSet());
+		emptySquares = new BitBoard(totalPieces);
 		emptySquares.getBitSet().flip(0, 64);
 
 		enpassantSquare = null;
@@ -264,7 +255,7 @@ public class Position {
 	 */
 	public List<Move> findMoves(Colour colour) {
 		// return findMovesParallel(colour);
-		List<Move> moves = new ArrayList<>(60);
+		List<Move> moves = new ArrayList<>(2000);
 		for (PieceType type : PieceType.getPieceTypes()) {
 			Piece p = getPieces(colour).get(type);
 			moves.addAll(p.findMoves(this, inCheck));
@@ -350,9 +341,8 @@ public class Position {
 		PieceType movingPiece = move.getPiece();
 
 		if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-			Move rooksMove = move.getRooksCastlingMove();
 			pieceMgr.getClonedPiece(sideToMove, movingPiece).move(move);
-			pieceMgr.getClonedPiece(sideToMove, PieceType.ROOK).move(move);
+			pieceMgr.getClonedPiece(sideToMove, PieceType.ROOK).move(move.getRooksCastlingMove());
 			// castling rights are reset later on
 		} else {
 			if (!move.isCapture() && !getEmptySquares().getBitSet().get(move.to().bitIndex())) {
@@ -650,8 +640,7 @@ public class Position {
 		return emptySquares;
 	}
 
-	// just for tests
-	PieceManager getPieceManager() {
+	public PieceManager getPieceManager() {
 		return pieceMgr;
 	}
 
@@ -885,112 +874,6 @@ public class Position {
 			throw new IllegalArgumentException("no " + expectedColour + " piece at " + targetSquare);
 		} else {
 			throw new IllegalArgumentException("no piece at " + targetSquare);
-		}
-	}
-
-	static class PieceManager {
-		/**
-		 * Stores the pieces in the game. The dimension indicates the colour {white, black}.
-		 */
-		private Map<PieceType, Piece>[] pieces;
-		/**
-		 * whether this piece type has already been cloned
-		 */
-		private Map<PieceType, Boolean>[] alreadyCloned;
-
-		/**
-		 * Constructor. The pieces map will be initialised to null values.
-		 */
-		@SuppressWarnings("unchecked")
-		public PieceManager() {
-			pieces = new HashMap[Colour.values().length];
-			alreadyCloned = new HashMap[Colour.values().length];
-
-			for (Colour col : Colour.values()) {
-				pieces[col.ordinal()] = new HashMap<>();
-				alreadyCloned[col.ordinal()] = new HashMap<>();
-				for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
-					alreadyCloned[col.ordinal()].put(pt, Boolean.FALSE);
-				}
-			}
-		}
-
-		/**
-		 * Constructor. The pieces map will be initialised to the values of the parameters.
-		 * 
-		 * @param whitePieces the white pieces
-		 * @param blackPieces the black pieces
-		 */
-		public PieceManager(Set<Piece> whitePieces, Set<Piece> blackPieces) {
-			this();
-			for (Piece p : whitePieces) {
-				getPiecesForColour(Colour.WHITE).put(p.getType(), p);
-			}
-			for (Piece p : blackPieces) {
-				getPiecesForColour(Colour.BLACK).put(p.getType(), p);
-			}
-		}
-
-		/**
-		 * returns a particular Piece object. The Piece <b>will be cloned</b> and inserted into the
-		 * 'pieces' hashmap the first time.
-		 * 
-		 * @param colour the required colour
-		 * @param pieceType the required piece type
-		 * @return a Piece object
-		 */
-		public Piece getClonedPiece(Colour colour, PieceType pieceType) {
-			if (alreadyCloned[colour.ordinal()].get(pieceType)) {
-				return getPiece(colour, pieceType);
-			}
-			try {
-				Piece cloned = (Piece) getPiece(colour, pieceType).clone();
-				pieces[colour.ordinal()].put(pieceType, cloned);
-				alreadyCloned[colour.ordinal()].put(pieceType, Boolean.TRUE);
-				return cloned;
-			} catch (CloneNotSupportedException e) {
-				throw new RuntimeException("could not clone piece!?");
-			}
-		}
-
-		/**
-		 * returns the piece map for the given colour.
-		 * 
-		 * @param colour the required colour
-		 * @return all pieces for the given colour
-		 */
-		public Map<PieceType, Piece> getPiecesForColour(Colour colour) {
-			return pieces[colour.ordinal()];
-		}
-
-		/**
-		 * returns a particular Piece object.
-		 * 
-		 * @param colour the required colour
-		 * @param pieceType the required piece type
-		 * @return a Piece object
-		 */
-		public Piece getPiece(Colour colour, PieceType pieceType) {
-			return getPiecesForColour(colour).get(pieceType);
-		}
-
-		@Override
-		public String toString() {
-			StringBuffer sb = new StringBuffer(300);
-			sb.append("PieceManager@").append(Integer.toHexString(System.identityHashCode(this)));
-			sb.append("[");
-			List<String> tempList = new ArrayList<>();
-			for (Colour col : Colour.values()) {
-				// sb.append(col).append("{");
-				List<String> tempList1 = new ArrayList<>();
-				pieces[col.ordinal()].entrySet().stream().forEach(p -> {
-					tempList1.add(p.getValue().toString());
-				});
-				tempList.add(tempList1.stream().collect(Collectors.joining(",")));
-			}
-			sb.append(tempList.stream().collect(Collectors.joining(",", "{", "}")));
-			sb.append("]");
-			return sb.toString();
 		}
 	}
 
