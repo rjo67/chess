@@ -45,11 +45,10 @@ public abstract class Piece implements Cloneable {
 	abstract public void initPosition();
 
 	/**
-	 * Finds all possible moves for this piece type in the given position.
-	 * Delegates to {@link #findMoves(Game, boolean)} with 2nd parameter FALSE.
+	 * Finds all possible moves for this piece type in the given position. Delegates to
+	 * {@link #findMoves(Game, boolean)} with 2nd parameter FALSE.
 	 *
-	 * @param position
-	 *            current game state.
+	 * @param position current game state.
 	 * @return a list of all possible moves.
 	 */
 	public final List<Move> findMoves(Position position) {
@@ -59,34 +58,27 @@ public abstract class Piece implements Cloneable {
 	/**
 	 * Finds all possible moves for this piece type in the given position.
 	 *
-	 * @param position
-	 *            current position.
-	 * @param kingInCheck
-	 *            indicates if the king is currently in check. This limits the
-	 *            available moves.
+	 * @param position current position.
+	 * @param kingInCheck indicates if the king is currently in check. This limits the available
+	 *           moves.
 	 * @return a list of all possible moves.
 	 */
 	abstract public List<Move> findMoves(Position position, boolean kingInCheck);
 
 	/**
-	 * Checks to see if the given square is attacked by one or more pieces of
-	 * this piece type.
+	 * Checks to see if the given square is attacked by one or more pieces of this piece type.
 	 *
-	 * @param emptySquares
-	 *            empty square bitset
-	 * @param targetSq
-	 *            the square to check.
+	 * @param emptySquares empty square bitset
+	 * @param targetSq the square to check.
 	 * @return true if it is attacked, otherwise false.
 	 */
 	abstract public boolean attacksSquare(BitSet emptySquares, Square targetSq);
 
 	/**
-	 * Carries out the move for this piece type, i.e. updates internal
-	 * structures. More complicated situations e.g. promotions, captures are
-	 * dealt with in {@link Game#move(Move)}.
+	 * Carries out the move for this piece type, i.e. updates internal structures. More complicated
+	 * situations e.g. promotions, captures are dealt with in {@link Game#move(Move)}.
 	 *
-	 * @param move
-	 *            the move to make
+	 * @param move the move to make
 	 */
 	public void move(Move move) {
 		if (!pieces.getBitSet().get(move.from().bitIndex())) {
@@ -99,12 +91,10 @@ public abstract class Piece implements Cloneable {
 	}
 
 	/**
-	 * Reverses the move for this piece type, i.e. updates internal structures.
-	 * More complicated situations e.g. promotions, captures are dealt with in
-	 * {@link Game#unmove(Move)}.
+	 * Reverses the move for this piece type, i.e. updates internal structures. More complicated
+	 * situations e.g. promotions, captures are dealt with in {@link Game#unmove(Move)}.
 	 *
-	 * @param move
-	 *            the move to undo
+	 * @param move the move to undo
 	 */
 	public void unmove(Move move) {
 		if (!move.isPromotion()) {
@@ -117,11 +107,10 @@ public abstract class Piece implements Cloneable {
 	}
 
 	/**
-	 * Removes the captured piece in a capture move from the internal data
-	 * structures for that piece type.
+	 * Removes the captured piece in a capture move from the internal data structures for that piece
+	 * type.
 	 *
-	 * @param square
-	 *            from where to remove the piece
+	 * @param square from where to remove the piece
 	 */
 	public void removePiece(Square square) {
 		if (!pieces.getBitSet().get(square.bitIndex())) {
@@ -131,11 +120,10 @@ public abstract class Piece implements Cloneable {
 	}
 
 	/**
-	 * Adds a piece to the internal data structures at the given square. Mainly
-	 * for promotions. No error checking is performed here.
+	 * Adds a piece to the internal data structures at the given square. Mainly for promotions. No
+	 * error checking is performed here.
 	 *
-	 * @param square
-	 *            where to add the piece
+	 * @param square where to add the piece
 	 */
 	public void addPiece(Square square) {
 		pieces.getBitSet().set(square.bitIndex());
@@ -157,8 +145,7 @@ public abstract class Piece implements Cloneable {
 	/**
 	 * Sets the start squares for this piece type to the parameter(s).
 	 *
-	 * @param requiredSquares
-	 *            all required squares.
+	 * @param requiredSquares all required squares.
 	 */
 	public void initPosition(Square... requiredSquares) {
 		pieces = new BitBoard();
@@ -181,8 +168,7 @@ public abstract class Piece implements Cloneable {
 	}
 
 	/**
-	 * Returns the FEN symbol for this piece. Delegates to
-	 * {@link PieceType#getFenSymbol(Colour)}.
+	 * Returns the FEN symbol for this piece. Delegates to {@link PieceType#getFenSymbol(Colour)}.
 	 *
 	 * @return the FEN symbol for this piece.
 	 */
@@ -192,7 +178,7 @@ public abstract class Piece implements Cloneable {
 
 	@Override
 	public String toString() {
-		return colour.toString() + " " + type.toString();
+		return colour.toString() + "-" + type.toString() + "@" + Integer.toHexString(System.identityHashCode(this));
 	}
 
 	public PieceType getType() {
@@ -202,8 +188,7 @@ public abstract class Piece implements Cloneable {
 	/**
 	 * Returns true if this piece type is present on the given square.
 	 *
-	 * @param targetSquare
-	 *            square of interest.
+	 * @param targetSquare square of interest.
 	 * @return true if this piece type is present, otherwise false.
 	 */
 	public boolean pieceAt(Square targetSquare) {
@@ -211,12 +196,10 @@ public abstract class Piece implements Cloneable {
 	}
 
 	/**
-	 * Calculates the piece-square value in centipawns. For each piece, its
-	 * piece_value is added to the square_value of the square where it currently
-	 * is.
+	 * Calculates the piece-square value in centipawns. For each piece, its piece_value is added to
+	 * the square_value of the square where it currently is.
 	 *
-	 * @return the piece-square value in centipawns (for all pieces of this
-	 *         type).
+	 * @return the piece-square value in centipawns (for all pieces of this type).
 	 */
 	public abstract int calculatePieceSquareValue();
 

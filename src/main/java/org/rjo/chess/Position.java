@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,12 +33,11 @@ import org.rjo.chess.ray.RayInfo;
 import org.rjo.chess.ray.RayUtils;
 
 /**
- * A (soon-to-be) immutable object which stores the board position after a
- * particular move.
+ * An immutable object which stores the board position after a particular move.<br>
+ * Previously: Chessboard.java.
  * 
  * @author rich
  * @since 2016-09-04
- *
  */
 public class Position {
 
@@ -47,14 +47,13 @@ public class Position {
 	private ExecutorService threadPool = Executors.newFixedThreadPool(PieceType.getPieceTypes().length);
 
 	/**
-	 * Stores the pieces in the game. The dimension indicates the colour {white,
-	 * black}.
+	 * Controls access to the pieces in the game.
 	 */
-	private Map<PieceType, Piece>[] pieces;
+	private PieceManager pieceMgr;
 
 	/**
-	 * bitboard of all pieces for a particular colour. The dimension indicates
-	 * the colour {white, black}.
+	 * bitboard of all pieces for a particular colour. The dimension indicates the colour {white,
+	 * black}.
 	 */
 	private BitBoard[] allEnemyPieces;
 
@@ -64,8 +63,7 @@ public class Position {
 	private BitBoard totalPieces;
 
 	/**
-	 * bitboard of all empty squares on the board. Logical NOT of
-	 * {@link #totalPieces}.
+	 * bitboard of all empty squares on the board. Logical NOT of {@link #totalPieces}.
 	 */
 	private BitBoard emptySquares;
 
@@ -79,8 +77,8 @@ public class Position {
 	private Colour sideToMove;
 
 	/**
-	 * if the king (of the sideToMove) is currently in check. Normally deduced
-	 * from the last move but can be set delibarately for tests.
+	 * if the king (of the sideToMove) is currently in check. Normally deduced from the last move but
+	 * can be set delibarately for tests.
 	 */
 	private boolean inCheck;
 
@@ -90,31 +88,26 @@ public class Position {
 	}
 
 	/**
-	 * Constructs a new position, pieces are initialised to the start position.
+	 * Constructs a new position with default starting positions and default castling rights.
 	 */
 	public Position() {
 		// default piece positions
-		@SuppressWarnings("unchecked")
-		Set<Piece>[] pieces = new HashSet[Colour.values().length];
-		for (Colour col : Colour.values()) {
-			pieces[col.ordinal()] = new HashSet<Piece>(Arrays.asList(new Pawn(col, true), new Rook(col, true),
-					new Knight(col, true), new Bishop(col, true), new Queen(col, true), new King(col, true)));
-		}
-		// default castling rights
-		EnumSet<CastlingRights> whiteCastlingRights = EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE);
-		EnumSet<CastlingRights> blackCastlingRights = EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE);
-
-		setupInternal(pieces[Colour.WHITE.ordinal()], pieces[Colour.BLACK.ordinal()], whiteCastlingRights,
-				blackCastlingRights);
+		this(new HashSet<Piece>(
+				Arrays.asList(new Pawn(Colour.WHITE, true), new Rook(Colour.WHITE, true), new Knight(Colour.WHITE, true),
+						new Bishop(Colour.WHITE, true), new Queen(Colour.WHITE, true), new King(Colour.WHITE, true))),
+				new HashSet<Piece>(Arrays.asList(new Pawn(Colour.BLACK, true), new Rook(Colour.BLACK, true),
+						new Knight(Colour.BLACK, true), new Bishop(Colour.BLACK, true), new Queen(Colour.BLACK, true),
+						new King(Colour.BLACK, true))),
+				// default castling rights
+				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE),
+				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE));
 	}
 
 	/**
-	 * Creates a chessboard with the given piece settings. Castling rights are
-	 * set to 'none'.
+	 * Creates a chessboard with the given piece settings. Castling rights are set to 'none'.
 	 */
 	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces) {
-		setupInternal(whitePieces, blackPieces, EnumSet.noneOf(CastlingRights.class),
-				EnumSet.noneOf(CastlingRights.class));
+		this(whitePieces, blackPieces, EnumSet.noneOf(CastlingRights.class), EnumSet.noneOf(CastlingRights.class));
 	}
 
 	/**
@@ -122,12 +115,6 @@ public class Position {
 	 */
 	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, EnumSet<CastlingRights> whiteCastlingRights,
 			EnumSet<CastlingRights> blackCastlingRights) {
-		setupInternal(whitePieces, blackPieces, whiteCastlingRights, blackCastlingRights);
-	}
-
-	// Creates a chessboard with the given piece settings
-	private void setupInternal(Set<Piece> whitePieces, Set<Piece> blackPieces,
-			EnumSet<CastlingRights> whiteCastlingRights, EnumSet<CastlingRights> blackCastlingRights) {
 		initBoard(whitePieces, blackPieces);
 		castling = new EnumSet[Colour.values().length];
 		castling[Colour.WHITE.ordinal()] = whiteCastlingRights;
@@ -138,21 +125,17 @@ public class Position {
 	/**
 	 * copy constructor
 	 */
-	@SuppressWarnings("unchecked")
 	public Position(final Position posn) {
-		pieces = new HashMap[Colour.values().length];
+		pieceMgr = new PieceManager();
 		for (Colour colour : Colour.values()) {
-			int ordinal = colour.ordinal();
-			pieces[ordinal] = new HashMap<>();
-			for (Piece p : posn.pieces[ordinal].values()) {
-				try {
-					// TODO: piece must be made immutable
-					pieces[ordinal].put(p.getType(), (Piece) p.clone());
-				} catch (CloneNotSupportedException e) {
-					throw new RuntimeException("could not clone piece");
-				}
+			for (Piece p : posn.getPieces(colour).values()) {
+				// references the same 'pieces' as before.
+				// Need to clone iff these objects get changed
+				pieceMgr.getPiecesForColour(colour).put(p.getType(), p);
 			}
 		}
+
+		// TODO no need for cloning here!?
 
 		totalPieces = new BitBoard(posn.totalPieces.cloneBitSet());
 		emptySquares = new BitBoard(posn.emptySquares.cloneBitSet());
@@ -160,12 +143,13 @@ public class Position {
 		allEnemyPieces = new BitBoard[Colour.values().length];
 
 		for (Colour colour : Colour.values()) {
+			// TODO: is it necessary to clone here?
 			allEnemyPieces[colour.ordinal()] = new BitBoard(posn.allEnemyPieces[colour.ordinal()].cloneBitSet());
 		}
 
 		enpassantSquare = posn.enpassantSquare;
 		sideToMove = posn.sideToMove;
-		castling = new EnumSet[2];
+		castling = new EnumSet[Colour.values().length];
 		castling[0] = posn.castling[0].clone();
 		castling[1] = posn.castling[1].clone();
 	}
@@ -192,31 +176,18 @@ public class Position {
 	}
 
 	/**
-	 * Sets up all pieces and related data structures corresponding to the input
-	 * parameters.
+	 * Sets up all pieces and related data structures corresponding to the input parameters.
 	 * 
-	 * @param whitePieces
-	 *            layout of the white pieces
-	 * @param blackPieces
-	 *            layout of the black pieces
+	 * @param whitePieces layout of the white pieces
+	 * @param blackPieces layout of the black pieces
 	 */
-	@SuppressWarnings("unchecked")
 	private void initBoard(Set<Piece> whitePieces, Set<Piece> blackPieces) {
-		pieces = new HashMap[Colour.values().length];
-		pieces[Colour.WHITE.ordinal()] = new HashMap<>();
-		for (Piece p : whitePieces) {
-			pieces[Colour.WHITE.ordinal()].put(p.getType(), p);
-		}
-		pieces[Colour.BLACK.ordinal()] = new HashMap<>();
-		for (Piece p : blackPieces) {
-			pieces[Colour.BLACK.ordinal()].put(p.getType(), p);
-		}
+		this.pieceMgr = new PieceManager(whitePieces, blackPieces);
 		allEnemyPieces = new BitBoard[Colour.values().length];
 		for (Colour colour : Colour.values()) {
 			allEnemyPieces[colour.ordinal()] = new BitBoard();
-			for (PieceType p : pieces[colour.ordinal()].keySet()) {
-				allEnemyPieces[colour.ordinal()].getBitSet()
-						.or(pieces[colour.ordinal()].get(p).getBitBoard().getBitSet());
+			for (PieceType p : pieceMgr.getPiecesForColour(colour).keySet()) {
+				allEnemyPieces[colour.ordinal()].getBitSet().or(pieceMgr.getPiece(colour, p).getBitBoard().getBitSet());
 			}
 		}
 		totalPieces = new BitBoard();
@@ -229,27 +200,26 @@ public class Position {
 	}
 
 	/**
-	 * update the internal structures (after a move/unmove). Incremental update
-	 * for non-capture moves.
+	 * update the internal structures (after a move). Incremental update for non-capture moves.
 	 *
-	 * @param move
-	 *            the move
+	 * @param move the move
 	 */
-	public void updateStructures(Move move) {
+	// package private for tests
+	void updateStructures(Move move) {
 		// @formatter:off
-		// (f=flip)
-		// White-Move non-capture capture
-		// d3-d4 Ra3-a4 d3xe4 d7xc8=Q Ra4xRa8 d5xc6 e.p.
-		// allPieces W f f f f f f f f f f f f
-		// allR+Q W f f f f f
-		// allB+Q W f
-		// allPieces B f f f f f f f f(c7)
-		// allR+Q B (when capt. f
-		// allB+Q B piece!=RBQ)
-		// totalPieces f f f f f f f f f f(c7)
-		// emptySquares f f f f f f f f f f(c7)
-		//
-		// @formatter:on
+      // (f=flip)
+      // White-Move       non-capture      capture
+      //                  d3-d4   Ra3-a4   d3xe4   d7xc8=Q  Ra4xRa8  d5xc6 e.p.
+      // allPieces   W    f  f     f  f    f  f    f  f      f   f   f  f
+      // allR+Q      W             f  f               f      f   f
+      // allB+Q      W                                f
+      // allPieces   B    f  f     f  f       f       f          f      f(c7)
+      // allR+Q      B                    (when capt.            f
+      // allB+Q      B                      piece!=RBQ)
+      // totalPieces      f  f     f  f    f       f         f       f  f f(c7)
+      // emptySquares     f  f     f  f    f       f         f       f  f f(c7)
+      //
+      // @formatter:on
 
 		final int colourOrdinal = move.getColour().ordinal();
 		final int oppositeColourOrdinal = Colour.oppositeColour(move.getColour()).ordinal();
@@ -289,8 +259,7 @@ public class Position {
 	/**
 	 * Find all moves for the given colour from the current position.
 	 *
-	 * @param colour
-	 *            the required colour
+	 * @param colour the required colour
 	 * @return all moves for this colour.
 	 */
 	public List<Move> findMoves(Colour colour) {
@@ -327,7 +296,6 @@ public class Position {
 				moves.addAll(f.get());
 			}
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			throw new RuntimeException("got InterruptedException from future (findMovesParallel)", e);
 		} catch (ExecutionException e) {
 			throw new RuntimeException("got ExecutionException from future (findMovesParallel)", e);
@@ -349,8 +317,7 @@ public class Position {
 	/**
 	 * return the new position after the given move, without debug.
 	 *
-	 * @param move
-	 *            the move
+	 * @param move the move
 	 * @return a new Position object with the position after the given move
 	 */
 	public Position move(Move move) {
@@ -360,10 +327,8 @@ public class Position {
 	/**
 	 * returns the new position after the given move.
 	 *
-	 * @param move
-	 *            the move
-	 * @param debugWriter
-	 *            if not null, debug info will be written here
+	 * @param move the move
+	 * @param debugWriter if not null, debug info will be written here
 	 * @return a new Position object with the position after the given move
 	 */
 	public Position move(Move move, Writer debugWriter) {
@@ -375,10 +340,8 @@ public class Position {
 	/**
 	 * Performs the given move, updating internal data structures.
 	 * 
-	 * @param move
-	 *            the move
-	 * @param debugWriter
-	 *            if not null, debug info will be written here
+	 * @param move the move
+	 * @param debugWriter if not null, debug info will be written here
 	 */
 	private void internalMove(Move move, Writer debugWriter) {
 		if (move.getColour() != sideToMove) {
@@ -388,27 +351,28 @@ public class Position {
 
 		if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
 			Move rooksMove = move.getRooksCastlingMove();
-			getPieces(sideToMove).get(movingPiece).move(move);
-			getPieces(sideToMove).get(PieceType.ROOK).move(rooksMove);
+			pieceMgr.getClonedPiece(sideToMove, movingPiece).move(move);
+			pieceMgr.getClonedPiece(sideToMove, PieceType.ROOK).move(move);
 			// castling rights are reset later on
 		} else {
 			if (!move.isCapture() && !getEmptySquares().getBitSet().get(move.to().bitIndex())) {
 				throw new IllegalArgumentException("square " + move.to() + " is not empty. Move=" + move);
 			}
 			// update structures for the moving piece
-			getPieces(sideToMove).get(movingPiece).move(move);
+			pieceMgr.getClonedPiece(sideToMove, movingPiece).move(move);
 			// capture: remove the captured piece
 			if (move.isCapture()) {
 				if (move.isEnpassant()) {
-					getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece())
+					pieceMgr.getClonedPiece(Colour.oppositeColour(sideToMove), move.getCapturedPiece())
 							.removePiece(Square.findMoveFromEnpassantSquare(move.to()));
 				} else {
-					getPieces(Colour.oppositeColour(sideToMove)).get(move.getCapturedPiece()).removePiece(move.to());
+					pieceMgr.getClonedPiece(Colour.oppositeColour(sideToMove), move.getCapturedPiece())
+							.removePiece(move.to());
 				}
 			}
 			// promotion: add the promoted piece
 			if (move.isPromotion()) {
-				getPieces(sideToMove).get(move.getPromotedPiece()).addPiece(move.to());
+				pieceMgr.getClonedPiece(sideToMove, move.getPromotedPiece()).addPiece(move.to());
 			}
 		}
 		updateStructures(move);
@@ -424,11 +388,9 @@ public class Position {
 	}
 
 	/**
-	 * Just for tests: indicate that in this position the king of the side to
-	 * move is in check.
+	 * Just for tests: indicate that in this position the king of the side to move is in check.
 	 *
-	 * @param inCheck
-	 *            true when the king is in check.
+	 * @param inCheck true when the king is in check.
 	 */
 	public void setInCheck(boolean inCheck) {
 		this.inCheck = inCheck;
@@ -441,8 +403,7 @@ public class Position {
 	/**
 	 * Calculates a static value for the position after the given move.
 	 *
-	 * @param move
-	 *            the move
+	 * @param move the move
 	 * @return a value in centipawns
 	 */
 	public int evaluate(Move move) {
@@ -451,17 +412,15 @@ public class Position {
 	}
 
 	/**
-	 * Calculates a static value for the current position. In order for NegaMax
-	 * to work, it is important to return the score relative to the side being
-	 * evaluated.
+	 * Calculates a static value for the current position. In order for NegaMax to work, it is
+	 * important to return the score relative to the side being evaluated.
 	 *
 	 * @return a value in centipawns
 	 */
 	public int evaluate() {
 		/*
-		 * materialScore = kingWt * (wK-bK) + queenWt * (wQ-bQ) + rookWt *
-		 * (wR-bR) + knightWt* (wN-bN) + bishopWt* (wB-bB) + pawnWt * (wP-bP)
-		 * mobilityScore = mobilityWt * (wMobility-bMobility)
+		 * materialScore = kingWt * (wK-bK) + queenWt * (wQ-bQ) + rookWt * (wR-bR) + knightWt* (wN-bN)
+		 * + bishopWt* (wB-bB) + pawnWt * (wP-bP) mobilityScore = mobilityWt * (wMobility-bMobility)
 		 */
 		int materialScore = 0;
 		for (PieceType type : PieceType.getPieceTypes()) {
@@ -579,7 +538,7 @@ public class Position {
 			}
 		}
 		for (Colour colour : Colour.values()) {
-			for (Piece p : pieces[colour.ordinal()].values()) {
+			for (Piece p : pieceMgr.getPiecesForColour(colour).values()) {
 				Square[] locations = p.getLocations();
 				for (Square locn : locations) {
 					board[locn.rank()][locn.file()] = p.getFenSymbol();
@@ -597,55 +556,52 @@ public class Position {
 		return sb.toString();
 	}
 
-	private BitBoard updateBishopsAndQueens(Map<PieceType, Piece> pieces) {
-		Piece queens = pieces.get(PieceType.QUEEN);
-		BitSet queensBitSet;
-		if (queens == null) {
-			queensBitSet = new BitSet(64);
-		} else {
-			queensBitSet = queens.getBitBoard().getBitSet();
-		}
-
-		Piece bishops = pieces.get(PieceType.BISHOP);
-		BitSet bishopsAndQueens;
-		if (bishops == null) {
-			bishopsAndQueens = new BitSet(64);
-		} else {
-			bishopsAndQueens = bishops.getBitBoard().cloneBitSet();
-		}
-		bishopsAndQueens.or(queensBitSet);
-		return new BitBoard(bishopsAndQueens);
-	}
-
-	private BitBoard updateRooksAndQueens(Map<PieceType, Piece> pieces) {
-		Piece queens = pieces.get(PieceType.QUEEN);
-		BitSet queensBitSet;
-		if (queens == null) {
-			queensBitSet = new BitSet(64);
-		} else {
-			queensBitSet = queens.getBitBoard().getBitSet();
-		}
-
-		Piece rooks = pieces.get(PieceType.ROOK);
-		BitSet rooksAndQueens;
-		if (rooks == null) {
-			rooksAndQueens = new BitSet(64);
-		} else {
-			rooksAndQueens = rooks.getBitBoard().cloneBitSet();
-		}
-		rooksAndQueens.or(queensBitSet);
-		return new BitBoard(rooksAndQueens);
-	}
+	// private BitBoard updateBishopsAndQueens(Map<PieceType, Piece> pieces) {
+	// Piece queens = pieces.get(PieceType.QUEEN);
+	// BitSet queensBitSet;
+	// if (queens == null) {
+	// queensBitSet = new BitSet(64);
+	// } else {
+	// queensBitSet = queens.getBitBoard().getBitSet();
+	// }
+	//
+	// Piece bishops = pieces.get(PieceType.BISHOP);
+	// BitSet bishopsAndQueens;
+	// if (bishops == null) {
+	// bishopsAndQueens = new BitSet(64);
+	// } else {
+	// bishopsAndQueens = bishops.getBitBoard().cloneBitSet();
+	// }
+	// bishopsAndQueens.or(queensBitSet);
+	// return new BitBoard(bishopsAndQueens);
+	// }
+	//
+	// private BitBoard updateRooksAndQueens(Map<PieceType, Piece> pieces) {
+	// Piece queens = pieces.get(PieceType.QUEEN);
+	// BitSet queensBitSet;
+	// if (queens == null) {
+	// queensBitSet = new BitSet(64);
+	// } else {
+	// queensBitSet = queens.getBitBoard().getBitSet();
+	// }
+	//
+	// Piece rooks = pieces.get(PieceType.ROOK);
+	// BitSet rooksAndQueens;
+	// if (rooks == null) {
+	// rooksAndQueens = new BitSet(64);
+	// } else {
+	// rooksAndQueens = rooks.getBitBoard().cloneBitSet();
+	// }
+	// rooksAndQueens.or(queensBitSet);
+	// return new BitBoard(rooksAndQueens);
+	// }
 
 	/**
-	 * Updates the given bitset to represent the move. The from and to squares
-	 * will be flipped. If castling then the rook's move is also taken into a/c.
+	 * Updates the given bitset to represent the move. The from and to squares will be flipped. If
+	 * castling then the rook's move is also taken into a/c.
 	 *
-	 * @param bitset
-	 *            the bitset to be updated.
-	 * @param move
-	 *            the move. NB only non-capture moves are supported by this
-	 *            method!
+	 * @param bitset the bitset to be updated.
+	 * @param move the move. NB only non-capture moves are supported by this method!
 	 */
 	private void updateBitSet(BitSet bitset, Move move) {
 		bitset.flip(move.from().bitIndex());
@@ -659,19 +615,17 @@ public class Position {
 	/**
 	 * Access to the set of pieces of a given colour.
 	 *
-	 * @param colour
-	 *            the required colour
+	 * @param colour the required colour
 	 * @return the set of pieces of this colour
 	 */
 	public Map<PieceType, Piece> getPieces(Colour colour) {
-		return pieces[colour.ordinal()];
+		return pieceMgr.getPiecesForColour(colour);
 	}
 
 	/**
 	 * Access to a BitBoard of all the pieces of a given colour.
 	 *
-	 * @param colour
-	 *            the required colour
+	 * @param colour the required colour
 	 * @return a BitBoard containing all the pieces of a given colour.
 	 */
 	public BitBoard getAllPieces(Colour colour) {
@@ -696,6 +650,11 @@ public class Position {
 		return emptySquares;
 	}
 
+	// just for tests
+	PieceManager getPieceManager() {
+		return pieceMgr;
+	}
+
 	public void debug() {
 		for (Colour colour : Colour.values()) {
 			System.out.println(colour + " all pieces");
@@ -704,9 +663,9 @@ public class Position {
 		}
 		System.out.println("pieces");
 		for (Colour colour : Colour.values()) {
-			for (PieceType p : pieces[colour.ordinal()].keySet()) {
+			for (PieceType p : pieceMgr.getPiecesForColour(colour).keySet()) {
 				System.out.println(p + ", " + colour);
-				System.out.println(pieces[colour.ordinal()].get(p).getBitBoard().display());
+				System.out.println(pieceMgr.getPiece(colour, p).getBitBoard().display());
 				System.out.println("---");
 			}
 		}
@@ -735,12 +694,9 @@ public class Position {
 	/**
 	 * Returns true if the given square is attacked by any opponent's pieces.
 	 *
-	 * @param game
-	 *            the game
-	 * @param targetSquare
-	 *            the square to consider
-	 * @param opponentsColour
-	 *            the colour of the opponent
+	 * @param game the game
+	 * @param targetSquare the square to consider
+	 * @param opponentsColour the colour of the opponent
 	 * @return true if this square is attacked by the opponent
 	 */
 	public boolean squareIsAttacked(Square targetSquare, Colour opponentsColour) {
@@ -762,18 +718,13 @@ public class Position {
 	/**
 	 * Checks for a discovered check after the move 'move'.
 	 * <p>
-	 * This will not be 100% correct for moves along the same ray to the
-	 * opponent's king. But these moves are already check and not discovered
-	 * check.
+	 * This will not be 100% correct for moves along the same ray to the opponent's king. But these
+	 * moves are already check and not discovered check.
 	 *
-	 * @param posn
-	 *            the chessboard
-	 * @param move
-	 *            the move
-	 * @param colour
-	 *            which side is moving
-	 * @param opponentsKing
-	 *            where the opponent's king is
+	 * @param posn the chessboard
+	 * @param move the move
+	 * @param colour which side is moving
+	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move leads to a discovered check
 	 */
 	public static boolean checkForDiscoveredCheck(Position posn, Move move, Colour colour, Square opponentsKing) {
@@ -799,22 +750,16 @@ public class Position {
 	}
 
 	/**
-	 * Returns true if a piece on 'startSquare' attacks 'targetSquare', i.e. the
-	 * two squares are on the same ray and there are no intervening pieces.
+	 * Returns true if a piece on 'startSquare' attacks 'targetSquare', i.e. the two squares are on
+	 * the same ray and there are no intervening pieces.
 	 * <p>
-	 * It still depends on the piece type to determine whether there really is
-	 * an attack.
+	 * It still depends on the piece type to determine whether there really is an attack.
 	 *
-	 * @param emptySquares
-	 *            bitset of empty Squares
-	 * @param myPieces
-	 *            bitset of my pieces
-	 * @param myColour
-	 *            my colour
-	 * @param startSquare
-	 *            start square
-	 * @param targetSquare
-	 *            target square
+	 * @param emptySquares bitset of empty Squares
+	 * @param myPieces bitset of my pieces
+	 * @param myColour my colour
+	 * @param startSquare start square
+	 * @param targetSquare target square
 	 * @return true if a piece on 'startSquare' attacks 'targetSquare'
 	 */
 	public static boolean checkIfPieceOnSquare1CouldAttackSquare2(BitSet emptySquares, BitSet myPieces, Colour myColour,
@@ -836,19 +781,13 @@ public class Position {
 	}
 
 	/**
-	 * Checks if my king is in check after my move, i.e. the piece that moved
-	 * was actually pinned.
+	 * Checks if my king is in check after my move, i.e. the piece that moved was actually pinned.
 	 *
-	 * @param posn
-	 *            the current posn
-	 * @param move
-	 *            the move
-	 * @param colour
-	 *            which side is moving
-	 * @param myKing
-	 *            where my king is
-	 * @return true if this move is illegal since the piece that moved was
-	 *         pinned
+	 * @param posn the current posn
+	 * @param move the move
+	 * @param colour which side is moving
+	 * @param myKing where my king is
+	 * @return true if this move is illegal since the piece that moved was pinned
 	 */
 	public static boolean checkForPinnedPiece(Position posn, Move move, Colour colour, Square myKing) {
 		// set up the bitsets *after* this move
@@ -869,19 +808,12 @@ public class Position {
 	/**
 	 * Checks if my king is in check after the move 'move'.
 	 *
-	 * @param posn
-	 *            the chessboard
-	 * @param move
-	 *            the move
-	 * @param opponentsColour
-	 *            this colour's pieces will be inspected to see if they check my
-	 *            king
-	 * @param king
-	 *            where my king is
-	 * @param kingIsAlreadyInCheck
-	 *            true if the king was already in check before the 'move'
-	 * @return true if this move leaves the king in check (i.e. is an illegal
-	 *         move)
+	 * @param posn the chessboard
+	 * @param move the move
+	 * @param opponentsColour this colour's pieces will be inspected to see if they check my king
+	 * @param king where my king is
+	 * @param kingIsAlreadyInCheck true if the king was already in check before the 'move'
+	 * @return true if this move leaves the king in check (i.e. is an illegal move)
 	 */
 	public static boolean isKingInCheck(Position posn, Move move, Colour opponentsColour, Square king,
 			boolean kingIsAlreadyInCheck) {
@@ -918,13 +850,10 @@ public class Position {
 	/**
 	 * Finds the piece at the given square.
 	 *
-	 * @param targetSquare
-	 *            square to use
+	 * @param targetSquare square to use
 	 * @return the piece at this location.
-	 * @throws IllegalArgumentException
-	 *             if no piece exists at the given square.
-	 * @deprecated should be possible to always rewrite using
-	 *             {@link #pieceAt(Square, Colour)}.
+	 * @throws IllegalArgumentException if no piece exists at the given square.
+	 * @deprecated should be possible to always rewrite using {@link #pieceAt(Square, Colour)}.
 	 */
 	@Deprecated
 	public PieceType pieceAt(Square targetSquare) {
@@ -934,13 +863,10 @@ public class Position {
 	/**
 	 * Finds the piece at the given square. TODO optimize using Lookup?
 	 *
-	 * @param targetSquare
-	 *            square to use
-	 * @param colour
-	 *            if not null, this piece's colour is expected.
+	 * @param targetSquare square to use
+	 * @param colour if not null, this piece's colour is expected.
 	 * @return the piece at this location.
-	 * @throws IllegalArgumentException
-	 *             if no piece [of the given colour] exists at the given square.
+	 * @throws IllegalArgumentException if no piece [of the given colour] exists at the given square.
 	 */
 	public PieceType pieceAt(Square targetSquare, Colour expectedColour) {
 		for (Colour colour : Colour.values()) {
@@ -959,6 +885,112 @@ public class Position {
 			throw new IllegalArgumentException("no " + expectedColour + " piece at " + targetSquare);
 		} else {
 			throw new IllegalArgumentException("no piece at " + targetSquare);
+		}
+	}
+
+	static class PieceManager {
+		/**
+		 * Stores the pieces in the game. The dimension indicates the colour {white, black}.
+		 */
+		private Map<PieceType, Piece>[] pieces;
+		/**
+		 * whether this piece type has already been cloned
+		 */
+		private Map<PieceType, Boolean>[] alreadyCloned;
+
+		/**
+		 * Constructor. The pieces map will be initialised to null values.
+		 */
+		@SuppressWarnings("unchecked")
+		public PieceManager() {
+			pieces = new HashMap[Colour.values().length];
+			alreadyCloned = new HashMap[Colour.values().length];
+
+			for (Colour col : Colour.values()) {
+				pieces[col.ordinal()] = new HashMap<>();
+				alreadyCloned[col.ordinal()] = new HashMap<>();
+				for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
+					alreadyCloned[col.ordinal()].put(pt, Boolean.FALSE);
+				}
+			}
+		}
+
+		/**
+		 * Constructor. The pieces map will be initialised to the values of the parameters.
+		 * 
+		 * @param whitePieces the white pieces
+		 * @param blackPieces the black pieces
+		 */
+		public PieceManager(Set<Piece> whitePieces, Set<Piece> blackPieces) {
+			this();
+			for (Piece p : whitePieces) {
+				getPiecesForColour(Colour.WHITE).put(p.getType(), p);
+			}
+			for (Piece p : blackPieces) {
+				getPiecesForColour(Colour.BLACK).put(p.getType(), p);
+			}
+		}
+
+		/**
+		 * returns a particular Piece object. The Piece <b>will be cloned</b> and inserted into the
+		 * 'pieces' hashmap the first time.
+		 * 
+		 * @param colour the required colour
+		 * @param pieceType the required piece type
+		 * @return a Piece object
+		 */
+		public Piece getClonedPiece(Colour colour, PieceType pieceType) {
+			if (alreadyCloned[colour.ordinal()].get(pieceType)) {
+				return getPiece(colour, pieceType);
+			}
+			try {
+				Piece cloned = (Piece) getPiece(colour, pieceType).clone();
+				pieces[colour.ordinal()].put(pieceType, cloned);
+				alreadyCloned[colour.ordinal()].put(pieceType, Boolean.TRUE);
+				return cloned;
+			} catch (CloneNotSupportedException e) {
+				throw new RuntimeException("could not clone piece!?");
+			}
+		}
+
+		/**
+		 * returns the piece map for the given colour.
+		 * 
+		 * @param colour the required colour
+		 * @return all pieces for the given colour
+		 */
+		public Map<PieceType, Piece> getPiecesForColour(Colour colour) {
+			return pieces[colour.ordinal()];
+		}
+
+		/**
+		 * returns a particular Piece object.
+		 * 
+		 * @param colour the required colour
+		 * @param pieceType the required piece type
+		 * @return a Piece object
+		 */
+		public Piece getPiece(Colour colour, PieceType pieceType) {
+			return getPiecesForColour(colour).get(pieceType);
+		}
+
+		@Override
+		public String toString() {
+			StringBuffer sb = new StringBuffer(300);
+			sb.append("PieceManager@").append(Integer.toHexString(System.identityHashCode(this)));
+			sb.append("[");
+			List<String> tempList = new ArrayList<>();
+			for (Colour col : Colour.values()) {
+				// sb.append(col).append("{");
+				List<String> tempList1 = new ArrayList<>();
+				pieces[col.ordinal()].entrySet().stream().forEach(p -> {
+					tempList1.add(p.getValue().toString());
+				});
+				tempList.add(tempList1.stream().collect(Collectors.joining(",")));
+			}
+			sb.append(tempList.stream().collect(Collectors.joining(",", "{", "}")));
+			sb.append("]");
+			return sb.toString();
 		}
 	}
 
