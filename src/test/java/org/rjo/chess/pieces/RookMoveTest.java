@@ -19,21 +19,21 @@ public class RookMoveTest {
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
-		whiteRook = game.getPosition().getPieces(Colour.WHITE).get(PieceType.ROOK);
+		whiteRook = game.getPosition().getPieces2(Colour.WHITE)[PieceType.ROOK.ordinal()];
 	}
 
 	@Test
 	public void startPosition() {
 		Game game = new Game();
-		Rook whiteRook = (Rook) game.getPosition().getPieces(Colour.WHITE).get(PieceType.ROOK);
+		Rook whiteRook = (Rook) game.getPosition().getPieces2(Colour.WHITE)[PieceType.ROOK.ordinal()];
 		TestUtil.checkMoves(whiteRook.findMoves(game.getPosition()), new HashSet<>());
 	}
 
 	@Test
 	public void moveFromMiddleOfBoard() {
 		setupGame("4k3/8/8/8/3R4/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(whiteRook.findMoves(game.getPosition()), "Rd4-d5", "Rd4-d6", "Rd4-d7", "Rd4-d8+",
-				"Rd4-e4+", "Rd4-f4", "Rd4-g4", "Rd4-h4", "Rd4-d3", "Rd4-d2", "Rd4-d1", "Rd4-c4", "Rd4-b4", "Rd4-a4");
+		TestUtil.checkMoves(whiteRook.findMoves(game.getPosition()), "Rd4-d5", "Rd4-d6", "Rd4-d7", "Rd4-d8+", "Rd4-e4+",
+				"Rd4-f4", "Rd4-g4", "Rd4-h4", "Rd4-d3", "Rd4-d2", "Rd4-d1", "Rd4-c4", "Rd4-b4", "Rd4-a4");
 	}
 
 	@Test
@@ -89,8 +89,8 @@ public class RookMoveTest {
 	@Test
 	public void moveFromA8() {
 		setupGame("R7/8/8/1k6/8/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(whiteRook.findMoves(game.getPosition()), "Ra8-a7", "Ra8-a6", "Ra8-a5+", "Ra8-a4",
-				"Ra8-a3", "Ra8-a2", "Ra8-a1", "Ra8-b8+", "Ra8-c8", "Ra8-d8", "Ra8-e8", "Ra8-f8", "Ra8-g8", "Ra8-h8");
+		TestUtil.checkMoves(whiteRook.findMoves(game.getPosition()), "Ra8-a7", "Ra8-a6", "Ra8-a5+", "Ra8-a4", "Ra8-a3",
+				"Ra8-a2", "Ra8-a1", "Ra8-b8+", "Ra8-c8", "Ra8-d8", "Ra8-e8", "Ra8-f8", "Ra8-g8", "Ra8-h8");
 	}
 
 	/**
@@ -114,8 +114,8 @@ public class RookMoveTest {
 	@Test
 	public void moveFromH8() {
 		setupGame("7R/8/8/1k6/8/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(whiteRook.findMoves(game.getPosition()), "Rh8-h7", "Rh8-h6", "Rh8-h5+", "Rh8-h4",
-				"Rh8-h3", "Rh8-h2", "Rh8-h1", "Rh8-g8", "Rh8-f8", "Rh8-e8", "Rh8-d8", "Rh8-c8", "Rh8-b8+", "Rh8-a8");
+		TestUtil.checkMoves(whiteRook.findMoves(game.getPosition()), "Rh8-h7", "Rh8-h6", "Rh8-h5+", "Rh8-h4", "Rh8-h3",
+				"Rh8-h2", "Rh8-h1", "Rh8-g8", "Rh8-f8", "Rh8-e8", "Rh8-d8", "Rh8-c8", "Rh8-b8+", "Rh8-a8");
 	}
 
 	/**

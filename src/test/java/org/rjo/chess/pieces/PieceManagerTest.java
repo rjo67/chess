@@ -4,7 +4,6 @@ import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
@@ -13,6 +12,7 @@ import org.rjo.chess.Fen;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.Stopwatch;
 
 /**
  * @author rich
@@ -81,6 +81,19 @@ public class PieceManagerTest {
 				new HashSet<PieceType>(Arrays.asList(PieceType.KING, PieceType.ROOK)));
 	}
 
+	@Test
+	public void pieceManagerSpeedTest() {
+		Position p = Fen.decode("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0").getPosition();
+		PieceManager pm = p.getPieceManager();
+
+		Stopwatch sw = new Stopwatch();
+		sw.start();
+		for (int i = 0; i < 1000000; i++) {
+			PieceManager pm2 = new PieceManager(pm);
+		}
+		System.out.println(sw.read());
+	}
+
 	/**
 	 * helper method to check that the objects stored in Position.pieceMgr get cloned as required
 	 * after a move.
@@ -92,13 +105,14 @@ public class PieceManagerTest {
 	 */
 	private void checkPieceObjects(Position before, Position after, Set<PieceType> allowedChangesWhite,
 			Set<PieceType> allowedChangesBlack) {
-		Map<PieceType, Piece> whitePiecesBefore = before.getPieceManager().getPiecesForColour(Colour.WHITE);
-		Map<PieceType, Piece> whitePiecesAfter = after.getPieceManager().getPiecesForColour(Colour.WHITE);
-		Map<PieceType, Piece> blackPiecesBefore = before.getPieceManager().getPiecesForColour(Colour.BLACK);
-		Map<PieceType, Piece> blackPiecesAfter = after.getPieceManager().getPiecesForColour(Colour.BLACK);
+		Piece[] whitePiecesBefore = before.getPieceManager().getPiecesForColour2(Colour.WHITE);
+		Piece[] whitePiecesAfter = after.getPieceManager().getPiecesForColour2(Colour.WHITE);
+		Piece[] blackPiecesBefore = before.getPieceManager().getPiecesForColour2(Colour.BLACK);
+		Piece[] blackPiecesAfter = after.getPieceManager().getPiecesForColour2(Colour.BLACK);
 
-		for (PieceType pt : PieceType.values()) {
-			if (System.identityHashCode(whitePiecesBefore.get(pt)) != System.identityHashCode(whitePiecesAfter.get(pt))) {
+		for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
+			if (System.identityHashCode(whitePiecesBefore[pt.ordinal()]) != System
+					.identityHashCode(whitePiecesAfter[pt.ordinal()])) {
 				if (!allowedChangesWhite.contains(pt)) {
 					fail("white " + pt + " changed incorrectly");
 				}
@@ -107,7 +121,8 @@ public class PieceManagerTest {
 					fail("white " + pt + " NOT changed as expected");
 				}
 			}
-			if (System.identityHashCode(blackPiecesBefore.get(pt)) != System.identityHashCode(blackPiecesAfter.get(pt))) {
+			if (System.identityHashCode(blackPiecesBefore[pt.ordinal()]) != System
+					.identityHashCode(blackPiecesAfter[pt.ordinal()])) {
 				if (!allowedChangesBlack.contains(pt)) {
 					fail("black " + pt + " changed incorrectly");
 				}

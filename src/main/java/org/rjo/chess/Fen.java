@@ -19,35 +19,27 @@ import org.rjo.chess.pieces.Rook;
 
 /**
  * Implementation of the Forsyth�Edwards Notation to record a game's position.
- * https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
- *
- *
- * A FEN record contains six fields. The separator between fields is a space.
- * The fields are:
- *
+ * https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation A FEN record contains six fields.
+ * The separator between fields is a space. The fields are:
  * <ul>
- * <li>Piece placement (from white's perspective). Each rank is described,
- * starting with rank 8 and ending with rank 1; within each rank, the contents
- * of each square are described from file "a" through file "h". Each piece is
- * identified by a single letter taken from the standard English names (pawn =
- * "P", knight = "N", bishop = "B", rook = "R", queen = "Q" and king = "K").
- * White pieces are designated using upper-case letters ("PNBRQK") while black
- * pieces use lowercase ("pnbrqk"). Empty squares are noted using digits 1
- * through 8 (the number of empty squares), and "/" separates ranks.</li>
+ * <li>Piece placement (from white's perspective). Each rank is described, starting with rank 8 and
+ * ending with rank 1; within each rank, the contents of each square are described from file "a"
+ * through file "h". Each piece is identified by a single letter taken from the standard English
+ * names (pawn = "P", knight = "N", bishop = "B", rook = "R", queen = "Q" and king = "K"). White
+ * pieces are designated using upper-case letters ("PNBRQK") while black pieces use lowercase
+ * ("pnbrqk"). Empty squares are noted using digits 1 through 8 (the number of empty squares), and
+ * "/" separates ranks.</li>
  * <li>Active color. "w" means White moves next, "b" means Black.</li>
- * <li>Castling availability. If neither side can castle, this is "-".
- * Otherwise, this has one or more letters: "K" (White can castle kingside), "Q"
- * (White can castle queenside), "k" (Black can castle kingside), and/or "q"
- * (Black can castle queenside).</li>
- * <li>En passant target square in algebraic notation. If there's no en passant
- * target square, this is "-". If a pawn has just made a two-square move, this
- * is the position "behind" the pawn. This is recorded regardless of whether
- * there is a pawn in position to make an en passant capture.</li>
- * <li>Halfmove clock: This is the number of halfmoves since the last capture or
- * pawn advance. This is used to determine if a draw can be claimed under the
- * fifty-move rule.</li>
- * <li>Fullmove number: The number of the full move. It starts at 1, and is
- * incremented after Black's move.</li>
+ * <li>Castling availability. If neither side can castle, this is "-". Otherwise, this has one or
+ * more letters: "K" (White can castle kingside), "Q" (White can castle queenside), "k" (Black can
+ * castle kingside), and/or "q" (Black can castle queenside).</li>
+ * <li>En passant target square in algebraic notation. If there's no en passant target square, this
+ * is "-". If a pawn has just made a two-square move, this is the position "behind" the pawn. This
+ * is recorded regardless of whether there is a pawn in position to make an en passant capture.</li>
+ * <li>Halfmove clock: This is the number of halfmoves since the last capture or pawn advance. This
+ * is used to determine if a draw can be claimed under the fifty-move rule.</li>
+ * <li>Fullmove number: The number of the full move. It starts at 1, and is incremented after
+ * Black's move.</li>
  * </ul>
  *
  * @author rich
@@ -57,8 +49,7 @@ public class Fen {
 	/**
 	 * Creates a FEN notation for the given game.
 	 *
-	 * @param game
-	 *            state of the game
+	 * @param game state of the game
 	 * @return a FEN string
 	 */
 	public static String encode(Game game) {
@@ -72,12 +63,10 @@ public class Fen {
 	}
 
 	/**
-	 * Creates a FEN notation for the given position. NB: not a complete FEN
-	 * string, since information about the move nbr / halfmove clock is only
-	 * available from the 'Game' object.
+	 * Creates a FEN notation for the given position. NB: not a complete FEN string, since
+	 * information about the move nbr / halfmove clock is only available from the 'Game' object.
 	 *
-	 * @param position
-	 *            state of the positino
+	 * @param position state of the positino
 	 * @return a FEN string
 	 */
 	public static String encode(Position posn) {
@@ -88,16 +77,12 @@ public class Fen {
 				board[rank][file] = ' ';
 			}
 		}
-		for (PieceType pieceType : posn.getPieces(Colour.WHITE).keySet()) {
-			Piece piece = posn.getPieces(Colour.WHITE).get(pieceType);
-			for (Square sq : piece.getLocations()) {
-				board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
-			}
-		}
-		for (PieceType pieceType : posn.getPieces(Colour.BLACK).keySet()) {
-			Piece piece = posn.getPieces(Colour.BLACK).get(pieceType);
-			for (Square sq : piece.getLocations()) {
-				board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
+		for (Colour colour : Colour.ALL_COLOURS) {
+			for (PieceType pieceType : PieceType.ALL_PIECE_TYPES) {
+				Piece piece = posn.getPieces2(colour)[pieceType.ordinal()];
+				for (Square sq : piece.getLocations()) {
+					board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
+				}
 			}
 		}
 
@@ -136,8 +121,7 @@ public class Fen {
 	/**
 	 * Parses a FEN notation to create a game state.
 	 *
-	 * @param fen
-	 *            a FEN representation of a chess position
+	 * @param fen a FEN representation of a chess position
 	 * @return a Game object, containing a Position
 	 */
 	public static Game decode(String fen) {
@@ -163,10 +147,8 @@ public class Fen {
 	/**
 	 * Active color. "w" means White moves next, "b" means Black.
 	 *
-	 * @param game
-	 *            game state
-	 * @param token
-	 *            token repesenting the active colour
+	 * @param game game state
+	 * @param token token repesenting the active colour
 	 */
 	private static void parseActiveColour(Position posn, String token) {
 		if (token.length() != 1) {
@@ -189,15 +171,12 @@ public class Fen {
 	}
 
 	/**
-	 * Castling availability. If neither side can castle, this is "-".
-	 * Otherwise, this has one or more letters: "K" (White can castle kingside),
-	 * "Q" (White can castle queenside), "k" (Black can castle kingside), and/or
-	 * "q" (Black can castle queenside).
+	 * Castling availability. If neither side can castle, this is "-". Otherwise, this has one or
+	 * more letters: "K" (White can castle kingside), "Q" (White can castle queenside), "k" (Black
+	 * can castle kingside), and/or "q" (Black can castle queenside).
 	 *
-	 * @param posn
-	 *            position state
-	 * @param token
-	 *            token representing castling rights
+	 * @param posn position state
+	 * @param token token representing castling rights
 	 */
 	private static void parseCastlingRights(Position posn, String token) {
 
@@ -241,15 +220,13 @@ public class Fen {
 	}
 
 	/**
-	 * En passant target square in algebraic notation. If there's no en passant
-	 * target square, this is "-". If a pawn has just made a two-square move,
-	 * this is the position "behind" the pawn. This is recorded regardless of
-	 * whether there is a pawn in position to make an en passant capture.
+	 * En passant target square in algebraic notation. If there's no en passant target square, this
+	 * is "-". If a pawn has just made a two-square move, this is the position "behind" the pawn.
+	 * This is recorded regardless of whether there is a pawn in position to make an en passant
+	 * capture.
 	 *
-	 * @param posn
-	 *            position
-	 * @param token
-	 *            parsed token
+	 * @param posn position
+	 * @param token parsed token
 	 */
 	private static void parseEnpassantSquare(Position posn, String token) {
 		if (!token.equals("-")) {
@@ -267,12 +244,10 @@ public class Fen {
 	}
 
 	/**
-	 * Halfmove clock: This is the number of halfmoves since the last capture or
-	 * pawn advance. This is used to determine if a draw can be claimed under
-	 * the fifty-move rule.
+	 * Halfmove clock: This is the number of halfmoves since the last capture or pawn advance. This
+	 * is used to determine if a draw can be claimed under the fifty-move rule.
 	 *
 	 * @param game
-	 *
 	 * @param token
 	 */
 	private static void parseHalfmoveClock(Game game, String token) {
@@ -289,11 +264,10 @@ public class Fen {
 	}
 
 	/**
-	 * Fullmove number: The number of the full move. It starts at 1, and is
-	 * incremented after Black's move.
+	 * Fullmove number: The number of the full move. It starts at 1, and is incremented after Black's
+	 * move.
 	 *
 	 * @param game
-	 *
 	 * @param token
 	 */
 	private static void parseFullmoveNumber(Game game, String token) {
@@ -366,9 +340,8 @@ public class Fen {
 			// at the end of the rank, the bitPosn must be correct (+8 since one
 			// is always added)
 			if (bitPosn != ((8 * rankNr) + 8)) {
-				throw new IllegalArgumentException(
-						"invalid FEN string: rank '" + (rankNr + 1) + "' not completely specified: '" + rank
-								+ "'. Bitposn: " + bitPosn + ". Full string: '" + fen + "'");
+				throw new IllegalArgumentException("invalid FEN string: rank '" + (rankNr + 1)
+						+ "' not completely specified: '" + rank + "'. Bitposn: " + bitPosn + ". Full string: '" + fen + "'");
 			}
 		}
 
@@ -377,8 +350,8 @@ public class Fen {
 		// contains all piece types -- even if no pieces of this type exist on
 		// the board
 		@SuppressWarnings("unchecked")
-		Set<Piece>[] pieces = new HashSet[Colour.values().length];
-		for (Colour colour : Colour.values()) {
+		Set<Piece>[] pieces = new HashSet[Colour.ALL_COLOURS.length];
+		for (Colour colour : Colour.ALL_COLOURS) {
 			pieces[colour.ordinal()] = new HashSet<>();
 		}
 		for (Piece piece : allPieces) {

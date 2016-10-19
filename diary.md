@@ -1,5 +1,12 @@
 # Diary #
 
+## 19.10.16
+
+PieceManager: changed 'alreadyCloned' and 'pieces' data structure from HashMap to array:
+
+* 5ply:  164.075.551 moves (  112.456 ms) ( 1459,0 moves/ms)
+* 5ply:  164.075.551 moves (  180.884 ms) (  907,1 moves/ms)
+
 ## 17.10.16
 
 after refactoring: 'Piece' is not yet immutable, therefore need to clone everything every time:

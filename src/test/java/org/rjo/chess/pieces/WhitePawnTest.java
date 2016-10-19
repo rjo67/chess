@@ -20,7 +20,7 @@ public class WhitePawnTest {
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
-		pawn = game.getPosition().getPieces(Colour.WHITE).get(PieceType.PAWN);
+		pawn = game.getPosition().getPieces2(Colour.WHITE)[PieceType.PAWN.ordinal()];
 	}
 
 	@Test

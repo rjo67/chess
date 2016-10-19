@@ -28,8 +28,8 @@ public class BishopMoveTest {
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
-		whiteBishop = game.getPosition().getPieces(Colour.WHITE).get(PieceType.BISHOP);
-		blackBishop = game.getPosition().getPieces(Colour.BLACK).get(PieceType.BISHOP);
+		whiteBishop = game.getPosition().getPieces2(Colour.WHITE)[PieceType.BISHOP.ordinal()];
+		blackBishop = game.getPosition().getPieces2(Colour.BLACK)[PieceType.BISHOP.ordinal()];
 	}
 
 	@Before
@@ -89,8 +89,8 @@ public class BishopMoveTest {
 	@Test
 	public void moveFromH1() {
 		setupGame("4k3/8/8/8/8/8/8/4K2B w - - 0 0");
-		TestUtil.checkMoves(whiteBishop.findMoves(game.getPosition()), "Bh1-g2", "Bh1-f3", "Bh1-e4", "Bh1-d5",
-				"Bh1-c6+", "Bh1-b7", "Bh1-a8");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getPosition()), "Bh1-g2", "Bh1-f3", "Bh1-e4", "Bh1-d5", "Bh1-c6+",
+				"Bh1-b7", "Bh1-a8");
 	}
 
 	/**
@@ -114,8 +114,8 @@ public class BishopMoveTest {
 	@Test
 	public void moveFromA8() {
 		setupGame("B3k3/8/8/8/8/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(whiteBishop.findMoves(game.getPosition()), "Ba8-b7", "Ba8-c6+", "Ba8-d5", "Ba8-e4",
-				"Ba8-f3", "Ba8-g2", "Ba8-h1");
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getPosition()), "Ba8-b7", "Ba8-c6+", "Ba8-d5", "Ba8-e4", "Ba8-f3",
+				"Ba8-g2", "Ba8-h1");
 	}
 
 	/**

@@ -20,7 +20,7 @@ public class KnightMoveTest {
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
-		whiteKnight = game.getPosition().getPieces(Colour.WHITE).get(PieceType.KNIGHT);
+		whiteKnight = game.getPosition().getPieces2(Colour.WHITE)[PieceType.KNIGHT.ordinal()];
 	}
 
 	@Test
@@ -33,8 +33,8 @@ public class KnightMoveTest {
 	@Test
 	public void moveFromMiddleOfBoard() {
 		setupGame("4k3/8/8/8/3N4/5p2/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(whiteKnight.findMoves(game.getPosition()), "Nd4-e6", "Nd4-f5", "Nd4xf3", "Nd4-e2",
-				"Nd4-c2", "Nd4-b3", "Nd4-c6", "Nd4-b5");
+		TestUtil.checkMoves(whiteKnight.findMoves(game.getPosition()), "Nd4-e6", "Nd4-f5", "Nd4xf3", "Nd4-e2", "Nd4-c2",
+				"Nd4-b3", "Nd4-c6", "Nd4-b5");
 	}
 
 	@Test

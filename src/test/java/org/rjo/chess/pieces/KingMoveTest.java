@@ -20,12 +20,8 @@ import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
 
 /**
- * Test movement of the king.
- *
- * Tests are repeated for white and black kings, although there shouldn't be any
- * difference.
- *
- * NB: For these tests the position of the opponent's king must always be
+ * Test movement of the king. Tests are repeated for white and black kings, although there shouldn't
+ * be any difference. NB: For these tests the position of the opponent's king must always be
  * specified.
  *
  * @author rich
@@ -41,8 +37,8 @@ public class KingMoveTest {
 	}
 
 	private void setupKings() {
-		whiteKing = game.getPosition().getPieces(Colour.WHITE).get(PieceType.KING);
-		blackKing = game.getPosition().getPieces(Colour.BLACK).get(PieceType.KING);
+		whiteKing = game.getPosition().getPieces2(Colour.WHITE)[PieceType.KING.ordinal()];
+		blackKing = game.getPosition().getPieces2(Colour.BLACK)[PieceType.KING.ordinal()];
 	}
 
 	@Before
@@ -121,8 +117,8 @@ public class KingMoveTest {
 	public void castleKingsSideWithCheck() {
 		setupGame("r3k2r/p6p/8/B7/8/8/P4K1P/R6R b kq - 0 0");
 		List<Move> moves = game.getPosition().findMoves(Colour.BLACK);
-		TestUtil.checkMoves(moves, "a7-a6", "h7-h6", "h7-h5", "Ra8-b8", "Ra8-c8", "Ra8-d8", "Rh8-g8", "Rh8-f8+",
-				"Ke8-d7", "Ke8-e7", "Ke8-f7", "Ke8-f8", "O-O+");
+		TestUtil.checkMoves(moves, "a7-a6", "h7-h6", "h7-h5", "Ra8-b8", "Ra8-c8", "Ra8-d8", "Rh8-g8", "Rh8-f8+", "Ke8-d7",
+				"Ke8-e7", "Ke8-f7", "Ke8-f8", "O-O+");
 	}
 
 	@Test
@@ -140,7 +136,7 @@ public class KingMoveTest {
 	@Test
 	public void castleKingsSideInCheckBlack() {
 		Game game = Fen.decode("4k2r/3ppp1B/8/8/8/8/8/6K1 b k - 0 0");
-		Piece blackKing = game.getPosition().getPieces(Colour.BLACK).get(PieceType.KING);
+		Piece blackKing = game.getPosition().getPieces2(Colour.BLACK)[PieceType.KING.ordinal()];
 		TestUtil.checkMoves(blackKing.findMoves(game.getPosition()), "Ke8-d8", "Ke8-f8");
 	}
 

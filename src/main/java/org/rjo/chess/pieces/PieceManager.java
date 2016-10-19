@@ -1,9 +1,7 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -15,27 +13,29 @@ import org.rjo.chess.Colour;
  */
 public class PieceManager {
 	/**
-	 * Stores the pieces in the game. The dimension indicates the colour {white, black}.
+	 * Stores the pieces in the game. The first dimension indicates the colour {white, black}. The
+	 * second dimension corresponds to {@link PieceType#ALL_PIECE_TYPES}.
 	 */
-	private Map<PieceType, Piece>[] pieces;
-	/**
-	 * whether this piece type has already been cloned
-	 */
-	private Map<PieceType, Boolean>[] alreadyCloned;
+	private Piece[][] pieces;
 
 	/**
-	 * Constructor. The pieces map will be initialised to null values.
+	 * whether this piece type has already been cloned. Dimensions as for {@link #pieces}.
 	 */
-	@SuppressWarnings("unchecked")
+	private Boolean[][] alreadyCloned;
+
+	/**
+	 * Constructor. The pieces data structure will be initialised to null values.
+	 */
 	public PieceManager() {
-		pieces = new HashMap[2];
-		alreadyCloned = new HashMap[2];
+		pieces = new Piece[2][PieceType.ALL_PIECE_TYPES.length];
+		initAlreadyCloned();
+	}
 
+	private void initAlreadyCloned() {
+		alreadyCloned = new Boolean[2][PieceType.ALL_PIECE_TYPES.length];
 		for (int i = 0; i < 2; i++) {
-			pieces[i] = new HashMap<>();
-			alreadyCloned[i] = new HashMap<>();
 			for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
-				alreadyCloned[i].put(pt, Boolean.FALSE);
+				alreadyCloned[i][pt.ordinal()] = Boolean.FALSE;
 			}
 		}
 	}
@@ -48,18 +48,21 @@ public class PieceManager {
 	 */
 	public PieceManager(Set<Piece> whitePieces, Set<Piece> blackPieces) {
 		this();
-		whitePieces.stream().forEach(p -> getPiecesForColour(Colour.WHITE).put(p.getType(), p));
-		blackPieces.stream().forEach(p -> getPiecesForColour(Colour.BLACK).put(p.getType(), p));
+		whitePieces.stream().forEach(p -> pieces[Colour.WHITE.ordinal()][p.getType().ordinal()] = p);
+		blackPieces.stream().forEach(p -> pieces[Colour.BLACK.ordinal()][p.getType().ordinal()] = p);
 	}
 
-	// copy constructor
-	// copy the contents of the hashmap into a new hashmap
-	// This references the same 'pieces' as before. Need to clone iff these objects get changed
+	/**
+	 * Copy constructor. Copies the contents of the hashmap into a new hashmap. This references the
+	 * same 'pieces' as before. Need to clone iff these objects get changed.
+	 * 
+	 * @param pieceManager the pieceManager that gets copied
+	 */
 	public PieceManager(final PieceManager pieceManager) {
 		this();
-		for (Colour colour : Colour.values()) {
-			for (Piece p : pieceManager.getPiecesForColour(colour).values()) {
-				getPiecesForColour(colour).put(p.getType(), p);
+		for (Colour col : Colour.ALL_COLOURS) {
+			for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
+				pieces[col.ordinal()][pt.ordinal()] = pieceManager.getPiece(col, pt);
 			}
 		}
 	}
@@ -73,13 +76,13 @@ public class PieceManager {
 	 * @return a Piece object
 	 */
 	public Piece getClonedPiece(Colour colour, PieceType pieceType) {
-		if (alreadyCloned[colour.ordinal()].get(pieceType)) {
+		if (alreadyCloned[colour.ordinal()][pieceType.ordinal()]) {
 			return getPiece(colour, pieceType);
 		}
 		try {
 			Piece cloned = (Piece) getPiece(colour, pieceType).clone();
-			pieces[colour.ordinal()].put(pieceType, cloned);
-			alreadyCloned[colour.ordinal()].put(pieceType, Boolean.TRUE);
+			pieces[colour.ordinal()][pieceType.ordinal()] = cloned;
+			alreadyCloned[colour.ordinal()][pieceType.ordinal()] = Boolean.TRUE;
 			return cloned;
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException("could not clone piece!?");
@@ -87,12 +90,12 @@ public class PieceManager {
 	}
 
 	/**
-	 * returns the piece map for the given colour.
+	 * returns the pieces for the given colour.
 	 * 
 	 * @param colour the required colour
 	 * @return all pieces for the given colour
 	 */
-	public Map<PieceType, Piece> getPiecesForColour(Colour colour) {
+	public Piece[] getPiecesForColour2(Colour colour) {
 		return pieces[colour.ordinal()];
 	}
 
@@ -104,22 +107,27 @@ public class PieceManager {
 	 * @return a Piece object
 	 */
 	public Piece getPiece(Colour colour, PieceType pieceType) {
-		return getPiecesForColour(colour).get(pieceType);
+		return pieces[colour.ordinal()][pieceType.ordinal()];
 	}
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer(300);
+		StringBuffer sb = new StringBuffer(600);
 		sb.append("PieceManager@").append(Integer.toHexString(System.identityHashCode(this)));
 		sb.append("[");
 		List<String> tempList = new ArrayList<>();
-		for (Colour col : Colour.values()) {
-			// sb.append(col).append("{");
-			List<String> tempList1 = new ArrayList<>();
-			pieces[col.ordinal()].entrySet().stream().forEach(p -> {
-				tempList1.add(p.getValue().toString());
-			});
-			tempList.add(tempList1.stream().collect(Collectors.joining(",")));
+		for (Colour col : Colour.ALL_COLOURS) {
+			StringBuffer sb2 = new StringBuffer(300);
+			boolean first = true;
+			for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
+				if (first) {
+					first = false;
+				} else {
+					sb2.append(",");
+				}
+				sb2.append(pieces[col.ordinal()][pt.ordinal()]);
+			}
+			tempList.add(sb2.toString());
 		}
 		sb.append(tempList.stream().collect(Collectors.joining(",", "{", "}")));
 		sb.append("]");

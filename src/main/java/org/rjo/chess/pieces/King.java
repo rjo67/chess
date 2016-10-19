@@ -52,7 +52,7 @@ public class King extends Piece {
 	@Override
 	public int calculatePieceSquareValue() {
 		return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE_MIDDLEGAME); // TODO
-																											// ENDGAME
+		// ENDGAME
 	}
 
 	/**
@@ -133,11 +133,10 @@ public class King extends Piece {
 	}
 
 	/**
-	 * Constructs the King class -- with no pieces on the board. Delegates to
-	 * King(Colour, boolean) with parameter false.
+	 * Constructs the King class -- with no pieces on the board. Delegates to King(Colour, boolean)
+	 * with parameter false.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
+	 * @param colour indicates the colour of the pieces
 	 */
 	public King(Colour colour) {
 		this(colour, false);
@@ -146,11 +145,9 @@ public class King extends Piece {
 	/**
 	 * Constructs the King class.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startPosition
-	 *            if true, the default start squares are assigned. If false, no
-	 *            pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are
+	 *           placed on the board.
 	 */
 	public King(Colour colour, boolean startPosition) {
 		this(colour, startPosition, (Square[]) null);
@@ -159,29 +156,23 @@ public class King extends Piece {
 	/**
 	 * Constructs the King class, defining the start squares.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startSquares
-	 *            the required starting squares of the piece(s). Can be null, in
-	 *            which case no pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
+	 *           no pieces are placed on the board.
 	 */
 	public King(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the King class with the required squares (can be null) or the
-	 * default start squares. Setting 'startPosition' true has precedence over
-	 * 'startSquares'.
+	 * Constructs the King class with the required squares (can be null) or the default start
+	 * squares. Setting 'startPosition' true has precedence over 'startSquares'.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startPosition
-	 *            if true, the default start squares are assigned. Value of
-	 *            'startSquares' will be ignored.
-	 * @param startSquares
-	 *            the required starting squares of the piece(s). Can be null, in
-	 *            which case no pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares'
+	 *           will be ignored.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
+	 *           no pieces are placed on the board.
 	 */
 	public King(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.KING);
@@ -216,8 +207,8 @@ public class King extends Piece {
 		possibleMoves.andNot(MOVES[opponentsKingSquare.bitIndex()]);
 
 		/*
-		 * possibleMoves now contains the possible moves apart from castling.
-		 * (Moving the king to an attacked square has not been checked yet.)
+		 * possibleMoves now contains the possible moves apart from castling. (Moving the king to an
+		 * attacked square has not been checked yet.)
 		 */
 
 		final Colour oppositeColour = Colour.oppositeColour(colour);
@@ -229,8 +220,8 @@ public class King extends Piece {
 			 * store move as 'move' or 'capture'
 			 */
 			if (opponentsPieces.get(i)) {
-				moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare,
-						posn.pieceAt(targetSquare, oppositeColour)));
+				moves.add(
+						new Move(PieceType.KING, colour, kingPosn, targetSquare, posn.pieceAt(targetSquare, oppositeColour)));
 			} else {
 				moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare));
 			}
@@ -291,10 +282,9 @@ public class King extends Piece {
 		// (b) discovered check
 
 		/*
-		 * all king moves have the same starting square. If we've already
-		 * checked for discovered check for this square, then can use the cached
-		 * result. (Discovered check only looks along one ray from move.from()
-		 * to the opponent's king.)
+		 * all king moves have the same starting square. If we've already checked for discovered check
+		 * for this square, then can use the cached result. (Discovered check only looks along one ray
+		 * from move.from() to the opponent's king.)
 		 */
 		Map<Square, Boolean> discoveredCheckCache = new HashMap<>(2);
 		for (Move move : moves) {
@@ -316,8 +306,8 @@ public class King extends Piece {
 
 		long time4 = stopwatch.read();
 		if (time4 != 0) {
-			LOG.debug("found " + moves.size() + " moves in " + time1 + "," + time2 + "," + time3 + "," + time4
-					+ ", fen: " + Fen.encode(posn));
+			LOG.debug("found " + moves.size() + " moves in " + time1 + "," + time2 + "," + time3 + "," + time4 + ", fen: "
+					+ Fen.encode(posn));
 		}
 		return moves;
 	}
@@ -327,15 +317,11 @@ public class King extends Piece {
 	}
 
 	/**
-	 * Locates the enemy's king.
-	 *
-	 * TODO store this value in 'Game' after each move, to make this lookup
+	 * Locates the enemy's king. TODO store this value in 'Game' after each move, to make this lookup
 	 * quicker.
 	 *
-	 * @param myColour
-	 *            my colour
-	 * @param chessboard
-	 *            the board
+	 * @param myColour my colour
+	 * @param chessboard the board
 	 * @return location of the other colour's king.
 	 */
 	public static Square findOpponentsKing(Colour myColour, Position chessboard) {
@@ -345,14 +331,12 @@ public class King extends Piece {
 	/**
 	 * Locates the king (mine or the opponents).
 	 *
-	 * @param colour
-	 *            which colour king we want
-	 * @param chessboard
-	 *            the board
+	 * @param colour which colour king we want
+	 * @param chessboard the board
 	 * @return location of this colour's king.
 	 */
 	public static Square findKing(Colour colour, Position chessboard) {
-		return chessboard.getPieces(colour).get(PieceType.KING).getLocations()[0];
+		return chessboard.getPieces2(colour)[PieceType.KING.ordinal()].getLocations()[0];
 	}
 
 	@Override

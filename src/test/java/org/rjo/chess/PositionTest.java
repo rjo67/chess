@@ -13,6 +13,7 @@ import java.util.Map;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.rjo.chess.pieces.PieceType;
+import org.rjo.chess.util.Stopwatch;
 
 /**
  * Test the updating of Position::'internalStructures'.
@@ -20,6 +21,19 @@ import org.rjo.chess.pieces.PieceType;
  * @author rich
  */
 public class PositionTest {
+
+	@Test
+	public void posnSpeedTest() throws InterruptedException {
+		Position p = Fen.decode("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0").getPosition();
+
+		Stopwatch sw = new Stopwatch();
+		sw.start();
+		int nbrIter = 10000000;
+		for (int i = 0; i < nbrIter; i++) {
+			Position p2 = new Position(p);
+		}
+		System.out.println(nbrIter + " new Positions in " + sw.read() + "ms");
+	}
 
 	@Test
 	public void testToString() {
@@ -344,7 +358,7 @@ public class PositionTest {
 				.move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5, PieceType.PAWN));
 		assertEmptySquare(newPosn, Square.c4);
 		assertPieceAt(newPosn, Square.d5, PieceType.PAWN);
-		assertTrue(newPosn.getPieces(Colour.BLACK).get(PieceType.PAWN).getBitBoard().getBitSet().isEmpty());
+		assertTrue(newPosn.getPieces2(Colour.BLACK)[PieceType.PAWN.ordinal()].getBitBoard().getBitSet().isEmpty());
 	}
 
 	@Test(expected = IllegalArgumentException.class)

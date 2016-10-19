@@ -11,7 +11,7 @@ public class GameTest {
 	@Test
 	public void colourTest() {
 		// increase coverage of enum
-		assertArrayEquals(new Colour[] { Colour.WHITE, Colour.BLACK }, Colour.values());
+		assertArrayEquals(new Colour[] { Colour.WHITE, Colour.BLACK }, Colour.ALL_COLOURS);
 		Colour.valueOf("WHITE");
 	}
 
