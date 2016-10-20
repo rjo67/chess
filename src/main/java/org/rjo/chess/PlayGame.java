@@ -55,7 +55,7 @@ public class PlayGame {
 			throw new IllegalArgumentException("no " + move.getPiece() + " at " + move.from());
 		}
 		if (!move.isCapture()) {
-			if (!game.getPosition().getEmptySquares().getBitSet().get(move.to().bitIndex())) {
+			if (game.getPosition().getTotalPieces().getBitSet().get(move.to().bitIndex())) {
 				throw new IllegalArgumentException("square " + move.to() + " not empty");
 			}
 		} else {

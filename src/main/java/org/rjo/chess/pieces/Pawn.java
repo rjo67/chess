@@ -27,13 +27,10 @@ public class Pawn extends Piece {
 
 	/**
 	 * Stores the piece-square values.
-	 * http://chessprogramming.wikispaces.com/Simplified+evaluation+function.
-	 * These values (mirrored for black) should be added to VALUE to get a
-	 * piece-square value for each pawn.
-	 *
-	 * Important: array value [0] corresponds to square a1; [63] == h8. For
-	 * black, the position as given below corresponds to the actual board, i.e.
-	 * a1 is bottom RHS [63]
+	 * http://chessprogramming.wikispaces.com/Simplified+evaluation+function. These values (mirrored
+	 * for black) should be added to VALUE to get a piece-square value for each pawn. Important:
+	 * array value [0] corresponds to square a1; [63] == h8. For black, the position as given below
+	 * corresponds to the actual board, i.e. a1 is bottom RHS [63]
 	 */
 	private static int[] SQUARE_VALUE =
 			// @formatter:off
@@ -50,11 +47,10 @@ public class Pawn extends Piece {
 	}
 
 	/**
-	 * Constructs the Pawn class -- with no pawns on the board. Delegates to
-	 * Pawn(Colour, boolean) with parameter false.
+	 * Constructs the Pawn class -- with no pawns on the board. Delegates to Pawn(Colour, boolean)
+	 * with parameter false.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
+	 * @param colour indicates the colour of the pieces
 	 */
 	public Pawn(Colour colour) {
 		this(colour, false);
@@ -63,11 +59,9 @@ public class Pawn extends Piece {
 	/**
 	 * Constructs the Pawn class.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startPosition
-	 *            if true, the default start squares are assigned. If false, no
-	 *            pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are
+	 *           placed on the board.
 	 */
 	public Pawn(Colour colour, boolean startPosition) {
 		this(colour, startPosition, (Square[]) null);
@@ -76,29 +70,23 @@ public class Pawn extends Piece {
 	/**
 	 * Constructs the Pawn class, defining the start squares.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startSquares
-	 *            the required starting squares of the piece(s). Can be null, in
-	 *            which case no pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
+	 *           no pieces are placed on the board.
 	 */
 	public Pawn(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Pawn class with the required squares (can be null) or the
-	 * default start squares. Setting 'startPosition' true has precedence over
-	 * 'startSquares'.
+	 * Constructs the Pawn class with the required squares (can be null) or the default start
+	 * squares. Setting 'startPosition' true has precedence over 'startSquares'.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startPosition
-	 *            if true, the default start squares are assigned. Value of
-	 *            'startSquares' will be ignored.
-	 * @param startSquares
-	 *            the required starting squares of the piece(s). Can be null, in
-	 *            which case no pawns are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares'
+	 *           will be ignored.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
+	 *           no pawns are placed on the board.
 	 */
 	public Pawn(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.PAWN);
@@ -128,16 +116,15 @@ public class Pawn extends Piece {
 		Stopwatch stopwatch = new Stopwatch();
 
 		/*
-		 * The pawn move is complicated by the different directions for white
-		 * and black pawns. This is the only piece to have this complication.
-		 *
-		 * This difference is catered for by the 'MoveHelper' implementations.
+		 * The pawn move is complicated by the different directions for white and black pawns. This is
+		 * the only piece to have this complication. This difference is catered for by the
+		 * 'MoveHelper' implementations.
 		 */
 
 		List<Move> moves = new ArrayList<>();
 		/*
-		 * 1) one square forward 2) two squares forward 3) capture left 4)
-		 * capture right 5) enpassant 6) promotion
+		 * 1) one square forward 2) two squares forward 3) capture left 4) capture right 5) enpassant
+		 * 6) promotion
 		 */
 		moves.addAll(moveOneSquareForward(posn, helper));
 		moves.addAll(moveTwoSquaresForward(posn, helper));
@@ -181,11 +168,8 @@ public class Pawn extends Piece {
 	/**
 	 * Adds the enpassant square to the list of opponent's pieces.
 	 *
-	 * @param chessboard
-	 *            state of the board
-	 * @param opponentsPieces
-	 *            bit set of opponent's pieces. **May be modified by this
-	 *            method**.
+	 * @param chessboard state of the board
+	 * @param opponentsPieces bit set of opponent's pieces. **May be modified by this method**.
 	 */
 	private void addEnpassantSquare(Position chessboard, BitSet opponentsPieces) {
 		Square enpassantSquare = chessboard.getEnpassantSquare();
@@ -197,32 +181,24 @@ public class Pawn extends Piece {
 	/**
 	 * 'Moves' the pawns set-wise one square forward.
 	 *
-	 * @param chessboard
-	 *            state of the board
-	 * @param helper
-	 *            distinguishes between white and black sides, since the pawns
-	 *            move in different directions
+	 * @param posn state of the board
+	 * @param helper distinguishes between white and black sides, since the pawns move in different
+	 *           directions
 	 * @return list of moves found by this method
 	 */
-	private List<Move> moveOneSquareForward(Position chessboard, MoveHelper helper) {
+	private List<Move> moveOneSquareForward(Position posn, MoveHelper helper) {
 		List<Move> moves = new ArrayList<>();
 		// 1) one square forward:
 		// shift by 8 and check if empty square
 		// 6) promotion:
 		// extra check for pawns on the 8th rank
 		BitSet oneSquareForward = helper.moveOneRank(pieces.getBitSet());
-		oneSquareForward.and(chessboard.getEmptySquares().getBitSet()); // move
-																		// must
-																		// be to
-																		// an
-																		// empty
-																		// square
+		oneSquareForward.and(posn.getTotalPieces().flip()); // move must be to an empty square
 		int offset = helper.getColour() == Colour.WHITE ? -8 : 8;
 		for (int i = oneSquareForward.nextSetBit(0); i >= 0; i = oneSquareForward.nextSetBit(i + 1)) {
 			if (helper.onLastRank(i)) {
 				for (PieceType type : PieceType.getPieceTypesForPromotion()) {
-					Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset),
-							Square.fromBitIndex(i));
+					Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i));
 					move.setPromotionPiece(type);
 					moves.add(move);
 				}
@@ -236,11 +212,9 @@ public class Pawn extends Piece {
 	/**
 	 * 'Moves' the pawns set-wise two squares forward.
 	 *
-	 * @param chessboard
-	 *            state of the board
-	 * @param helper
-	 *            distinguishes between white and black sides, since the pawns
-	 *            move in different directions
+	 * @param chessboard state of the board
+	 * @param helper distinguishes between white and black sides, since the pawns move in different
+	 *           directions
 	 * @return list of moves found by this method
 	 */
 	private List<Move> moveTwoSquaresForward(Position chessboard, MoveHelper helper) {
@@ -251,24 +225,11 @@ public class Pawn extends Piece {
 		// then shift by 8 and check if empty square
 		// shift again by 8 and check if empty square
 		BitSet twoSquaresForward = pieces.cloneBitSet();
-		twoSquaresForward.and(helper.startRank()); // only the pawns on the 2nd
-													// rank
+		twoSquaresForward.and(helper.startRank()); // only the pawns on the 2nd rank
 		twoSquaresForward = helper.moveOneRank(twoSquaresForward);
-		twoSquaresForward.and(chessboard.getEmptySquares().getBitSet()); // move
-																			// must
-																			// be
-																			// to
-																			// an
-																			// empty
-																			// square
+		twoSquaresForward.and(chessboard.getTotalPieces().flip()); // move must be to an empty square
 		twoSquaresForward = helper.moveOneRank(twoSquaresForward);
-		twoSquaresForward.and(chessboard.getEmptySquares().getBitSet()); // move
-																			// must
-																			// be
-																			// to
-																			// an
-																			// empty
-																			// square
+		twoSquaresForward.and(chessboard.getTotalPieces().flip()); // move must be to an empty square
 		int offset = helper.getColour() == Colour.WHITE ? -16 : 16;
 		for (int i = twoSquaresForward.nextSetBit(0); i >= 0; i = twoSquaresForward.nextSetBit(i + 1)) {
 			moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
@@ -279,17 +240,13 @@ public class Pawn extends Piece {
 	/**
 	 * Helper method to check for captures 'left' or 'right'.
 	 *
-	 * @param chessboard
-	 *            state of the board
-	 * @param helper
-	 *            distinguishes between white and black sides, since the pawns
-	 *            move in different directions
-	 * @param captureLeft
-	 *            if true, check for captures 'left'. Otherwise, 'right'.
-	 * @param checkingForAttack
-	 *            if true, this routine returns all possible moves to the
-	 *            'left'. The normal value of false returns only moves which are
-	 *            captures i.e. the opponent's pieces are taken into account.
+	 * @param chessboard state of the board
+	 * @param helper distinguishes between white and black sides, since the pawns move in different
+	 *           directions
+	 * @param captureLeft if true, check for captures 'left'. Otherwise, 'right'.
+	 * @param checkingForAttack if true, this routine returns all possible moves to the 'left'. The
+	 *           normal value of false returns only moves which are captures i.e. the opponent's
+	 *           pieces are taken into account.
 	 * @return list of moves found by this method
 	 */
 	private List<Move> capture(Position chessboard, MoveHelper helper, boolean captureLeft, boolean checkingForAttack) {
@@ -348,8 +305,7 @@ public class Pawn extends Piece {
 				if (enpassant) {
 					move = Move.enpassant(colour, Square.fromBitIndex(i + offset), targetSquare);
 				} else {
-					move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare,
-							capturedPiece);
+					move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
 				}
 				moves.add(move);
 			}
@@ -358,18 +314,14 @@ public class Pawn extends Piece {
 	}
 
 	/**
-	 * Captures 'left' from white's POV e.g. b3xa4 or for a black move e.g.
-	 * b6xa5.
+	 * Captures 'left' from white's POV e.g. b3xa4 or for a black move e.g. b6xa5.
 	 *
-	 * @param chessboard
-	 *            state of the board
-	 * @param helper
-	 *            distinguishes between white and black sides, since the pawns
-	 *            move in different directions
-	 * @param checkingForAttack
-	 *            if true, this routine returns all possible moves to the
-	 *            'left'. The normal value of false returns only moves which are
-	 *            captures i.e. the opponent's pieces are taken into account.
+	 * @param chessboard state of the board
+	 * @param helper distinguishes between white and black sides, since the pawns move in different
+	 *           directions
+	 * @param checkingForAttack if true, this routine returns all possible moves to the 'left'. The
+	 *           normal value of false returns only moves which are captures i.e. the opponent's
+	 *           pieces are taken into account.
 	 * @return list of moves found by this method
 	 */
 	private List<Move> captureLeft(Position chessboard, MoveHelper helper, boolean checkingForAttack) {
@@ -377,19 +329,14 @@ public class Pawn extends Piece {
 	}
 
 	/**
-	 * Captures 'right' from white's POV e.g. b3xc4 or for a black move e.g.
-	 * b6xc5.
+	 * Captures 'right' from white's POV e.g. b3xc4 or for a black move e.g. b6xc5.
 	 *
-	 * @param chessboard
-	 *            state of the board
-	 * @param helper
-	 *            distinguishes between white and black sides, since the pawns
-	 *            move in different directions
-	 * @param checkingForAttack
-	 *            if true, this routine returns all possible moves to the
-	 *            'right'. The normal value of false returns only moves which
-	 *            are captures i.e. the opponent's pieces are taken into
-	 *            account.
+	 * @param chessboard state of the board
+	 * @param helper distinguishes between white and black sides, since the pawns move in different
+	 *           directions
+	 * @param checkingForAttack if true, this routine returns all possible moves to the 'right'. The
+	 *           normal value of false returns only moves which are captures i.e. the opponent's
+	 *           pieces are taken into account.
 	 * @return list of moves found by this method
 	 */
 	private List<Move> captureRight(Position chessboard, MoveHelper helper, boolean checkingForAttack) {
@@ -399,14 +346,10 @@ public class Pawn extends Piece {
 	/**
 	 * Calculates if the given move leaves the opponent's king in check.
 	 *
-	 * @param chessboard
-	 *            the board
-	 * @param move
-	 *            the pawn move
-	 * @param opponentsKing
-	 *            square of the opponent's king
-	 * @param opponentsKingBitset
-	 *            bitset for the opponent's king (passed in as optimization)
+	 * @param chessboard the board
+	 * @param move the pawn move
+	 * @param opponentsKing square of the opponent's king
+	 * @param opponentsKingBitset bitset for the opponent's king (passed in as optimization)
 	 * @return true if this move leaves the king in check
 	 */
 	private boolean checkIfCheck(Position chessboard, Move move, Square opponentsKing, BitSet opponentsKingBitset) {
@@ -414,7 +357,7 @@ public class Pawn extends Piece {
 			if (move.getPromotedPiece() == PieceType.KNIGHT) {
 				return Knight.checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
 			} else {
-				BitSet emptySquares = chessboard.getEmptySquares().cloneBitSet();
+				BitSet emptySquares = chessboard.getTotalPieces().flip();
 				emptySquares.set(move.from().bitIndex());
 				emptySquares.clear(move.to().bitIndex());
 
@@ -491,15 +434,11 @@ public class Pawn extends Piece {
 	}
 
 	/**
-	 * Whether one or more of the pawns described in 'pawns' attack the square
-	 * 'targetSq'.
+	 * Whether one or more of the pawns described in 'pawns' attack the square 'targetSq'.
 	 *
-	 * @param targetSq
-	 *            square to be attacked
-	 * @param colour
-	 *            colour of the pawns in 'pawns'.
-	 * @param pawns
-	 *            bitset describing where the pawns are
+	 * @param targetSq square to be attacked
+	 * @param colour colour of the pawns in 'pawns'.
+	 * @param pawns bitset describing where the pawns are
 	 * @return true if 'targetSq' is attacked by one or more pawns
 	 */
 	public static boolean attacksSquare(Square targetSq, Colour colour, BitSet pawns) {
@@ -514,47 +453,40 @@ public class Pawn extends Piece {
 	}
 
 	/**
-	 * Factors out the differences between white pawn moves (going up the board)
-	 * and black pawn moves (going down).
+	 * Factors out the differences between white pawn moves (going up the board) and black pawn moves
+	 * (going down).
 	 */
 	private interface MoveHelper {
 		/**
 		 * Shifts the given bitset one rank north or south.
 		 *
-		 * @param bs
-		 *            start bitset
+		 * @param bs start bitset
 		 * @return shifted bitset
 		 */
 		BitSet moveOneRank(BitSet bs);
 
 		/**
-		 * returns true if the given bitIndex is on the 'last rank' of the
-		 * board.
+		 * returns true if the given bitIndex is on the 'last rank' of the board.
 		 *
-		 * @param bitIndex
-		 *            the bitIndex
+		 * @param bitIndex the bitIndex
 		 * @return true if on last rank.
 		 */
 		boolean onLastRank(int bitIndex);
 
 		/**
-		 * Given the starting bitset, returns a new bitset representing the pawn
-		 * capture 'to the right' as seen from white's POV, e.g. b3xc4 or for a
-		 * black move e.g. b6xc5.
+		 * Given the starting bitset, returns a new bitset representing the pawn capture 'to the
+		 * right' as seen from white's POV, e.g. b3xc4 or for a black move e.g. b6xc5.
 		 *
-		 * @param startPosn
-		 *            starting bitset
+		 * @param startPosn starting bitset
 		 * @return the shifted bitset
 		 */
 		BitSet pawnCaptureRight(BitSet startPosn);
 
 		/**
-		 * Given the starting bitset, returns a new bitset representing the pawn
-		 * capture 'to the left' as seen from white's POV, e.g. b3xa4 or for a
-		 * black move e.g. b6xa5.
+		 * Given the starting bitset, returns a new bitset representing the pawn capture 'to the left'
+		 * as seen from white's POV, e.g. b3xa4 or for a black move e.g. b6xa5.
 		 *
-		 * @param startPosn
-		 *            starting bitset
+		 * @param startPosn starting bitset
 		 * @return the shifted bitset
 		 */
 		BitSet pawnCaptureLeft(BitSet captureLeft);
@@ -572,11 +504,9 @@ public class Pawn extends Piece {
 		BitSet lastRank();
 
 		/**
-		 * All ranks apart from the last rank (1st or 8th depending on the
-		 * colour).
+		 * All ranks apart from the last rank (1st or 8th depending on the colour).
 		 *
-		 * @return The last rank flipped, i.e. all ranks apart from the last
-		 *         rank.
+		 * @return The last rank flipped, i.e. all ranks apart from the last rank.
 		 */
 		BitSet lastRankFlipped();
 
@@ -624,7 +554,7 @@ public class Pawn extends Piece {
 				return startPosn;
 			}
 			startPosn.and(BitBoard.EXCEPT_FILE[0]); // only the pawns on the 2nd
-													// to 8th files
+			// to 8th files
 			long[] longArray = startPosn.toLongArray();
 			if (longArray.length == 0) {
 				return new BitSet(64);
@@ -638,7 +568,7 @@ public class Pawn extends Piece {
 				return startPosn;
 			}
 			startPosn.and(BitBoard.EXCEPT_FILE[7]); // only the pawns on the 1st
-													// to 7th files
+			// to 7th files
 			long[] longArray = startPosn.toLongArray();
 			if (longArray.length == 0) {
 				return new BitSet(64);
@@ -669,7 +599,7 @@ public class Pawn extends Piece {
 				return startPosn;
 			}
 			startPosn.and(BitBoard.EXCEPT_FILE[7]); // only the pawns on the 1st
-													// to 7th files
+			// to 7th files
 			long[] longArray = startPosn.toLongArray();
 			if (longArray.length == 0) {
 				return new BitSet(64);
@@ -683,7 +613,7 @@ public class Pawn extends Piece {
 				return startPosn;
 			}
 			startPosn.and(BitBoard.EXCEPT_FILE[0]); // only the pawns on the 2nd
-													// to 8th files
+			// to 8th files
 			long[] longArray = startPosn.toLongArray();
 			if (longArray.length == 0) {
 				return new BitSet(64);

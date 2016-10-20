@@ -145,15 +145,15 @@ public class KnightMoveTest {
 	@Test
 	public void attacksSquare() {
 		setupGame("4k3/8/8/8/3N4/5p2/8/4K3 w - - 0 0");
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.c2));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.b3));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.b5));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.c6));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.e6));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.f5));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.f3));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.e2));
-		assertFalse(whiteKnight.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.c5));
+		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c2));
+		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.b3));
+		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.b5));
+		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c6));
+		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e6));
+		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.f5));
+		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.f3));
+		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e2));
+		assertFalse(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c5));
 	}
 
 }

@@ -141,9 +141,9 @@ public class RookMoveTest {
 		setupGame("5K2/4R3/2k5/4p3/8/8/8/8 w - - 0 0");
 		for (Square sq : new Square[] { Square.e8, Square.e6, Square.d7, Square.c7, Square.b7, Square.a7, Square.f7,
 				Square.g7, Square.h7 }) {
-			assertTrue("square " + sq, whiteRook.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), sq));
+			assertTrue("square " + sq, whiteRook.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}
-		assertFalse(whiteRook.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.c4));
+		assertFalse(whiteRook.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));
 	}
 
 }

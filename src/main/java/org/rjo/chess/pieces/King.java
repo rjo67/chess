@@ -51,8 +51,8 @@ public class King extends Piece {
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE_MIDDLEGAME); // TODO
-		// ENDGAME
+		return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE_MIDDLEGAME);
+		// TODO ENDGAME
 	}
 
 	/**
@@ -233,7 +233,7 @@ public class King extends Piece {
 			// check squares are empty
 			BitSet bs = (BitSet) CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[colour.ordinal()].get(CastlingRights.KINGS_SIDE)
 					.clone();
-			bs.and(posn.getEmptySquares().getBitSet());
+			bs.and(posn.getTotalPieces().flip());
 			boolean canCastle = bs.cardinality() == 2;
 			if (canCastle) {
 				// check squares are not attacked by an enemy piece
@@ -251,7 +251,7 @@ public class King extends Piece {
 			// check squares are empty
 			BitSet bs = (BitSet) CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[colour.ordinal()].get(CastlingRights.QUEENS_SIDE)
 					.clone();
-			bs.and(posn.getEmptySquares().getBitSet());
+			bs.and(posn.getTotalPieces().flip());
 			boolean canCastle = bs.cardinality() == 3;
 			if (canCastle) {
 				// check squares are not attacked by an enemy piece
@@ -297,7 +297,7 @@ public class King extends Piece {
 			}
 			if (!isCheck) {
 				if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-					isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getEmptySquares().getBitSet(),
+					isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getTotalPieces().flip(),
 							move.getRooksCastlingMove().to(), opponentsKingSquare);
 				}
 			}

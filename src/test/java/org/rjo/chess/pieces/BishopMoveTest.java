@@ -20,22 +20,18 @@ import org.rjo.chess.TestUtil;
 public class BishopMoveTest {
 
 	private King opponentsKing;
-	private King myKing;
 
 	private Game game;
 	private Piece whiteBishop;
-	private Piece blackBishop;
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
 		whiteBishop = game.getPosition().getPieces2(Colour.WHITE)[PieceType.BISHOP.ordinal()];
-		blackBishop = game.getPosition().getPieces2(Colour.BLACK)[PieceType.BISHOP.ordinal()];
 	}
 
 	@Before
 	public void setup() {
 		opponentsKing = new King(Colour.BLACK, true);
-		myKing = new King(Colour.WHITE, true);
 	}
 
 	@Test
@@ -168,11 +164,11 @@ public class BishopMoveTest {
 		King king = new King(Colour.WHITE, Square.f8);
 		Set<Piece> whitePieces = new HashSet<>(Arrays.asList(king, whiteBishop));
 		Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
-		Position chessboard = new Position(whitePieces, opponentsPieces);
+		Position posn = new Position(whitePieces, opponentsPieces);
 		for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
-			assertTrue("square " + sq, whiteBishop.attacksSquare(chessboard.getEmptySquares().getBitSet(), sq));
+			assertTrue("square " + sq, whiteBishop.attacksSquare(posn.getTotalPieces().flip(), sq));
 		}
-		assertFalse(whiteBishop.attacksSquare(chessboard.getEmptySquares().getBitSet(), Square.c4));
+		assertFalse(whiteBishop.attacksSquare(posn.getTotalPieces().flip(), Square.c4));
 	}
 
 	@Test

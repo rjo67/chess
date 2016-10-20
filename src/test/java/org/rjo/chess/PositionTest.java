@@ -30,6 +30,7 @@ public class PositionTest {
 		sw.start();
 		int nbrIter = 10000000;
 		for (int i = 0; i < nbrIter; i++) {
+			@SuppressWarnings("unused")
 			Position p2 = new Position(p);
 		}
 		System.out.println(nbrIter + " new Positions in " + sw.read() + "ms");
@@ -112,6 +113,7 @@ public class PositionTest {
 		Game game = Fen.decode("3r4/4k3/8/8/3RP3/3K4/8/8 w - - 10 10");
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < 100000; i++) {
+			@SuppressWarnings("unused")
 			List<Move> moves = game.getPosition().findMoves(Colour.WHITE);// 1344
 		}
 		System.out.println(System.currentTimeMillis() - start);
@@ -447,11 +449,11 @@ public class PositionTest {
 		BitSet allPiecesBlack;
 		BitSet totalPieces;
 
-		InternalState(Position cb) {
-			emptySquares = cb.getEmptySquares().cloneBitSet();
-			allPiecesWhite = cb.getAllPieces(Colour.WHITE).cloneBitSet();
-			allPiecesBlack = cb.getAllPieces(Colour.BLACK).cloneBitSet();
-			totalPieces = cb.getTotalPieces().cloneBitSet();
+		InternalState(Position posn) {
+			emptySquares = posn.getTotalPieces().flip();
+			allPiecesWhite = posn.getAllPieces(Colour.WHITE).cloneBitSet();
+			allPiecesBlack = posn.getAllPieces(Colour.BLACK).cloneBitSet();
+			totalPieces = posn.getTotalPieces().cloneBitSet();
 		}
 
 		@Override

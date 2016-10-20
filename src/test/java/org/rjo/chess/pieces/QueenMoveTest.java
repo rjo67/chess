@@ -97,18 +97,18 @@ public class QueenMoveTest {
 		setupGame("5K2/4Q3/8/4p3/8/8/k7/8  w - - 0 0");
 		for (Square sq : new Square[] { Square.e8, Square.e6, Square.d7, Square.c7, Square.b7, Square.a7, Square.f7,
 				Square.g7, Square.h7 }) {
-			assertTrue("square " + sq, whiteQueen.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), sq));
+			assertTrue("square " + sq, whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}
-		assertFalse(whiteQueen.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.c4));
+		assertFalse(whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));
 	}
 
 	@Test
 	public void attacksSquareDiag() {
 		setupGame("3Q1K2/8/2k5/4p3/8/8/8/8  w - - 0 0");
 		for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
-			assertTrue("square " + sq, whiteQueen.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), sq));
+			assertTrue("square " + sq, whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}
-		assertFalse(whiteQueen.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.c4));
+		assertFalse(whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));
 	}
 
 }

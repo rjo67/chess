@@ -58,14 +58,10 @@ public class Position {
 	private BitBoard[] allEnemyPieces;
 
 	/**
-	 * bitboard of all pieces on the board (irrespective of colour).
+	 * bitboard of all pieces on the board (irrespective of colour). Logical NOT of this BitBoard
+	 * gives a bitboard of all empty squares.
 	 */
 	private BitBoard totalPieces;
-
-	/**
-	 * bitboard of all empty squares on the board. Logical NOT of {@link #totalPieces}.
-	 */
-	private BitBoard emptySquares;
 
 	/** Indicates an enpassant square; can be null. */
 	private Square enpassantSquare;
@@ -138,7 +134,6 @@ public class Position {
 		// need to clone here, since these structures are changed incrementally in updateStructures()
 
 		totalPieces = new BitBoard(posn.totalPieces);
-		emptySquares = new BitBoard(posn.emptySquares);
 
 		allEnemyPieces = new BitBoard[2];
 		castling = new EnumSet[2];
@@ -192,8 +187,6 @@ public class Position {
 		totalPieces = new BitBoard();
 		totalPieces.getBitSet().or(allEnemyPieces[Colour.WHITE.ordinal()].getBitSet());
 		totalPieces.getBitSet().or(allEnemyPieces[Colour.BLACK.ordinal()].getBitSet());
-		emptySquares = new BitBoard(totalPieces);
-		emptySquares.getBitSet().flip(0, 64);
 
 		enpassantSquare = null;
 	}
@@ -229,7 +222,6 @@ public class Position {
 		if (!move.isCapture()) {
 			updateBitSet(allEnemyPieces[colourOrdinal].getBitSet(), move);
 			updateBitSet(totalPieces.getBitSet(), move);
-			updateBitSet(emptySquares.getBitSet(), move);
 		} else {
 			// capture move
 			if (!move.isEnpassant()) {
@@ -237,8 +229,6 @@ public class Position {
 				allEnemyPieces[colourOrdinal].getBitSet().flip(moveToBitIndex);
 				allEnemyPieces[oppositeColourOrdinal].getBitSet().flip(moveToBitIndex);
 				totalPieces.getBitSet().flip(moveFromBitIndex);
-				emptySquares.getBitSet().flip(moveFromBitIndex);
-
 			} else {
 				// enpassant
 				int enpassantSquareBitIndex = Square.findMoveFromEnpassantSquare(move.to()).bitIndex();
@@ -248,9 +238,6 @@ public class Position {
 				totalPieces.getBitSet().flip(moveFromBitIndex);
 				totalPieces.getBitSet().flip(moveToBitIndex);
 				totalPieces.getBitSet().flip(enpassantSquareBitIndex);
-				emptySquares.getBitSet().flip(moveFromBitIndex);
-				emptySquares.getBitSet().flip(moveToBitIndex);
-				emptySquares.getBitSet().flip(enpassantSquareBitIndex);
 			}
 		}
 	}
@@ -352,7 +339,7 @@ public class Position {
 			pieceMgr.getClonedPiece(sideToMove, PieceType.ROOK).move(move.getRooksCastlingMove());
 			// castling rights are reset later on
 		} else {
-			if (!move.isCapture() && !getEmptySquares().getBitSet().get(move.to().bitIndex())) {
+			if (!move.isCapture() && getTotalPieces().getBitSet().get(move.to().bitIndex())) {
 				throw new IllegalArgumentException("square " + move.to() + " is not empty. Move=" + move);
 			}
 			// update structures for the moving piece
@@ -631,21 +618,13 @@ public class Position {
 	}
 
 	/**
-	 * Access to a BitBoard of all the pieces irrespective of colour.
-	 *
+	 * Access to a BitBoard of all the pieces irrespective of colour. Logical NOT of this BitBoard
+	 * gives a bitboard of all empty squares.
+	 * 
 	 * @return a BitBoard containing all the pieces irrespective of colour.
 	 */
 	public BitBoard getTotalPieces() {
 		return totalPieces;
-	}
-
-	/**
-	 * Access to a BitBoard of all the empty squares on the board.
-	 *
-	 * @return a BitBoard containing all the empty squares on the board.
-	 */
-	public BitBoard getEmptySquares() {
-		return emptySquares;
 	}
 
 	public PieceManager getPieceManager() {
@@ -668,9 +647,6 @@ public class Position {
 		}
 		System.out.println("totalPieces");
 		System.out.println(totalPieces.display());
-		System.out.println("---");
-		System.out.println("emptySquares");
-		System.out.println(emptySquares.display());
 		System.out.println("---");
 
 	}
@@ -704,7 +680,7 @@ public class Position {
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece piece = opponentsPieces[type.ordinal()];
 			if (piece != null) {
-				if (piece.attacksSquare(getEmptySquares().getBitSet(), targetSquare)) {
+				if (piece.attacksSquare(getTotalPieces().flip(), targetSquare)) {
 					return true;
 				}
 			}
@@ -733,7 +709,7 @@ public class Position {
 		}
 
 		// set up the emptySquares and myPieces bitsets *after* this move
-		BitSet emptySquares = posn.getEmptySquares().cloneBitSet();
+		BitSet emptySquares = posn.getTotalPieces().flip();
 		BitSet myPieces = posn.getAllPieces(colour).cloneBitSet();
 
 		emptySquares.set(moveFromIndex);
@@ -788,7 +764,7 @@ public class Position {
 	 */
 	public static boolean checkForPinnedPiece(Position posn, Move move, Colour colour, Square myKing) {
 		// set up the bitsets *after* this move
-		BitSet emptySquares = posn.getEmptySquares().cloneBitSet();
+		BitSet emptySquares = posn.getTotalPieces().flip();
 		BitSet myPieces = posn.getAllPieces(colour).cloneBitSet();
 
 		emptySquares.set(move.from().bitIndex());

@@ -146,8 +146,8 @@ public class WhitePawnTest {
 	@Test
 	public void attacksSquare() {
 		setupGame("8/5k2/8/3P4/8/8/8/4K3 w - - 0 0");
-		assertTrue(pawn.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.e6));
-		assertFalse(pawn.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.d6));
-		assertFalse(pawn.attacksSquare(game.getPosition().getEmptySquares().getBitSet(), Square.e7));
+		assertTrue(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e6));
+		assertFalse(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.d6));
+		assertFalse(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e7));
 	}
 }

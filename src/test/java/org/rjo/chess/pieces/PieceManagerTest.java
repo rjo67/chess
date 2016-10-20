@@ -89,6 +89,7 @@ public class PieceManagerTest {
 		Stopwatch sw = new Stopwatch();
 		sw.start();
 		for (int i = 0; i < 1000000; i++) {
+			@SuppressWarnings("unused")
 			PieceManager pm2 = new PieceManager(pm);
 		}
 		System.out.println(sw.read());

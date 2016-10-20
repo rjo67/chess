@@ -29,8 +29,8 @@ public class Rook extends SlidingPiece {
 
 	private static final Logger LOG = LogManager.getLogger(Rook.class);
 	/*
-	 * if useMovemap is defined, we'll use the data structures moveMap,
-	 * vertMoveMap. Otherwise the ray algorithm will be used.
+	 * if useMovemap is defined, we'll use the data structures moveMap, vertMoveMap. Otherwise the
+	 * ray algorithm will be used.
 	 */
 	private static final boolean USE_MOVE_MAP;
 
@@ -44,50 +44,60 @@ public class Rook extends SlidingPiece {
 	private static final int PIECE_VALUE = 500;
 
 	private static int[] SQUARE_VALUE =
-			// @formatter:off
-			new int[] { 0, 0, 0, 5, 5, 0, 0, 0, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0,
-					0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, 5, 10, 10, 10, 10, 10, 10, 5, 0, 0, 0, 0,
-					0, 0, 0, 0, };
-	// @formatter:on
+		// @formatter:off
+      new int[] {
+        0,  0,  0,  5,  5,  0,  0,  0,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        5, 10, 10, 10, 10, 10, 10,  5,
+        0,  0,  0,  0,  0,  0,  0,  0,
+      };
+      // @formatter:on
 
 	/**
-	 * stores possible moves from posn 'x' (first array dimension). x is the
-	 * file (in bits from right, RHS==0). so moveMap[4] stores patterns where
-	 * the rook is on the 4th file.
-	 *
-	 * In the map itself: the key is the value of the byte pattern (file 'x' is
-	 * always 1). the value stores which moves are valid for this pattern.
-	 *
-	 * The maps are immutable.
+	 * stores possible moves from posn 'x' (first array dimension). x is the file (in bits from
+	 * right, RHS==0). so moveMap[4] stores patterns where the rook is on the 4th file. In the map
+	 * itself: the key is the value of the byte pattern (file 'x' is always 1). the value stores
+	 * which moves are valid for this pattern. The maps are immutable.
 	 */
 	private final static Map<Integer, MoveInfo>[] moveMap = new Map[8];
 	private final static Map<Integer, MoveInfo>[] vertMoveMap = new Map[8];
 
 	static {
-		/*
-		 * @formatter:off **************** piecePosn=4 **************** 1
-		 * 00010000 x10 HI: 0001 x1 - 2 00110000 x30 HI: 0011 x3 - 3 01010000
-		 * x50 HI: 0101 x5 - 4 01110000 x70 HI: 0111 x7 - 5 10010000 x90 HI:
-		 * 1001 x9 - 6 10110000 xB0 HI: 1011 xB - 7 11010000 xD0 HI: 1101 xD - 8
-		 * 11110000 xF0 HI: 1111 xF -
-		 *
-		 *
-		 * piecePosn==3 1 00001000 x8 LO: 00000000 x0 2 00001001 x9 LO: 00000001
-		 * x1 3 00001010 xA LO: 00000010 x2 4 00001011 xB LO: 00000011 x3 5
-		 * 00001100 xC LO: 00000100 x4 6 00001101 xD LO: 00000101 x5 7 00001110
-		 * xE LO: 00000110 x6 8 00001111 xF LO: 00000111 x7 [0, 1, 2, 3, 4, 5,
-		 * 6, 7]
-		 *
-		 * @formatter:on
-		 */
+		/* @formatter:off
+       * **************** piecePosn=4 ****************
+       *  1 00010000 x10  HI: 0001 x1   -
+       *  2 00110000 x30  HI: 0011 x3   -
+       *  3 01010000 x50  HI: 0101 x5   -
+       *  4 01110000 x70  HI: 0111 x7   -
+       *  5 10010000 x90  HI: 1001 x9   -
+       *  6 10110000 xB0  HI: 1011 xB   -
+       *  7 11010000 xD0  HI: 1101 xD   -
+       *  8 11110000 xF0  HI: 1111 xF   -
+       *
+       *
+       *  piecePosn==3
+       *  1 00001000 x8  LO: 00000000 x0
+       *  2 00001001 x9  LO: 00000001 x1
+       *  3 00001010 xA  LO: 00000010 x2
+       *  4 00001011 xB  LO: 00000011 x3
+       *  5 00001100 xC  LO: 00000100 x4
+       *  6 00001101 xD  LO: 00000101 x5
+       *  7 00001110 xE  LO: 00000110 x6
+       *  8 00001111 xF  LO: 00000111 x7
+       *  [0, 1, 2, 3, 4, 5, 6, 7]
+       *
+       * @formatter:on
+       */
 
 		/*
-		 * general algorithm: 'tmpMoveMap' stores the bitmaps to the 'left' and
-		 * the 'right' of piecePosn. In the 3rd for loop, these get concatenated
-		 * into 'concatMoveMap' -- one value for both the LHS and the RHS. These
-		 * values are then stored as immutable maps.
-		 *
-		 * 'vertMoveMap' is then generated from the horizontal 'moveMap'.
+		 * general algorithm: 'tmpMoveMap' stores the bitmaps to the 'left' and the 'right' of
+		 * piecePosn. In the 3rd for loop, these get concatenated into 'concatMoveMap' -- one value
+		 * for both the LHS and the RHS. These values are then stored as immutable maps. 'vertMoveMap'
+		 * is then generated from the horizontal 'moveMap'.
 		 */
 
 		// achtung! In this array the index starts from the right!
@@ -105,7 +115,7 @@ public class Rook extends SlidingPiece {
 				maskStart = maskStart << 1;
 				int mask = maskStart + 1;// b11, b101, b1001,
 				fieldIncr--; // since processing LHS, need to store -1, -2, -3,
-								// ...
+									// ...
 				if (fieldIncr != 0) {
 					moves.add(fieldIncr);
 				}
@@ -218,11 +228,10 @@ public class Rook extends SlidingPiece {
 	}
 
 	/**
-	 * Constructs the Rook class -- with no pieces on the board. Delegates to
-	 * Rook(Colour, boolean) with parameter false.
+	 * Constructs the Rook class -- with no pieces on the board. Delegates to Rook(Colour, boolean)
+	 * with parameter false.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
+	 * @param colour indicates the colour of the pieces
 	 */
 	public Rook(Colour colour) {
 		this(colour, false);
@@ -231,11 +240,9 @@ public class Rook extends SlidingPiece {
 	/**
 	 * Constructs the Rook class.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startPosition
-	 *            if true, the default start squares are assigned. If false, no
-	 *            pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are
+	 *           placed on the board.
 	 */
 	public Rook(Colour colour, boolean startPosition) {
 		this(colour, startPosition, null);
@@ -244,29 +251,23 @@ public class Rook extends SlidingPiece {
 	/**
 	 * Constructs the Rook class, defining the start squares.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startSquares
-	 *            the required starting squares of the piece(s). Can be null, in
-	 *            which case no pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
+	 *           no pieces are placed on the board.
 	 */
 	public Rook(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Rook class with the required squares (can be null) or the
-	 * default start squares. Setting 'startPosition' true has precedence over
-	 * 'startSquares'.
+	 * Constructs the Rook class with the required squares (can be null) or the default start
+	 * squares. Setting 'startPosition' true has precedence over 'startSquares'.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startPosition
-	 *            if true, the default start squares are assigned. Value of
-	 *            'startSquares' will be ignored.
-	 * @param startSquares
-	 *            the required starting squares of the piece(s). Can be null, in
-	 *            which case no pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares'
+	 *           will be ignored.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
+	 *           no pieces are placed on the board.
 	 */
 	public Rook(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.ROOK);
@@ -309,8 +310,7 @@ public class Rook extends SlidingPiece {
 				rankValueCache.put(rank, rankVal);
 			}
 
-			addMoves(posn, moves, opponentsColour, opponentsPieces, bitIndex, fromSquareIndex,
-					moveMap[file].get(rankVal));
+			addMoves(posn, moves, opponentsColour, opponentsPieces, bitIndex, fromSquareIndex, moveMap[file].get(rankVal));
 
 			int fileVal;
 			if (fileValueCache.containsKey(file)) {
@@ -329,30 +329,22 @@ public class Rook extends SlidingPiece {
 	/**
 	 * internal method to find moves/captures.
 	 *
-	 * @param chessboard
-	 *            the current board
-	 * @param moves
-	 *            possible moves will be returned in this list
-	 * @param opponentsColour
-	 *            opponent's colour
-	 * @param opponentsPieces
-	 *            bitset of opponent's pieces
-	 * @param bitIndexOfPiece
-	 *            bit index of our piece for which the moves are currently being
-	 *            calculated
-	 * @param fromSquareIndex
-	 *            square corresponding to bitIndexOfPiece
-	 * @param moveinfo
-	 *            the MoveInfo object corresponding to the file (or rank) which
-	 *            we're currently looking at.
+	 * @param chessboard the current board
+	 * @param moves possible moves will be returned in this list
+	 * @param opponentsColour opponent's colour
+	 * @param opponentsPieces bitset of opponent's pieces
+	 * @param bitIndexOfPiece bit index of our piece for which the moves are currently being
+	 *           calculated
+	 * @param fromSquareIndex square corresponding to bitIndexOfPiece
+	 * @param moveinfo the MoveInfo object corresponding to the file (or rank) which we're currently
+	 *           looking at.
 	 */
 	private void addMoves(Position chessboard, List<Move> moves, Colour opponentsColour, BitSet opponentsPieces,
 			int bitIndexOfPiece, Square fromSquareIndex, MoveInfo moveinfo) {
 
 		// System.out.printf("val=%d, map entry=%s%n", val, moveinfo);
 		for (int sqOffset : moveinfo.getMoveOffsets()) {
-			moves.add(
-					new Move(this.getType(), colour, fromSquareIndex, Square.fromBitIndex(bitIndexOfPiece + sqOffset)));
+			moves.add(new Move(this.getType(), colour, fromSquareIndex, Square.fromBitIndex(bitIndexOfPiece + sqOffset)));
 		}
 
 		for (int sqOffset : moveinfo.getPossibleCapturesOffset()) {
@@ -394,10 +386,9 @@ public class Rook extends SlidingPiece {
 		// checks
 		Square opponentsKing = King.findOpponentsKing(colour, posn);
 		/*
-		 * most moves have the same starting square. If we've already checked
-		 * for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the
-		 * opponent's king.)
+		 * most moves have the same starting square. If we've already checked for discovered check for
+		 * this square, then can use the cached result. (Discovered check only looks along one ray
+		 * from move.from() to the opponent's king.)
 		 */
 		Map<Square, Boolean> discoveredCheckCache = new HashMap<>(5);
 		for (Move move : moves) {
@@ -437,8 +428,7 @@ class MoveInfo {
 	/** stores possible moves as bitindex offsets from current square */
 	private Integer[] moveOffsets;
 	/**
-	 * this offset is either an enemy piece (i.e. a capture move) or a friendly
-	 * piece (i.e. no move)
+	 * this offset is either an enemy piece (i.e. a capture move) or a friendly piece (i.e. no move)
 	 */
 	private Integer[] possibleCapturesOffset;
 
