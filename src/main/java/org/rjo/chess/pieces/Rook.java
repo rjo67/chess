@@ -224,7 +224,7 @@ public class Rook extends SlidingPiece {
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE);
+		return AbstractBitBoardPiece.pieceSquareValue(pieces.getBitSet(), getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	/**
@@ -281,7 +281,7 @@ public class Rook extends SlidingPiece {
 	@Override
 	public void initPosition() {
 		Square[] requiredSquares = null;
-		requiredSquares = colour == Colour.WHITE ? new Square[] { Square.a1, Square.h1 }
+		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.a1, Square.h1 }
 				: new Square[] { Square.a8, Square.h8 };
 		initPosition(requiredSquares);
 	}
@@ -289,7 +289,7 @@ public class Rook extends SlidingPiece {
 	/** uses the moveMap and vertMoveMap structures to find possible moves */
 	private List<Move> findMovesUsingMoveMap(Position posn) {
 		List<Move> moves = new ArrayList<>();
-		Colour opponentsColour = Colour.oppositeColour(colour);
+		Colour opponentsColour = Colour.oppositeColour(getColour());
 		BitBoard allPieces = posn.getTotalPieces();
 		BitSet opponentsPieces = posn.getAllPieces(opponentsColour).getBitSet();
 
@@ -344,14 +344,15 @@ public class Rook extends SlidingPiece {
 
 		// System.out.printf("val=%d, map entry=%s%n", val, moveinfo);
 		for (int sqOffset : moveinfo.getMoveOffsets()) {
-			moves.add(new Move(this.getType(), colour, fromSquareIndex, Square.fromBitIndex(bitIndexOfPiece + sqOffset)));
+			moves.add(
+					new Move(this.getType(), getColour(), fromSquareIndex, Square.fromBitIndex(bitIndexOfPiece + sqOffset)));
 		}
 
 		for (int sqOffset : moveinfo.getPossibleCapturesOffset()) {
 			int sqIndex = bitIndexOfPiece + sqOffset;
 			if (opponentsPieces.get(sqIndex)) {
 				Square targetSquare = Square.fromBitIndex(sqIndex);
-				moves.add(new Move(this.getType(), colour, fromSquareIndex, targetSquare,
+				moves.add(new Move(this.getType(), getColour(), fromSquareIndex, targetSquare,
 						chessboard.pieceAt(targetSquare, opponentsColour)));
 			}
 		}
@@ -372,9 +373,9 @@ public class Rook extends SlidingPiece {
 			}
 		}
 		// make sure king is not/no longer in check
-		Square myKing = King.findKing(colour, posn);
+		Square myKing = King.findKing(getColour(), posn);
 		Iterator<Move> iter = moves.listIterator();
-		Colour opponentsColour = Colour.oppositeColour(colour);
+		Colour opponentsColour = Colour.oppositeColour(getColour());
 		while (iter.hasNext()) {
 			Move move = iter.next();
 			boolean inCheck = Position.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck);
@@ -384,7 +385,7 @@ public class Rook extends SlidingPiece {
 		}
 
 		// checks
-		Square opponentsKing = King.findOpponentsKing(colour, posn);
+		Square opponentsKing = King.findOpponentsKing(getColour(), posn);
 		/*
 		 * most moves have the same starting square. If we've already checked for discovered check for
 		 * this square, then can use the cached result. (Discovered check only looks along one ray
@@ -398,7 +399,7 @@ public class Rook extends SlidingPiece {
 				if (discoveredCheckCache.containsKey(move.from())) {
 					isCheck = discoveredCheckCache.get(move.from());
 				} else {
-					isCheck = Position.checkForDiscoveredCheck(posn, move, colour, opponentsKing);
+					isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
 					discoveredCheckCache.put(move.from(), isCheck);
 				}
 			}

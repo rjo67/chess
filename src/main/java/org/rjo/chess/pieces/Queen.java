@@ -42,15 +42,14 @@ public class Queen extends SlidingPiece {
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE);
+		return AbstractBitBoardPiece.pieceSquareValue(pieces.getBitSet(), getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	/**
-	 * Constructs the Queen class -- with no pieces on the board. Delegates to
-	 * Queen(Colour, boolean) with parameter false.
+	 * Constructs the Queen class -- with no pieces on the board. Delegates to Queen(Colour, boolean)
+	 * with parameter false.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
+	 * @param colour indicates the colour of the pieces
 	 */
 	public Queen(Colour colour) {
 		this(colour, false);
@@ -59,11 +58,9 @@ public class Queen extends SlidingPiece {
 	/**
 	 * Constructs the Queen class.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startPosition
-	 *            if true, the default start squares are assigned. If false, no
-	 *            pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are
+	 *           placed on the board.
 	 */
 	public Queen(Colour colour, boolean startPosition) {
 		this(colour, startPosition, (Square[]) null);
@@ -72,29 +69,23 @@ public class Queen extends SlidingPiece {
 	/**
 	 * Constructs the Queen class, defining the start squares.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startSquares
-	 *            the required starting squares of the piece(s). Can be null, in
-	 *            which case no pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
+	 *           no pieces are placed on the board.
 	 */
 	public Queen(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Queen class with the required squares (can be null) or the
-	 * default start squares. Setting 'startPosition' true has precedence over
-	 * 'startSquares'.
+	 * Constructs the Queen class with the required squares (can be null) or the default start
+	 * squares. Setting 'startPosition' true has precedence over 'startSquares'.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startPosition
-	 *            if true, the default start squares are assigned. Value of
-	 *            'startSquares' will be ignored.
-	 * @param startSquares
-	 *            the required starting squares of the piece(s). Can be null, in
-	 *            which case no pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares'
+	 *           will be ignored.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
+	 *           no pieces are placed on the board.
 	 */
 	public Queen(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.QUEEN);
@@ -108,7 +99,7 @@ public class Queen extends SlidingPiece {
 	@Override
 	public void initPosition() {
 		Square[] requiredSquares = null;
-		requiredSquares = colour == Colour.WHITE ? new Square[] { Square.d1 } : new Square[] { Square.d8 };
+		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.d1 } : new Square[] { Square.d8 };
 		initPosition(requiredSquares);
 	}
 
@@ -125,22 +116,21 @@ public class Queen extends SlidingPiece {
 			moves.addAll(search(posn, RayFactory.getRay(rayType)));
 		}
 		// make sure my king is not/no longer in check
-		Square myKing = King.findKing(colour, posn);
+		Square myKing = King.findKing(getColour(), posn);
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
-			boolean inCheck = Position.isKingInCheck(posn, move, Colour.oppositeColour(colour), myKing, kingInCheck);
+			boolean inCheck = Position.isKingInCheck(posn, move, Colour.oppositeColour(getColour()), myKing, kingInCheck);
 			if (inCheck) {
 				iter.remove();
 			}
 		}
 		// checks
-		Square opponentsKing = King.findOpponentsKing(colour, posn);
+		Square opponentsKing = King.findOpponentsKing(getColour(), posn);
 		/*
-		 * many moves have the same starting square. If we've already checked
-		 * for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the
-		 * opponent's king.)
+		 * many moves have the same starting square. If we've already checked for discovered check for
+		 * this square, then can use the cached result. (Discovered check only looks along one ray
+		 * from move.from() to the opponent's king.)
 		 */
 		Map<Square, Boolean> discoveredCheckCache = new HashMap<>(5);
 		for (Move move : moves) {
@@ -153,7 +143,7 @@ public class Queen extends SlidingPiece {
 				if (discoveredCheckCache.containsKey(move.from())) {
 					isCheck = discoveredCheckCache.get(move.from());
 				} else {
-					isCheck = Position.checkForDiscoveredCheck(posn, move, colour, opponentsKing);
+					isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
 					discoveredCheckCache.put(move.from(), isCheck);
 				}
 			}

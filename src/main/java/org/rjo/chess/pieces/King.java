@@ -24,7 +24,7 @@ import org.rjo.chess.util.Stopwatch;
  * @author rich
  * @see http://chessprogramming.wikispaces.com/King+Pattern
  */
-public class King extends Piece {
+public class King extends AbstractBitBoardPiece {
 	private static final Logger LOG = LogManager.getLogger(King.class);
 
 	/** piece value in centipawns */
@@ -36,22 +36,35 @@ public class King extends Piece {
 	 */
 	// Important: array value [0] corresponds to square a1; [63] == h8.
 	private static final int[] SQUARE_VALUE_MIDDLEGAME =
-			// @formatter:off
-			new int[] { 20, 30, 10, 0, 0, 10, 30, 20, 20, 20, 0, 0, 0, 0, 20, 20, -10, -20, -20, -20, -20, -20, -20,
-					-10, -20, -30, -30, -40, -40, -30, -30, -20, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40,
-					-50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40,
-					-30, };
-	// @formatter:on
+		// @formatter:off
+      new int[] {
+         20, 30, 10,  0,  0, 10, 30, 20,
+         20, 20,  0,  0,  0,  0, 20, 20,
+         -10,-20,-20,-20,-20,-20,-20,-10,
+         -20,-30,-30,-40,-40,-30,-30,-20,
+         -30,-40,-40,-50,-50,-40,-40,-30,
+         -30,-40,-40,-50,-50,-40,-40,-30,
+         -30,-40,-40,-50,-50,-40,-40,-30,
+         -30,-40,-40,-50,-50,-40,-40,-30,
+   };
+   // @formatter:on
 	private static final int[] SQUARE_VALUE_ENDGAME =
-			// @formatter:off
-			new int[] { -50, -30, -30, -30, -30, -30, -30, -50, -30, -30, 0, 0, 0, 0, -30, -30, -30, -10, 20, 30, 30,
-					20, -10, -30, -30, -10, 30, 40, 40, 30, -10, -30, -30, -10, 30, 40, 40, 30, -10, -30, -30, -10, 20,
-					30, 30, 20, -10, -30, -30, -20, -10, 0, 0, -10, -20, -30, -50, -40, -30, -20, -20, -30, -40, -50, };
-	// @formatter:on
+		// @formatter:off
+      new int[] {
+         -50,-30,-30,-30,-30,-30,-30,-50,
+         -30,-30,  0,  0,  0,  0,-30,-30,
+         -30,-10, 20, 30, 30, 20,-10,-30,
+         -30,-10, 30, 40, 40, 30,-10,-30,
+        -30,-10, 30, 40, 40, 30,-10,-30,
+         -30,-10, 20, 30, 30, 20,-10,-30,
+         -30,-20,-10,  0,  0,-10,-20,-30,
+         -50,-40,-30,-20,-20,-30,-40,-50,
+   }; // @formatter:on
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE_MIDDLEGAME);
+		return AbstractBitBoardPiece.pieceSquareValue(pieces.getBitSet(), getColour(), PIECE_VALUE,
+				SQUARE_VALUE_MIDDLEGAME);
 		// TODO ENDGAME
 	}
 
@@ -186,7 +199,7 @@ public class King extends Piece {
 	@Override
 	public void initPosition() {
 		Square[] requiredSquares = null;
-		requiredSquares = colour == Colour.WHITE ? new Square[] { Square.e1 } : new Square[] { Square.e8 };
+		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.e1 } : new Square[] { Square.e8 };
 		initPosition(requiredSquares);
 	}
 
@@ -201,7 +214,7 @@ public class King extends Piece {
 		BitSet possibleMoves = (BitSet) MOVES[kingPosn.bitIndex()].clone();
 
 		// move can't be to a square with a piece of the same colour on it
-		possibleMoves.andNot(posn.getAllPieces(colour).getBitSet());
+		possibleMoves.andNot(posn.getAllPieces(getColour()).getBitSet());
 
 		// can't move adjacent to opponent's king
 		possibleMoves.andNot(MOVES[opponentsKingSquare.bitIndex()]);
@@ -211,7 +224,7 @@ public class King extends Piece {
 		 * attacked square has not been checked yet.)
 		 */
 
-		final Colour oppositeColour = Colour.oppositeColour(colour);
+		final Colour oppositeColour = Colour.oppositeColour(getColour());
 		BitSet opponentsPieces = posn.getAllPieces(oppositeColour).getBitSet();
 		// check the possibleMoves and store them as moves / captures.
 		for (int i = possibleMoves.nextSetBit(0); i >= 0; i = possibleMoves.nextSetBit(i + 1)) {
@@ -220,49 +233,49 @@ public class King extends Piece {
 			 * store move as 'move' or 'capture'
 			 */
 			if (opponentsPieces.get(i)) {
-				moves.add(
-						new Move(PieceType.KING, colour, kingPosn, targetSquare, posn.pieceAt(targetSquare, oppositeColour)));
+				moves.add(new Move(PieceType.KING, getColour(), kingPosn, targetSquare,
+						posn.pieceAt(targetSquare, oppositeColour)));
 			} else {
-				moves.add(new Move(PieceType.KING, colour, kingPosn, targetSquare));
+				moves.add(new Move(PieceType.KING, getColour(), kingPosn, targetSquare));
 			}
 		}
 		long time1 = stopwatch.read();
 
 		// castling -- can't castle out of check
-		if (!kingInCheck && posn.canCastle(colour, CastlingRights.KINGS_SIDE)) {
+		if (!kingInCheck && posn.canCastle(getColour(), CastlingRights.KINGS_SIDE)) {
 			// check squares are empty
-			BitSet bs = (BitSet) CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[colour.ordinal()].get(CastlingRights.KINGS_SIDE)
+			BitSet bs = (BitSet) CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[getColour().ordinal()].get(CastlingRights.KINGS_SIDE)
 					.clone();
 			bs.and(posn.getTotalPieces().flip());
 			boolean canCastle = bs.cardinality() == 2;
 			if (canCastle) {
 				// check squares are not attacked by an enemy piece
-				for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(colour).get(CastlingRights.KINGS_SIDE)) {
+				for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(getColour()).get(CastlingRights.KINGS_SIDE)) {
 					if (canCastle) {
 						canCastle = canCastle && !posn.squareIsAttacked(sq, oppositeColour);
 					}
 				}
 			}
 			if (canCastle) {
-				moves.add(Move.castleKingsSide(colour));
+				moves.add(Move.castleKingsSide(getColour()));
 			}
 		}
-		if (!kingInCheck && posn.canCastle(colour, CastlingRights.QUEENS_SIDE)) {
+		if (!kingInCheck && posn.canCastle(getColour(), CastlingRights.QUEENS_SIDE)) {
 			// check squares are empty
-			BitSet bs = (BitSet) CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[colour.ordinal()].get(CastlingRights.QUEENS_SIDE)
-					.clone();
+			BitSet bs = (BitSet) CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[getColour().ordinal()]
+					.get(CastlingRights.QUEENS_SIDE).clone();
 			bs.and(posn.getTotalPieces().flip());
 			boolean canCastle = bs.cardinality() == 3;
 			if (canCastle) {
 				// check squares are not attacked by an enemy piece
-				for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(colour).get(CastlingRights.QUEENS_SIDE)) {
+				for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(getColour()).get(CastlingRights.QUEENS_SIDE)) {
 					if (canCastle) {
 						canCastle = canCastle && !posn.squareIsAttacked(sq, oppositeColour);
 					}
 				}
 			}
 			if (canCastle) {
-				moves.add(Move.castleQueensSide(colour));
+				moves.add(Move.castleQueensSide(getColour()));
 			}
 		}
 		long time2 = stopwatch.read();
@@ -272,7 +285,7 @@ public class King extends Piece {
 		while (iter.hasNext()) {
 			Move move = iter.next();
 			Square myKing = move.to();
-			if (Position.isKingInCheck(posn, move, Colour.oppositeColour(colour), myKing, kingInCheck)) {
+			if (Position.isKingInCheck(posn, move, Colour.oppositeColour(getColour()), myKing, kingInCheck)) {
 				iter.remove();
 			}
 		}
@@ -292,7 +305,7 @@ public class King extends Piece {
 			if (discoveredCheckCache.containsKey(move.from())) {
 				isCheck = discoveredCheckCache.get(move.from());
 			} else {
-				isCheck = Position.checkForDiscoveredCheck(posn, move, colour, opponentsKingSquare);
+				isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKingSquare);
 				discoveredCheckCache.put(move.from(), isCheck);
 			}
 			if (!isCheck) {
@@ -313,7 +326,7 @@ public class King extends Piece {
 	}
 
 	private Square findOpponentsKing(Position chessboard) {
-		return findOpponentsKing(colour, chessboard);
+		return findOpponentsKing(getColour(), chessboard);
 	}
 
 	/**

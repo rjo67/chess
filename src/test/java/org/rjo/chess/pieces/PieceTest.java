@@ -61,29 +61,6 @@ public class PieceTest {
 	}
 
 	@Test
-	public void unmove() {
-		Queen queen = new Queen(Colour.WHITE, Square.b6);
-		queen.unmove(new Move(PieceType.QUEEN, Colour.WHITE, Square.a6, Square.b6));
-		assertFalse(queen.getBitBoard().getBitSet().get(Square.b6.bitIndex()));
-		assertTrue(queen.getBitBoard().getBitSet().get(Square.a6.bitIndex()));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void badUnmoveNonExistingPiece() {
-		Queen queen = new Queen(Colour.WHITE, Square.b6);
-		queen.unmove(new Move(PieceType.QUEEN, Colour.WHITE, Square.a6, Square.h6));
-	}
-
-	@Test
-	public void promotionUnmove() {
-		Pawn pawn = new Pawn(Colour.WHITE, Square.a7);
-		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.a7, Square.a8);
-		move.setPromotionPiece(PieceType.BISHOP);
-		pawn.unmove(move);
-		assertTrue(pawn.getBitBoard().getBitSet().get(Square.a7.bitIndex()));
-	}
-
-	@Test
 	public void pawnSymbolWhite() {
 		assertEquals("", new Pawn(Colour.WHITE).getSymbol());
 	}

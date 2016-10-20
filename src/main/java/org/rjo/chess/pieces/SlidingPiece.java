@@ -17,7 +17,7 @@ import org.rjo.chess.ray.RayUtils;
  *
  * @author rich
  */
-public abstract class SlidingPiece extends Piece {
+public abstract class SlidingPiece extends AbstractBitBoardPiece {
 
 	final static boolean[][] ON_SAME_DIAGONAL = new boolean[64][64];
 	static {
@@ -99,24 +99,24 @@ public abstract class SlidingPiece extends Piece {
 	protected List<Move> search(Position posn, Ray ray) {
 		List<Move> moves = new ArrayList<>(30);
 
-		final Colour opponentsColour = Colour.oppositeColour(colour);
+		final Colour opponentsColour = Colour.oppositeColour(getColour());
 		/*
 		 * for each piece, use the ray to find emptySquares / firstPiece on the ray
 		 */
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			Square fromSquareIndex = Square.fromBitIndex(i);
 
-			RayInfo info = RayUtils.findFirstPieceOnRay(colour, posn.getTotalPieces().flip(),
-					posn.getAllPieces(colour).getBitSet(), ray, i);
+			RayInfo info = RayUtils.findFirstPieceOnRay(getColour(), posn.getTotalPieces().flip(),
+					posn.getAllPieces(getColour()).getBitSet(), ray, i);
 			// add 'emptySquares' from result as normal moves
 			for (int emptySquareIndex : info.getEmptySquares()) {
-				moves.add(new Move(this.getType(), colour, fromSquareIndex, Square.fromBitIndex(emptySquareIndex)));
+				moves.add(new Move(this.getType(), getColour(), fromSquareIndex, Square.fromBitIndex(emptySquareIndex)));
 			}
 			// if an opponent's piece was also found, add this as capture
 			if (info.foundPiece() && (info.getColour() == opponentsColour)) {
 				Square sqIndex = Square.fromBitIndex(info.getIndexOfPiece());
-				moves.add(
-						new Move(this.getType(), colour, fromSquareIndex, sqIndex, posn.pieceAt(sqIndex, opponentsColour)));
+				moves.add(new Move(this.getType(), getColour(), fromSquareIndex, sqIndex,
+						posn.pieceAt(sqIndex, opponentsColour)));
 			}
 		}
 

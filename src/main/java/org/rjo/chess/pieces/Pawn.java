@@ -19,7 +19,7 @@ import org.rjo.chess.util.Stopwatch;
  *
  * @author rich
  */
-public class Pawn extends Piece {
+public class Pawn extends AbstractBitBoardPiece {
 	private static final Logger LOG = LogManager.getLogger(Pawn.class);
 
 	/** piece value in centipawns */
@@ -43,7 +43,7 @@ public class Pawn extends Piece {
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE);
+		return AbstractBitBoardPiece.pieceSquareValue(pieces.getBitSet(), getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class Pawn extends Piece {
 	public void initPosition() {
 		Square[] requiredSquares = null;
 		// @formatter:off
-		requiredSquares = colour == Colour.WHITE
+		requiredSquares = getColour() == Colour.WHITE
 				? new Square[] { Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2,
 						Square.h2 }
 				: new Square[] { Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7,
@@ -132,8 +132,8 @@ public class Pawn extends Piece {
 		moves.addAll(captureRight(posn, helper, false));
 
 		// make sure king is not/no longer in check
-		final Square myKing = King.findKing(colour, posn);
-		final Colour opponentsColour = Colour.oppositeColour(colour);
+		final Square myKing = King.findKing(getColour(), posn);
+		final Colour opponentsColour = Colour.oppositeColour(getColour());
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
@@ -145,7 +145,7 @@ public class Pawn extends Piece {
 		}
 
 		// checks
-		Square opponentsKing = King.findOpponentsKing(colour, posn);
+		Square opponentsKing = King.findOpponentsKing(getColour(), posn);
 		BitSet opponentsKingBitset = new BitSet(64);
 		opponentsKingBitset.set(opponentsKing.bitIndex());
 		// probably not worth caching discovered check results for pawns
@@ -153,7 +153,7 @@ public class Pawn extends Piece {
 			boolean isCheck = checkIfCheck(posn, move, opponentsKing, opponentsKingBitset);
 			// if it's already check, don't need to calculate discovered check
 			if (!isCheck) {
-				isCheck = Position.checkForDiscoveredCheck(posn, move, colour, opponentsKing);
+				isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
 			}
 			move.setCheck(isCheck);
 		}
@@ -198,12 +198,13 @@ public class Pawn extends Piece {
 		for (int i = oneSquareForward.nextSetBit(0); i >= 0; i = oneSquareForward.nextSetBit(i + 1)) {
 			if (helper.onLastRank(i)) {
 				for (PieceType type : PieceType.getPieceTypesForPromotion()) {
-					Move move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i));
+					Move move = new Move(PieceType.PAWN, getColour(), Square.fromBitIndex(i + offset),
+							Square.fromBitIndex(i));
 					move.setPromotionPiece(type);
 					moves.add(move);
 				}
 			} else {
-				moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
+				moves.add(new Move(PieceType.PAWN, getColour(), Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
 			}
 		}
 		return moves;
@@ -232,7 +233,7 @@ public class Pawn extends Piece {
 		twoSquaresForward.and(chessboard.getTotalPieces().flip()); // move must be to an empty square
 		int offset = helper.getColour() == Colour.WHITE ? -16 : 16;
 		for (int i = twoSquaresForward.nextSetBit(0); i >= 0; i = twoSquaresForward.nextSetBit(i + 1)) {
-			moves.add(new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
+			moves.add(new Move(PieceType.PAWN, getColour(), Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
 		}
 		return moves;
 	}
@@ -274,7 +275,7 @@ public class Pawn extends Piece {
 		}
 
 		List<Move> moves = new ArrayList<>();
-		Colour oppositeColour = Colour.oppositeColour(colour);
+		Colour oppositeColour = Colour.oppositeColour(getColour());
 		for (int i = captures.nextSetBit(0); i >= 0; i = captures.nextSetBit(i + 1)) {
 			Square targetSquare = Square.fromBitIndex(i);
 			if (helper.onLastRank(i)) {
@@ -283,7 +284,7 @@ public class Pawn extends Piece {
 				PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY
 						: chessboard.pieceAt(targetSquare, oppositeColour);
 				for (PieceType type : PieceType.getPieceTypesForPromotion()) {
-					Move move = new Move(PieceType.PAWN, colour, fromSquare, targetSquare, capturedPiece);
+					Move move = new Move(PieceType.PAWN, getColour(), fromSquare, targetSquare, capturedPiece);
 					move.setPromotionPiece(type);
 					moves.add(move);
 				}
@@ -303,9 +304,10 @@ public class Pawn extends Piece {
 				}
 				Move move;
 				if (enpassant) {
-					move = Move.enpassant(colour, Square.fromBitIndex(i + offset), targetSquare);
+					move = Move.enpassant(getColour(), Square.fromBitIndex(i + offset), targetSquare);
 				} else {
-					move = new Move(PieceType.PAWN, colour, Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
+					move = new Move(PieceType.PAWN, getColour(), Square.fromBitIndex(i + offset), targetSquare,
+							capturedPiece);
 				}
 				moves.add(move);
 			}
@@ -425,7 +427,7 @@ public class Pawn extends Piece {
 
 	@Override
 	public boolean attacksSquare(BitSet notused, Square targetSq) {
-		if (colour == Colour.WHITE) {
+		if (getColour() == Colour.WHITE) {
 			return doWhitePawnsAttackSquare(targetSq, pieces.getBitSet());
 		} else {
 			return doBlackPawnsAttackSquare(targetSq, pieces.getBitSet());

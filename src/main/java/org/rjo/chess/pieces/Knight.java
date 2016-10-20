@@ -21,7 +21,7 @@ import org.rjo.chess.util.Stopwatch;
  *
  * @author rich
  */
-public class Knight extends Piece {
+public class Knight extends AbstractBitBoardPiece {
 	private static final Logger LOG = LogManager.getLogger(Knight.class);
 
 	/** piece value in centipawns */
@@ -41,12 +41,11 @@ public class Knight extends Piece {
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return Piece.pieceSquareValue(pieces.getBitSet(), colour, PIECE_VALUE, SQUARE_VALUE);
+		return AbstractBitBoardPiece.pieceSquareValue(pieces.getBitSet(), getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	/**
-	 * Stores for each square on the board the possible moves for a knight on
-	 * that square.
+	 * Stores for each square on the board the possible moves for a knight on that square.
 	 */
 	private static final BitSet[] knightMoves = new BitSet[64];
 
@@ -56,12 +55,9 @@ public class Knight extends Piece {
 			knightMoves[i] = new BitSet(64);
 			knightMoves[i].set(i);
 			/*
-			 * LHS: blank first file for -10 and +6 - blank first and 2nd file
-			 * for -17 and +15 RHS: blank last file for +10 and -6 - blank 7th
-			 * and 8th file for +17 and -15
-			 *
-			 * Don't need to blank ranks, these just 'drop off' during the bit
-			 * shift.
+			 * LHS: blank first file for -10 and +6 - blank first and 2nd file for -17 and +15 RHS:
+			 * blank last file for +10 and -6 - blank 7th and 8th file for +17 and -15 Don't need to
+			 * blank ranks, these just 'drop off' during the bit shift.
 			 */
 
 			BitSet[] work = new BitSet[8];
@@ -108,11 +104,10 @@ public class Knight extends Piece {
 	}
 
 	/**
-	 * Constructs the Knight class -- with no pieces on the board. Delegates to
-	 * Knight(Colour, boolean) with parameter false.
+	 * Constructs the Knight class -- with no pieces on the board. Delegates to Knight(Colour,
+	 * boolean) with parameter false.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
+	 * @param colour indicates the colour of the pieces
 	 */
 	public Knight(Colour colour) {
 		this(colour, false);
@@ -121,11 +116,9 @@ public class Knight extends Piece {
 	/**
 	 * Constructs the Knight class.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startPosition
-	 *            if true, the default start squares are assigned. If false, no
-	 *            pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are
+	 *           placed on the board.
 	 */
 	public Knight(Colour colour, boolean startPosition) {
 		this(colour, startPosition, (Square[]) null);
@@ -134,29 +127,23 @@ public class Knight extends Piece {
 	/**
 	 * Constructs the Knight class, defining the start squares.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startSquares
-	 *            the required starting squares of the piece(s). Can be null, in
-	 *            which case no pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
+	 *           no pieces are placed on the board.
 	 */
 	public Knight(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Knight class with the required squares (can be null) or
-	 * the default start squares. Setting 'startPosition' true has precedence
-	 * over 'startSquares'.
+	 * Constructs the Knight class with the required squares (can be null) or the default start
+	 * squares. Setting 'startPosition' true has precedence over 'startSquares'.
 	 *
-	 * @param colour
-	 *            indicates the colour of the pieces
-	 * @param startPosition
-	 *            if true, the default start squares are assigned. Value of
-	 *            'startSquares' will be ignored.
-	 * @param startSquares
-	 *            the required starting squares of the piece(s). Can be null, in
-	 *            which case no pieces are placed on the board.
+	 * @param colour indicates the colour of the pieces
+	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares'
+	 *           will be ignored.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
+	 *           no pieces are placed on the board.
 	 */
 	public Knight(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.KNIGHT);
@@ -170,7 +157,7 @@ public class Knight extends Piece {
 	@Override
 	public void initPosition() {
 		Square[] requiredSquares = null;
-		requiredSquares = colour == Colour.WHITE ? new Square[] { Square.b1, Square.g1 }
+		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.b1, Square.g1 }
 				: new Square[] { Square.b8, Square.g8 };
 		initPosition(requiredSquares);
 	}
@@ -179,9 +166,9 @@ public class Knight extends Piece {
 	public List<Move> findMoves(Position posn, boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
 		List<Move> moves = new ArrayList<>(20);
-		final Square myKing = King.findKing(colour, posn);
-		final Colour oppositeColour = Colour.oppositeColour(colour);
-		final BitSet allMyPiecesBitSet = posn.getAllPieces(colour).getBitSet();
+		final Square myKing = King.findKing(getColour(), posn);
+		final Colour oppositeColour = Colour.oppositeColour(getColour());
+		final BitSet allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
 		final BitSet allOpponentsPiecesBitSet = posn.getAllPieces(oppositeColour).getBitSet();
 
 		/*
@@ -194,13 +181,11 @@ public class Knight extends Piece {
 
 			final Square knightStartSquare = Square.fromBitIndex(i);
 
-			KingChecker kingChecker = new KingChecker(posn, Colour.oppositeColour(colour), myKing);
+			KingChecker kingChecker = new KingChecker(posn, Colour.oppositeColour(getColour()), myKing);
 
 			/*
-			 * Iterates over all possible moves and stores them as moves or
-			 * captures. If the move would leave our king in check, it is
-			 * illegal and is not stored.
-			 * 
+			 * Iterates over all possible moves and stores them as moves or captures. If the move would
+			 * leave our king in check, it is illegal and is not stored.
 			 */
 			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
 				Square targetSquare = Square.fromBitIndex(k);
@@ -208,11 +193,11 @@ public class Knight extends Piece {
 				boolean inCheck = false;
 				if (allOpponentsPiecesBitSet.get(k)) {
 					// capture
-					move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare,
+					move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare,
 							posn.pieceAt(targetSquare, oppositeColour));
 					inCheck = Position.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck);
 				} else {
-					move = new Move(PieceType.KNIGHT, colour, knightStartSquare, targetSquare);
+					move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare);
 					inCheck = kingChecker.isKingInCheck(move, kingInCheck);
 				}
 				if (!inCheck) {
@@ -222,13 +207,12 @@ public class Knight extends Piece {
 		}
 
 		// checks
-		final Square opponentsKing = King.findOpponentsKing(colour, posn);
+		final Square opponentsKing = King.findOpponentsKing(getColour(), posn);
 		final int opponentsKingIndex = opponentsKing.bitIndex();
 		/*
-		 * many moves have the same starting square. If we've already checked
-		 * for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the
-		 * opponent's king.)
+		 * many moves have the same starting square. If we've already checked for discovered check for
+		 * this square, then can use the cached result. (Discovered check only looks along one ray
+		 * from move.from() to the opponent's king.)
 		 */
 		Map<Square, Boolean> discoveredCheckCache = new HashMap<>(5);
 		for (Move move : moves) {
@@ -238,7 +222,7 @@ public class Knight extends Piece {
 				if (discoveredCheckCache.containsKey(move.from())) {
 					isCheck = discoveredCheckCache.get(move.from());
 				} else {
-					isCheck = Position.checkForDiscoveredCheck(posn, move, colour, opponentsKing);
+					isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
 					discoveredCheckCache.put(move.from(), isCheck);
 				}
 			}
@@ -255,10 +239,8 @@ public class Knight extends Piece {
 	/**
 	 * Checks whether the given move attacks the given square.
 	 *
-	 * @param move
-	 *            the move
-	 * @param targetSquareIndex
-	 *            index of the target square
+	 * @param move the move
+	 * @param targetSquareIndex index of the target square
 	 * @return true if the given move attacks the given square.
 	 */
 	// also required by Pawn
@@ -274,13 +256,10 @@ public class Knight extends Piece {
 	}
 
 	/**
-	 * Whether one or more of the knights described in 'knights' attack the
-	 * square 'targetSq'.
+	 * Whether one or more of the knights described in 'knights' attack the square 'targetSq'.
 	 *
-	 * @param targetSq
-	 *            square to be attacked
-	 * @param knights
-	 *            bitset describing where the knights are
+	 * @param targetSq square to be attacked
+	 * @param knights bitset describing where the knights are
 	 * @return true if 'targetSq' is attacked by one or more knights
 	 */
 	public static boolean attacksSquare(Square targetSq, BitSet knights) {
