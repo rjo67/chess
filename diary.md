@@ -3,6 +3,8 @@
 ## 20.10.16
 
 Position: removed 'emptySquares', since this is just totalPieces.flip
+'Piece' is now an interface; introduced AbstractPiece and AbstractBitBoardPiece.
+'King' no longer uses a BitBoard as data structure.
 
 * Current perft:
 ** 5ply:  164.075.551 moves (  104.968 ms) ( 1563,1 moves/ms)
@@ -10,7 +12,7 @@ Position: removed 'emptySquares', since this is just totalPieces.flip
 
 ## 19.10.16
 
-PieceManager: changed 'alreadyCloned' and 'pieces' data structure from HashMap to array:
+PieceManager: changed 'alreadyCloned' and 'pieces' data structure from HashMap to array.
 
 * Current perft:
 ** 5ply:  164.075.551 moves (  112.456 ms) ( 1459,0 moves/ms)
@@ -18,7 +20,7 @@ PieceManager: changed 'alreadyCloned' and 'pieces' data structure from HashMap t
 
 ## 17.10.16
 
-after refactoring: 'Piece' is not yet immutable, therefore need to clone everything every time:
+after refactoring: 'Piece' is not yet immutable, therefore need to clone everything every time.
 
 * Current perft:
 ** 5ply:  164.075.551 moves (  524.974 ms) (  312,5 moves/ms)

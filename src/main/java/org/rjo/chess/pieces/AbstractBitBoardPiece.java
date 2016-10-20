@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
-import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
 
@@ -33,12 +32,6 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 		return piece;
 	}
 
-	/**
-	 * Carries out the move for this piece type, i.e. updates internal structures. More complicated
-	 * situations e.g. promotions, captures are dealt with in {@link Game#move(Move)}.
-	 *
-	 * @param move the move to make
-	 */
 	@Override
 	public void move(Move move) {
 		if (!pieces.getBitSet().get(move.from().bitIndex())) {
@@ -50,12 +43,6 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 		}
 	}
 
-	/**
-	 * Removes the captured piece in a capture move from the internal data structures for that piece
-	 * type.
-	 *
-	 * @param square from where to remove the piece
-	 */
 	@Override
 	public void removePiece(Square square) {
 		if (!pieces.getBitSet().get(square.bitIndex())) {
@@ -64,12 +51,6 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 		pieces.getBitSet().clear(square.bitIndex());
 	}
 
-	/**
-	 * Adds a piece to the internal data structures at the given square. Mainly for promotions. No
-	 * error checking is performed here.
-	 *
-	 * @param square where to add the piece
-	 */
 	@Override
 	public void addPiece(Square square) {
 		pieces.getBitSet().set(square.bitIndex());
@@ -80,11 +61,6 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 		return pieces;
 	}
 
-	/**
-	 * Sets the start squares for this piece type to the parameter(s).
-	 *
-	 * @param requiredSquares all required squares.
-	 */
 	@Override
 	public void initPosition(Square... requiredSquares) {
 		pieces = new BitBoard();
@@ -93,11 +69,6 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 		}
 	}
 
-	/**
-	 * Returns all the squares currently occupied by this piece type.
-	 *
-	 * @return the squares currently occupied by this piece type
-	 */
 	@Override
 	public Square[] getLocations() {
 		Set<Square> set = new HashSet<>();
@@ -107,12 +78,6 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 		return set.toArray(new Square[set.size()]);
 	}
 
-	/**
-	 * Returns true if this piece type is present on the given square.
-	 *
-	 * @param targetSquare square of interest.
-	 * @return true if this piece type is present, otherwise false.
-	 */
 	@Override
 	public boolean pieceAt(Square targetSquare) {
 		return pieces.getBitSet().get(targetSquare.bitIndex());

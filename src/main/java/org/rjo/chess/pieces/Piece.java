@@ -90,6 +90,9 @@ public interface Piece extends Cloneable {
 	 */
 	public void addPiece(Square square);
 
+	/**
+	 * @return the colour of the piece.
+	 */
 	public Colour getColour();
 
 	public BitBoard getBitBoard();

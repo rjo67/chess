@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.rjo.chess.BitBoard;
 import org.rjo.chess.CastlingRights;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
@@ -24,7 +25,7 @@ import org.rjo.chess.util.Stopwatch;
  * @author rich
  * @see http://chessprogramming.wikispaces.com/King+Pattern
  */
-public class King extends AbstractBitBoardPiece {
+public class King extends AbstractPiece {
 	private static final Logger LOG = LogManager.getLogger(King.class);
 
 	/** piece value in centipawns */
@@ -60,13 +61,6 @@ public class King extends AbstractBitBoardPiece {
          -30,-20,-10,  0,  0,-10,-20,-30,
          -50,-40,-30,-20,-20,-30,-40,-50,
    }; // @formatter:on
-
-	@Override
-	public int calculatePieceSquareValue() {
-		return AbstractBitBoardPiece.pieceSquareValue(pieces.getBitSet(), getColour(), PIECE_VALUE,
-				SQUARE_VALUE_MIDDLEGAME);
-		// TODO ENDGAME
-	}
 
 	/**
 	 * Which squares cannot be attacked when castling.
@@ -146,6 +140,11 @@ public class King extends AbstractBitBoardPiece {
 	}
 
 	/**
+	 * location of the king
+	 */
+	private Square kingsSquare;
+
+	/**
 	 * Constructs the King class -- with no pieces on the board. Delegates to King(Colour, boolean)
 	 * with parameter false.
 	 *
@@ -204,14 +203,78 @@ public class King extends AbstractBitBoardPiece {
 	}
 
 	@Override
+	public void initPosition(Square... requiredSquares) {
+		if (requiredSquares != null) {
+			if (requiredSquares.length > 1) {
+				throw new IllegalArgumentException("king cannot have more than one start square");
+			}
+			kingsSquare = requiredSquares[0];
+		}
+	}
+
+	@Override
+	public boolean pieceAt(Square targetSquare) {
+		return kingsSquare == targetSquare;
+	}
+
+	@Override
+	public int calculatePieceSquareValue() {
+
+		int bitIndex = kingsSquare.bitIndex();
+
+		int sqValue;
+		if (getColour() == Colour.WHITE) {
+			// TODO ENDGAME
+			sqValue = SQUARE_VALUE_MIDDLEGAME[bitIndex];
+		} else {
+			sqValue = SQUARE_VALUE_MIDDLEGAME[63 - bitIndex];
+		}
+		return PIECE_VALUE + sqValue;
+	}
+
+	@Override
+	public void addPiece(Square square) {
+		if (kingsSquare != null) {
+			throw new IllegalStateException("cannot add more than one king");
+		}
+		kingsSquare = square;
+	}
+
+	@Override
+	public Square[] getLocations() {
+		return new Square[] { kingsSquare };
+	}
+
+	@Override
+	public void removePiece(Square square) {
+		throw new IllegalStateException("cannot remove king!?");
+	}
+
+	@Override
+	public void move(Move move) {
+		if (kingsSquare != move.from()) {
+			throw new IllegalArgumentException("the king is not on square " + move.from() + ". Move=" + move);
+		}
+		kingsSquare = move.to();
+	}
+
+	@Override
+	public BitBoard getBitBoard() {
+		BitBoard bb = new BitBoard();
+		if (kingsSquare != null) {
+			bb.setBitsAt(kingsSquare);
+		}
+		return bb;
+	}
+
+	@Override
 	public List<Move> findMoves(Position posn, boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
 		List<Move> moves = new ArrayList<>();
 
-		Square kingPosn = Square.fromBitIndex(pieces.getBitSet().nextSetBit(0));
 		Square opponentsKingSquare = findOpponentsKing(posn);
 
-		BitSet possibleMoves = (BitSet) MOVES[kingPosn.bitIndex()].clone();
+		BitSet possibleMoves = (BitSet) MOVES[kingsSquare.bitIndex()].clone();
 
 		// move can't be to a square with a piece of the same colour on it
 		possibleMoves.andNot(posn.getAllPieces(getColour()).getBitSet());
@@ -233,10 +296,10 @@ public class King extends AbstractBitBoardPiece {
 			 * store move as 'move' or 'capture'
 			 */
 			if (opponentsPieces.get(i)) {
-				moves.add(new Move(PieceType.KING, getColour(), kingPosn, targetSquare,
+				moves.add(new Move(PieceType.KING, getColour(), kingsSquare, targetSquare,
 						posn.pieceAt(targetSquare, oppositeColour)));
 			} else {
-				moves.add(new Move(PieceType.KING, getColour(), kingPosn, targetSquare));
+				moves.add(new Move(PieceType.KING, getColour(), kingsSquare, targetSquare));
 			}
 		}
 		long time1 = stopwatch.read();
@@ -345,11 +408,11 @@ public class King extends AbstractBitBoardPiece {
 	 * Locates the king (mine or the opponents).
 	 *
 	 * @param colour which colour king we want
-	 * @param chessboard the board
+	 * @param posn the board
 	 * @return location of this colour's king.
 	 */
-	public static Square findKing(Colour colour, Position chessboard) {
-		return chessboard.getPieces2(colour)[PieceType.KING.ordinal()].getLocations()[0];
+	public static Square findKing(Colour colour, Position posn) {
+		return posn.getPieces2(colour)[PieceType.KING.ordinal()].getLocations()[0];
 	}
 
 	@Override
