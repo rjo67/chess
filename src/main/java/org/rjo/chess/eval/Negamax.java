@@ -1,6 +1,9 @@
-package org.rjo.chess;
+package org.rjo.chess.eval;
 
 import java.util.List;
+
+import org.rjo.chess.Move;
+import org.rjo.chess.Position;
 
 public class Negamax implements SearchStrategy {
 	private static final int MIN_INT = Integer.MIN_VALUE + 5;

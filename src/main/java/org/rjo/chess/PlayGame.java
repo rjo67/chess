@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.rjo.chess.eval.AlphaBeta;
+import org.rjo.chess.eval.MoveInfo;
+import org.rjo.chess.eval.SearchStrategy;
 import org.rjo.chess.pieces.PieceType;
 
 public class PlayGame {

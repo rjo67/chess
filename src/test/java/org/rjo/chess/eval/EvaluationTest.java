@@ -1,9 +1,13 @@
-package org.rjo.chess;
+package org.rjo.chess.eval;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.rjo.chess.Colour;
+import org.rjo.chess.Fen;
+import org.rjo.chess.Game;
+import org.rjo.chess.Square;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Pawn;
 import org.rjo.chess.pieces.Queen;

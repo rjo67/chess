@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Scanner;
 
+import org.rjo.chess.eval.AlphaBeta;
+import org.rjo.chess.eval.MoveInfo;
+import org.rjo.chess.eval.SearchStrategy;
 import org.rjo.chess.pieces.King;
 
 /**

@@ -1,4 +1,4 @@
-package org.rjo.chess;
+package org.rjo.chess.eval;
 
 import java.io.PrintStream;
 import java.util.ArrayDeque;
@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.rjo.chess.Move;
+import org.rjo.chess.Position;
 
 public class AlphaBeta implements SearchStrategy {
 	private static final int MIN_INT = -99999;

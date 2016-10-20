@@ -1,9 +1,13 @@
-package org.rjo.chess;
+package org.rjo.chess.eval;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+
+import org.rjo.chess.Move;
+import org.rjo.chess.MoveEval;
+import org.rjo.chess.Position;
 
 public class SimpleStrategy implements SearchStrategy {
 
