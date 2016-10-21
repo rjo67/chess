@@ -28,8 +28,6 @@ import org.rjo.chess.pieces.PieceManager;
 import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
-import org.rjo.chess.ray.Ray;
-import org.rjo.chess.ray.RayInfo;
 import org.rjo.chess.ray.RayUtils;
 
 /**
@@ -675,12 +673,13 @@ public class Position {
 	public boolean squareIsAttacked(Square targetSquare, Colour opponentsColour) {
 		Piece[] opponentsPieces = getPieces(opponentsColour);
 		// iterate over the pieces
-		// TODO instead of treating queens separately, should 'merge' them with the rooks and the
+		// TODO instead of treating queens separately, could 'merge' them with the rooks and the
 		// bishops
+		BitSet emptySquares = getTotalPieces().flip();
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece piece = opponentsPieces[type.ordinal()];
 			if (piece != null) {
-				if (piece.attacksSquare(getTotalPieces().flip(), targetSquare)) {
+				if (piece.attacksSquare(emptySquares, targetSquare)) {
 					return true;
 				}
 			}
@@ -735,23 +734,25 @@ public class Position {
 	 * @param targetSquare target square
 	 * @return true if a piece on 'startSquare' attacks 'targetSquare'
 	 */
-	public static boolean checkIfPieceOnSquare1CouldAttackSquare2(BitSet emptySquares, BitSet myPieces, Colour myColour,
-			Square startSquare, Square targetSquare) {
-		Ray ray = RayUtils.getRay(startSquare, targetSquare);
-		if (ray != null) {
-			RayInfo info = RayUtils.findFirstPieceOnRay(myColour, emptySquares, myPieces, ray, startSquare.bitIndex());
-			int targetSquareIndex = targetSquare.bitIndex();
-			if (info.foundPiece() && info.getIndexOfPiece() == targetSquareIndex) {
-				return true;
-			}
-			for (int sq : info.getEmptySquares()) {
-				if (sq == targetSquareIndex) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+	// public static boolean checkIfPieceOnSquare1CouldAttackSquare2(BitSet emptySquares, BitSet
+	// myPieces, Colour myColour,
+	// Square startSquare, Square targetSquare) {
+	// Ray ray = RayUtils.getRay(startSquare, targetSquare);
+	// if (ray != null) {
+	// RayInfo info = RayUtils.findFirstPieceOnRay(myColour, emptySquares, myPieces, ray,
+	// startSquare.bitIndex());
+	// int targetSquareIndex = targetSquare.bitIndex();
+	// if (info.foundPiece() && info.getIndexOfPiece() == targetSquareIndex) {
+	// return true;
+	// }
+	// for (int sq : info.getEmptySquares()) {
+	// if (sq == targetSquareIndex) {
+	// return true;
+	// }
+	// }
+	// }
+	// return false;
+	// }
 
 	/**
 	 * Checks if my king is in check after my move, i.e. the piece that moved was actually pinned.
@@ -762,21 +763,22 @@ public class Position {
 	 * @param myKing where my king is
 	 * @return true if this move is illegal since the piece that moved was pinned
 	 */
-	public static boolean checkForPinnedPiece(Position posn, Move move, Colour colour, Square myKing) {
-		// set up the bitsets *after* this move
-		BitSet emptySquares = posn.getTotalPieces().flip();
-		BitSet myPieces = posn.getAllPieces(colour).cloneBitSet();
-
-		emptySquares.set(move.from().bitIndex());
-		emptySquares.clear(move.to().bitIndex());
-		if (move.isEnpassant()) {
-			emptySquares.set(Square.findMoveFromEnpassantSquare(move.to()).bitIndex());
-		}
-		myPieces.clear(move.from().bitIndex());
-		myPieces.set(move.to().bitIndex());
-
-		return RayUtils.kingInCheck(colour, posn, emptySquares, myPieces, myKing, move.from());
-	}
+	// public static boolean checkForPinnedPiece(Position posn, Move move, Colour colour, Square
+	// myKing) {
+	// // set up the bitsets *after* this move
+	// BitSet emptySquares = posn.getTotalPieces().flip();
+	// BitSet myPieces = posn.getAllPieces(colour).cloneBitSet();
+	//
+	// emptySquares.set(move.from().bitIndex());
+	// emptySquares.clear(move.to().bitIndex());
+	// if (move.isEnpassant()) {
+	// emptySquares.set(Square.findMoveFromEnpassantSquare(move.to()).bitIndex());
+	// }
+	// myPieces.clear(move.from().bitIndex());
+	// myPieces.set(move.to().bitIndex());
+	//
+	// return RayUtils.kingInCheck(colour, posn, emptySquares, myPieces, myKing, move.from());
+	// }
 
 	/**
 	 * Checks if my king is in check after the move 'move'.

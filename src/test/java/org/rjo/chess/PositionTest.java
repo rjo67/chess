@@ -16,11 +16,25 @@ import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.util.Stopwatch;
 
 /**
- * Test the updating of Position::'internalStructures'.
+ * Test Position.
  *
  * @author rich
  */
 public class PositionTest {
+
+	@Test
+	public void testit() {
+		Position posn = Fen.decode("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0").getPosition();
+		BitSet bs = new BitSet(64);
+		bs.set(Square.f1.bitIndex());
+		bs.set(Square.g1.bitIndex());
+
+		// bs.and(posn.getTotalPieces().flip());
+		bs.andNot(posn.getTotalPieces().getBitSet());
+
+		assertTrue(bs.cardinality() == 2);
+
+	}
 
 	@Test
 	public void posnSpeedTest() throws InterruptedException {

@@ -63,49 +63,45 @@ public class King extends AbstractPiece {
    }; // @formatter:on
 
 	/**
-	 * Which squares cannot be attacked when castling.
+	 * Which squares cannot be attacked when castling. <br>
+	 * 1st dimension: Colour.<br>
+	 * 2nd: CastlingRights:<br>
+	 * 3rd: Squares
 	 */
-	private static final Map<Colour, Map<CastlingRights, Square[]>> CASTLING_SQUARES_NOT_IN_CHECK;
+	private static final Square[][][] CASTLING_SQUARES_NOT_IN_CHECK;
 
 	static {
-		CASTLING_SQUARES_NOT_IN_CHECK = new HashMap<>();
-		Map<CastlingRights, Square[]> tmp = new HashMap<>();
-		tmp.put(CastlingRights.KINGS_SIDE, new Square[] { Square.f1, Square.g1 });
-		tmp.put(CastlingRights.QUEENS_SIDE, new Square[] { Square.c1, Square.d1 });
-		CASTLING_SQUARES_NOT_IN_CHECK.put(Colour.WHITE, tmp);
-		tmp = new HashMap<>();
-		tmp.put(CastlingRights.KINGS_SIDE, new Square[] { Square.f8, Square.g8 });
-		tmp.put(CastlingRights.QUEENS_SIDE, new Square[] { Square.c8, Square.d8 });
-		CASTLING_SQUARES_NOT_IN_CHECK.put(Colour.BLACK, tmp);
+		CASTLING_SQUARES_NOT_IN_CHECK = new Square[Colour.values().length][CastlingRights.values().length][];
+		CASTLING_SQUARES_NOT_IN_CHECK[Colour.WHITE.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new Square[] {
+				Square.f1, Square.g1 };
+		CASTLING_SQUARES_NOT_IN_CHECK[Colour.WHITE.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new Square[] {
+				Square.c1, Square.d1 };
+		CASTLING_SQUARES_NOT_IN_CHECK[Colour.BLACK.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new Square[] {
+				Square.f8, Square.g8 };
+		CASTLING_SQUARES_NOT_IN_CHECK[Colour.BLACK.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new Square[] {
+				Square.c8, Square.d8 };
+
 	}
 
 	/**
-	 * Which squares need to be empty when castling.
+	 * Which squares need to be empty when castling.<br>
+	 * 1st dimension: Colour.<br>
+	 * 2nd: CastlingRights:<br>
+	 * 3rd: bitindices of Squares
 	 */
-	private static final Map<CastlingRights, BitSet>[] CASTLING_SQUARES_WHICH_MUST_BE_EMPTY;
+	private static final int[][][] CASTLING_SQUARES_WHICH_MUST_BE_EMPTY;
 
 	static {
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY = new Map[2];
-		BitSet bs = new BitSet(64);
-		bs.set(Square.f1.bitIndex());
-		bs.set(Square.g1.bitIndex());
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()] = new HashMap<>(2);
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()].put(CastlingRights.KINGS_SIDE, bs);
-		bs = new BitSet(64);
-		bs.set(Square.b1.bitIndex());
-		bs.set(Square.c1.bitIndex());
-		bs.set(Square.d1.bitIndex());
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()].put(CastlingRights.QUEENS_SIDE, bs);
-		bs = new BitSet(64);
-		bs.set(Square.f8.bitIndex());
-		bs.set(Square.g8.bitIndex());
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()] = new HashMap<>(2);
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()].put(CastlingRights.KINGS_SIDE, bs);
-		bs = new BitSet(64);
-		bs.set(Square.b8.bitIndex());
-		bs.set(Square.c8.bitIndex());
-		bs.set(Square.d8.bitIndex());
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()].put(CastlingRights.QUEENS_SIDE, bs);
+		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY = new int[Colour.values().length][CastlingRights.values().length][];
+		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new int[] {
+				Square.f1.bitIndex(), Square.g1.bitIndex() };
+		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new int[] {
+				Square.b1.bitIndex(), Square.c1.bitIndex(), Square.d1.bitIndex() };
+		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new int[] {
+				Square.f8.bitIndex(), Square.g8.bitIndex() };
+		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new int[] {
+				Square.b8.bitIndex(), Square.c8.bitIndex(), Square.d8.bitIndex() };
+
 	}
 
 	/**
@@ -267,6 +263,35 @@ public class King extends AbstractPiece {
 		return bb;
 	}
 
+	/**
+	 * checks if castling is possible. the approriate squares must be empty and not in check from
+	 * other pieces.
+	 *
+	 * @param posn the current position
+	 * @param oppositeColour opponent's colour
+	 * @param castlingRights which way to castle
+	 * @return true if castling is possible
+	 */
+	private boolean isCastlingLegal(Position posn, Colour oppositeColour, CastlingRights castlingRights) {
+		boolean canCastle = true;
+		// check squares are empty
+		for (int bitIndex : CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[getColour().ordinal()][castlingRights.ordinal()]) {
+			if (canCastle) {
+				canCastle = canCastle && !posn.getTotalPieces().getBitSet().get(bitIndex);
+			}
+		}
+		if (!canCastle) {
+			return false;
+		}
+		// check squares are not attacked by an enemy piece
+		for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK[getColour().ordinal()][castlingRights.ordinal()]) {
+			if (canCastle) {
+				canCastle = canCastle && !posn.squareIsAttacked(sq, oppositeColour);
+			}
+		}
+		return canCastle;
+	}
+
 	@Override
 	public List<Move> findMoves(Position posn, boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
@@ -305,39 +330,13 @@ public class King extends AbstractPiece {
 		long time1 = stopwatch.read();
 
 		// castling -- can't castle out of check
-		if (!kingInCheck && posn.canCastle(getColour(), CastlingRights.KINGS_SIDE)) {
-			// check squares are empty
-			BitSet bs = (BitSet) CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[getColour().ordinal()].get(CastlingRights.KINGS_SIDE)
-					.clone();
-			bs.and(posn.getTotalPieces().flip());
-			boolean canCastle = bs.cardinality() == 2;
-			if (canCastle) {
-				// check squares are not attacked by an enemy piece
-				for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(getColour()).get(CastlingRights.KINGS_SIDE)) {
-					if (canCastle) {
-						canCastle = canCastle && !posn.squareIsAttacked(sq, oppositeColour);
-					}
-				}
-			}
-			if (canCastle) {
+		if (!kingInCheck) {
+			if (posn.canCastle(getColour(), CastlingRights.KINGS_SIDE)
+					&& isCastlingLegal(posn, oppositeColour, CastlingRights.KINGS_SIDE)) {
 				moves.add(Move.castleKingsSide(getColour()));
 			}
-		}
-		if (!kingInCheck && posn.canCastle(getColour(), CastlingRights.QUEENS_SIDE)) {
-			// check squares are empty
-			BitSet bs = (BitSet) CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[getColour().ordinal()]
-					.get(CastlingRights.QUEENS_SIDE).clone();
-			bs.and(posn.getTotalPieces().flip());
-			boolean canCastle = bs.cardinality() == 3;
-			if (canCastle) {
-				// check squares are not attacked by an enemy piece
-				for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK.get(getColour()).get(CastlingRights.QUEENS_SIDE)) {
-					if (canCastle) {
-						canCastle = canCastle && !posn.squareIsAttacked(sq, oppositeColour);
-					}
-				}
-			}
-			if (canCastle) {
+			if (posn.canCastle(getColour(), CastlingRights.QUEENS_SIDE)
+					&& isCastlingLegal(posn, oppositeColour, CastlingRights.QUEENS_SIDE)) {
 				moves.add(Move.castleQueensSide(getColour()));
 			}
 		}
@@ -417,6 +416,6 @@ public class King extends AbstractPiece {
 
 	@Override
 	public boolean attacksSquare(BitSet notused, Square sq) {
-		return MoveDistance.calculateDistance(getLocations()[0], sq) == 1;
+		return MoveDistance.calculateDistance(kingsSquare, sq) == 1;
 	}
 }

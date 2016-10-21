@@ -1,4 +1,4 @@
-package org.rjo.chess;
+package org.rjo.chess.ray;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -9,11 +9,10 @@ import java.util.BitSet;
 import java.util.Random;
 
 import org.junit.Test;
-import org.rjo.chess.ray.Ray;
-import org.rjo.chess.ray.RayFactory;
-import org.rjo.chess.ray.RayInfo;
-import org.rjo.chess.ray.RayType;
-import org.rjo.chess.ray.RayUtils;
+import org.rjo.chess.Colour;
+import org.rjo.chess.Fen;
+import org.rjo.chess.Game;
+import org.rjo.chess.Square;
 
 public class RayTest {
 
