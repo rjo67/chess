@@ -1,4 +1,6 @@
-package org.rjo.chess;
+package org.rjo.chess.eval;
+
+import org.rjo.chess.Move;
 
 public class MoveEval {
    public MoveEval(int value, Move move) {
