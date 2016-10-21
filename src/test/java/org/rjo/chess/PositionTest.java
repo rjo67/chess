@@ -360,7 +360,7 @@ public class PositionTest {
 				.move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5, PieceType.PAWN));
 		assertEmptySquare(newPosn, Square.c4);
 		assertPieceAt(newPosn, Square.d5, PieceType.PAWN);
-		assertTrue(newPosn.getPieces2(Colour.BLACK)[PieceType.PAWN.ordinal()].getBitBoard().getBitSet().isEmpty());
+		assertTrue(newPosn.getPieces(Colour.BLACK)[PieceType.PAWN.ordinal()].getBitBoard().getBitSet().isEmpty());
 	}
 
 	@Test(expected = IllegalArgumentException.class)

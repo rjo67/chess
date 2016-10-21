@@ -19,7 +19,7 @@ public class QueenMoveTest {
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
-		whiteQueen = game.getPosition().getPieces2(Colour.WHITE)[PieceType.QUEEN.ordinal()];
+		whiteQueen = game.getPosition().getPieces(Colour.WHITE)[PieceType.QUEEN.ordinal()];
 	}
 
 	@Test

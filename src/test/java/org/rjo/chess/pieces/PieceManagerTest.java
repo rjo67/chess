@@ -106,10 +106,10 @@ public class PieceManagerTest {
 	 */
 	private void checkPieceObjects(Position before, Position after, Set<PieceType> allowedChangesWhite,
 			Set<PieceType> allowedChangesBlack) {
-		Piece[] whitePiecesBefore = before.getPieceManager().getPiecesForColour2(Colour.WHITE);
-		Piece[] whitePiecesAfter = after.getPieceManager().getPiecesForColour2(Colour.WHITE);
-		Piece[] blackPiecesBefore = before.getPieceManager().getPiecesForColour2(Colour.BLACK);
-		Piece[] blackPiecesAfter = after.getPieceManager().getPiecesForColour2(Colour.BLACK);
+		Piece[] whitePiecesBefore = before.getPieceManager().getPiecesForColour(Colour.WHITE);
+		Piece[] whitePiecesAfter = after.getPieceManager().getPiecesForColour(Colour.WHITE);
+		Piece[] blackPiecesBefore = before.getPieceManager().getPiecesForColour(Colour.BLACK);
+		Piece[] blackPiecesAfter = after.getPieceManager().getPiecesForColour(Colour.BLACK);
 
 		for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
 			if (System.identityHashCode(whitePiecesBefore[pt.ordinal()]) != System

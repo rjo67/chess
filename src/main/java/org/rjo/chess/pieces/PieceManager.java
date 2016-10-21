@@ -95,7 +95,7 @@ public class PieceManager {
 	 * @param colour the required colour
 	 * @return all pieces for the given colour
 	 */
-	public Piece[] getPiecesForColour2(Colour colour) {
+	public Piece[] getPiecesForColour(Colour colour) {
 		return pieces[colour.ordinal()];
 	}
 

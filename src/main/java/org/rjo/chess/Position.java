@@ -252,7 +252,7 @@ public class Position {
 		// return findMovesParallel(colour);
 		List<Move> moves = new ArrayList<>(2000);
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			Piece p = getPieces2(colour)[type.ordinal()];
+			Piece p = getPieces(colour)[type.ordinal()];
 			moves.addAll(p.findMoves(this, inCheck));
 		}
 		return moves;
@@ -266,7 +266,7 @@ public class Position {
 
 				@Override
 				public List<Move> call() throws Exception {
-					Piece p = getPieces2(colour)[type.ordinal()];
+					Piece p = getPieces(colour)[type.ordinal()];
 					return p.findMoves(Position.this, inCheck);
 				}
 
@@ -409,11 +409,11 @@ public class Position {
 		int materialScore = 0;
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			int pieceScore = 0;
-			Piece piece = getPieces2(Colour.WHITE)[type.ordinal()];
+			Piece piece = getPieces(Colour.WHITE)[type.ordinal()];
 			if (piece != null) {
 				pieceScore += piece.calculatePieceSquareValue();
 			}
-			piece = getPieces2(Colour.BLACK)[type.ordinal()];
+			piece = getPieces(Colour.BLACK)[type.ordinal()];
 			if (piece != null) {
 				pieceScore -= piece.calculatePieceSquareValue();
 			}
@@ -433,7 +433,7 @@ public class Position {
 			setEnpassantSquare(null);
 		}
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			Piece p = getPieces2(Colour.WHITE)[type.ordinal()];
+			Piece p = getPieces(Colour.WHITE)[type.ordinal()];
 			moves.addAll(p.findMoves(this, (getSideToMove() == Colour.WHITE ? true : false)));
 		}
 		if (getSideToMove() != Colour.WHITE) {
@@ -446,7 +446,7 @@ public class Position {
 			setEnpassantSquare(null);
 		}
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			Piece p = getPieces2(Colour.BLACK)[type.ordinal()];
+			Piece p = getPieces(Colour.BLACK)[type.ordinal()];
 			moves.addAll(p.findMoves(this, (getSideToMove() == Colour.BLACK ? true : false)));
 		}
 		if (getSideToMove() != Colour.BLACK) {
@@ -603,8 +603,8 @@ public class Position {
 	 * @param colour the required colour
 	 * @return the pieces of this colour
 	 */
-	public Piece[] getPieces2(Colour colour) {
-		return pieceMgr.getPiecesForColour2(colour);
+	public Piece[] getPieces(Colour colour) {
+		return pieceMgr.getPiecesForColour(colour);
 	}
 
 	/**
@@ -673,7 +673,7 @@ public class Position {
 	 * @return true if this square is attacked by the opponent
 	 */
 	public boolean squareIsAttacked(Square targetSquare, Colour opponentsColour) {
-		Piece[] opponentsPieces = getPieces2(opponentsColour);
+		Piece[] opponentsPieces = getPieces(opponentsColour);
 		// iterate over the pieces
 		// TODO instead of treating queens separately, should 'merge' them with the rooks and the
 		// bishops
@@ -802,7 +802,7 @@ public class Position {
 		}
 
 		BitSet friendlyPieces = posn.getAllPieces(Colour.oppositeColour(opponentsColour)).getBitSet();
-		Map<PieceType, BitSet> enemyPieces = setupEnemyBitsets(posn.getPieces2(opponentsColour));
+		Map<PieceType, BitSet> enemyPieces = setupEnemyBitsets(posn.getPieces(opponentsColour));
 
 		if (kingIsAlreadyInCheck) {
 			return KingCheck.isKingInCheckAfterMove_PreviouslyWasInCheck(king, Colour.oppositeColour(opponentsColour),
@@ -849,7 +849,7 @@ public class Position {
 				continue;
 			}
 			for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-				Piece p = getPieces2(colour)[type.ordinal()];
+				Piece p = getPieces(colour)[type.ordinal()];
 				// null == piece-type no longer on board
 				if ((p != null) && (p.pieceAt(targetSquare))) {
 					return type;

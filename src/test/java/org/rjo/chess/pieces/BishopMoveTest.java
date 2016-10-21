@@ -26,7 +26,7 @@ public class BishopMoveTest {
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
-		whiteBishop = game.getPosition().getPieces2(Colour.WHITE)[PieceType.BISHOP.ordinal()];
+		whiteBishop = game.getPosition().getPieces(Colour.WHITE)[PieceType.BISHOP.ordinal()];
 	}
 
 	@Before

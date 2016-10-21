@@ -19,13 +19,13 @@ public class RookMoveTest {
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
-		whiteRook = game.getPosition().getPieces2(Colour.WHITE)[PieceType.ROOK.ordinal()];
+		whiteRook = game.getPosition().getPieces(Colour.WHITE)[PieceType.ROOK.ordinal()];
 	}
 
 	@Test
 	public void startPosition() {
 		Game game = new Game();
-		Rook whiteRook = (Rook) game.getPosition().getPieces2(Colour.WHITE)[PieceType.ROOK.ordinal()];
+		Rook whiteRook = (Rook) game.getPosition().getPieces(Colour.WHITE)[PieceType.ROOK.ordinal()];
 		TestUtil.checkMoves(whiteRook.findMoves(game.getPosition()), new HashSet<>());
 	}
 

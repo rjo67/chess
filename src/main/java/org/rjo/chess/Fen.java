@@ -79,7 +79,7 @@ public class Fen {
 		}
 		for (Colour colour : Colour.ALL_COLOURS) {
 			for (PieceType pieceType : PieceType.ALL_PIECE_TYPES) {
-				Piece piece = posn.getPieces2(colour)[pieceType.ordinal()];
+				Piece piece = posn.getPieces(colour)[pieceType.ordinal()];
 				for (Square sq : piece.getLocations()) {
 					board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
 				}

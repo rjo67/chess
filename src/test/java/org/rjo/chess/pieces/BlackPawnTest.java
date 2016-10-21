@@ -12,7 +12,7 @@ public class BlackPawnTest {
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
-		pawn = game.getPosition().getPieces2(Colour.BLACK)[PieceType.PAWN.ordinal()];
+		pawn = game.getPosition().getPieces(Colour.BLACK)[PieceType.PAWN.ordinal()];
 	}
 
 	@Test

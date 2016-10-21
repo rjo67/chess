@@ -24,7 +24,7 @@ public class KingChecker {
 		this.opponentsColour = opponentsColour;
 		this.myColour = Colour.oppositeColour(opponentsColour);
 		friendlyPieces = chessboard.getAllPieces(myColour).getBitSet();
-		enemyPieces = setupEnemyBitsets(chessboard.getPieces2(opponentsColour));
+		enemyPieces = setupEnemyBitsets(chessboard.getPieces(opponentsColour));
 		this.myKing = myKing;
 	}
 

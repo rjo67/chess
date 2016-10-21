@@ -412,7 +412,7 @@ public class King extends AbstractPiece {
 	 * @return location of this colour's king.
 	 */
 	public static Square findKing(Colour colour, Position posn) {
-		return posn.getPieces2(colour)[PieceType.KING.ordinal()].getLocations()[0];
+		return posn.getPieces(colour)[PieceType.KING.ordinal()].getLocations()[0];
 	}
 
 	@Override

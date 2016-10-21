@@ -37,8 +37,8 @@ public class KingMoveTest {
 	}
 
 	private void setupKings() {
-		whiteKing = game.getPosition().getPieces2(Colour.WHITE)[PieceType.KING.ordinal()];
-		blackKing = game.getPosition().getPieces2(Colour.BLACK)[PieceType.KING.ordinal()];
+		whiteKing = game.getPosition().getPieces(Colour.WHITE)[PieceType.KING.ordinal()];
+		blackKing = game.getPosition().getPieces(Colour.BLACK)[PieceType.KING.ordinal()];
 	}
 
 	@Before
@@ -136,7 +136,7 @@ public class KingMoveTest {
 	@Test
 	public void castleKingsSideInCheckBlack() {
 		Game game = Fen.decode("4k2r/3ppp1B/8/8/8/8/8/6K1 b k - 0 0");
-		Piece blackKing = game.getPosition().getPieces2(Colour.BLACK)[PieceType.KING.ordinal()];
+		Piece blackKing = game.getPosition().getPieces(Colour.BLACK)[PieceType.KING.ordinal()];
 		TestUtil.checkMoves(blackKing.findMoves(game.getPosition()), "Ke8-d8", "Ke8-f8");
 	}
 

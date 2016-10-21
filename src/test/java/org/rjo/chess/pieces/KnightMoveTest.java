@@ -20,7 +20,7 @@ public class KnightMoveTest {
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
-		whiteKnight = game.getPosition().getPieces2(Colour.WHITE)[PieceType.KNIGHT.ordinal()];
+		whiteKnight = game.getPosition().getPieces(Colour.WHITE)[PieceType.KNIGHT.ordinal()];
 	}
 
 	@Test

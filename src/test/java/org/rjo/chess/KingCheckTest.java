@@ -150,13 +150,13 @@ public class KingCheckTest {
 	@Test
 	public void enemyPiecesNotChangedAfterCaptureMove() {
 		setup("3r4/4k3/8/r7/4P3/8/2Kb4/8 w - - 10 10");
-		BitSet bishopBitSet = game.getPosition().getPieces2(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard()
+		BitSet bishopBitSet = game.getPosition().getPieces(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard()
 				.getBitSet();
 		Move move = new Move(PieceType.KING, Colour.WHITE, Square.c2, Square.d2, PieceType.BISHOP);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d2, Colour.WHITE,
 				getWhitePieces(game.getPosition()), enemyPieces, move));
 		// should be same object
-		assertTrue(bishopBitSet == game.getPosition().getPieces2(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard()
+		assertTrue(bishopBitSet == game.getPosition().getPieces(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard()
 				.getBitSet());
 	}
 
@@ -235,7 +235,7 @@ public class KingCheckTest {
 	private Map<PieceType, BitSet> setupBlackBitsets(Position chessboard) {
 		Map<PieceType, BitSet> enemyPieces = new HashMap<>();
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			enemyPieces.put(type, chessboard.getPieces2(Colour.BLACK)[type.ordinal()].getBitBoard().getBitSet());
+			enemyPieces.put(type, chessboard.getPieces(Colour.BLACK)[type.ordinal()].getBitBoard().getBitSet());
 		}
 		return enemyPieces;
 	}
