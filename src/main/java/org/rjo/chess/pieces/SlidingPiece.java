@@ -35,15 +35,13 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare'
-	 * along rank or file, taking into account any intervening pieces.
+	 * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along rank or file, taking into account any
+	 * intervening pieces.
 	 *
-	 * @param pieces which pieces are available. This should represent the rooks and queens in the
-	 *           game.
+	 * @param pieces which pieces are available. This should represent the rooks and queens in the game.
 	 * @param emptySquares which squares are currently empty.
 	 * @param targetSquare which square should be attacked
-	 * @return true if at least one of the given pieces can attack the target square along a rank or
-	 *         file.
+	 * @return true if at least one of the given pieces can attack the target square along a rank or file.
 	 */
 	public static boolean attacksSquareOnRankOrFile(BitSet pieces, BitSet emptySquares, Square targetSquare) {
 		// version using canReachTargetSquare is slower than
@@ -69,15 +67,13 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare'
-	 * along a diagonal, taking into account any intervening pieces.
+	 * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along a diagonal, taking into account any
+	 * intervening pieces.
 	 *
-	 * @param bishopsAndQueens which pieces are available. This should represent the bishops and
-	 *           queens in the game.
+	 * @param bishopsAndQueens which pieces are available. This should represent the bishops and queens in the game.
 	 * @param emptySquares which squares are currently empty.
 	 * @param targetSquare which square should be attacked
-	 * @return true if at least one of the given pieces can attack the target square along a
-	 *         diagonal.
+	 * @return true if at least one of the given pieces can attack the target square along a diagonal.
 	 */
 	public static boolean attacksSquareOnDiagonal(BitSet bishopsAndQueens, BitSet emptySquares, Square targetSquare) {
 		for (int i = bishopsAndQueens.nextSetBit(0); i >= 0; i = bishopsAndQueens.nextSetBit(i + 1)) {
@@ -89,8 +85,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Searches for moves in the direction specified by the {@link Ray} implementation. This is for
-	 * rooks, bishops, and queens.
+	 * Searches for moves in the direction specified by the {@link Ray} implementation. This is for rooks, bishops, and queens.
 	 *
 	 * @param posn state of the board
 	 * @param ray the ray (direction) in which to search
@@ -103,10 +98,11 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		/*
 		 * for each piece, use the ray to find emptySquares / firstPiece on the ray
 		 */
+		BitSet emptySquares = posn.getTotalPieces().flip();
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			Square fromSquareIndex = Square.fromBitIndex(i);
 
-			RayInfo info = RayUtils.findFirstPieceOnRay(getColour(), posn.getTotalPieces().flip(),
+			RayInfo info = RayUtils.findFirstPieceOnRay(getColour(), emptySquares,
 					posn.getAllPieces(getColour()).getBitSet(), ray, i);
 			// add 'emptySquares' from result as normal moves
 			for (int emptySquareIndex : info.getEmptySquares()) {
@@ -138,9 +134,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Checks if a bishop/queen on the given startSquare attacks the given targetSquare, i.e. the
-	 * target square can be reached (diagonally) from the start square and there are no intervening
-	 * pieces.
+	 * Checks if a bishop/queen on the given startSquare attacks the given targetSquare, i.e. the target square can be reached (diagonally) from the
+	 * start square and there are no intervening pieces.
 	 *
 	 * @param emptySquares the empty squares of the board
 	 * @param startSquare start square
@@ -173,8 +168,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Checks if the given move would place the opponent's king in check, i.e. the destination square
-	 * of the move attacks the location of the king along a rank or file.
+	 * Checks if the given move would place the opponent's king in check, i.e. the destination square of the move attacks the location of the king
+	 * along a rank or file.
 	 * <p>
 	 * This is for rook-type moves.
 	 *
@@ -188,9 +183,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Checks if a rook/queen on the given startSquare attacks the given targetSquare, i.e. on the
-	 * same rank or file and no intervening pieces. This is for rook-type moves i.e. straight along
-	 * files or ranks.
+	 * Checks if a rook/queen on the given startSquare attacks the given targetSquare, i.e. on the same rank or file and no intervening pieces. This is
+	 * for rook-type moves i.e. straight along files or ranks.
 	 *
 	 * @param emptySquares a bit set representing the empty squares on the board
 	 * @param startSquare start square
@@ -205,8 +199,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		}
 		if (startSquare.rank() == targetSquare.rank()) {
 			/*
-			 * Algorithm runs from smallest file to largest. If current square is not empty, then give
-			 * up. Otherwise keep going until hit target square.
+			 * Algorithm runs from smallest file to largest. If current square is not empty, then give up. Otherwise keep going until hit target square.
 			 */
 			int[] orderedNumbers = orderNumbers(startSquare.file(), targetSquare.file());
 			int bitIndex = Square.fromRankAndFile(startSquare.rank(), orderedNumbers[0]).bitIndex();
@@ -219,8 +212,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			return true;
 		} else if (startSquare.file() == targetSquare.file()) {
 			/*
-			 * Algorithm runs from smallest rank to largest. If current square is not empty, then give
-			 * up. Otherwise keep going until hit target square.
+			 * Algorithm runs from smallest rank to largest. If current square is not empty, then give up. Otherwise keep going until hit target square.
 			 */
 			int[] orderedNumbers = orderNumbers(startSquare.rank(), targetSquare.rank());
 			int bitIndex = Square.fromRankAndFile(orderedNumbers[0], startSquare.file()).bitIndex();
@@ -240,8 +232,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 *
 	 * @param num1 first number
 	 * @param num2 second number
-	 * @return an array with the first element the smaller number, and the 2nd element the larger
-	 *         number
+	 * @return an array with the first element the smaller number, and the 2nd element the larger number
 	 */
 	private static int[] orderNumbers(int num1, int num2) {
 		int[] res = new int[2];

@@ -362,6 +362,7 @@ public class King extends AbstractPiece {
 		 * from move.from() to the opponent's king.)
 		 */
 		Map<Square, Boolean> discoveredCheckCache = new HashMap<>(2);
+		BitSet emptySquares = posn.getTotalPieces().flip();
 		for (Move move : moves) {
 			boolean isCheck;
 			if (discoveredCheckCache.containsKey(move.from())) {
@@ -372,8 +373,8 @@ public class King extends AbstractPiece {
 			}
 			if (!isCheck) {
 				if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-					isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getTotalPieces().flip(),
-							move.getRooksCastlingMove().to(), opponentsKingSquare);
+					isCheck = SlidingPiece.attacksSquareRankOrFile(emptySquares, move.getRooksCastlingMove().to(),
+							opponentsKingSquare);
 				}
 			}
 			move.setCheck(isCheck);
