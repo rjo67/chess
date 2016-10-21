@@ -2,9 +2,7 @@ package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,8 +26,7 @@ public class Knight extends AbstractBitBoardPiece {
 	private static final int PIECE_VALUE = 320;
 
 	/**
-	 * stores the piece-square values.
-	 * http://chessprogramming.wikispaces.com/Simplified+evaluation+function
+	 * stores the piece-square values. http://chessprogramming.wikispaces.com/Simplified+evaluation+function
 	 */
 	// Important: array value [0] corresponds to square a1; [63] == h8.
 	private static int[] SQUARE_VALUE =
@@ -55,9 +52,8 @@ public class Knight extends AbstractBitBoardPiece {
 			knightMoves[i] = new BitSet(64);
 			knightMoves[i].set(i);
 			/*
-			 * LHS: blank first file for -10 and +6 - blank first and 2nd file for -17 and +15 RHS:
-			 * blank last file for +10 and -6 - blank 7th and 8th file for +17 and -15 Don't need to
-			 * blank ranks, these just 'drop off' during the bit shift.
+			 * LHS: blank first file for -10 and +6 - blank first and 2nd file for -17 and +15 RHS: blank last file for +10 and -6 - blank 7th and 8th
+			 * file for +17 and -15 Don't need to blank ranks, these just 'drop off' during the bit shift.
 			 */
 
 			BitSet[] work = new BitSet[8];
@@ -104,8 +100,7 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Constructs the Knight class -- with no pieces on the board. Delegates to Knight(Colour,
-	 * boolean) with parameter false.
+	 * Constructs the Knight class -- with no pieces on the board. Delegates to Knight(Colour, boolean) with parameter false.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 */
@@ -117,8 +112,7 @@ public class Knight extends AbstractBitBoardPiece {
 	 * Constructs the Knight class.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are
-	 *           placed on the board.
+	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are placed on the board.
 	 */
 	public Knight(Colour colour, boolean startPosition) {
 		this(colour, startPosition, (Square[]) null);
@@ -128,22 +122,19 @@ public class Knight extends AbstractBitBoardPiece {
 	 * Constructs the Knight class, defining the start squares.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
-	 *           no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
 	 */
 	public Knight(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Knight class with the required squares (can be null) or the default start
-	 * squares. Setting 'startPosition' true has precedence over 'startSquares'.
+	 * Constructs the Knight class with the required squares (can be null) or the default start squares. Setting 'startPosition' true has precedence
+	 * over 'startSquares'.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares'
-	 *           will be ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
-	 *           no pieces are placed on the board.
+	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
 	 */
 	public Knight(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.KNIGHT);
@@ -184,8 +175,8 @@ public class Knight extends AbstractBitBoardPiece {
 			KingChecker kingChecker = new KingChecker(posn, Colour.oppositeColour(getColour()), myKing);
 
 			/*
-			 * Iterates over all possible moves and stores them as moves or captures. If the move would
-			 * leave our king in check, it is illegal and is not stored.
+			 * Iterates over all possible moves and stores them as moves or captures. If the move would leave our king in check, it is illegal and is not
+			 * stored.
 			 */
 			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
 				Square targetSquare = Square.fromBitIndex(k);
@@ -210,20 +201,20 @@ public class Knight extends AbstractBitBoardPiece {
 		final Square opponentsKing = King.findOpponentsKing(getColour(), posn);
 		final int opponentsKingIndex = opponentsKing.bitIndex();
 		/*
-		 * many moves have the same starting square. If we've already checked for discovered check for
-		 * this square, then can use the cached result. (Discovered check only looks along one ray
-		 * from move.from() to the opponent's king.)
+		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
+		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
-		Map<Square, Boolean> discoveredCheckCache = new HashMap<>(5);
+		MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
 		for (Move move : moves) {
 			boolean isCheck = checkIfMoveAttacksSquare(move, opponentsKingIndex);
 			// if it's already check, don't need to calculate discovered check
 			if (!isCheck) {
-				if (discoveredCheckCache.containsKey(move.from())) {
-					isCheck = discoveredCheckCache.get(move.from());
+				Boolean lookup = discoveredCheckCache.lookup(move.from());
+				if (lookup != null) {
+					isCheck = lookup;
 				} else {
 					isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-					discoveredCheckCache.put(move.from(), isCheck);
+					discoveredCheckCache.store(move.from(), isCheck);
 				}
 			}
 			move.setCheck(isCheck);

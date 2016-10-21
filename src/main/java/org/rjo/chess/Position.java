@@ -6,10 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -33,7 +31,7 @@ import org.rjo.chess.ray.RayUtils;
 /**
  * An immutable object which stores the board position after a particular move.<br>
  * Previously: Chessboard.java.
- * 
+ *
  * @author rich
  * @since 2016-09-04
  */
@@ -50,14 +48,12 @@ public class Position {
 	private PieceManager pieceMgr;
 
 	/**
-	 * bitboard of all pieces for a particular colour. The dimension indicates the colour {white,
-	 * black}.
+	 * bitboard of all pieces for a particular colour. The dimension indicates the colour {white, black}.
 	 */
 	private BitBoard[] allEnemyPieces;
 
 	/**
-	 * bitboard of all pieces on the board (irrespective of colour). Logical NOT of this BitBoard
-	 * gives a bitboard of all empty squares.
+	 * bitboard of all pieces on the board (irrespective of colour). Logical NOT of this BitBoard gives a bitboard of all empty squares.
 	 */
 	private BitBoard totalPieces;
 
@@ -71,8 +67,7 @@ public class Position {
 	private Colour sideToMove;
 
 	/**
-	 * if the king (of the sideToMove) is currently in check. Normally deduced from the last move but
-	 * can be set delibarately for tests.
+	 * if the king (of the sideToMove) is currently in check. Normally deduced from the last move but can be set delibarately for tests.
 	 */
 	private boolean inCheck;
 
@@ -166,7 +161,7 @@ public class Position {
 
 	/**
 	 * Sets up all pieces and related data structures corresponding to the input parameters.
-	 * 
+	 *
 	 * @param whitePieces layout of the white pieces
 	 * @param blackPieces layout of the black pieces
 	 */
@@ -323,7 +318,7 @@ public class Position {
 
 	/**
 	 * Performs the given move, updating internal data structures.
-	 * 
+	 *
 	 * @param move the move
 	 * @param debugWriter if not null, debug info will be written here
 	 */
@@ -394,15 +389,15 @@ public class Position {
 	}
 
 	/**
-	 * Calculates a static value for the current position. In order for NegaMax to work, it is
-	 * important to return the score relative to the side being evaluated.
+	 * Calculates a static value for the current position. In order for NegaMax to work, it is important to return the score relative to the side being
+	 * evaluated.
 	 *
 	 * @return a value in centipawns
 	 */
 	public int evaluate() {
 		/*
-		 * materialScore = kingWt * (wK-bK) + queenWt * (wQ-bQ) + rookWt * (wR-bR) + knightWt* (wN-bN)
-		 * + bishopWt* (wB-bB) + pawnWt * (wP-bP) mobilityScore = mobilityWt * (wMobility-bMobility)
+		 * materialScore = kingWt * (wK-bK) + queenWt * (wQ-bQ) + rookWt * (wR-bR) + knightWt* (wN-bN) + bishopWt* (wB-bB) + pawnWt * (wP-bP)
+		 * mobilityScore = mobilityWt * (wMobility-bMobility)
 		 */
 		int materialScore = 0;
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
@@ -580,8 +575,8 @@ public class Position {
 	// }
 
 	/**
-	 * Updates the given bitset to represent the move. The from and to squares will be flipped. If
-	 * castling then the rook's move is also taken into a/c.
+	 * Updates the given bitset to represent the move. The from and to squares will be flipped. If castling then the rook's move is also taken into
+	 * a/c.
 	 *
 	 * @param bitset the bitset to be updated.
 	 * @param move the move. NB only non-capture moves are supported by this method!
@@ -616,9 +611,8 @@ public class Position {
 	}
 
 	/**
-	 * Access to a BitBoard of all the pieces irrespective of colour. Logical NOT of this BitBoard
-	 * gives a bitboard of all empty squares.
-	 * 
+	 * Access to a BitBoard of all the pieces irrespective of colour. Logical NOT of this BitBoard gives a bitboard of all empty squares.
+	 *
 	 * @return a BitBoard containing all the pieces irrespective of colour.
 	 */
 	public BitBoard getTotalPieces() {
@@ -690,8 +684,7 @@ public class Position {
 	/**
 	 * Checks for a discovered check after the move 'move'.
 	 * <p>
-	 * This will not be 100% correct for moves along the same ray to the opponent's king. But these
-	 * moves are already check and not discovered check.
+	 * This will not be 100% correct for moves along the same ray to the opponent's king. But these moves are already check and not discovered check.
 	 *
 	 * @param posn the chessboard
 	 * @param move the move
@@ -722,8 +715,7 @@ public class Position {
 	}
 
 	/**
-	 * Returns true if a piece on 'startSquare' attacks 'targetSquare', i.e. the two squares are on
-	 * the same ray and there are no intervening pieces.
+	 * Returns true if a piece on 'startSquare' attacks 'targetSquare', i.e. the two squares are on the same ray and there are no intervening pieces.
 	 * <p>
 	 * It still depends on the piece type to determine whether there really is an attack.
 	 *
@@ -804,7 +796,7 @@ public class Position {
 		}
 
 		BitSet friendlyPieces = posn.getAllPieces(Colour.oppositeColour(opponentsColour)).getBitSet();
-		Map<PieceType, BitSet> enemyPieces = setupEnemyBitsets(posn.getPieces(opponentsColour));
+		BitSet[] enemyPieces = setupEnemyBitsets(posn.getPieces(opponentsColour));
 
 		if (kingIsAlreadyInCheck) {
 			return KingCheck.isKingInCheckAfterMove_PreviouslyWasInCheck(king, Colour.oppositeColour(opponentsColour),
@@ -816,10 +808,10 @@ public class Position {
 	}
 
 	// TODO check this seems to be duplicated in KingChecker
-	private static Map<PieceType, BitSet> setupEnemyBitsets(Piece[] pieces) {
-		Map<PieceType, BitSet> enemyPieces = new HashMap<>();
+	private static BitSet[] setupEnemyBitsets(Piece[] pieces) {
+		BitSet[] enemyPieces = new BitSet[PieceType.ALL_PIECE_TYPES.length];
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			enemyPieces.put(type, pieces[type.ordinal()].getBitBoard().getBitSet());
+			enemyPieces[type.ordinal()] = pieces[type.ordinal()].getBitBoard().getBitSet();
 		}
 		return enemyPieces;
 	}

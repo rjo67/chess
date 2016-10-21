@@ -6,12 +6,17 @@ import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
+import org.rjo.chess.Square;
 
 /**
  * Stores the type and colour of a piece.
- * 
+ *
  * @author rich
  * @since 2016-10-20
+ */
+/**
+ * @author rich
+ * @since 2016-10-21
  */
 public abstract class AbstractPiece implements Piece {
 
@@ -40,8 +45,7 @@ public abstract class AbstractPiece implements Piece {
 	}
 
 	/**
-	 * Finds all possible moves for this piece type in the given position. Delegates to
-	 * {@link #findMoves(Game, boolean)} with 2nd parameter FALSE.
+	 * Finds all possible moves for this piece type in the given position. Delegates to {@link #findMoves(Game, boolean)} with 2nd parameter FALSE.
 	 *
 	 * @param position current game state.
 	 * @return a list of all possible moves.
@@ -76,4 +80,20 @@ public abstract class AbstractPiece implements Piece {
 		return type;
 	}
 
+	/**
+	 * A simple cache to map values to squares.
+	 */
+	public static class MoveCache<T> {
+		// can't create generic array
+		private Object[] discoveredCheckCache = new Object[Square.values().length];
+
+		@SuppressWarnings("unchecked")
+		public T lookup(Square square) {
+			return (T) discoveredCheckCache[square.ordinal()];
+		}
+
+		public void store(Square square, T isCheck) {
+			discoveredCheckCache[square.ordinal()] = isCheck;
+		}
+	}
 }

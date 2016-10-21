@@ -2,10 +2,8 @@ package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,8 +30,7 @@ public class King extends AbstractPiece {
 	private static final int PIECE_VALUE = 20000;
 
 	/**
-	 * stores the piece-square values.
-	 * http://chessprogramming.wikispaces.com/Simplified+evaluation+function
+	 * stores the piece-square values. http://chessprogramming.wikispaces.com/Simplified+evaluation+function
 	 */
 	// Important: array value [0] corresponds to square a1; [63] == h8.
 	private static final int[] SQUARE_VALUE_MIDDLEGAME =
@@ -141,8 +138,7 @@ public class King extends AbstractPiece {
 	private Square kingsSquare;
 
 	/**
-	 * Constructs the King class -- with no pieces on the board. Delegates to King(Colour, boolean)
-	 * with parameter false.
+	 * Constructs the King class -- with no pieces on the board. Delegates to King(Colour, boolean) with parameter false.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 */
@@ -154,8 +150,7 @@ public class King extends AbstractPiece {
 	 * Constructs the King class.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are
-	 *           placed on the board.
+	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are placed on the board.
 	 */
 	public King(Colour colour, boolean startPosition) {
 		this(colour, startPosition, (Square[]) null);
@@ -165,22 +160,19 @@ public class King extends AbstractPiece {
 	 * Constructs the King class, defining the start squares.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
-	 *           no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
 	 */
 	public King(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the King class with the required squares (can be null) or the default start
-	 * squares. Setting 'startPosition' true has precedence over 'startSquares'.
+	 * Constructs the King class with the required squares (can be null) or the default start squares. Setting 'startPosition' true has precedence over
+	 * 'startSquares'.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares'
-	 *           will be ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
-	 *           no pieces are placed on the board.
+	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
 	 */
 	public King(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.KING);
@@ -264,8 +256,7 @@ public class King extends AbstractPiece {
 	}
 
 	/**
-	 * checks if castling is possible. the approriate squares must be empty and not in check from
-	 * other pieces.
+	 * checks if castling is possible. the approriate squares must be empty and not in check from other pieces.
 	 *
 	 * @param posn the current position
 	 * @param oppositeColour opponent's colour
@@ -308,8 +299,7 @@ public class King extends AbstractPiece {
 		possibleMoves.andNot(MOVES[opponentsKingSquare.bitIndex()]);
 
 		/*
-		 * possibleMoves now contains the possible moves apart from castling. (Moving the king to an
-		 * attacked square has not been checked yet.)
+		 * possibleMoves now contains the possible moves apart from castling. (Moving the king to an attacked square has not been checked yet.)
 		 */
 
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
@@ -357,19 +347,19 @@ public class King extends AbstractPiece {
 		// (b) discovered check
 
 		/*
-		 * all king moves have the same starting square. If we've already checked for discovered check
-		 * for this square, then can use the cached result. (Discovered check only looks along one ray
-		 * from move.from() to the opponent's king.)
+		 * all king moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
+		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
-		Map<Square, Boolean> discoveredCheckCache = new HashMap<>(2);
+		MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
 		BitSet emptySquares = posn.getTotalPieces().flip();
 		for (Move move : moves) {
 			boolean isCheck;
-			if (discoveredCheckCache.containsKey(move.from())) {
-				isCheck = discoveredCheckCache.get(move.from());
+			Boolean lookup = discoveredCheckCache.lookup(move.from());
+			if (lookup != null) {
+				isCheck = lookup;
 			} else {
 				isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKingSquare);
-				discoveredCheckCache.put(move.from(), isCheck);
+				discoveredCheckCache.store(move.from(), isCheck);
 			}
 			if (!isCheck) {
 				if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
@@ -393,8 +383,7 @@ public class King extends AbstractPiece {
 	}
 
 	/**
-	 * Locates the enemy's king. TODO store this value in 'Game' after each move, to make this lookup
-	 * quicker.
+	 * Locates the enemy's king. TODO store this value in 'Game' after each move, to make this lookup quicker.
 	 *
 	 * @param myColour my colour
 	 * @param chessboard the board

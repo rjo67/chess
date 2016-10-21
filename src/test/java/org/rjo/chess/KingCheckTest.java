@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -18,7 +17,7 @@ import org.rjo.chess.pieces.PieceType;
  */
 public class KingCheckTest {
 	private Game game;
-	private Map<PieceType, BitSet> enemyPieces;
+	private BitSet[] enemyPieces;
 
 	private void setup(String fen) {
 		game = Fen.decode(fen);
@@ -71,7 +70,7 @@ public class KingCheckTest {
 	@Test
 	public void knightGivesCheck() {
 		setup("8/4k3/8/2n5/4P3/3K4/8/8 w - - 10 10");
-		Map<PieceType, BitSet> enemyPieces = setupBlackBitsets(game.getPosition());
+		BitSet[] enemyPieces = setupBlackBitsets(game.getPosition());
 		assertTrue(KingCheck.isKingInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()), enemyPieces));
 	}
 
@@ -130,8 +129,7 @@ public class KingCheckTest {
 	}
 
 	/**
-	 * the 'friendlyPieces' bitset must not get changed by the call to
-	 * {@link KingCheck#isKingInCheck(Square, Colour, BitSet, Map, Move)}.
+	 * the 'friendlyPieces' bitset must not get changed by the call to {@link KingCheck#isKingInCheck(Square, Colour, BitSet, Map, Move)}.
 	 */
 	@Test
 	public void friendlyPiecesDoesNotGetChangedAfterMove() {
@@ -144,8 +142,7 @@ public class KingCheckTest {
 	}
 
 	/**
-	 * the 'enemyPieces' bitset must not get changed by the call to
-	 * {@link KingCheck#isKingInCheck(Square, Colour, BitSet, Map, Move)}.
+	 * the 'enemyPieces' bitset must not get changed by the call to {@link KingCheck#isKingInCheck(Square, Colour, BitSet, Map, Move)}.
 	 */
 	@Test
 	public void enemyPiecesNotChangedAfterCaptureMove() {
@@ -232,10 +229,10 @@ public class KingCheckTest {
 		return chessboard.getAllPieces(Colour.WHITE).getBitSet();
 	}
 
-	private Map<PieceType, BitSet> setupBlackBitsets(Position chessboard) {
-		Map<PieceType, BitSet> enemyPieces = new HashMap<>();
+	private BitSet[] setupBlackBitsets(Position posn) {
+		BitSet[] enemyPieces = new BitSet[PieceType.ALL_PIECE_TYPES.length];
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			enemyPieces.put(type, chessboard.getPieces(Colour.BLACK)[type.ordinal()].getBitBoard().getBitSet());
+			enemyPieces[type.ordinal()] = posn.getPieces(Colour.BLACK)[type.ordinal()].getBitBoard().getBitSet();
 		}
 		return enemyPieces;
 	}

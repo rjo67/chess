@@ -29,8 +29,7 @@ public class Rook extends SlidingPiece {
 
 	private static final Logger LOG = LogManager.getLogger(Rook.class);
 	/*
-	 * if useMovemap is defined, we'll use the data structures moveMap, vertMoveMap. Otherwise the
-	 * ray algorithm will be used.
+	 * if useMovemap is defined, we'll use the data structures moveMap, vertMoveMap. Otherwise the ray algorithm will be used.
 	 */
 	private static final boolean USE_MOVE_MAP;
 
@@ -58,10 +57,9 @@ public class Rook extends SlidingPiece {
       // @formatter:on
 
 	/**
-	 * stores possible moves from posn 'x' (first array dimension). x is the file (in bits from
-	 * right, RHS==0). so moveMap[4] stores patterns where the rook is on the 4th file. In the map
-	 * itself: the key is the value of the byte pattern (file 'x' is always 1). the value stores
-	 * which moves are valid for this pattern. The maps are immutable.
+	 * stores possible moves from posn 'x' (first array dimension). x is the file (in bits from right, RHS==0). so moveMap[4] stores patterns where the
+	 * rook is on the 4th file. In the map itself: the key is the value of the byte pattern (file 'x' is always 1). the value stores which moves are
+	 * valid for this pattern. The maps are immutable.
 	 */
 	private final static Map<Integer, MoveInfo>[] moveMap = new Map[8];
 	private final static Map<Integer, MoveInfo>[] vertMoveMap = new Map[8];
@@ -94,10 +92,9 @@ public class Rook extends SlidingPiece {
        */
 
 		/*
-		 * general algorithm: 'tmpMoveMap' stores the bitmaps to the 'left' and the 'right' of
-		 * piecePosn. In the 3rd for loop, these get concatenated into 'concatMoveMap' -- one value
-		 * for both the LHS and the RHS. These values are then stored as immutable maps. 'vertMoveMap'
-		 * is then generated from the horizontal 'moveMap'.
+		 * general algorithm: 'tmpMoveMap' stores the bitmaps to the 'left' and the 'right' of piecePosn. In the 3rd for loop, these get concatenated
+		 * into 'concatMoveMap' -- one value for both the LHS and the RHS. These values are then stored as immutable maps. 'vertMoveMap' is then
+		 * generated from the horizontal 'moveMap'.
 		 */
 
 		// achtung! In this array the index starts from the right!
@@ -228,8 +225,7 @@ public class Rook extends SlidingPiece {
 	}
 
 	/**
-	 * Constructs the Rook class -- with no pieces on the board. Delegates to Rook(Colour, boolean)
-	 * with parameter false.
+	 * Constructs the Rook class -- with no pieces on the board. Delegates to Rook(Colour, boolean) with parameter false.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 */
@@ -241,8 +237,7 @@ public class Rook extends SlidingPiece {
 	 * Constructs the Rook class.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are
-	 *           placed on the board.
+	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are placed on the board.
 	 */
 	public Rook(Colour colour, boolean startPosition) {
 		this(colour, startPosition, null);
@@ -252,22 +247,19 @@ public class Rook extends SlidingPiece {
 	 * Constructs the Rook class, defining the start squares.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
-	 *           no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
 	 */
 	public Rook(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Rook class with the required squares (can be null) or the default start
-	 * squares. Setting 'startPosition' true has precedence over 'startSquares'.
+	 * Constructs the Rook class with the required squares (can be null) or the default start squares. Setting 'startPosition' true has precedence over
+	 * 'startSquares'.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares'
-	 *           will be ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case
-	 *           no pieces are placed on the board.
+	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
 	 */
 	public Rook(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.ROOK);
@@ -333,11 +325,9 @@ public class Rook extends SlidingPiece {
 	 * @param moves possible moves will be returned in this list
 	 * @param opponentsColour opponent's colour
 	 * @param opponentsPieces bitset of opponent's pieces
-	 * @param bitIndexOfPiece bit index of our piece for which the moves are currently being
-	 *           calculated
+	 * @param bitIndexOfPiece bit index of our piece for which the moves are currently being calculated
 	 * @param fromSquareIndex square corresponding to bitIndexOfPiece
-	 * @param moveinfo the MoveInfo object corresponding to the file (or rank) which we're currently
-	 *           looking at.
+	 * @param moveinfo the MoveInfo object corresponding to the file (or rank) which we're currently looking at.
 	 */
 	private void addMoves(Position chessboard, List<Move> moves, Colour opponentsColour, BitSet opponentsPieces,
 			int bitIndexOfPiece, Square fromSquareIndex, MoveInfo moveinfo) {
@@ -387,20 +377,20 @@ public class Rook extends SlidingPiece {
 		// checks
 		Square opponentsKing = King.findOpponentsKing(getColour(), posn);
 		/*
-		 * most moves have the same starting square. If we've already checked for discovered check for
-		 * this square, then can use the cached result. (Discovered check only looks along one ray
-		 * from move.from() to the opponent's king.)
+		 * most moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
+		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
-		Map<Square, Boolean> discoveredCheckCache = new HashMap<>(5);
+		MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
 		for (Move move : moves) {
 			boolean isCheck = findRankOrFileCheck(posn, move, opponentsKing);
 			// if it's already check, don't need to calculate discovered check
 			if (!isCheck) {
-				if (discoveredCheckCache.containsKey(move.from())) {
-					isCheck = discoveredCheckCache.get(move.from());
+				Boolean lookup = discoveredCheckCache.lookup(move.from());
+				if (lookup != null) {
+					isCheck = lookup;
 				} else {
 					isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-					discoveredCheckCache.put(move.from(), isCheck);
+					discoveredCheckCache.store(move.from(), isCheck);
 				}
 			}
 			move.setCheck(isCheck);

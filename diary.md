@@ -1,5 +1,11 @@
 # Diary #
 
+## 21.10.16
+
+Removed internal use of HashMaps in favour of arrays where possible.
+* Current perft:
+** 5ply:  164.075.551 moves (   93.051 ms) ( 1763,3 moves/ms)
+
 ## 20.10.16
 
 Position: removed 'emptySquares', since this is just totalPieces.flip
