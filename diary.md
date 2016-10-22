@@ -1,13 +1,13 @@
 # Diary #
 
 ## Overview of commits and perfmance
-description | commit | perft
------------ | ------ | -----
- | 1faec96 | (   72.387 ms) ( 2266,6 moves/ms)
-rays | 48188b9 | (   80.198 ms) ( 2045,9 moves/ms)
-added KingChecker | cb0c20c | (   76.848 ms) ( 2135,1 moves/ms)
-rookmoves | eb33026 | (   77.476 ms) ( 2117,8 moves/ms)
-project subdirs removed. Also added Rook::findMovesUsingMoveMap, introducing hashmaps. | ac7390a | (   79.301 ms) ( 2069,0 moves/ms)
+date | description | commit | perft
+---- | ----------- | ------ | -----
+17.07.16 | project subdirs removed. Added Rook::findMovesUsingMoveMap, introducing hashmaps. | ac7390a | (   79.301 ms) ( 2069,0 moves/ms)
+13.02.16 | rookmoves | eb33026 | (   77.476 ms) ( 2117,8 moves/ms)
+27.12.15 | added KingChecker | cb0c20c | (   76.848 ms) ( 2135,1 moves/ms)
+24.10.15 | rays | 48188b9 | (   80.198 ms) ( 2045,9 moves/ms)
+21.10.15 | | 1faec96 | (   72.387 ms) ( 2266,6 moves/ms)
 
 
 ## 22.10.16
