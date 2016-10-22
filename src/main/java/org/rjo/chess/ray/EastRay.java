@@ -8,7 +8,7 @@ import org.rjo.chess.pieces.PieceType;
 
 public class EastRay extends BaseRay {
 
-	private static EastRay instance;
+	private static EastRay instance = new EastRay();
 
 	private static final List<Integer>[] RAY_SQUARES;
 
@@ -30,9 +30,6 @@ public class EastRay extends BaseRay {
 	}
 
 	public static EastRay instance() {
-		if (instance == null) {
-			instance = new EastRay();
-		}
 		return instance;
 	}
 

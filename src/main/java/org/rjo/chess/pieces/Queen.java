@@ -11,7 +11,7 @@ import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
-import org.rjo.chess.ray.RayFactory;
+import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.Stopwatch;
 
@@ -105,7 +105,7 @@ public class Queen extends SlidingPiece {
 		 * search for moves in all compass directions.
 		 */
 		for (RayType rayType : RayType.values()) {
-			moves.addAll(search(posn, RayFactory.getRay(rayType)));
+			moves.addAll(search(posn, BaseRay.getRay(rayType)));
 		}
 		// make sure my king is not/no longer in check
 		Square myKing = King.findKing(getColour(), posn);

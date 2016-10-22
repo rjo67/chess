@@ -7,8 +7,8 @@ import java.util.Map;
 import org.rjo.chess.pieces.Knight;
 import org.rjo.chess.pieces.Pawn;
 import org.rjo.chess.pieces.PieceType;
+import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.Ray;
-import org.rjo.chess.ray.RayFactory;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.ray.RayUtils;
 
@@ -88,7 +88,7 @@ public class KingCheck {
 		}
 
 		for (RayType rayType : raysToCheck) {
-			Ray ray = RayFactory.getRay(rayType);
+			Ray ray = BaseRay.getRay(rayType);
 			Iterator<Integer> rayIter = ray.squaresFrom(kingsSquare);
 			while (rayIter.hasNext()) {
 				int bitIndex = rayIter.next();

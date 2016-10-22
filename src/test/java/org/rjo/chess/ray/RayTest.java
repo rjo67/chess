@@ -27,7 +27,7 @@ public class RayTest {
 			int nbrEmptySquares = 0;
 			for (RayType rayType : RayType.values()) {
 				RayInfo info = RayUtils.findFirstPieceOnRay(Colour.BLACK, game.getPosition().getTotalPieces().flip(),
-						game.getPosition().getAllPieces(Colour.WHITE).getBitSet(), RayFactory.getRay(rayType), i);
+						game.getPosition().getAllPieces(Colour.WHITE).getBitSet(), BaseRay.getRay(rayType), i);
 				// System.out.println(ray + " " + info);
 				nbrEmptySquares += info.getEmptySquares().size();
 			}

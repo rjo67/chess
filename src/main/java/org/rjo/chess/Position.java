@@ -782,14 +782,14 @@ public class Position {
 	 * @param kingIsAlreadyInCheck true if the king was already in check before the 'move'
 	 * @return true if this move leaves the king in check (i.e. is an illegal move)
 	 */
-	// TODO check this seems to be duplicated in KingChecker
+	// TODO this seems to be duplicated in KingChecker
 	public static boolean isKingInCheck(Position posn, Move move, Colour opponentsColour, Square king,
 			boolean kingIsAlreadyInCheck) {
 
 		// short circuit if king was not in check beforehand (therefore only
 		// need to check for a pinned piece) and the
 		// moving piece's original square is not on a ray to the king
-		if ((move.getPiece() != PieceType.KING) && !kingIsAlreadyInCheck) {
+		if (!kingIsAlreadyInCheck && (move.getPiece() != PieceType.KING)) {
 			if (null == RayUtils.getRay(king, move.from())) {
 				return false;
 			}

@@ -12,7 +12,7 @@ import org.rjo.chess.KingChecker;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
-import org.rjo.chess.ray.RayFactory;
+import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.Stopwatch;
 
@@ -104,7 +104,7 @@ public class Bishop extends SlidingPiece {
 
 		// search for moves
 		for (RayType rayType : RayType.RAY_TYPES_DIAGONAL) {
-			moves.addAll(search(posn, RayFactory.getRay(rayType)));
+			moves.addAll(search(posn, BaseRay.getRay(rayType)));
 		}
 
 		// make sure king is not/no longer in check

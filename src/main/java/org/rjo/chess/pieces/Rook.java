@@ -15,7 +15,7 @@ import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
-import org.rjo.chess.ray.RayFactory;
+import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.BitValueCalculator;
 import org.rjo.chess.util.Stopwatch;
@@ -111,8 +111,7 @@ public class Rook extends SlidingPiece {
 			for (int posnToCheck = piecePosn + 1; posnToCheck < 8; posnToCheck++) {
 				maskStart = maskStart << 1;
 				int mask = maskStart + 1;// b11, b101, b1001,
-				fieldIncr--; // since processing LHS, need to store -1, -2, -3,
-									// ...
+				fieldIncr--; // since processing LHS, need to store -1, -2, -3, ...
 				if (fieldIncr != 0) {
 					moves.add(fieldIncr);
 				}
@@ -168,8 +167,7 @@ public class Rook extends SlidingPiece {
 		}
 
 		// concat the two dimensions together to get the definitive moveMap
-		// Achtung! concatMoveMap[0] is the leftmost file, e.g. A1. this is the
-		// opposite of tmpMoveMap.
+		// Achtung! concatMoveMap[0] is the leftmost file, e.g. A1. this is the opposite of tmpMoveMap.
 		Map<Integer, MoveInfo>[] concatMoveMap = new HashMap[8];
 		for (int piecePosn = 0; piecePosn < 8; piecePosn++) {
 			int translatedPiecePosn = 7 - piecePosn;
@@ -240,7 +238,7 @@ public class Rook extends SlidingPiece {
 	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are placed on the board.
 	 */
 	public Rook(Colour colour, boolean startPosition) {
-		this(colour, startPosition, null);
+		this(colour, startPosition, (Square[]) null);
 	}
 
 	/**
@@ -359,7 +357,7 @@ public class Rook extends SlidingPiece {
 			moves = findMovesUsingMoveMap(posn);
 		} else {
 			for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
-				moves.addAll(search(posn, RayFactory.getRay(rayType)));
+				moves.addAll(search(posn, BaseRay.getRay(rayType)));
 			}
 		}
 		// make sure king is not/no longer in check
