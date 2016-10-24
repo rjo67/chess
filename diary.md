@@ -8,17 +8,22 @@ date | description | commit | perft
 27.12.15 | added KingChecker | cb0c20c | (   76.848 ms) ( 2135,1 moves/ms)
 24.10.15 | rays | 48188b9 | (   80.198 ms) ( 2045,9 moves/ms)
 21.10.15 | | 1faec96 | (   72.387 ms) ( 2266,6 moves/ms)
+10.04.15 | pawn optimisations | | (   69.508 ms) ( 2360,5 moves/ms)
+06.04.15 | using rays, caching discovered check | | (  107.777 ms) ( 1522,4 moves/ms)
+03.04.15 | | | (   142.830 ms) ( 1148,7 moves/ms)
 
 
 ## 22.10.16
 
 Removed use of Hashmap in RayFactory, and then removed RayFactory to BaseRay.
 
+Perft: 1843,2 moves/ms.
+
 ## 21.10.16
 
 Removed internal use of HashMaps in favour of arrays where possible.
-* Current perft:
-** 5ply:  164.075.551 moves (   93.051 ms) ( 1763,3 moves/ms)
+
+Current perft: 1763,3 moves/ms.
 
 ## 20.10.16
 
@@ -26,31 +31,26 @@ Position: removed 'emptySquares', since this is just totalPieces.flip
 'Piece' is now an interface; introduced AbstractPiece and AbstractBitBoardPiece.
 'King' no longer uses a BitBoard as data structure.
 
-* Current perft:
-** 5ply:  164.075.551 moves (  104.968 ms) ( 1563,1 moves/ms)
+Current perft: 1563,1 moves/ms.
 
 
 ## 19.10.16
 
 PieceManager: changed 'alreadyCloned' and 'pieces' data structure from HashMap to array.
 
-* Current perft:
-** 5ply:  164.075.551 moves (  112.456 ms) ( 1459,0 moves/ms)
-** 5ply:  164.075.551 moves (  180.884 ms) (  907,1 moves/ms)
+Current perft: 1459,0 moves/ms.
 
 ## 17.10.16
 
-after refactoring: 'Piece' is not yet immutable, therefore need to clone everything every time.
+after 'immutable' refactoring: 'Piece' is not yet immutable, therefore need to clone everything every time.
 
-* Current perft:
-** 5ply:  164.075.551 moves (  524.974 ms) (  312,5 moves/ms)
+Current perft: 312,5 moves/ms.
 
 ## 21.10.15
 
 Removed extra data structures rookAndQueen, bishopAndQueen.
 
-* Current perft:
-** 5ply:  164.075.551 moves (   71.325 ms) ( 2300,4 moves/ms)
+Current perft: 2300,4 moves/ms.
 
 ## 22.05.15
 
@@ -69,10 +69,7 @@ alpha-beta search
 ## 10.04.15
 pawn optimisations.
 
-* Current perft:
-** 5ply:  164.075.551 moves (   74.889 ms) ( 2190,9 moves/ms)
-** 5ply:  164.075.551 moves (   72.033 ms) ( 2277,8 moves/ms)
-** 5ply:  164.075.551 moves (   69.508 ms) ( 2360,5 moves/ms)
+* Current perft: 2360,5 moves/ms.
 
 ## 08.04.15
 Bug in castle move: need to check for check.
@@ -80,31 +77,21 @@ Bug in castle move: need to check for check.
 if previous move was not a check, then only need to check if my move exposes the king (i.e. the piece was pinned).
 This requires that the 'inCheck' flag always gets set properly.
 
-pawn promotion optimisations
-
-* Current perft:
-** 5ply:  164.075.551 moves (   79.460 ms) ( 2064,9 moves/ms)
-** 5ply:  164.075.551 moves (   74.889 ms) ( 2190,9 moves/ms)
+pawn promotion optimisations.  Current perft: 2190,9 moves/ms.
 
 ## 06.04.15
 Introdution of "Rays".
 
 Rewrite of discoveredCheck to use RayUtils, i.e. only checking the ray between the opponent's king and the move.from() square.
 
-* Current perft:
-** 5ply:  164.075.551 moves (  120.411 ms) ( 1362,6 moves/ms)
-
-* Caching the results of 'discoveredCheck':
-** 5ply:  164.075.551 moves (  117.081 ms) ( 1401,4 moves/ms)
-* After rewriting bishop search to use Rays. Not a huge difference in speed but the code is a lot simpler.
-** 5ply:  164.075.551 moves (  112.854 ms) ( 1453,9 moves/ms)
-* After rewriting rook and queen search to use Rays.
-** 5ply:  164.075.551 moves (  107.777 ms) ( 1522,4 moves/ms) -- 25% speed up compared with 03.04.15!
+* Current perft: 1362,6 moves/ms.
+* Caching the results of 'discoveredCheck': 1401,4 moves/ms
+* After rewriting bishop search to use Rays. Not a huge difference in speed but the code is a lot simpler: 1453,9 moves/ms.
+* After rewriting rook and queen search to use Rays: 1522,4 moves/ms -- 25% speed up compared with 03.04.15!
 
 ## 03.04.15 Teil 2
 updateStructures now completely incremental.
-* Current perft:
-** 5ply:  164.075.551 moves (   142.830 ms) (  1148,7 moves/ms)
+Current perft: 1148,7 moves/ms.
 
 Hotspots:
  attacksSquareOnRankOrFile, isKingInCheck, SlidingPiece.search, attacksSquareOnDiagonal
@@ -114,10 +101,7 @@ Further optimizations. Introduction of allRooksAndQueens and allBishopsAndQueens
 updateStructures is now incremental for non-captures.
 Optimization of attacksSquareOnRankOrFile did not work, code is commented out (see canReachTargetSquare).
 
-* Current perft:
-** 5ply:  164.075.551 moves (   171.302 ms) (   957,8 moves/ms)
-
-Was up to ca. 1000moves/ms before allRooksAndQueens optimizations...
+Current perft: 957,8 moves/ms. Was up to ca. 1000moves/ms before allRooksAndQueens optimizations...
 
 ## 02.04.15
 Optimizations e.g. updateStructures, Pawn.attacksSquare
