@@ -124,13 +124,15 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * <p>
 	 * This is for bishop-type moves.
 	 *
-	 * @param posn the current position
+	 * @param posn the position. Only used if emptySquares is null.
+	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). In this case posn is not used.
 	 * @param move the move
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check
 	 */
-	protected boolean findDiagonalCheck(Position posn, Move move, Square opponentsKing) {
-		return attacksSquareDiagonally(posn.getTotalPieces().flip(), move.to(), opponentsKing);
+	protected boolean findDiagonalCheck(Position posn, BitSet emptySquares, Move move, Square opponentsKing) {
+		return attacksSquareDiagonally(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(),
+				opponentsKing);
 	}
 
 	/**
@@ -173,13 +175,20 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * <p>
 	 * This is for rook-type moves.
 	 *
-	 * @param posn the position
+	 * @param posn the position. Only used if emptySquares is null.
+	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). In this case posn is not used.
 	 * @param move the move
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check
 	 */
-	protected boolean findRankOrFileCheck(Position posn, Move move, Square opponentsKing) {
-		return attacksSquareRankOrFile(posn.getTotalPieces().flip(), move.to(), opponentsKing);
+	protected boolean findRankOrFileCheck(Position posn, BitSet emptySquares, Move move, Square opponentsKing) {
+		// abort if dest sq rank/file is not the same as the king's rank/file
+		if (move.to().file() == opponentsKing.file() || move.to().rank() == opponentsKing.rank()) {
+			return attacksSquareRankOrFile(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(),
+					opponentsKing);
+		} else {
+			return false;
+		}
 	}
 
 	/**

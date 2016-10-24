@@ -351,7 +351,6 @@ public class King extends AbstractPiece {
 		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
 		MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
-		BitSet emptySquares = posn.getTotalPieces().flip();
 		for (Move move : moves) {
 			boolean isCheck;
 			Boolean lookup = discoveredCheckCache.lookup(move.from());
@@ -363,8 +362,8 @@ public class King extends AbstractPiece {
 			}
 			if (!isCheck) {
 				if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-					isCheck = SlidingPiece.attacksSquareRankOrFile(emptySquares, move.getRooksCastlingMove().to(),
-							opponentsKingSquare);
+					isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getTotalPieces().flip(),
+							move.getRooksCastlingMove().to(), opponentsKingSquare);
 				}
 			}
 			move.setCheck(isCheck);

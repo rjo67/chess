@@ -124,10 +124,11 @@ public class Queen extends SlidingPiece {
 		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
 		MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
+		BitSet emptySquares = posn.getTotalPieces().flip();
 		for (Move move : moves) {
-			boolean isCheck = findRankOrFileCheck(posn, move, opponentsKing);
+			boolean isCheck = findRankOrFileCheck(posn, emptySquares, move, opponentsKing);
 			if (!isCheck) {
-				isCheck = findDiagonalCheck(posn, move, opponentsKing);
+				isCheck = findDiagonalCheck(posn, emptySquares, move, opponentsKing);
 			}
 			// if it's already check, don't need to calculate discovered check
 			if (!isCheck) {

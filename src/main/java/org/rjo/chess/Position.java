@@ -37,6 +37,8 @@ import org.rjo.chess.ray.RayUtils;
  */
 public class Position {
 
+	public static int NBR_INSTANCES_CREATED = 0;
+
 	private static final Logger LOG = LogManager.getLogger(Position.class);
 
 	// thread pool for findMove()
@@ -110,6 +112,9 @@ public class Position {
 		castling[Colour.WHITE.ordinal()] = whiteCastlingRights;
 		castling[Colour.BLACK.ordinal()] = blackCastlingRights;
 		sideToMove = Colour.WHITE;
+
+		NBR_INSTANCES_CREATED++;
+
 	}
 
 	/**
@@ -120,6 +125,9 @@ public class Position {
 
 		// split into a new method for profiling
 		internInit(posn);
+
+		NBR_INSTANCES_CREATED++;
+
 	}
 
 	@SuppressWarnings("unchecked")
