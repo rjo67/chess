@@ -101,7 +101,7 @@ public class RayUtils {
 	}
 
 	/**
-	 * Inspects the squares returned by the ray's iterator. A square with a piece on it gets recorded and the routine returns immediately. Otherise,
+	 * Inspects the squares returned by the ray's iterator. A square with a piece on it gets recorded and the routine returns immediately. Otherwise,
 	 * the empty square is recorded and the search repeats for the next value.
 	 * <p>
 	 * At the end, the information returned has the empty squares (if any) and the first piece found (if any) on the ray. The piece type is not

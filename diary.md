@@ -12,6 +12,9 @@ date | description | commit | perft
 06.04.15 | using rays, caching discovered check | | (  107.777 ms) ( 1522,4 moves/ms)
 03.04.15 | | | (   142.830 ms) ( 1148,7 moves/ms)
 
+## 26.10.16
+
+pawn optimizations. Perft: 1896,7 moves/ms. 
 
 ## 22.10.16
 
