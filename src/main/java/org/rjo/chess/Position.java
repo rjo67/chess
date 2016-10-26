@@ -251,7 +251,18 @@ public class Position {
 	 */
 	public List<Move> findMoves(Colour colour) {
 		// return findMovesParallel(colour);
-		List<Move> moves = new ArrayList<>(2000);
+		return findMoves(colour, this.inCheck);
+	}
+
+	/**
+	 * Find all moves for the given colour from the current position, overriding the position's 'inCheck' value.
+	 *
+	 * @param colour the required colour
+	 * @param inCheck whether the king is in check in this position
+	 * @return all moves for this colour.
+	 */
+	private List<Move> findMoves(Colour colour, boolean inCheck) {
+		List<Move> moves = new ArrayList<>(150);
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece p = getPieces(colour)[type.ordinal()];
 			moves.addAll(p.findMoves(this, inCheck));
@@ -428,15 +439,11 @@ public class Position {
 		// if enpassant square is set, this can only apply to the sidetomove
 		int whiteMobility, blackMobility;
 		Square enpassantSquare = null;
-		List<Move> moves = new ArrayList<>(60);
 		if (getSideToMove() != Colour.WHITE) {
 			enpassantSquare = getEnpassantSquare();
 			setEnpassantSquare(null);
 		}
-		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			Piece p = getPieces(Colour.WHITE)[type.ordinal()];
-			moves.addAll(p.findMoves(this, (getSideToMove() == Colour.WHITE ? true : false)));
-		}
+		List<Move> moves = findMoves(Colour.WHITE, getSideToMove() == Colour.WHITE ? true : false);
 		if (getSideToMove() != Colour.WHITE) {
 			setEnpassantSquare(enpassantSquare);
 		}
@@ -446,10 +453,7 @@ public class Position {
 			enpassantSquare = getEnpassantSquare();
 			setEnpassantSquare(null);
 		}
-		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			Piece p = getPieces(Colour.BLACK)[type.ordinal()];
-			moves.addAll(p.findMoves(this, (getSideToMove() == Colour.BLACK ? true : false)));
-		}
+		moves = findMoves(Colour.BLACK, getSideToMove() == Colour.BLACK ? true : false);
 		if (getSideToMove() != Colour.BLACK) {
 			setEnpassantSquare(enpassantSquare);
 		}

@@ -115,10 +115,12 @@ public class Pawn extends AbstractBitBoardPiece {
 
 		List<Move> moves = new ArrayList<>();
 		/*
-		 * 1) one square forward 2) two squares forward 3) capture left 4) capture right 5) enpassant 6) promotion
+		 * 1) one square forward 2) two squares forward 5) enpassant 6) promotion
 		 */
-		moves.addAll(moveOneSquareForward(posn, helper));
-		moves.addAll(moveTwoSquaresForward(posn, helper));
+		moves.addAll(moveOneAndTwoSquaresForward(posn, helper));
+		/*
+		 * 3) capture left 4) capture right 5) enpassant
+		 */
 		moves.addAll(captureLeft(posn, helper, false));
 		moves.addAll(captureRight(posn, helper, false));
 
@@ -170,58 +172,82 @@ public class Pawn extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * 'Moves' the pawns set-wise one square forward.
+	 * Generates pawn moves one- or two-squares forwards.
 	 *
 	 * @param posn state of the board
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @return list of moves found by this method
 	 */
-	private List<Move> moveOneSquareForward(Position posn, MoveHelper helper) {
+	private List<Move> moveOneAndTwoSquaresForward(Position posn, MoveHelper helper) {
+		List<Move> moves;
+		// one square forward: shift by 8 and check if empty square
+		BitSet oneSquareForward = moveOneSquareForwardAndCheckForEmptySquare(pieces.getBitSet(),
+				posn.getTotalPieces().getBitSet(), helper);
+		moves = generateOneSquareForwardMoves(oneSquareForward);
+
+		// two squares forward: shift again by 8 and check if empty square
+		moves.addAll(moveAnotherSquareForward(oneSquareForward, posn.getTotalPieces().getBitSet(), helper));
+
+		return moves;
+	}
+
+	/**
+	 * Shifts the pieces in 'pieces' one square 'forward', removing any which do not land on an empty square.
+	 *
+	 * @param pieces the pawns bitset
+	 * @param totalPieces total pieces
+	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
+	 * @return a bitset of all pawns, moved forward one square.
+	 */
+	private BitSet moveOneSquareForwardAndCheckForEmptySquare(BitSet pieces, BitSet totalPieces, MoveHelper helper) {
+		BitSet oneSquareForward = helper.moveOneRank(pieces);
+		oneSquareForward.andNot(totalPieces); // move must be to an empty square
+		return oneSquareForward;
+	}
+
+	/**
+	 * 'Moves' the pawns set-wise two squares forward.
+	 *
+	 * @param oneSquareForward state of the pawns having moved one square forward already
+	 * @param totalPieces total pieces
+	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
+	 * @return list of moves found by this method
+	 */
+	private List<Move> moveAnotherSquareForward(BitSet oneSquareForward, BitSet totalPieces, MoveHelper helper) {
 		List<Move> moves = new ArrayList<>();
-		// 1) one square forward:
-		// shift by 8 and check if empty square
-		// 6) promotion:
-		// extra check for pawns on the 8th rank
-		BitSet oneSquareForward = helper.moveOneRank(pieces.getBitSet());
-		oneSquareForward.andNot(posn.getTotalPieces().getBitSet()); // move must be to an empty square
+		// shift again by 8 and check if empty square
+		BitSet twoSquaresForward = moveOneSquareForwardAndCheckForEmptySquare(oneSquareForward, totalPieces, helper);
+		// just take the pawns now on the 4th rank (relative to colour), since only these can have moved two squares
+		twoSquaresForward.and(helper.fourthRank());
+		int offset = helper.getColour() == Colour.WHITE ? -16 : 16;
+		for (int i = twoSquaresForward.nextSetBit(0); i >= 0; i = twoSquaresForward.nextSetBit(i + 1)) {
+			moves.add(new Move(PieceType.PAWN, getColour(), Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
+		}
+		return moves;
+	}
+
+	/**
+	 * generates pawn moves from the given bitset. This only contains pawns which have moved one square forward to a non-empty square.
+	 *
+	 * @param oneSquareForward the bitset containing the pawns
+	 * @return the moves (including promotion if applicable)
+	 */
+	private List<Move> generateOneSquareForwardMoves(BitSet oneSquareForward) {
+		List<Move> moves = new ArrayList<>(50);
 		int offset = helper.getColour() == Colour.WHITE ? -8 : 8;
 		for (int i = oneSquareForward.nextSetBit(0); i >= 0; i = oneSquareForward.nextSetBit(i + 1)) {
+			Square from = Square.fromBitIndex(i + offset);
+			Square to = Square.fromBitIndex(i);
+			// promotion: extra check for pawns on the 8th rank
 			if (helper.onLastRank(i)) {
-				Square from = Square.fromBitIndex(i + offset);
-				Square to = Square.fromBitIndex(i);
 				for (PieceType type : PieceType.getPieceTypesForPromotion()) {
 					Move move = new Move(PieceType.PAWN, getColour(), from, to);
 					move.setPromotionPiece(type);
 					moves.add(move);
 				}
 			} else {
-				moves.add(new Move(PieceType.PAWN, getColour(), Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
+				moves.add(new Move(PieceType.PAWN, getColour(), from, to));
 			}
-		}
-		return moves;
-	}
-
-	/**
-	 * 'Moves' the pawns set-wise two squares forward.
-	 *
-	 * @param posn state of the board
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @return list of moves found by this method
-	 */
-	private List<Move> moveTwoSquaresForward(Position posn, MoveHelper helper) {
-		List<Move> moves = new ArrayList<>();
-		BitSet twoSquaresForward = pieces.cloneBitSet();
-		// first just take the pawns on the 2nd rank (relative to colour), since only these can still move two squares
-		twoSquaresForward.and(helper.startRank()); // only the pawns on the 2nd rank
-		// then shift by 8 and check if empty square
-		twoSquaresForward = helper.moveOneRank(twoSquaresForward);
-		twoSquaresForward.andNot(posn.getTotalPieces().getBitSet()); // move must be to an empty square
-		// shift again by 8 and check if empty square
-		twoSquaresForward = helper.moveOneRank(twoSquaresForward);
-		twoSquaresForward.andNot(posn.getTotalPieces().getBitSet()); // move must be to an empty square
-		int offset = helper.getColour() == Colour.WHITE ? -16 : 16;
-		for (int i = twoSquaresForward.nextSetBit(0); i >= 0; i = twoSquaresForward.nextSetBit(i + 1)) {
-			moves.add(new Move(PieceType.PAWN, getColour(), Square.fromBitIndex(i + offset), Square.fromBitIndex(i)));
 		}
 		return moves;
 	}
@@ -448,6 +474,8 @@ public class Pawn extends AbstractBitBoardPiece {
 		 */
 		BitSet moveOneRank(BitSet bs);
 
+		BitSet fourthRank();
+
 		/**
 		 * returns true if the given bitIndex is on the 'last rank' of the board.
 		 *
@@ -532,12 +560,16 @@ public class Pawn extends AbstractBitBoardPiece {
 		}
 
 		@Override
+		public BitSet fourthRank() {
+			return BitBoard.RANK[3];
+		}
+
+		@Override
 		public BitSet pawnCaptureLeft(BitSet startPosn) {
 			if (startPosn.isEmpty()) {
 				return startPosn;
 			}
-			startPosn.and(BitBoard.EXCEPT_FILE[0]); // only the pawns on the 2nd
-			// to 8th files
+			startPosn.and(BitBoard.EXCEPT_FILE[0]); // only the pawns on the 2nd to 8th files (to avoid wraparound)
 			long[] longArray = startPosn.toLongArray();
 			if (longArray.length == 0) {
 				return new BitSet(64);
@@ -550,8 +582,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			if (startPosn.isEmpty()) {
 				return startPosn;
 			}
-			startPosn.and(BitBoard.EXCEPT_FILE[7]); // only the pawns on the 1st
-			// to 7th files
+			startPosn.and(BitBoard.EXCEPT_FILE[7]); // only the pawns on the 1st to 7th files (to avoid wraparound)
 			long[] longArray = startPosn.toLongArray();
 			if (longArray.length == 0) {
 				return new BitSet(64);
@@ -581,8 +612,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			if (startPosn.isEmpty()) {
 				return startPosn;
 			}
-			startPosn.and(BitBoard.EXCEPT_FILE[7]); // only the pawns on the 1st
-			// to 7th files
+			startPosn.and(BitBoard.EXCEPT_FILE[7]); // only the pawns on the 1st to 7th files (to avoid wraparound)
 			long[] longArray = startPosn.toLongArray();
 			if (longArray.length == 0) {
 				return new BitSet(64);
@@ -595,8 +625,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			if (startPosn.isEmpty()) {
 				return startPosn;
 			}
-			startPosn.and(BitBoard.EXCEPT_FILE[0]); // only the pawns on the 2nd
-			// to 8th files
+			startPosn.and(BitBoard.EXCEPT_FILE[0]); // only the pawns on the 2nd to 8th files (to avoid wraparound)
 			long[] longArray = startPosn.toLongArray();
 			if (longArray.length == 0) {
 				return new BitSet(64);
@@ -622,6 +651,11 @@ public class Pawn extends AbstractBitBoardPiece {
 		@Override
 		public BitSet startRank() {
 			return BitBoard.RANK[6];
+		}
+
+		@Override
+		public BitSet fourthRank() {
+			return BitBoard.RANK[4];
 		}
 
 		@Override

@@ -23,20 +23,6 @@ import org.rjo.chess.util.Stopwatch;
 public class PositionTest {
 
 	@Test
-	public void testit() {
-		Position posn = Fen.decode("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0").getPosition();
-		BitSet bs = new BitSet(64);
-		bs.set(Square.f1.bitIndex());
-		bs.set(Square.g1.bitIndex());
-
-		// bs.and(posn.getTotalPieces().flip());
-		bs.andNot(posn.getTotalPieces().getBitSet());
-
-		assertTrue(bs.cardinality() == 2);
-
-	}
-
-	@Test
 	public void posnSpeedTest() throws InterruptedException {
 		Position p = Fen.decode("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0").getPosition();
 
@@ -81,7 +67,7 @@ public class PositionTest {
 	}
 
 	@Test
-	public void noncaptureMove() {
+	public void updateStructuresNoncaptureMove() {
 		Game game = Fen.decode("r3k2r/pb3p2/5npp/n2p4/1p1PPB2/6P1/P2N1PBP/R3K2R b KQkq - 0 10");
 		Move move = new Move(PieceType.KNIGHT, Colour.WHITE, Square.d2, Square.b3);
 
@@ -93,7 +79,7 @@ public class PositionTest {
 	}
 
 	@Test
-	public void captureMove() {
+	public void updateStructuresCaptureMove() {
 		Game game = Fen.decode("r3k2r/pb3p2/5npp/n2p4/1p1PPB2/6P1/P2N1PBP/R3K2R b KQkq - 0 10");
 		Move move = new Move(PieceType.BISHOP, Colour.WHITE, Square.f4, Square.h6, PieceType.PAWN);
 
