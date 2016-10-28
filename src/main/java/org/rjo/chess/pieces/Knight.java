@@ -154,8 +154,7 @@ public class Knight extends AbstractBitBoardPiece {
 	@Override
 	public void initPosition() {
 		Square[] requiredSquares = null;
-		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.b1, Square.g1 }
-				: new Square[] { Square.b8, Square.g8 };
+		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.b1, Square.g1 } : new Square[] { Square.b8, Square.g8 };
 		initPosition(requiredSquares);
 	}
 
@@ -190,8 +189,7 @@ public class Knight extends AbstractBitBoardPiece {
 				boolean inCheck = false;
 				if (allOpponentsPiecesBitSet.get(k)) {
 					// capture
-					move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare,
-							posn.pieceAt(targetSquare, oppositeColour));
+					move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare, posn.pieceAt(targetSquare, oppositeColour));
 					inCheck = Position.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck);
 				} else {
 					move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare);
@@ -203,34 +201,33 @@ public class Knight extends AbstractBitBoardPiece {
 			}
 		}
 
-		// checks
-		final Square opponentsKing = King.findOpponentsKing(getColour(), posn);
-		final int opponentsKingIndex = opponentsKing.bitIndex();
-		/*
-		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
-		 */
-		MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
-		for (Move move : moves) {
-			boolean isCheck = checkIfMoveAttacksSquare(move, opponentsKingIndex);
-			// if it's already check, don't need to calculate discovered check
-			if (!isCheck) {
-				Boolean lookup = discoveredCheckCache.lookup(move.from());
-				if (lookup != null) {
-					isCheck = lookup;
-				} else {
-					isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-					discoveredCheckCache.store(move.from(), isCheck);
-				}
-			}
-			move.setCheck(isCheck);
-		}
-
 		long time = stopwatch.read();
 		if (time != 0) {
 			LOG.debug("found " + moves.size() + " moves in " + time);
 		}
 		return moves;
+	}
+
+	@Override
+	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
+			MoveCache<Boolean> discoveredCheckCache) {
+		final int opponentsKingIndex = opponentsKing.bitIndex();
+		/*
+		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
+		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
+		 */
+		boolean isCheck = checkIfMoveAttacksSquare(move, opponentsKingIndex);
+		// if it's already check, don't need to calculate discovered check
+		if (!isCheck) {
+			Boolean lookup = discoveredCheckCache.lookup(move.from());
+			if (lookup != null) {
+				isCheck = lookup;
+			} else {
+				isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
+				discoveredCheckCache.store(move.from(), isCheck);
+			}
+		}
+		return isCheck;
 	}
 
 	/**

@@ -3,14 +3,19 @@ package org.rjo.chess.pieces;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.BitSet;
 import java.util.HashSet;
+import java.util.List;
 
 import org.junit.Test;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
+import org.rjo.chess.Move;
+import org.rjo.chess.Position;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
+import org.rjo.chess.pieces.AbstractPiece.MoveCache;
 
 public class QueenMoveTest {
 
@@ -20,6 +25,18 @@ public class QueenMoveTest {
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
 		whiteQueen = game.getPosition().getPieces(Colour.WHITE)[PieceType.QUEEN.ordinal()];
+	}
+
+	// need this, since findMoves no longer checks for checks
+	private List<Move> findMoves(Position posn) {
+		List<Move> moves = whiteQueen.findMoves(posn);
+		final Square opponentsKing = King.findOpponentsKing(posn.getSideToMove(), posn);
+		final BitSet emptySquares = posn.getTotalPieces().flip();
+		final MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
+		for (Move move : moves) {
+			move.setCheck(whiteQueen.isOpponentsKingInCheckAfterMove(posn, move, opponentsKing, emptySquares, discoveredCheckCache));
+		}
+		return moves;
 	}
 
 	@Test
@@ -32,18 +49,17 @@ public class QueenMoveTest {
 	@Test
 	public void moveFromMiddleOfBoard() {
 		setupGame("4k3/8/8/8/3Q4/8/8/4K3  w - - 0 0");
-		TestUtil.checkMoves(whiteQueen.findMoves(game.getPosition()), "Qd4-d5", "Qd4-d6", "Qd4-d7+", "Qd4-d8+", "Qd4-e4+",
-				"Qd4-f4", "Qd4-g4", "Qd4-h4", "Qd4-d3", "Qd4-d2", "Qd4-d1", "Qd4-c4", "Qd4-b4", "Qd4-a4+", "Qd4-e5+",
-				"Qd4-f6", "Qd4-g7", "Qd4-h8+", "Qd4-c5", "Qd4-b6", "Qd4-a7", "Qd4-e3+", "Qd4-f2", "Qd4-g1", "Qd4-c3",
-				"Qd4-b2", "Qd4-a1");
+		TestUtil.checkMoves(findMoves(game.getPosition()), "Qd4-d5", "Qd4-d6", "Qd4-d7+", "Qd4-d8+", "Qd4-e4+", "Qd4-f4", "Qd4-g4", "Qd4-h4",
+				"Qd4-d3", "Qd4-d2", "Qd4-d1", "Qd4-c4", "Qd4-b4", "Qd4-a4+", "Qd4-e5+", "Qd4-f6", "Qd4-g7", "Qd4-h8+", "Qd4-c5", "Qd4-b6",
+				"Qd4-a7", "Qd4-e3+", "Qd4-f2", "Qd4-g1", "Qd4-c3", "Qd4-b2", "Qd4-a1");
 	}
 
 	@Test
 	public void moveFromA1() {
 		setupGame("4k3/8/8/8/8/8/2K5/Q7  w - - 0 0");
-		TestUtil.checkMoves(whiteQueen.findMoves(game.getPosition()), "Qa1-a2", "Qa1-a3", "Qa1-a4+", "Qa1-a5", "Qa1-a6",
-				"Qa1-a7", "Qa1-a8+", "Qa1-b1", "Qa1-c1", "Qa1-d1", "Qa1-e1+", "Qa1-f1", "Qa1-g1", "Qa1-h1", "Qa1-b2",
-				"Qa1-c3", "Qa1-d4", "Qa1-e5+", "Qa1-f6", "Qa1-g7", "Qa1-h8+");
+		TestUtil.checkMoves(findMoves(game.getPosition()), "Qa1-a2", "Qa1-a3", "Qa1-a4+", "Qa1-a5", "Qa1-a6", "Qa1-a7", "Qa1-a8+", "Qa1-b1",
+				"Qa1-c1", "Qa1-d1", "Qa1-e1+", "Qa1-f1", "Qa1-g1", "Qa1-h1", "Qa1-b2", "Qa1-c3", "Qa1-d4", "Qa1-e5+", "Qa1-f6", "Qa1-g7",
+				"Qa1-h8+");
 	}
 
 	/**
@@ -52,7 +68,7 @@ public class QueenMoveTest {
 	@Test
 	public void moveFromA1WithBlockade() {
 		setupGame("4k3/8/8/8/P7/2P5/8/Q1K5  w - - 0 0");
-		TestUtil.checkMoves(whiteQueen.findMoves(game.getPosition()), "Qa1-a2", "Qa1-a3", "Qa1-b1", "Qa1-b2");
+		TestUtil.checkMoves(findMoves(game.getPosition()), "Qa1-a2", "Qa1-a3", "Qa1-b1", "Qa1-b2");
 	}
 
 	/**
@@ -61,16 +77,15 @@ public class QueenMoveTest {
 	@Test
 	public void moveFromA1WithCapture() {
 		setupGame("4k3/8/8/4p3/p7/8/8/Q1K5  w - - 0 0");
-		TestUtil.checkMoves(whiteQueen.findMoves(game.getPosition()), "Qa1-a2", "Qa1-a3", "Qa1xa4+", "Qa1-b1", "Qa1-b2",
-				"Qa1-c3", "Qa1-d4", "Qa1xe5+");
+		TestUtil.checkMoves(findMoves(game.getPosition()), "Qa1-a2", "Qa1-a3", "Qa1xa4+", "Qa1-b1", "Qa1-b2", "Qa1-c3", "Qa1-d4", "Qa1xe5+");
 	}
 
 	@Test
 	public void moveFromA8() {
 		setupGame("Q7/8/8/2k5/8/8/2K5/8  w - - 0 0");
-		TestUtil.checkMoves(whiteQueen.findMoves(game.getPosition()), "Qa8-a7+", "Qa8-a6", "Qa8-a5+", "Qa8-a4", "Qa8-a3+",
-				"Qa8-a2", "Qa8-a1", "Qa8-b8", "Qa8-c8+", "Qa8-d8", "Qa8-e8", "Qa8-f8+", "Qa8-g8", "Qa8-h8", "Qa8-b7",
-				"Qa8-c6+", "Qa8-d5+", "Qa8-e4", "Qa8-f3", "Qa8-g2", "Qa8-h1");
+		TestUtil.checkMoves(findMoves(game.getPosition()), "Qa8-a7+", "Qa8-a6", "Qa8-a5+", "Qa8-a4", "Qa8-a3+", "Qa8-a2", "Qa8-a1", "Qa8-b8",
+				"Qa8-c8+", "Qa8-d8", "Qa8-e8", "Qa8-f8+", "Qa8-g8", "Qa8-h8", "Qa8-b7", "Qa8-c6+", "Qa8-d5+", "Qa8-e4", "Qa8-f3", "Qa8-g2",
+				"Qa8-h1");
 	}
 
 	/**
@@ -79,7 +94,7 @@ public class QueenMoveTest {
 	@Test
 	public void moveFromA8WithBlockade() {
 		setupGame("Q1K5/8/2P5/P5k1/8/8/8/8  w - - 0 0");
-		TestUtil.checkMoves(whiteQueen.findMoves(game.getPosition()), "Qa8-a7", "Qa8-a6", "Qa8-b8", "Qa8-b7");
+		TestUtil.checkMoves(findMoves(game.getPosition()), "Qa8-a7", "Qa8-a6", "Qa8-b8", "Qa8-b7");
 	}
 
 	/**
@@ -88,15 +103,13 @@ public class QueenMoveTest {
 	@Test
 	public void moveFromA8WithCapture() {
 		setupGame("Q1K5/8/8/p1kp4/8/8/8/8  w - - 0 0");
-		TestUtil.checkMoves(whiteQueen.findMoves(game.getPosition()), "Qa8-a7+", "Qa8-a6", "Qa8xa5+", "Qa8-b8", "Qa8-b7",
-				"Qa8-c6+", "Qa8xd5+");
+		TestUtil.checkMoves(findMoves(game.getPosition()), "Qa8-a7+", "Qa8-a6", "Qa8xa5+", "Qa8-b8", "Qa8-b7", "Qa8-c6+", "Qa8xd5+");
 	}
 
 	@Test
 	public void attacksSquareStraight() {
 		setupGame("5K2/4Q3/8/4p3/8/8/k7/8  w - - 0 0");
-		for (Square sq : new Square[] { Square.e8, Square.e6, Square.d7, Square.c7, Square.b7, Square.a7, Square.f7,
-				Square.g7, Square.h7 }) {
+		for (Square sq : new Square[] { Square.e8, Square.e6, Square.d7, Square.c7, Square.b7, Square.a7, Square.f7, Square.g7, Square.h7 }) {
 			assertTrue("square " + sq, whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}
 		assertFalse(whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));

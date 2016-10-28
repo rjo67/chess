@@ -102,8 +102,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			Square fromSquareIndex = Square.fromBitIndex(i);
 
-			RayInfo info = RayUtils.findFirstPieceOnRay(getColour(), emptySquares,
-					posn.getAllPieces(getColour()).getBitSet(), ray, i);
+			RayInfo info = RayUtils.findFirstPieceOnRay(getColour(), emptySquares, posn.getAllPieces(getColour()).getBitSet(), ray, i);
 			// add 'emptySquares' from result as normal moves
 			for (int emptySquareIndex : info.getEmptySquares()) {
 				moves.add(new Move(this.getType(), getColour(), fromSquareIndex, Square.fromBitIndex(emptySquareIndex)));
@@ -111,8 +110,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			// if an opponent's piece was also found, add this as capture
 			if (info.foundPiece() && (info.getColour() == opponentsColour)) {
 				Square sqIndex = Square.fromBitIndex(info.getIndexOfPiece());
-				moves.add(new Move(this.getType(), getColour(), fromSquareIndex, sqIndex,
-						posn.pieceAt(sqIndex, opponentsColour)));
+				moves.add(new Move(this.getType(), getColour(), fromSquareIndex, sqIndex, posn.pieceAt(sqIndex, opponentsColour)));
 			}
 		}
 
@@ -125,14 +123,13 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * This is for bishop-type moves.
 	 *
 	 * @param posn the position. Only used if emptySquares is null.
-	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). In this case posn is not used.
+	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). If not null, 'posn' is not used.
 	 * @param move the move
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check
 	 */
 	protected boolean findDiagonalCheck(Position posn, BitSet emptySquares, Move move, Square opponentsKing) {
-		return attacksSquareDiagonally(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(),
-				opponentsKing);
+		return attacksSquareDiagonally(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(), opponentsKing);
 	}
 
 	/**
@@ -184,8 +181,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	protected boolean findRankOrFileCheck(Position posn, BitSet emptySquares, Move move, Square opponentsKing) {
 		// abort if dest sq rank/file is not the same as the king's rank/file
 		if (move.to().file() == opponentsKing.file() || move.to().rank() == opponentsKing.rank()) {
-			return attacksSquareRankOrFile(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(),
-					opponentsKing);
+			return attacksSquareRankOrFile(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(), opponentsKing);
 		} else {
 			return false;
 		}

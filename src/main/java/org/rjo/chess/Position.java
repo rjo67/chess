@@ -9,14 +9,12 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.rjo.chess.pieces.AbstractPiece.MoveCache;
 import org.rjo.chess.pieces.Bishop;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Knight;
@@ -83,12 +81,10 @@ public class Position {
 	 */
 	public Position() {
 		// default piece positions
-		this(new HashSet<Piece>(
-				Arrays.asList(new Pawn(Colour.WHITE, true), new Rook(Colour.WHITE, true), new Knight(Colour.WHITE, true),
-						new Bishop(Colour.WHITE, true), new Queen(Colour.WHITE, true), new King(Colour.WHITE, true))),
-				new HashSet<Piece>(Arrays.asList(new Pawn(Colour.BLACK, true), new Rook(Colour.BLACK, true),
-						new Knight(Colour.BLACK, true), new Bishop(Colour.BLACK, true), new Queen(Colour.BLACK, true),
-						new King(Colour.BLACK, true))),
+		this(new HashSet<Piece>(Arrays.asList(new Pawn(Colour.WHITE, true), new Rook(Colour.WHITE, true), new Knight(Colour.WHITE, true),
+				new Bishop(Colour.WHITE, true), new Queen(Colour.WHITE, true), new King(Colour.WHITE, true))),
+				new HashSet<Piece>(Arrays.asList(new Pawn(Colour.BLACK, true), new Rook(Colour.BLACK, true), new Knight(Colour.BLACK, true),
+						new Bishop(Colour.BLACK, true), new Queen(Colour.BLACK, true), new King(Colour.BLACK, true))),
 				// default castling rights
 				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE),
 				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE));
@@ -267,40 +263,47 @@ public class Position {
 			Piece p = getPieces(colour)[type.ordinal()];
 			moves.addAll(p.findMoves(this, inCheck));
 		}
-		return moves;
-	}
-
-	public List<Move> findMovesParallel(Colour colour) {
-		// set up tasks
-		List<Callable<List<Move>>> tasks = new ArrayList<>();
-		for (PieceType type : PieceType.getPieceTypes()) {
-			tasks.add(new Callable<List<Move>>() {
-
-				@Override
-				public List<Move> call() throws Exception {
-					Piece p = getPieces(colour)[type.ordinal()];
-					return p.findMoves(Position.this, inCheck);
-				}
-
-			});
-		}
-
-		// and execute
-		List<Move> moves = new ArrayList<>(60);
-		try {
-			List<Future<List<Move>>> results = threadPool.invokeAll(tasks);
-
-			for (Future<List<Move>> f : results) {
-				moves.addAll(f.get());
-			}
-		} catch (InterruptedException e) {
-			throw new RuntimeException("got InterruptedException from future (findMovesParallel)", e);
-		} catch (ExecutionException e) {
-			throw new RuntimeException("got ExecutionException from future (findMovesParallel)", e);
+		// now need to establish which moves leave the opponent's king in check
+		final Square opponentsKing = King.findOpponentsKing(getSideToMove(), this);
+		final MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
+		final BitSet emptySquares = getTotalPieces().flip();
+		for (Move move : moves) {
+			Piece p = getPieces(colour)[move.getPiece().ordinal()];
+			move.setCheck(p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares, discoveredCheckCache));
 		}
 
 		return moves;
 	}
+
+	// public List<Move> findMovesParallel(Colour colour) {
+	// // set up tasks
+	// List<Callable<List<Move>>> tasks = new ArrayList<>();
+	// for (PieceType type : PieceType.getPieceTypes()) {
+	// tasks.add(new Callable<List<Move>>() {
+	//
+	// @Override
+	// public List<Move> call() throws Exception {
+	// Piece p = getPieces(colour)[type.ordinal()];
+	// return p.findMoves(Position.this, inCheck);
+	// }
+	//
+	// });
+	// }
+	//
+	// // and execute
+	// List<Move> moves = new ArrayList<>(60);
+	// try {
+	// List<Future<List<Move>>> results = threadPool.invokeAll(tasks);
+	//
+	// for (Future<List<Move>> f : results) {
+	// moves.addAll(f.get());
+	// }
+	// } catch (InterruptedException | ExecutionException e) {
+	// throw new RuntimeException("got InterruptedException from future (findMovesParallel)", e);
+	// }
+	//
+	// return moves;
+	// }
 
 	private void writeDebug(Writer debugWriter, String string) {
 		if (debugWriter != null) {
@@ -362,8 +365,7 @@ public class Position {
 					pieceMgr.getClonedPiece(Colour.oppositeColour(sideToMove), move.getCapturedPiece())
 							.removePiece(Square.findMoveFromEnpassantSquare(move.to()));
 				} else {
-					pieceMgr.getClonedPiece(Colour.oppositeColour(sideToMove), move.getCapturedPiece())
-							.removePiece(move.to());
+					pieceMgr.getClonedPiece(Colour.oppositeColour(sideToMove), move.getCapturedPiece()).removePiece(move.to());
 				}
 			}
 			// promotion: add the promoted piece
@@ -795,8 +797,7 @@ public class Position {
 	 * @return true if this move leaves the king in check (i.e. is an illegal move)
 	 */
 	// TODO this seems to be duplicated in KingChecker
-	public static boolean isKingInCheck(Position posn, Move move, Colour opponentsColour, Square king,
-			boolean kingIsAlreadyInCheck) {
+	public static boolean isKingInCheck(Position posn, Move move, Colour opponentsColour, Square king, boolean kingIsAlreadyInCheck) {
 
 		// short circuit if king was not in check beforehand (therefore only
 		// need to check for a pinned piece) and the
@@ -811,11 +812,11 @@ public class Position {
 		BitSet[] enemyPieces = setupEnemyBitsets(posn.getPieces(opponentsColour));
 
 		if (kingIsAlreadyInCheck) {
-			return KingCheck.isKingInCheckAfterMove_PreviouslyWasInCheck(king, Colour.oppositeColour(opponentsColour),
-					friendlyPieces, enemyPieces, move);
+			return KingCheck.isKingInCheckAfterMove_PreviouslyWasInCheck(king, Colour.oppositeColour(opponentsColour), friendlyPieces,
+					enemyPieces, move);
 		} else {
-			return KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(king, Colour.oppositeColour(opponentsColour),
-					friendlyPieces, enemyPieces, move);
+			return KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(king, Colour.oppositeColour(opponentsColour), friendlyPieces,
+					enemyPieces, move);
 		}
 	}
 

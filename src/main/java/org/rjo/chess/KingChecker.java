@@ -23,7 +23,7 @@ public class KingChecker {
 		this.myKing = myKing;
 	}
 
-	// TODO check this seems to be duplicated in KingChecker
+	// TODO check this seems to be duplicated in Position
 	private static BitSet[] setupEnemyBitsets(Piece[] pieces) {
 		BitSet[] enemyPieces = new BitSet[PieceType.ALL_PIECE_TYPES.length];
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {

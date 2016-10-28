@@ -3,14 +3,19 @@
 ## Overview of commits and perfmance
 date | description | commit | perft
 ---- | ----------- | ------ | -----
-17.07.16 | project subdirs removed. Added Rook::findMovesUsingMoveMap, introducing hashmaps. | ac7390a | (   79.301 ms) ( 2069,0 moves/ms)
-13.02.16 | rookmoves | eb33026 | (   77.476 ms) ( 2117,8 moves/ms)
-27.12.15 | added KingChecker | cb0c20c | (   76.848 ms) ( 2135,1 moves/ms)
-24.10.15 | rays | 48188b9 | (   80.198 ms) ( 2045,9 moves/ms)
-21.10.15 | | 1faec96 | (   72.387 ms) ( 2266,6 moves/ms)
-10.04.15 | pawn optimisations | | (   69.508 ms) ( 2360,5 moves/ms)
-06.04.15 | using rays, caching discovered check | | (  107.777 ms) ( 1522,4 moves/ms)
-03.04.15 | | | (   142.830 ms) ( 1148,7 moves/ms)
+17.07.16 | project subdirs removed. Added Rook::findMovesUsingMoveMap, introducing hashmaps. | ac7390a | 2069,0 moves/ms
+13.02.16 | rookmoves | eb33026 | 2117,8 moves/ms
+27.12.15 | added KingChecker | cb0c20c | 2135,1 moves/ms
+24.10.15 | rays | 48188b9 | 2045,9 moves/ms
+21.10.15 | | 1faec96 | 2266,6 moves/ms
+10.04.15 | pawn optimisations | | 2360,5 moves/ms
+06.04.15 | using rays, caching discovered check | | 1522,4 moves/ms
+03.04.15 | | | 1148,7 moves/ms
+
+## 28.10.16
+
+findMoves no longer checks to see if the move leaves the opponent's king in check.
+This is now done in another method, hopefully to allow for some optimizations. Perft: 1931,7.
 
 ## 26.10.16
 

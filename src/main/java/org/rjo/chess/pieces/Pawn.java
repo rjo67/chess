@@ -147,25 +147,25 @@ public class Pawn extends AbstractBitBoardPiece {
 			}
 		}
 
-		// checks
-		Square opponentsKing = King.findOpponentsKing(getColour(), posn);
-		BitSet opponentsKingBitset = new BitSet(64);
-		opponentsKingBitset.set(opponentsKing.bitIndex());
-		// probably not worth caching discovered check results for pawns
-		for (Move move : moves) {
-			boolean isCheck = checkIfCheck(posn, move, opponentsKing, opponentsKingBitset, helper[getColour().ordinal()]);
-			// if it's already check, don't need to calculate discovered check
-			if (!isCheck) {
-				isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-			}
-			move.setCheck(isCheck);
-		}
-
 		long time = stopwatch.read();
 		if (time != 0) {
 			LOG.debug("found " + moves.size() + " moves in " + time);
 		}
 		return moves;
+	}
+
+	@Override
+	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
+			MoveCache<Boolean> discoveredCheckCache) {
+		BitSet opponentsKingBitset = new BitSet(64);
+		opponentsKingBitset.set(opponentsKing.bitIndex());
+		// probably not worth caching discovered check results for pawns
+		boolean isCheck = checkIfCheckInternal(posn, move, opponentsKing, opponentsKingBitset, helper[getColour().ordinal()]);
+		// if it's already check, don't need to calculate discovered check
+		if (!isCheck) {
+			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
+		}
+		return isCheck;
 	}
 
 	/**
@@ -191,8 +191,7 @@ public class Pawn extends AbstractBitBoardPiece {
 	private List<Move> moveOneAndTwoSquaresForward(Position posn, MoveHelper helper) {
 		List<Move> moves;
 		// one square forward: shift by 8 and check if empty square
-		BitSet oneSquareForward = moveOneSquareForwardAndCheckForEmptySquare(pieces.getBitSet(),
-				posn.getTotalPieces().getBitSet(), helper);
+		BitSet oneSquareForward = moveOneSquareForwardAndCheckForEmptySquare(pieces.getBitSet(), posn.getTotalPieces().getBitSet(), helper);
 		moves = generateOneSquareForwardMoves(oneSquareForward, helper);
 
 		// two squares forward: shift again by 8 and check if empty square
@@ -305,8 +304,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			if (helper.onLastRank(i)) {
 				// capture with promotion
 				Square fromSquare = Square.fromBitIndex(i + offset);
-				PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY
-						: position.pieceAt(targetSquare, oppositeColour);
+				PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY : position.pieceAt(targetSquare, oppositeColour);
 				for (PieceType type : PieceType.getPieceTypesForPromotion()) {
 					Move move = new Move(PieceType.PAWN, getColour(), fromSquare, targetSquare, capturedPiece);
 					move.setPromotionPiece(type);
@@ -330,8 +328,7 @@ public class Pawn extends AbstractBitBoardPiece {
 				if (enpassant) {
 					move = Move.enpassant(getColour(), Square.fromBitIndex(i + offset), targetSquare);
 				} else {
-					move = new Move(PieceType.PAWN, getColour(), Square.fromBitIndex(i + offset), targetSquare,
-							capturedPiece);
+					move = new Move(PieceType.PAWN, getColour(), Square.fromBitIndex(i + offset), targetSquare, capturedPiece);
 				}
 				moves.add(move);
 			}
@@ -375,8 +372,7 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @return true if this move leaves the king in check
 	 */
-	private boolean checkIfCheck(Position posn, Move move, Square opponentsKing, BitSet opponentsKingBitset,
-			MoveHelper helper) {
+	private boolean checkIfCheckInternal(Position posn, Move move, Square opponentsKing, BitSet opponentsKingBitset, MoveHelper helper) {
 		if (move.isPromotion()) {
 			if (move.getPromotedPiece() == PieceType.KNIGHT) {
 				return Knight.checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());

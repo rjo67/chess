@@ -271,8 +271,7 @@ public class Rook extends SlidingPiece {
 	@Override
 	public void initPosition() {
 		Square[] requiredSquares = null;
-		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.a1, Square.h1 }
-				: new Square[] { Square.a8, Square.h8 };
+		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.a1, Square.h1 } : new Square[] { Square.a8, Square.h8 };
 		initPosition(requiredSquares);
 	}
 
@@ -286,8 +285,7 @@ public class Rook extends SlidingPiece {
 		// rank, getValueForRank()
 		Map<Integer, Integer> rankValueCache = new HashMap<>();
 		Map<Integer, Integer> fileValueCache = new HashMap<>();
-		for (int bitIndex = pieces.getBitSet().nextSetBit(0); bitIndex >= 0; bitIndex = pieces.getBitSet()
-				.nextSetBit(bitIndex + 1)) {
+		for (int bitIndex = pieces.getBitSet().nextSetBit(0); bitIndex >= 0; bitIndex = pieces.getBitSet().nextSetBit(bitIndex + 1)) {
 			Square fromSquareIndex = Square.fromBitIndex(bitIndex);
 			// System.out.println("on square " + fromSquareIndex);
 			int file = fromSquareIndex.file();
@@ -309,8 +307,7 @@ public class Rook extends SlidingPiece {
 				fileVal = allPieces.getValueForFile(file);
 				fileValueCache.put(file, fileVal);
 			}
-			addMoves(posn, moves, opponentsColour, opponentsPieces, bitIndex, fromSquareIndex,
-					vertMoveMap[rank].get(fileVal));
+			addMoves(posn, moves, opponentsColour, opponentsPieces, bitIndex, fromSquareIndex, vertMoveMap[rank].get(fileVal));
 		}
 
 		return moves;
@@ -327,21 +324,20 @@ public class Rook extends SlidingPiece {
 	 * @param fromSquareIndex square corresponding to bitIndexOfPiece
 	 * @param moveinfo the MoveInfo object corresponding to the file (or rank) which we're currently looking at.
 	 */
-	private void addMoves(Position chessboard, List<Move> moves, Colour opponentsColour, BitSet opponentsPieces,
-			int bitIndexOfPiece, Square fromSquareIndex, MoveInfo moveinfo) {
+	private void addMoves(Position chessboard, List<Move> moves, Colour opponentsColour, BitSet opponentsPieces, int bitIndexOfPiece,
+			Square fromSquareIndex, MoveInfo moveinfo) {
 
 		// System.out.printf("val=%d, map entry=%s%n", val, moveinfo);
 		for (int sqOffset : moveinfo.getMoveOffsets()) {
-			moves.add(
-					new Move(this.getType(), getColour(), fromSquareIndex, Square.fromBitIndex(bitIndexOfPiece + sqOffset)));
+			moves.add(new Move(this.getType(), getColour(), fromSquareIndex, Square.fromBitIndex(bitIndexOfPiece + sqOffset)));
 		}
 
 		for (int sqOffset : moveinfo.getPossibleCapturesOffset()) {
 			int sqIndex = bitIndexOfPiece + sqOffset;
 			if (opponentsPieces.get(sqIndex)) {
 				Square targetSquare = Square.fromBitIndex(sqIndex);
-				moves.add(new Move(this.getType(), getColour(), fromSquareIndex, targetSquare,
-						chessboard.pieceAt(targetSquare, opponentsColour)));
+				moves.add(
+						new Move(this.getType(), getColour(), fromSquareIndex, targetSquare, chessboard.pieceAt(targetSquare, opponentsColour)));
 			}
 		}
 	}
@@ -372,34 +368,32 @@ public class Rook extends SlidingPiece {
 			}
 		}
 
-		// checks
-		Square opponentsKing = King.findOpponentsKing(getColour(), posn);
-		/*
-		 * most moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
-		 */
-		MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
-		BitSet emptySquares = posn.getTotalPieces().flip();
-		for (Move move : moves) {
-			boolean isCheck = findRankOrFileCheck(posn, emptySquares, move, opponentsKing);
-			// if it's already check, don't need to calculate discovered check
-			if (!isCheck) {
-				Boolean lookup = discoveredCheckCache.lookup(move.from());
-				if (lookup != null) {
-					isCheck = lookup;
-				} else {
-					isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-					discoveredCheckCache.store(move.from(), isCheck);
-				}
-			}
-			move.setCheck(isCheck);
-		}
-
 		long time = stopwatch.read();
 		if (time != 0) {
 			LOG.debug("found " + moves.size() + " moves in " + time);
 		}
 		return moves;
+	}
+
+	@Override
+	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
+			MoveCache<Boolean> discoveredCheckCache) {
+		/*
+		 * most moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
+		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
+		 */
+		boolean isCheck = findRankOrFileCheck(posn, emptySquares, move, opponentsKing);
+		// if it's already check, don't need to calculate discovered check
+		if (!isCheck) {
+			Boolean lookup = discoveredCheckCache.lookup(move.from());
+			if (lookup != null) {
+				isCheck = lookup;
+			} else {
+				isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
+				discoveredCheckCache.store(move.from(), isCheck);
+			}
+		}
+		return isCheck;
 	}
 
 	@Override
@@ -465,8 +459,7 @@ class MoveInfo {
 		for (Integer i : m2.possibleCapturesOffset) {
 			captures.add(i);
 		}
-		MoveInfo mi = new MoveInfo(moves.toArray(new Integer[moves.size()]),
-				captures.toArray(new Integer[captures.size()]));
+		MoveInfo mi = new MoveInfo(moves.toArray(new Integer[moves.size()]), captures.toArray(new Integer[captures.size()]));
 		// System.out.println(String.format("m1: %s, m2: %s, concat: %s", m1,
 		// m2, mi));
 		return mi;

@@ -69,14 +69,10 @@ public class King extends AbstractPiece {
 
 	static {
 		CASTLING_SQUARES_NOT_IN_CHECK = new Square[Colour.values().length][CastlingRights.values().length][];
-		CASTLING_SQUARES_NOT_IN_CHECK[Colour.WHITE.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new Square[] {
-				Square.f1, Square.g1 };
-		CASTLING_SQUARES_NOT_IN_CHECK[Colour.WHITE.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new Square[] {
-				Square.c1, Square.d1 };
-		CASTLING_SQUARES_NOT_IN_CHECK[Colour.BLACK.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new Square[] {
-				Square.f8, Square.g8 };
-		CASTLING_SQUARES_NOT_IN_CHECK[Colour.BLACK.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new Square[] {
-				Square.c8, Square.d8 };
+		CASTLING_SQUARES_NOT_IN_CHECK[Colour.WHITE.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new Square[] { Square.f1, Square.g1 };
+		CASTLING_SQUARES_NOT_IN_CHECK[Colour.WHITE.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new Square[] { Square.c1, Square.d1 };
+		CASTLING_SQUARES_NOT_IN_CHECK[Colour.BLACK.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new Square[] { Square.f8, Square.g8 };
+		CASTLING_SQUARES_NOT_IN_CHECK[Colour.BLACK.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new Square[] { Square.c8, Square.d8 };
 
 	}
 
@@ -90,14 +86,14 @@ public class King extends AbstractPiece {
 
 	static {
 		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY = new int[Colour.values().length][CastlingRights.values().length][];
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new int[] {
-				Square.f1.bitIndex(), Square.g1.bitIndex() };
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new int[] {
-				Square.b1.bitIndex(), Square.c1.bitIndex(), Square.d1.bitIndex() };
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new int[] {
-				Square.f8.bitIndex(), Square.g8.bitIndex() };
-		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new int[] {
-				Square.b8.bitIndex(), Square.c8.bitIndex(), Square.d8.bitIndex() };
+		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new int[] { Square.f1.bitIndex(),
+				Square.g1.bitIndex() };
+		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.WHITE.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new int[] { Square.b1.bitIndex(),
+				Square.c1.bitIndex(), Square.d1.bitIndex() };
+		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new int[] { Square.f8.bitIndex(),
+				Square.g8.bitIndex() };
+		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new int[] { Square.b8.bitIndex(),
+				Square.c8.bitIndex(), Square.d8.bitIndex() };
 
 	}
 
@@ -311,8 +307,7 @@ public class King extends AbstractPiece {
 			 * store move as 'move' or 'capture'
 			 */
 			if (opponentsPieces.get(i)) {
-				moves.add(new Move(PieceType.KING, getColour(), kingsSquare, targetSquare,
-						posn.pieceAt(targetSquare, oppositeColour)));
+				moves.add(new Move(PieceType.KING, getColour(), kingsSquare, targetSquare, posn.pieceAt(targetSquare, oppositeColour)));
 			} else {
 				moves.add(new Move(PieceType.KING, getColour(), kingsSquare, targetSquare));
 			}
@@ -321,12 +316,10 @@ public class King extends AbstractPiece {
 
 		// castling -- can't castle out of check
 		if (!kingInCheck) {
-			if (posn.canCastle(getColour(), CastlingRights.KINGS_SIDE)
-					&& isCastlingLegal(posn, oppositeColour, CastlingRights.KINGS_SIDE)) {
+			if (posn.canCastle(getColour(), CastlingRights.KINGS_SIDE) && isCastlingLegal(posn, oppositeColour, CastlingRights.KINGS_SIDE)) {
 				moves.add(Move.castleKingsSide(getColour()));
 			}
-			if (posn.canCastle(getColour(), CastlingRights.QUEENS_SIDE)
-					&& isCastlingLegal(posn, oppositeColour, CastlingRights.QUEENS_SIDE)) {
+			if (posn.canCastle(getColour(), CastlingRights.QUEENS_SIDE) && isCastlingLegal(posn, oppositeColour, CastlingRights.QUEENS_SIDE)) {
 				moves.add(Move.castleQueensSide(getColour()));
 			}
 		}
@@ -343,42 +336,38 @@ public class King extends AbstractPiece {
 		}
 
 		long time3 = stopwatch.read();
-		// checks: a king move can only give check if (a) castled with check or
-		// (b) discovered check
-
-		/*
-		 * all king moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
-		 */
-		MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
-		for (Move move : moves) {
-			boolean isCheck;
-			Boolean lookup = discoveredCheckCache.lookup(move.from());
-			if (lookup != null) {
-				isCheck = lookup;
-			} else {
-				isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKingSquare);
-				discoveredCheckCache.store(move.from(), isCheck);
-			}
-			if (!isCheck) {
-				if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-					isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getTotalPieces().flip(),
-							move.getRooksCastlingMove().to(), opponentsKingSquare);
-				}
-			}
-			move.setCheck(isCheck);
-		}
-
-		long time4 = stopwatch.read();
-		if (time4 != 0) {
-			LOG.debug("found " + moves.size() + " moves in " + time1 + "," + time2 + "," + time3 + "," + time4 + ", fen: "
-					+ Fen.encode(posn));
+		if (time3 != 0) {
+			LOG.debug("found " + moves.size() + " moves in " + time1 + "," + time2 + "," + time3 + ", fen: " + Fen.encode(posn));
 		}
 		return moves;
 	}
 
 	private Square findOpponentsKing(Position chessboard) {
 		return findOpponentsKing(getColour(), chessboard);
+	}
+
+	@Override
+	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
+			MoveCache<Boolean> discoveredCheckCache) {
+		// checks: a king move can only give check if (a) castled with check or (b) discovered check
+		/*
+		 * all king moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
+		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
+		 */
+		boolean isCheck;
+		Boolean lookup = discoveredCheckCache.lookup(move.from());
+		if (lookup != null) {
+			isCheck = lookup;
+		} else {
+			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
+			discoveredCheckCache.store(move.from(), isCheck);
+		}
+		if (!isCheck) {
+			if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+				isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getTotalPieces().flip(), move.getRooksCastlingMove().to(), opponentsKing);
+			}
+		}
+		return isCheck;
 	}
 
 	/**
