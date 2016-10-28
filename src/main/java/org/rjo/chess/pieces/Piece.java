@@ -4,12 +4,13 @@ import java.util.BitSet;
 import java.util.List;
 
 import org.rjo.chess.BitBoard;
+import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
-import org.rjo.chess.pieces.AbstractPiece.MoveCache;
+import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 
 /**
  * The interface for a chess piece.
@@ -69,14 +70,25 @@ public interface Piece extends Cloneable {
 	 * @param move current move
 	 * @param opponentsKing location of opponent's king
 	 * @param emptySquares bitset of empty squares (passed in as optimization)
+	 * @param checkCache cache for checks
 	 * @param discoveredCheckCache cache for discovered checks
 	 * @return true when the move leaves the opponent's king in check
 	 */
 	public boolean isOpponentsKingInCheckAfterMove(Position position, Move move, Square opponentsKing, BitSet emptySquares,
-			MoveCache<Boolean> discoveredCheckCache);
+			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache);
 
 	/**
 	 * Checks to see if the given square is attacked by one or more pieces of this piece type.
+	 *
+	 * @param emptySquares empty square bitset
+	 * @param targetSq the square to check.
+	 * @param checkCache check cache
+	 * @return true if it is attacked, otherwise false.
+	 */
+	public boolean attacksSquare(BitSet emptySquares, Square targetSq, SquareCache<CheckStates> checkCache);
+
+	/**
+	 * Checks to see if the given square is attacked by one or more pieces of this piece type. <B>without check cache -- usually just for tests</b>.
 	 *
 	 * @param emptySquares empty square bitset
 	 * @param targetSq the square to check.

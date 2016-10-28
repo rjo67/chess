@@ -356,8 +356,7 @@ public class PositionTest {
 	@Test
 	public void capture() {
 		Game game = Fen.decode("8/8/8/3p4/2P5/8/8/8 w - - 0 1");
-		Position newPosn = game.getPosition()
-				.move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5, PieceType.PAWN));
+		Position newPosn = game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5, PieceType.PAWN));
 		assertEmptySquare(newPosn, Square.c4);
 		assertPieceAt(newPosn, Square.d5, PieceType.PAWN);
 		assertTrue(newPosn.getPieces(Colour.BLACK)[PieceType.PAWN.ordinal()].getBitBoard().getBitSet().isEmpty());
@@ -384,8 +383,7 @@ public class PositionTest {
 		// this is 'posn2' from PerftTest
 		// sequence of moves: Ne5xg6, b4-b3, Ng6xh8. O-O is then not allowed...
 		Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 4");
-		Position newPosn = game.getPosition()
-				.move(new Move(PieceType.KNIGHT, Colour.WHITE, Square.e5, Square.g6, PieceType.PAWN));
+		Position newPosn = game.getPosition().move(new Move(PieceType.KNIGHT, Colour.WHITE, Square.e5, Square.g6, PieceType.PAWN));
 		newPosn = newPosn.move(new Move(PieceType.PAWN, Colour.BLACK, Square.b4, Square.b3));
 		newPosn = newPosn.move(new Move(PieceType.KNIGHT, Colour.WHITE, Square.g6, Square.h8, PieceType.ROOK));
 		List<Move> moves = newPosn.findMoves(Colour.BLACK);
@@ -404,9 +402,16 @@ public class PositionTest {
 	@Test
 	public void castlingRightsTest() {
 		// increase coverage of enum
-		assertArrayEquals(new CastlingRights[] { CastlingRights.QUEENS_SIDE, CastlingRights.KINGS_SIDE },
-				CastlingRights.values());
+		assertArrayEquals(new CastlingRights[] { CastlingRights.QUEENS_SIDE, CastlingRights.KINGS_SIDE }, CastlingRights.values());
 		CastlingRights.valueOf("QUEENS_SIDE");
+	}
+
+	@Test
+	public void testCheck() {
+		Game game = Fen.decode("r3k2r/5p2/8/8/1Q6/BBBB4/8/R3K2R w KkQq - 0 1");
+		System.setProperty("CHECK-DEBUG", "true");
+		Map<String, Integer> moveMap = Perft.findMoves(game.getPosition(), Colour.WHITE, 1);
+		System.out.println(moveMap);
 	}
 
 	private void assertPieceAt(Position cb, Square sq, PieceType expectedPiece) {

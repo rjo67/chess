@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
+import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
@@ -156,11 +157,11 @@ public class Pawn extends AbstractBitBoardPiece {
 
 	@Override
 	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
-			MoveCache<Boolean> discoveredCheckCache) {
+			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache) {
 		BitSet opponentsKingBitset = new BitSet(64);
 		opponentsKingBitset.set(opponentsKing.bitIndex());
 		// probably not worth caching discovered check results for pawns
-		boolean isCheck = checkIfCheckInternal(posn, move, opponentsKing, opponentsKingBitset, helper[getColour().ordinal()]);
+		boolean isCheck = checkIfCheckInternal(posn, move, opponentsKing, opponentsKingBitset, checkCache, helper[getColour().ordinal()]);
 		// if it's already check, don't need to calculate discovered check
 		if (!isCheck) {
 			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
@@ -372,7 +373,8 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @return true if this move leaves the king in check
 	 */
-	private boolean checkIfCheckInternal(Position posn, Move move, Square opponentsKing, BitSet opponentsKingBitset, MoveHelper helper) {
+	private boolean checkIfCheckInternal(Position posn, Move move, Square opponentsKing, BitSet opponentsKingBitset,
+			SquareCache<CheckStates> checkCache, MoveHelper helper) {
 		if (move.isPromotion()) {
 			if (move.getPromotedPiece() == PieceType.KNIGHT) {
 				return Knight.checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
@@ -385,11 +387,11 @@ public class Pawn extends AbstractBitBoardPiece {
 				switch (promotedPiece) {
 				case QUEEN:
 					return SlidingPiece.attacksSquareRankOrFile(emptySquares, move.to(), opponentsKing)
-							|| SlidingPiece.attacksSquareDiagonally(emptySquares, move.to(), opponentsKing);
+							|| SlidingPiece.attacksSquareDiagonally(emptySquares, move.to(), opponentsKing, checkCache);
 				case ROOK:
 					return SlidingPiece.attacksSquareRankOrFile(emptySquares, move.to(), opponentsKing);
 				case BISHOP:
-					return SlidingPiece.attacksSquareDiagonally(emptySquares, move.to(), opponentsKing);
+					return SlidingPiece.attacksSquareDiagonally(emptySquares, move.to(), opponentsKing, checkCache);
 				default:
 					throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
 				}
@@ -400,7 +402,7 @@ public class Pawn extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet notused, Square targetSq) {
+	public boolean attacksSquare(BitSet notused, Square targetSq, SquareCache<CheckStates> notused2) {
 		return helper[getColour().ordinal()].doPawnsAttackSquare(targetSq, pieces.getBitSet());
 	}
 

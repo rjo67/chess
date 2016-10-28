@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.CastlingRights;
+import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Move;
@@ -348,7 +349,7 @@ public class King extends AbstractPiece {
 
 	@Override
 	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
-			MoveCache<Boolean> discoveredCheckCache) {
+			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache) {
 		// checks: a king move can only give check if (a) castled with check or (b) discovered check
 		/*
 		 * all king moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
@@ -393,7 +394,7 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet notused, Square sq) {
+	public boolean attacksSquare(BitSet notused, Square sq, SquareCache<CheckStates> notused2) {
 		return MoveDistance.calculateDistance(kingsSquare, sq) == 1;
 	}
 }

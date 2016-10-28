@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Test;
+import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
@@ -15,7 +16,7 @@ import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
-import org.rjo.chess.pieces.AbstractPiece.MoveCache;
+import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 
 public class QueenMoveTest {
 
@@ -32,9 +33,11 @@ public class QueenMoveTest {
 		List<Move> moves = whiteQueen.findMoves(posn);
 		final Square opponentsKing = King.findOpponentsKing(posn.getSideToMove(), posn);
 		final BitSet emptySquares = posn.getTotalPieces().flip();
-		final MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
+		final SquareCache<CheckStates> checkCache = new SquareCache<>();
+		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>();
 		for (Move move : moves) {
-			move.setCheck(whiteQueen.isOpponentsKingInCheckAfterMove(posn, move, opponentsKing, emptySquares, discoveredCheckCache));
+			move.setCheck(
+					whiteQueen.isOpponentsKingInCheckAfterMove(posn, move, opponentsKing, emptySquares, checkCache, discoveredCheckCache));
 		}
 		return moves;
 	}

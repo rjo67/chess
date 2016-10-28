@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
+import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingChecker;
 import org.rjo.chess.Move;
@@ -210,7 +211,7 @@ public class Knight extends AbstractBitBoardPiece {
 
 	@Override
 	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
-			MoveCache<Boolean> discoveredCheckCache) {
+			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache) {
 		final int opponentsKingIndex = opponentsKing.bitIndex();
 		/*
 		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
@@ -245,7 +246,7 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet notUsed, Square targetSq) {
+	public boolean attacksSquare(BitSet notUsed, Square targetSq, SquareCache<CheckStates> notused) {
 		return Knight.attacksSquare(targetSq, pieces.getBitSet());
 	}
 

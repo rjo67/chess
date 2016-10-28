@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingChecker;
 import org.rjo.chess.Move;
@@ -138,12 +139,12 @@ public class Bishop extends SlidingPiece {
 
 	@Override
 	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
-			MoveCache<Boolean> discoveredCheckCache) {
+			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache) {
 		/*
 		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
 		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
-		boolean isCheck = findDiagonalCheck(posn, emptySquares, move, opponentsKing);
+		boolean isCheck = findDiagonalCheck(posn, emptySquares, move, opponentsKing, checkCache);
 		// if it's already check, don't need to calculate discovered check
 		if (!isCheck) {
 			Boolean lookup = discoveredCheckCache.lookup(move.from());
@@ -158,9 +159,9 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet emptySquares, Square targetSq) {
+	public boolean attacksSquare(BitSet emptySquares, Square targetSq, SquareCache<CheckStates> checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-			if (attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSq)) {
+			if (attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSq, checkCache)) {
 				return true;
 			}
 		}

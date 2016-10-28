@@ -22,7 +22,7 @@ public abstract class BaseRay implements Ray {
 
 	/**
 	 * Returns the appropriate Ray class for the given raytype.
-	 * 
+	 *
 	 * @param type ray type
 	 * @return the matching Ray class
 	 */
@@ -41,17 +41,17 @@ public abstract class BaseRay implements Ray {
 	}
 
 	@Override
-	public RayType getRayType() {
+	public final RayType getRayType() {
 		return rayType;
 	}
 
 	@Override
-	public boolean isDiagonal() {
+	public final boolean isDiagonal() {
 		return diagonal;
 	}
 
 	@Override
-	public Iterator<Integer> squaresFrom(Square startSquare) {
+	public final Iterator<Integer> squaresFrom(Square startSquare) {
 		return squaresFrom(startSquare.bitIndex());
 	}
 

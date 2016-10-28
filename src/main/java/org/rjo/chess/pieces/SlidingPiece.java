@@ -2,8 +2,10 @@ package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 
+import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
@@ -19,13 +21,25 @@ import org.rjo.chess.ray.RayUtils;
  */
 public abstract class SlidingPiece extends AbstractBitBoardPiece {
 
-	final static boolean[][] ON_SAME_DIAGONAL = new boolean[64][64];
+	// lookup table for each square sq1, storing the DIAGONAL ray (or null) for every other square relative to sq1
+	private final static Ray[][] DIAGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
+	// lookup table for each square sq1, storing the HORIZONTAL/VERTICAL ray (or null) for every other square relative to sq1
+	private final static Ray[][] ORTHOGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
+
 	static {
-		for (int sq1Index = 0; sq1Index < 64; sq1Index++) {
-			Square sq1 = Square.fromBitIndex(sq1Index);
-			for (int sq2Index = 0; sq2Index < 64; sq2Index++) {
-				Square sq2 = Square.fromBitIndex(sq2Index);
-				ON_SAME_DIAGONAL[sq1Index][sq2Index] = onSameDiagonal(sq1, sq2);
+		for (int sq1 = 0; sq1 < 64; sq1++) {
+			for (int sq2 = 0; sq2 < 64; sq2++) {
+				if (sq1 == sq2) {
+					continue;
+				}
+				Ray ray = RayUtils.getRay(Square.fromBitIndex(sq1), Square.fromBitIndex(sq2));
+				if (ray != null) {
+					if (ray.isDiagonal()) {
+						DIAGONAL_RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;
+					} else {
+						ORTHOGONAL_RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;
+					}
+				}
 			}
 		}
 	}
@@ -77,7 +91,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 */
 	public static boolean attacksSquareOnDiagonal(BitSet bishopsAndQueens, BitSet emptySquares, Square targetSquare) {
 		for (int i = bishopsAndQueens.nextSetBit(0); i >= 0; i = bishopsAndQueens.nextSetBit(i + 1)) {
-			if (attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSquare)) {
+			if (attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSquare, null /* TODO checkCache */)) {
 				return true;
 			}
 		}
@@ -128,8 +142,44 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check
 	 */
-	protected boolean findDiagonalCheck(Position posn, BitSet emptySquares, Move move, Square opponentsKing) {
-		return attacksSquareDiagonally(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(), opponentsKing);
+	protected boolean findDiagonalCheck(Position posn, BitSet emptySquares, Move move, Square opponentsKing,
+			SquareCache<CheckStates> checkCache) {
+
+		/**
+		 * two optimizations: <br>
+		 * 1) if the ray move.from <-> king and move.to <-> king is the same, then it can't be check (unless we've captured a piece) <br>
+		 * 2) if the ray move.from <-> move.to is the opposite to move.to <-> king, then it can't be check
+		 * <p>
+		 * See for example r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 <br>
+		 * case 1: Bc4-d5 cannot be check (same diagonal and not captured a piece)<br>
+		 * case 1a: Bc4xf7 is of course check<br>
+		 * case 2: A move Bc4-b3 cannot be check (moved on the same diagonal away from the opponent's king)
+		 * <p>
+		 */
+
+		// case 1:
+		Ray fromDestinationToKing = DIAGONAL_RAYS_BETWEEN_SQUARES[move.to().bitIndex()][opponentsKing.bitIndex()];
+		Ray fromOriginToKing = DIAGONAL_RAYS_BETWEEN_SQUARES[move.from().bitIndex()][opponentsKing.bitIndex()];
+		if (!((fromDestinationToKing == null) || (fromOriginToKing == null))) {
+			if (fromOriginToKing == fromDestinationToKing) {
+				if (!emptySquares.get(move.to().bitIndex())) {
+					checkCache.store(move.to(), CheckStates.CHECK_IF_CAPTURE);
+					return true;
+				} else {
+					checkCache.store(move.to(), CheckStates.NOT_CHECK);
+					return false;
+				}
+			}
+
+			// case 2:
+			Ray fromDestinationToOrigin = RayUtils.getRay(move.to(), move.from());
+			if (fromDestinationToOrigin.oppositeOf(fromDestinationToKing)) {
+				checkCache.store(move.to(), CheckStates.NOT_CHECK);
+				return false;
+			}
+		}
+		return attacksSquareDiagonally(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(), opponentsKing,
+				checkCache);
 	}
 
 	/**
@@ -139,31 +189,70 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param emptySquares the empty squares of the board
 	 * @param startSquare start square
 	 * @param targetSquare target square
+	 * @param checkCache (optional) will be updated with results from the search
 	 * @return true if the target square is attacked (diagonally) from the start square.
 	 */
 	// public, is required from Pawn
-	public static boolean attacksSquareDiagonally(BitSet emptySquares, Square startSquare, Square targetSquare) {
+	public static boolean attacksSquareDiagonally(BitSet emptySquares, Square startSquare, Square targetSquare,
+			SquareCache<CheckStates> checkCache) {
 		// give up straight away if start and target are the same
 		if (startSquare == targetSquare) {
 			return false;
 		}
-		if (!ON_SAME_DIAGONAL[startSquare.bitIndex()][targetSquare.bitIndex()]) {
+		// abort immediately if we've already processed this startSquare
+		CheckStates overallState = checkCache.lookup(startSquare);
+		if (overallState != null) {
+			return overallState == CheckStates.CHECK || overallState == CheckStates.CHECK_IF_CAPTURE;
+		}
+		Ray ray = DIAGONAL_RAYS_BETWEEN_SQUARES[startSquare.bitIndex()][targetSquare.bitIndex()];
+		if (ray == null) {
+			checkCache.store(startSquare, CheckStates.NOT_CHECK);
 			return false;
 		}
-		int rankOffset = startSquare.rank() > targetSquare.rank() ? -1 : 1;
-		int fileOffset = startSquare.file() > targetSquare.file() ? -1 : 1;
-		int bitPosn = startSquare.bitIndex();
-		boolean reachedTargetSquare = false;
-		boolean foundNonEmptySquare = false;
-		while (!reachedTargetSquare && !foundNonEmptySquare) {
-			bitPosn += (8 * rankOffset) + fileOffset;
-			if (bitPosn == targetSquare.bitIndex()) {
-				reachedTargetSquare = true;
-			} else if (!emptySquares.get(bitPosn)) {
-				foundNonEmptySquare = true;
+		// if move.from() and move.to() are on the same ray, then it can't be check
+		Iterator<Integer> squaresFrom = ray.squaresFrom(startSquare);
+		boolean finished = false;
+		List<Integer> squaresVisited = new ArrayList<>();
+		squaresVisited.add(startSquare.bitIndex());
+		while (squaresFrom.hasNext() && !finished) {
+			CheckStates result;
+			int currentSquare = squaresFrom.next();
+			if (currentSquare == targetSquare.bitIndex()) {
+				overallState = CheckStates.CHECK;
+				finished = true;
+			} else {
+				result = checkCache.lookup(currentSquare);
+				// if already in cache, does not get added to squaresVisited to simplify the logic at the end
+				if (result != null) {
+					overallState = result;
+					finished = true;
+				} else {
+					squaresVisited.add(currentSquare);
+					if (!emptySquares.get(currentSquare)) {
+						overallState = CheckStates.NOT_CHECK;
+						finished = true;
+					}
+				}
 			}
 		}
-		return reachedTargetSquare;
+		switch (overallState) {
+		case CHECK_IF_CAPTURE:
+			// all squares visited are set to NOT_CHECK, since we didn't capture the piece
+			squaresVisited.stream().forEach(sq -> checkCache.store(sq, CheckStates.NOT_CHECK));
+			break;
+		case CHECK:
+			squaresVisited.stream().forEach(sq -> checkCache.store(sq, CheckStates.CHECK));
+			// special case: if we captured a piece on the start square, then record this as CHECK_WITH_CAPTURE
+			if (!emptySquares.get(startSquare.bitIndex())) {
+				checkCache.store(startSquare, CheckStates.CHECK_IF_CAPTURE);
+			}
+			break;
+		case NOT_CHECK:
+			squaresVisited.stream().forEach(sq -> checkCache.store(sq, CheckStates.NOT_CHECK));
+			break;
+		}
+
+		return overallState == CheckStates.CHECK;
 	}
 
 	/**
@@ -202,57 +291,20 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		if (startSquare == targetSquare) {
 			return false;
 		}
-		if (startSquare.rank() == targetSquare.rank()) {
-			/*
-			 * Algorithm runs from smallest file to largest. If current square is not empty, then give up. Otherwise keep going until hit target square.
-			 */
-			int[] orderedNumbers = orderNumbers(startSquare.file(), targetSquare.file());
-			int bitIndex = Square.fromRankAndFile(startSquare.rank(), orderedNumbers[0]).bitIndex();
-			int targetBitIndex = Square.fromRankAndFile(targetSquare.rank(), orderedNumbers[1]).bitIndex();
-			for (int i = bitIndex + 1; i < targetBitIndex; i++) {
-				if (!emptySquares.get(i)) {
-					return false;
-				}
+		Ray ray = ORTHOGONAL_RAYS_BETWEEN_SQUARES[startSquare.bitIndex()][targetSquare.bitIndex()];
+		if (ray == null) {
+			return false;
+		}
+		Iterator<Integer> squaresFrom = ray.squaresFrom(startSquare);
+		while (squaresFrom.hasNext()) {
+			int nextSquare = squaresFrom.next();
+			if (nextSquare == targetSquare.bitIndex()) {
+				return true;
+			} else if (!emptySquares.get(nextSquare)) {
+				return false;
 			}
-			return true;
-		} else if (startSquare.file() == targetSquare.file()) {
-			/*
-			 * Algorithm runs from smallest rank to largest. If current square is not empty, then give up. Otherwise keep going until hit target square.
-			 */
-			int[] orderedNumbers = orderNumbers(startSquare.rank(), targetSquare.rank());
-			int bitIndex = Square.fromRankAndFile(orderedNumbers[0], startSquare.file()).bitIndex();
-			int targetBitIndex = Square.fromRankAndFile(orderedNumbers[1], targetSquare.file()).bitIndex();
-			for (int i = bitIndex + 8; i < targetBitIndex; i += 8) {
-				if (!emptySquares.get(i)) {
-					return false;
-				}
-			}
-			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Orders two numbers.
-	 *
-	 * @param num1 first number
-	 * @param num2 second number
-	 * @return an array with the first element the smaller number, and the 2nd element the larger number
-	 */
-	private static int[] orderNumbers(int num1, int num2) {
-		int[] res = new int[2];
-		if (num1 < num2) {
-			res[0] = num1;
-			res[1] = num2;
-		} else {
-			res[0] = num2;
-			res[1] = num1;
-		}
-		return res;
-	}
-
-	private static boolean onSameDiagonal(Square sq1, Square sq2) {
-		return Math.abs(sq1.rank() - sq2.rank()) == Math.abs(sq1.file() - sq2.file());
 	}
 
 }

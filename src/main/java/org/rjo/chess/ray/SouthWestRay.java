@@ -37,4 +37,9 @@ public class SouthWestRay extends BaseRay {
 		return RAY_SQUARES[startSquareIndex].iterator();
 	}
 
+	@Override
+	public final boolean oppositeOf(Ray ray) {
+		return ray.getRayType() == RayType.NORTHEAST;
+	}
+
 }

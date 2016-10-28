@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
+import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
@@ -377,7 +378,7 @@ public class Rook extends SlidingPiece {
 
 	@Override
 	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
-			MoveCache<Boolean> discoveredCheckCache) {
+			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache) {
 		/*
 		 * most moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
 		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
@@ -397,7 +398,7 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet emptySquares, Square targetSq) {
+	public boolean attacksSquare(BitSet emptySquares, Square targetSq, SquareCache<CheckStates> checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			if (attacksSquareRankOrFile(emptySquares, Square.fromBitIndex(i), targetSq)) {
 				return true;

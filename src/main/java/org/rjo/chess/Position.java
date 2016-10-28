@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.rjo.chess.pieces.AbstractPiece.MoveCache;
+import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 import org.rjo.chess.pieces.Bishop;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Knight;
@@ -74,6 +74,12 @@ public class Position {
 	public static Position startPosition() {
 		Position p = new Position();
 		return p;
+	}
+
+	public static void debugLog(String str) {
+		if (System.getProperty("CHECK-DEBUG") != null) {
+			System.out.println(str);
+		}
 	}
 
 	/**
@@ -265,11 +271,12 @@ public class Position {
 		}
 		// now need to establish which moves leave the opponent's king in check
 		final Square opponentsKing = King.findOpponentsKing(getSideToMove(), this);
-		final MoveCache<Boolean> discoveredCheckCache = new MoveCache<>();
+		final SquareCache<CheckStates> checkCache = new SquareCache<>();
+		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>();
 		final BitSet emptySquares = getTotalPieces().flip();
 		for (Move move : moves) {
 			Piece p = getPieces(colour)[move.getPiece().ordinal()];
-			move.setCheck(p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares, discoveredCheckCache));
+			move.setCheck(p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares, checkCache, discoveredCheckCache));
 		}
 
 		return moves;

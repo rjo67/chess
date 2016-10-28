@@ -36,4 +36,9 @@ public class SouthRay extends BaseRay {
 	public Iterator<Integer> squaresFrom(int startSquareIndex) {
 		return RAY_SQUARES[startSquareIndex].iterator();
 	}
+
+	@Override
+	public final boolean oppositeOf(Ray ray) {
+		return ray.getRayType() == RayType.NORTH;
+	}
 }

@@ -1,5 +1,6 @@
 package org.rjo.chess.pieces;
 
+import java.util.BitSet;
 import java.util.List;
 
 import org.rjo.chess.Colour;
@@ -80,20 +81,44 @@ public abstract class AbstractPiece implements Piece {
 		return type;
 	}
 
+	@Override
+	public final boolean attacksSquare(BitSet emptySquares, Square targetSq) {
+		return attacksSquare(emptySquares, targetSq, new SquareCache<>());
+	}
+
 	/**
 	 * A simple cache to map values to squares.
 	 */
-	public static class MoveCache<T> {
+	public static class SquareCache<T> {
 		// can't create generic array
-		private Object[] discoveredCheckCache = new Object[Square.values().length];
+		private Object[] cache = new Object[Square.values().length];
 
-		@SuppressWarnings("unchecked")
 		public T lookup(Square square) {
-			return (T) discoveredCheckCache[square.ordinal()];
+			return lookup(square.bitIndex());
 		}
 
-		public void store(Square square, T isCheck) {
-			discoveredCheckCache[square.ordinal()] = isCheck;
+		@SuppressWarnings("unchecked")
+		public T lookup(int squareBitIndex) {
+			return (T) cache[squareBitIndex];
+		}
+
+		public void store(Square square, T value) {
+			store(square.bitIndex(), value);
+		}
+
+		public void store(int squareBitIndex, T value) {
+			cache[squareBitIndex] = value;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder(100);
+			for (Square sq : Square.values()) {
+				if (this.lookup(sq) != null) {
+					sb.append("(" + sq + ":" + this.lookup(sq) + ")");
+				}
+			}
+			return sb.toString();
 		}
 	}
 }

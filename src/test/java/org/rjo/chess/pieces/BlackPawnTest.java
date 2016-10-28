@@ -3,6 +3,7 @@ package org.rjo.chess.pieces;
 import java.util.List;
 
 import org.junit.Test;
+import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
@@ -10,6 +11,7 @@ import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
+import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 
 public class BlackPawnTest {
 	private Piece pawn;
@@ -24,8 +26,9 @@ public class BlackPawnTest {
 	private List<Move> findMoves(Position posn) {
 		List<Move> moves = pawn.findMoves(posn);
 		final Square opponentsKing = King.findOpponentsKing(posn.getSideToMove(), posn);
+		final SquareCache<CheckStates> checkCache = new SquareCache<>();
 		for (Move move : moves) {
-			move.setCheck(pawn.isOpponentsKingInCheckAfterMove(posn, move, opponentsKing, null, null));
+			move.setCheck(pawn.isOpponentsKingInCheckAfterMove(posn, move, opponentsKing, null, checkCache, null));
 		}
 		return moves;
 	}
