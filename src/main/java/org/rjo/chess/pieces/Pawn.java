@@ -116,7 +116,9 @@ public class Pawn extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public List<Move> findMoves(Position posn, boolean kingInCheck) {
+	public List<Move> findMoves(
+			Position posn,
+			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
 
 		/*
@@ -156,8 +158,13 @@ public class Pawn extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
-			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache) {
+	public boolean isOpponentsKingInCheckAfterMove(
+			Position posn,
+			Move move,
+			Square opponentsKing,
+			@SuppressWarnings("unused") BitSet emptySquares,
+			SquareCache<CheckStates> checkCache,
+			@SuppressWarnings("unused") SquareCache<Boolean> discoveredCheckCache) {
 		BitSet opponentsKingBitset = new BitSet(64);
 		opponentsKingBitset.set(opponentsKing.bitIndex());
 		// probably not worth caching discovered check results for pawns
@@ -175,7 +182,9 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param chessboard state of the board
 	 * @param opponentsPieces bit set of opponent's pieces. **May be modified by this method**.
 	 */
-	private void addEnpassantSquare(Position chessboard, BitSet opponentsPieces) {
+	private void addEnpassantSquare(
+			Position chessboard,
+			BitSet opponentsPieces) {
 		Square enpassantSquare = chessboard.getEnpassantSquare();
 		if (enpassantSquare != null) {
 			opponentsPieces.set(enpassantSquare.bitIndex());
@@ -189,7 +198,9 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @return list of moves found by this method
 	 */
-	private List<Move> moveOneAndTwoSquaresForward(Position posn, MoveHelper helper) {
+	private List<Move> moveOneAndTwoSquaresForward(
+			Position posn,
+			MoveHelper helper) {
 		List<Move> moves;
 		// one square forward: shift by 8 and check if empty square
 		BitSet oneSquareForward = moveOneSquareForwardAndCheckForEmptySquare(pieces.getBitSet(), posn.getTotalPieces().getBitSet(), helper);
@@ -209,7 +220,10 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @return a bitset of all pawns, moved forward one square.
 	 */
-	private BitSet moveOneSquareForwardAndCheckForEmptySquare(BitSet pieces, BitSet totalPieces, MoveHelper helper) {
+	private BitSet moveOneSquareForwardAndCheckForEmptySquare(
+			BitSet pieces,
+			BitSet totalPieces,
+			MoveHelper helper) {
 		BitSet oneSquareForward = helper.moveOneRank(pieces);
 		oneSquareForward.andNot(totalPieces); // move must be to an empty square
 		return oneSquareForward;
@@ -224,7 +238,10 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @return list of moves found by this method
 	 */
-	private List<Move> moveAnotherSquareForward(BitSet oneSquareForward, BitSet totalPieces, MoveHelper helper) {
+	private List<Move> moveAnotherSquareForward(
+			BitSet oneSquareForward,
+			BitSet totalPieces,
+			MoveHelper helper) {
 		List<Move> moves = new ArrayList<>();
 		// shift again by 8 and check if empty square
 		BitSet twoSquaresForward = moveOneSquareForwardAndCheckForEmptySquare(oneSquareForward, totalPieces, helper);
@@ -244,7 +261,9 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @return the moves (including promotion if applicable)
 	 */
-	private List<Move> generateOneSquareForwardMoves(BitSet oneSquareForward, MoveHelper helper) {
+	private List<Move> generateOneSquareForwardMoves(
+			BitSet oneSquareForward,
+			MoveHelper helper) {
 		List<Move> moves = new ArrayList<>(50);
 		int offset = helper.getColour() == Colour.WHITE ? -8 : 8;
 		for (int i = oneSquareForward.nextSetBit(0); i >= 0; i = oneSquareForward.nextSetBit(i + 1)) {
@@ -274,7 +293,11 @@ public class Pawn extends AbstractBitBoardPiece {
 	 *           captures i.e. the opponent's pieces are taken into account.
 	 * @return list of moves found by this method
 	 */
-	private List<Move> capture(Position position, MoveHelper helper, boolean captureLeft, boolean checkingForAttack) {
+	private List<Move> capture(
+			Position position,
+			MoveHelper helper,
+			boolean captureLeft,
+			boolean checkingForAttack) {
 
 		BitSet captures;
 		if (captureLeft) {
@@ -346,7 +369,10 @@ public class Pawn extends AbstractBitBoardPiece {
 	 *           captures i.e. the opponent's pieces are taken into account.
 	 * @return list of moves found by this method
 	 */
-	private List<Move> captureLeft(Position chessboard, MoveHelper helper, boolean checkingForAttack) {
+	private List<Move> captureLeft(
+			Position chessboard,
+			MoveHelper helper,
+			boolean checkingForAttack) {
 		return capture(chessboard, helper, true, checkingForAttack);
 	}
 
@@ -359,7 +385,10 @@ public class Pawn extends AbstractBitBoardPiece {
 	 *           captures i.e. the opponent's pieces are taken into account.
 	 * @return list of moves found by this method
 	 */
-	private List<Move> captureRight(Position chessboard, MoveHelper helper, boolean checkingForAttack) {
+	private List<Move> captureRight(
+			Position chessboard,
+			MoveHelper helper,
+			boolean checkingForAttack) {
 		return capture(chessboard, helper, false, checkingForAttack);
 	}
 
@@ -370,11 +399,17 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param move the pawn move
 	 * @param opponentsKing square of the opponent's king
 	 * @param opponentsKingBitset bitset for the opponent's king (passed in as optimization)
+	 * @param checkCache stores whether a particular square checks the opponents king. Only for B/R/Q.
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @return true if this move leaves the king in check
 	 */
-	private boolean checkIfCheckInternal(Position posn, Move move, Square opponentsKing, BitSet opponentsKingBitset,
-			SquareCache<CheckStates> checkCache, MoveHelper helper) {
+	private boolean checkIfCheckInternal(
+			Position posn,
+			Move move,
+			Square opponentsKing,
+			BitSet opponentsKingBitset,
+			SquareCache<CheckStates> checkCache,
+			MoveHelper helper) {
 		if (move.isPromotion()) {
 			if (move.getPromotedPiece() == PieceType.KNIGHT) {
 				return Knight.checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
@@ -386,12 +421,11 @@ public class Pawn extends AbstractBitBoardPiece {
 				PieceType promotedPiece = move.getPromotedPiece();
 				switch (promotedPiece) {
 				case QUEEN:
-					return SlidingPiece.attacksSquareRankOrFile(emptySquares, move.to(), opponentsKing)
-							|| SlidingPiece.attacksSquareDiagonally(emptySquares, move.to(), opponentsKing, checkCache);
+					return Queen.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache);
 				case ROOK:
-					return SlidingPiece.attacksSquareRankOrFile(emptySquares, move.to(), opponentsKing);
+					return Rook.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache);
 				case BISHOP:
-					return SlidingPiece.attacksSquareDiagonally(emptySquares, move.to(), opponentsKing, checkCache);
+					return Bishop.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache);
 				default:
 					throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
 				}
@@ -402,7 +436,10 @@ public class Pawn extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet notused, Square targetSq, SquareCache<CheckStates> notused2) {
+	public boolean attacksSquare(
+			@SuppressWarnings("unused") BitSet emptySquares,
+			Square targetSq,
+			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
 		return helper[getColour().ordinal()].doPawnsAttackSquare(targetSq, pieces.getBitSet());
 	}
 
@@ -414,7 +451,10 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param pawns bitset describing where the pawns are
 	 * @return true if 'targetSq' is attacked by one or more pawns
 	 */
-	public static boolean attacksSquare(Square targetSq, Colour colour, BitSet pawns) {
+	public static boolean attacksSquare(
+			Square targetSq,
+			Colour colour,
+			BitSet pawns) {
 		return helper[colour.ordinal()].doPawnsAttackSquare(targetSq, pawns);
 	}
 
@@ -428,7 +468,8 @@ public class Pawn extends AbstractBitBoardPiece {
 		 * @param bs start bitset
 		 * @return shifted bitset
 		 */
-		BitSet moveOneRank(BitSet bs);
+		BitSet moveOneRank(
+				BitSet bs);
 
 		/**
 		 * The fourth rank (4th or 5th depending on the colour). Used when calculating pawn moves 2 squares forward.
@@ -443,7 +484,8 @@ public class Pawn extends AbstractBitBoardPiece {
 		 * @param bitIndex the bitIndex
 		 * @return true if on last rank.
 		 */
-		boolean onLastRank(int bitIndex);
+		boolean onLastRank(
+				int bitIndex);
 
 		/**
 		 * Given the starting bitset, returns a new bitset representing the pawn capture 'to the right' as seen from white's POV, e.g. b3xc4 or for a
@@ -452,7 +494,8 @@ public class Pawn extends AbstractBitBoardPiece {
 		 * @param startPosn starting bitset
 		 * @return the shifted bitset
 		 */
-		BitSet pawnCaptureRight(BitSet startPosn);
+		BitSet pawnCaptureRight(
+				BitSet startPosn);
 
 		/**
 		 * Given the starting bitset, returns a new bitset representing the pawn capture 'to the left' as seen from white's POV, e.g. b3xa4 or for a
@@ -461,7 +504,8 @@ public class Pawn extends AbstractBitBoardPiece {
 		 * @param startPosn starting bitset
 		 * @return the shifted bitset
 		 */
-		BitSet pawnCaptureLeft(BitSet captureLeft);
+		BitSet pawnCaptureLeft(
+				BitSet captureLeft);
 
 		/**
 		 * @return the colour represented by this helper class.
@@ -496,7 +540,9 @@ public class Pawn extends AbstractBitBoardPiece {
 		 * @param whitePawns the pawn bitset
 		 * @return true if at least one pawn attacks the given square
 		 */
-		boolean doPawnsAttackSquare(Square targetSq, BitSet pawns);
+		boolean doPawnsAttackSquare(
+				Square targetSq,
+				BitSet pawns);
 
 		/**
 		 * Returns true if a pawn on 'pawnSq' attacks 'targetSq'.
@@ -505,7 +551,9 @@ public class Pawn extends AbstractBitBoardPiece {
 		 * @param pawnSq the square where the pawn is
 		 * @return true if the pawn attacks the target square
 		 */
-		boolean doesPawnAttackSquare(Square targetSq, Square pawnSq);
+		boolean doesPawnAttackSquare(
+				Square targetSq,
+				Square pawnSq);
 
 		/**
 		 * Returns the bitset offset for captures 'right' relative to colour.
@@ -529,7 +577,8 @@ public class Pawn extends AbstractBitBoardPiece {
 	static class WhiteMoveHelper implements MoveHelper {
 
 		@Override
-		public BitSet moveOneRank(BitSet bs) {
+		public BitSet moveOneRank(
+				BitSet bs) {
 			return BitSetHelper.shiftOneNorth(bs);
 		}
 
@@ -559,7 +608,8 @@ public class Pawn extends AbstractBitBoardPiece {
 		}
 
 		@Override
-		public BitSet pawnCaptureLeft(BitSet startPosn) {
+		public BitSet pawnCaptureLeft(
+				BitSet startPosn) {
 			if (startPosn.isEmpty()) {
 				return startPosn;
 			}
@@ -572,7 +622,8 @@ public class Pawn extends AbstractBitBoardPiece {
 		}
 
 		@Override
-		public BitSet pawnCaptureRight(BitSet startPosn) {
+		public BitSet pawnCaptureRight(
+				BitSet startPosn) {
 			if (startPosn.isEmpty()) {
 				return startPosn;
 			}
@@ -585,12 +636,15 @@ public class Pawn extends AbstractBitBoardPiece {
 		}
 
 		@Override
-		public boolean onLastRank(int bitIndex) {
+		public boolean onLastRank(
+				int bitIndex) {
 			return bitIndex > 55;
 		}
 
 		@Override
-		public boolean doPawnsAttackSquare(Square targetSq, BitSet pawns) {
+		public boolean doPawnsAttackSquare(
+				Square targetSq,
+				BitSet pawns) {
 			if (targetSq.rank() < 2) {
 				return false;
 			}
@@ -607,7 +661,9 @@ public class Pawn extends AbstractBitBoardPiece {
 		}
 
 		@Override
-		public boolean doesPawnAttackSquare(Square targetSq, Square pawnSq) {
+		public boolean doesPawnAttackSquare(
+				Square targetSq,
+				Square pawnSq) {
 			if (targetSq.rank() < 2) {
 				return false;
 			}
@@ -641,12 +697,14 @@ public class Pawn extends AbstractBitBoardPiece {
 	static class BlackMoveHelper implements MoveHelper {
 
 		@Override
-		public BitSet moveOneRank(BitSet bs) {
+		public BitSet moveOneRank(
+				BitSet bs) {
 			return BitSetHelper.shiftOneSouth(bs);
 		}
 
 		@Override
-		public BitSet pawnCaptureRight(BitSet startPosn) {
+		public BitSet pawnCaptureRight(
+				BitSet startPosn) {
 			if (startPosn.isEmpty()) {
 				return startPosn;
 			}
@@ -659,7 +717,8 @@ public class Pawn extends AbstractBitBoardPiece {
 		}
 
 		@Override
-		public BitSet pawnCaptureLeft(BitSet startPosn) {
+		public BitSet pawnCaptureLeft(
+				BitSet startPosn) {
 			if (startPosn.isEmpty()) {
 				return startPosn;
 			}
@@ -697,12 +756,15 @@ public class Pawn extends AbstractBitBoardPiece {
 		}
 
 		@Override
-		public boolean onLastRank(int bitIndex) {
+		public boolean onLastRank(
+				int bitIndex) {
 			return bitIndex < 8;
 		}
 
 		@Override
-		public boolean doPawnsAttackSquare(Square targetSq, BitSet pawns) {
+		public boolean doPawnsAttackSquare(
+				Square targetSq,
+				BitSet pawns) {
 			if (targetSq.rank() > 5) {
 				return false;
 			}
@@ -719,7 +781,9 @@ public class Pawn extends AbstractBitBoardPiece {
 		}
 
 		@Override
-		public boolean doesPawnAttackSquare(Square targetSq, Square pawnSq) {
+		public boolean doesPawnAttackSquare(
+				Square targetSq,
+				Square pawnSq) {
 			if (targetSq.rank() > 5) {
 				return false;
 			}

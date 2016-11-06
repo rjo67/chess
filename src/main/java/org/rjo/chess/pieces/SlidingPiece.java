@@ -185,15 +185,16 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	/**
 	 * Checks if a bishop/queen on the given startSquare attacks the given targetSquare, i.e. the target square can be reached (diagonally) from the
 	 * start square and there are no intervening pieces.
+	 * <p>
+	 * NB <b>do not use this method for checks</b>, see instead {@link #findDiagonalCheck(Position, BitSet, Move, Square, SquareCache)}.
 	 *
 	 * @param emptySquares the empty squares of the board
 	 * @param startSquare start square
 	 * @param targetSquare target square
-	 * @param checkCache (optional) will be updated with results from the search
+	 * @param checkCache (optional -- but not null) will be updated with results from the search.
 	 * @return true if the target square is attacked (diagonally) from the start square.
 	 */
-	// public, is required from Pawn
-	public static boolean attacksSquareDiagonally(BitSet emptySquares, Square startSquare, Square targetSquare,
+	protected static boolean attacksSquareDiagonally(BitSet emptySquares, Square startSquare, Square targetSquare,
 			SquareCache<CheckStates> checkCache) {
 		// give up straight away if start and target are the same
 		if (startSquare == targetSquare) {

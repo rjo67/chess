@@ -153,13 +153,28 @@ public class Queen extends SlidingPiece {
 	@Override
 	public boolean attacksSquare(BitSet emptySquares, Square targetSq, SquareCache<CheckStates> checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-			Square startSquare = Square.fromBitIndex(i);
-			if (attacksSquareRankOrFile(emptySquares, startSquare, targetSq)) {
+			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache)) {
 				return true;
 			}
-			if (attacksSquareDiagonally(emptySquares, startSquare, targetSq, checkCache)) {
-				return true;
-			}
+		}
+		return false;
+	}
+
+	/**
+	 * static version of {@link #attacksSquare(BitSet, Square, SquareCache)}, for use from Pawn.
+	 *
+	 * @param emptySquares the empty squares
+	 * @param startSquare start square (i.e. where the queen is)
+	 * @param targetSquare square being attacked (i.e. where the king is)
+	 * @param checkCache cache of previously found results
+	 * @return true if targetSquare is attacked from startSquare, otherwise false.
+	 */
+	public static boolean attacksSquare(BitSet emptySquares, Square startSquare, Square targetSquare, SquareCache<CheckStates> checkCache) {
+		if (attacksSquareRankOrFile(emptySquares, startSquare, targetSquare)) {
+			return true;
+		}
+		if (attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache)) {
+			return true;
 		}
 		return false;
 	}

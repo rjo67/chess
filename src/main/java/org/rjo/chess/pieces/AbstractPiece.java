@@ -93,7 +93,7 @@ public abstract class AbstractPiece implements Piece {
 		// can't create generic array
 		private Object[] cache = new Object[Square.values().length];
 
-		public T lookup(Square square) {
+		final public T lookup(Square square) {
 			return lookup(square.bitIndex());
 		}
 
@@ -102,7 +102,7 @@ public abstract class AbstractPiece implements Piece {
 			return (T) cache[squareBitIndex];
 		}
 
-		public void store(Square square, T value) {
+		final public void store(Square square, T value) {
 			store(square.bitIndex(), value);
 		}
 

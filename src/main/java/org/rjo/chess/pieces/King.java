@@ -231,7 +231,7 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public void removePiece(Square square) {
+	public void removePiece(@SuppressWarnings("unused") Square square) {
 		throw new IllegalStateException("cannot remove king!?");
 	}
 
@@ -348,8 +348,9 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
-			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache) {
+	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing,
+			@SuppressWarnings("unused") BitSet emptySquares, @SuppressWarnings("unused") SquareCache<CheckStates> checkCache,
+			SquareCache<Boolean> discoveredCheckCache) {
 		// checks: a king move can only give check if (a) castled with check or (b) discovered check
 		/*
 		 * all king moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
@@ -394,7 +395,8 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet notused, Square sq, SquareCache<CheckStates> notused2) {
+	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares, Square sq,
+			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
 		return MoveDistance.calculateDistance(kingsSquare, sq) == 1;
 	}
 }

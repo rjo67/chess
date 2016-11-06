@@ -70,7 +70,7 @@ public interface Piece extends Cloneable {
 	 * @param move current move
 	 * @param opponentsKing location of opponent's king
 	 * @param emptySquares bitset of empty squares (passed in as optimization)
-	 * @param checkCache cache for checks
+	 * @param checkCache cache for checks. This should only be used for bishop, queen or rook moves.
 	 * @param discoveredCheckCache cache for discovered checks
 	 * @return true when the move leaves the opponent's king in check
 	 */

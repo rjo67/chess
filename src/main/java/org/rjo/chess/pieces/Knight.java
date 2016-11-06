@@ -210,8 +210,9 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
-			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache) {
+	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing,
+			@SuppressWarnings("unused") BitSet emptySquares, @SuppressWarnings("unused") SquareCache<CheckStates> checkCache,
+			SquareCache<Boolean> discoveredCheckCache) {
 		final int opponentsKingIndex = opponentsKing.bitIndex();
 		/*
 		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
@@ -246,7 +247,8 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet notUsed, Square targetSq, SquareCache<CheckStates> notused) {
+	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares, Square targetSq,
+			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
 		return Knight.attacksSquare(targetSq, pieces.getBitSet());
 	}
 
