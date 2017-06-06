@@ -121,21 +121,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
 
-		/*
-		 * The pawn move is complicated by the different directions for white and black pawns. This is the only piece to have this complication. This
-		 * difference is catered for by the 'MoveHelper' implementations.
-		 */
-
-		List<Move> moves = new ArrayList<>();
-		/*
-		 * 1) one square forward 2) two squares forward 5) enpassant 6) promotion
-		 */
-		moves.addAll(moveOneAndTwoSquaresForward(posn, helper[getColour().ordinal()]));
-		/*
-		 * 3) capture left 4) capture right 5) enpassant
-		 */
-		moves.addAll(captureLeft(posn, helper[getColour().ordinal()], false));
-		moves.addAll(captureRight(posn, helper[getColour().ordinal()], false));
+		List<Move> moves = findPotentialMoves(posn);
 
 		// make sure king is not/no longer in check
 		final Square myKing = King.findKing(getColour(), posn);
@@ -154,6 +140,29 @@ public class Pawn extends AbstractBitBoardPiece {
 		if (time != 0) {
 			LOG.debug("found " + moves.size() + " moves in " + time);
 		}
+		return moves;
+	}
+
+	@Override
+	public List<Move> findPotentialMoves(
+			Position posn) {
+
+		/*
+		 * The pawn move is complicated by the different directions for white and black pawns. This is the only piece to have this complication. This
+		 * difference is catered for by the 'MoveHelper' implementations.
+		 */
+
+		List<Move> moves = new ArrayList<>();
+		/*
+		 * 1) one square forward 2) two squares forward 5) enpassant 6) promotion
+		 */
+		moves.addAll(moveOneAndTwoSquaresForward(posn, helper[getColour().ordinal()]));
+		/*
+		 * 3) capture left 4) capture right 5) enpassant
+		 */
+		moves.addAll(captureLeft(posn, helper[getColour().ordinal()], false));
+		moves.addAll(captureRight(posn, helper[getColour().ordinal()], false));
+
 		return moves;
 	}
 

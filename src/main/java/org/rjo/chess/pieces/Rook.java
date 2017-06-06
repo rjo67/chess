@@ -277,7 +277,8 @@ public class Rook extends SlidingPiece {
 	}
 
 	/** uses the moveMap and vertMoveMap structures to find possible moves */
-	private List<Move> findMovesUsingMoveMap(Position posn) {
+	private List<Move> findMovesUsingMoveMap(
+			Position posn) {
 		List<Move> moves = new ArrayList<>();
 		Colour opponentsColour = Colour.oppositeColour(getColour());
 		BitBoard allPieces = posn.getTotalPieces();
@@ -325,8 +326,14 @@ public class Rook extends SlidingPiece {
 	 * @param fromSquareIndex square corresponding to bitIndexOfPiece
 	 * @param moveinfo the MoveInfo object corresponding to the file (or rank) which we're currently looking at.
 	 */
-	private void addMoves(Position chessboard, List<Move> moves, Colour opponentsColour, BitSet opponentsPieces, int bitIndexOfPiece,
-			Square fromSquareIndex, MoveInfo moveinfo) {
+	private void addMoves(
+			Position chessboard,
+			List<Move> moves,
+			Colour opponentsColour,
+			BitSet opponentsPieces,
+			int bitIndexOfPiece,
+			Square fromSquareIndex,
+			MoveInfo moveinfo) {
 
 		// System.out.printf("val=%d, map entry=%s%n", val, moveinfo);
 		for (int sqOffset : moveinfo.getMoveOffsets()) {
@@ -344,19 +351,13 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public List<Move> findMoves(Position posn, boolean kingInCheck) {
+	public List<Move> findMoves(
+			Position posn,
+			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
 
-		List<Move> moves = new ArrayList<>(30);
+		List<Move> moves = findPotentialMoves(posn);
 
-		// search for moves
-		if (USE_MOVE_MAP) {
-			moves = findMovesUsingMoveMap(posn);
-		} else {
-			for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
-				moves.addAll(search(posn, BaseRay.getRay(rayType)));
-			}
-		}
 		// make sure king is not/no longer in check
 		Square myKing = King.findKing(getColour(), posn);
 		Iterator<Move> iter = moves.listIterator();
@@ -377,8 +378,29 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
-			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache) {
+	public List<Move> findPotentialMoves(
+			Position posn) {
+		List<Move> moves = new ArrayList<>(30);
+
+		// search for moves
+		if (USE_MOVE_MAP) {
+			moves = findMovesUsingMoveMap(posn);
+		} else {
+			for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
+				moves.addAll(search(posn, BaseRay.getRay(rayType)));
+			}
+		}
+		return moves;
+	}
+
+	@Override
+	public boolean isOpponentsKingInCheckAfterMove(
+			Position posn,
+			Move move,
+			Square opponentsKing,
+			BitSet emptySquares,
+			SquareCache<CheckStates> checkCache,
+			SquareCache<Boolean> discoveredCheckCache) {
 		/*
 		 * most moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
 		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
@@ -398,7 +420,10 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet emptySquares, Square targetSq, SquareCache<CheckStates> checkCache) {
+	public boolean attacksSquare(
+			BitSet emptySquares,
+			Square targetSq,
+			SquareCache<CheckStates> checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache)) {
 				return true;
@@ -416,7 +441,11 @@ public class Rook extends SlidingPiece {
 	 * @param checkCache cache of previously found results
 	 * @return true if targetSquare is attacked from startSquare, otherwise false.
 	 */
-	public static boolean attacksSquare(BitSet emptySquares, Square startSquare, Square targetSquare, SquareCache<CheckStates> checkCache) {
+	public static boolean attacksSquare(
+			BitSet emptySquares,
+			Square startSquare,
+			Square targetSquare,
+			SquareCache<CheckStates> checkCache) {
 		return attacksSquareRankOrFile(emptySquares, startSquare, targetSquare);
 	}
 }
@@ -443,7 +472,9 @@ class MoveInfo {
 
 	// replaces the move offsets by the given offsetMultiplier and returns a new
 	// MoveInfo
-	public static MoveInfo copyWithOffsetMultiplier(MoveInfo m1, int offsetMultiplier) {
+	public static MoveInfo copyWithOffsetMultiplier(
+			MoveInfo m1,
+			int offsetMultiplier) {
 		Integer[] newMoveOffsets = m1.getMoveOffsets().clone();
 		Integer[] newCaptureOffsets = m1.getPossibleCapturesOffset().clone();
 		for (int i = 0; i < newMoveOffsets.length; i++) {
@@ -456,7 +487,9 @@ class MoveInfo {
 	}
 
 	// concats the info in m1 and m2 and returns a new MoveInfo
-	public static MoveInfo concat(MoveInfo m1, MoveInfo m2) {
+	public static MoveInfo concat(
+			MoveInfo m1,
+			MoveInfo m2) {
 		List<Integer> moves = new ArrayList<>();
 		for (Integer i : m1.moveOffsets) {
 			moves.add(i);

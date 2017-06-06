@@ -52,7 +52,8 @@ public abstract class AbstractPiece implements Piece {
 	 * @return a list of all possible moves.
 	 */
 	@Override
-	public final List<Move> findMoves(Position position) {
+	public final List<Move> findMoves(
+			Position position) {
 		return findMoves(position, false);
 	}
 
@@ -82,7 +83,9 @@ public abstract class AbstractPiece implements Piece {
 	}
 
 	@Override
-	public final boolean attacksSquare(BitSet emptySquares, Square targetSq) {
+	public final boolean attacksSquare(
+			BitSet emptySquares,
+			Square targetSq) {
 		return attacksSquare(emptySquares, targetSq, new SquareCache<>());
 	}
 
@@ -93,20 +96,26 @@ public abstract class AbstractPiece implements Piece {
 		// can't create generic array
 		private Object[] cache = new Object[Square.values().length];
 
-		final public T lookup(Square square) {
+		final public T lookup(
+				Square square) {
 			return lookup(square.bitIndex());
 		}
 
 		@SuppressWarnings("unchecked")
-		public T lookup(int squareBitIndex) {
+		public T lookup(
+				int squareBitIndex) {
 			return (T) cache[squareBitIndex];
 		}
 
-		final public void store(Square square, T value) {
+		final public void store(
+				Square square,
+				T value) {
 			store(square.bitIndex(), value);
 		}
 
-		public void store(int squareBitIndex, T value) {
+		public void store(
+				int squareBitIndex,
+				T value) {
 			cache[squareBitIndex] = value;
 		}
 

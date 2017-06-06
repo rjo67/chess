@@ -2,6 +2,7 @@ package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -160,10 +161,46 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public List<Move> findMoves(Position posn, boolean kingInCheck) {
+	public List<Move> findMoves(
+			Position posn,
+			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
-		List<Move> moves = new ArrayList<>(20);
 		final Square myKing = King.findKing(getColour(), posn);
+		final Colour oppositeColour = Colour.oppositeColour(getColour());
+
+		List<Move> moves = findPotentialMoves(posn);
+
+		/*
+		 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
+		 */
+		Iterator<Move> iter = moves.listIterator();
+		while (iter.hasNext()) {
+			Move move = iter.next();
+
+			KingChecker kingChecker = new KingChecker(posn, Colour.oppositeColour(getColour()), myKing);
+
+			boolean inCheck = false;
+			if (move.isCapture()) {
+				inCheck = Position.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck);
+			} else {
+				inCheck = kingChecker.isKingInCheck(move, kingInCheck);
+			}
+			if (inCheck) {
+				iter.remove();
+			}
+		}
+
+		long time = stopwatch.read();
+		if (time != 0) {
+			LOG.debug("found " + moves.size() + " moves in " + time);
+		}
+		return moves;
+	}
+
+	@Override
+	public List<Move> findPotentialMoves(
+			Position posn) {
+		List<Move> moves = new ArrayList<>(20);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
 		final BitSet allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
 		final BitSet allOpponentsPiecesBitSet = posn.getAllPieces(oppositeColour).getBitSet();
@@ -178,40 +215,31 @@ public class Knight extends AbstractBitBoardPiece {
 
 			final Square knightStartSquare = Square.fromBitIndex(i);
 
-			KingChecker kingChecker = new KingChecker(posn, Colour.oppositeColour(getColour()), myKing);
-
 			/*
-			 * Iterates over all possible moves and stores them as moves or captures. If the move would leave our king in check, it is illegal and is not
-			 * stored.
+			 * Iterates over all possible moves and stores them as moves or captures
 			 */
 			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
 				Square targetSquare = Square.fromBitIndex(k);
 				Move move;
-				boolean inCheck = false;
 				if (allOpponentsPiecesBitSet.get(k)) {
 					// capture
 					move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare, posn.pieceAt(targetSquare, oppositeColour));
-					inCheck = Position.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck);
 				} else {
 					move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare);
-					inCheck = kingChecker.isKingInCheck(move, kingInCheck);
 				}
-				if (!inCheck) {
-					moves.add(move);
-				}
+				moves.add(move);
 			}
-		}
-
-		long time = stopwatch.read();
-		if (time != 0) {
-			LOG.debug("found " + moves.size() + " moves in " + time);
 		}
 		return moves;
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing,
-			@SuppressWarnings("unused") BitSet emptySquares, @SuppressWarnings("unused") SquareCache<CheckStates> checkCache,
+	public boolean isOpponentsKingInCheckAfterMove(
+			Position posn,
+			Move move,
+			Square opponentsKing,
+			@SuppressWarnings("unused") BitSet emptySquares,
+			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		final int opponentsKingIndex = opponentsKing.bitIndex();
 		/*
@@ -240,14 +268,18 @@ public class Knight extends AbstractBitBoardPiece {
 	 * @return true if the given move attacks the given square.
 	 */
 	// also required by Pawn
-	public static boolean checkIfMoveAttacksSquare(Move move, int targetSquareIndex) {
+	public static boolean checkIfMoveAttacksSquare(
+			Move move,
+			int targetSquareIndex) {
 		// check if the target square is a knight move away from the destination
 		// square of the move
 		return knightMoves[move.to().bitIndex()].get(targetSquareIndex);
 	}
 
 	@Override
-	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares, Square targetSq,
+	public boolean attacksSquare(
+			@SuppressWarnings("unused") BitSet emptySquares,
+			Square targetSq,
 			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
 		return Knight.attacksSquare(targetSq, pieces.getBitSet());
 	}
@@ -259,7 +291,9 @@ public class Knight extends AbstractBitBoardPiece {
 	 * @param knights bitset describing where the knights are
 	 * @return true if 'targetSq' is attacked by one or more knights
 	 */
-	public static boolean attacksSquare(Square targetSq, BitSet knights) {
+	public static boolean attacksSquare(
+			Square targetSq,
+			BitSet knights) {
 		BitSet possibleMovesFromTargetSquare = knightMoves[targetSq.bitIndex()];
 		return possibleMovesFromTargetSquare.intersects(knights);
 	}

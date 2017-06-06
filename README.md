@@ -18,6 +18,11 @@ appropriate KingCheck method.
 - [ ] thread for search, interrupt from uci controller
 
 
+Branch 'moveswithcheck': rewrites Piece::findMoves to return all possible moves (including non-legal).
+This list is then refined in Position::findMoves to remove all moves which leave my king in check.
+The hope is to be able to optimize this procedure if it is performed centrally.
+
+
 [Diary](diary.md)
 
 

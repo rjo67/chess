@@ -104,19 +104,16 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public List<Move> findMoves(Position posn, boolean kingInCheck) {
+	public List<Move> findMoves(
+			Position posn,
+			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
-		List<Move> moves = new ArrayList<>(30);
-
-		// search for moves
-		for (RayType rayType : RayType.RAY_TYPES_DIAGONAL) {
-			moves.addAll(search(posn, BaseRay.getRay(rayType)));
-		}
+		List<Move> moves = findPotentialMoves(posn);
 
 		// make sure king is not/no longer in check
 		Square myKing = King.findKing(getColour(), posn);
-		Iterator<Move> iter = moves.listIterator();
 		KingChecker kingChecker = new KingChecker(posn, Colour.oppositeColour(getColour()), myKing);
+		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
 			boolean inCheck = false;
@@ -138,8 +135,26 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn, Move move, Square opponentsKing, BitSet emptySquares,
-			SquareCache<CheckStates> checkCache, SquareCache<Boolean> discoveredCheckCache) {
+	public List<Move> findPotentialMoves(
+			Position posn) {
+		List<Move> moves = new ArrayList<>(30);
+
+		// search for moves
+		for (RayType rayType : RayType.RAY_TYPES_DIAGONAL) {
+			moves.addAll(search(posn, BaseRay.getRay(rayType)));
+		}
+
+		return moves;
+	}
+
+	@Override
+	public boolean isOpponentsKingInCheckAfterMove(
+			Position posn,
+			Move move,
+			Square opponentsKing,
+			BitSet emptySquares,
+			SquareCache<CheckStates> checkCache,
+			SquareCache<Boolean> discoveredCheckCache) {
 		/*
 		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
 		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
@@ -159,7 +174,10 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet emptySquares, Square targetSq, SquareCache<CheckStates> checkCache) {
+	public boolean attacksSquare(
+			BitSet emptySquares,
+			Square targetSq,
+			SquareCache<CheckStates> checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache)) {
 				return true;
@@ -177,7 +195,11 @@ public class Bishop extends SlidingPiece {
 	 * @param checkCache cache of previously found results
 	 * @return true if targetSquare is attacked from startSquare, otherwise false.
 	 */
-	public static boolean attacksSquare(BitSet emptySquares, Square startSquare, Square targetSquare, SquareCache<CheckStates> checkCache) {
+	public static boolean attacksSquare(
+			BitSet emptySquares,
+			Square startSquare,
+			Square targetSquare,
+			SquareCache<CheckStates> checkCache) {
 		return attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache);
 	}
 
