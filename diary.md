@@ -1,7 +1,7 @@
 # Diary #
 
 ## Overview of commits and perfmance
-date | description | commit | perft
+date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 ---- | ----------- | ------ | -----
 17.07.16 | project subdirs removed. Added Rook::findMovesUsingMoveMap, introducing hashmaps. | ac7390a | 2069,0 moves/ms
 13.02.16 | rookmoves | eb33026 | 2117,8 moves/ms
