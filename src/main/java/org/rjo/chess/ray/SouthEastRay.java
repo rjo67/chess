@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.rjo.chess.pieces.PieceType;
 
+@SuppressWarnings("unchecked")
 public class SouthEastRay extends BaseRay {
 
 	private static SouthEastRay instance = new SouthEastRay();
@@ -33,12 +34,14 @@ public class SouthEastRay extends BaseRay {
 	}
 
 	@Override
-	public Iterator<Integer> squaresFrom(int startSquareIndex) {
+	public Iterator<Integer> squaresFrom(
+			int startSquareIndex) {
 		return RAY_SQUARES[startSquareIndex].iterator();
 	}
 
 	@Override
-	public final boolean oppositeOf(Ray ray) {
+	public final boolean oppositeOf(
+			Ray ray) {
 		return ray.getRayType() == RayType.NORTHWEST;
 	}
 }

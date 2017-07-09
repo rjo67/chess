@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.rjo.chess.pieces.PieceType;
 
+@SuppressWarnings("unchecked")
 public class NorthRay extends BaseRay {
 
 	private static NorthRay instance = new NorthRay();
@@ -33,12 +34,14 @@ public class NorthRay extends BaseRay {
 	}
 
 	@Override
-	public Iterator<Integer> squaresFrom(int startSquareIndex) {
+	public Iterator<Integer> squaresFrom(
+			int startSquareIndex) {
 		return RAY_SQUARES[startSquareIndex].iterator();
 	}
 
 	@Override
-	public final boolean oppositeOf(Ray ray) {
+	public final boolean oppositeOf(
+			Ray ray) {
 		return ray.getRayType() == RayType.SOUTH;
 	}
 }
