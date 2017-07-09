@@ -4,10 +4,21 @@
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
 		</Console>
+       <File name="File" fileName="target/movelog.txt" append="false" immediateFlush="false">
+                       <PatternLayout>
+                               <Pattern>%m%n</Pattern>
+                       </PatternLayout>
+               </File>
 	</Appenders>
 	<Loggers>
 <!-- 		<Logger name="org.rjo.chess.pieces" level="debug"/> -->
 		<!-- <Logger name="org.rjo.chess.Chessboard" level="debug"/> -->
+      
+      <!--  set to 'debug' to activate logging in Perft -->
+       <Logger name="MOVE-LOG" level="info" additivity="false">
+            <AppenderRef ref="File" />
+       </Logger>
+      
 		<Root level="warn">
 			<AppenderRef ref="Console" />
 		</Root>
