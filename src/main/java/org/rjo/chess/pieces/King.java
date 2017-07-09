@@ -12,6 +12,7 @@ import org.rjo.chess.CastlingRights;
 import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
+import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.MoveDistance;
 import org.rjo.chess.Position;
@@ -35,7 +36,7 @@ public class King extends AbstractPiece {
 	 */
 	// Important: array value [0] corresponds to square a1; [63] == h8.
 	private static final int[] SQUARE_VALUE_MIDDLEGAME =
-		// @formatter:off
+	// @formatter:off
       new int[] {
          20, 30, 10,  0,  0, 10, 30, 20,
          20, 20,  0,  0,  0,  0, 20, 20,
@@ -48,7 +49,7 @@ public class King extends AbstractPiece {
    };
    // @formatter:on
 	private static final int[] SQUARE_VALUE_ENDGAME =
-		// @formatter:off
+	// @formatter:off
       new int[] {
          -50,-30,-30,-30,-30,-30,-30,-50,
          -30,-30,  0,  0,  0,  0,-30,-30,
@@ -157,19 +158,21 @@ public class King extends AbstractPiece {
 	 * Constructs the King class, defining the start squares.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public King(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the King class with the required squares (can be null) or the default start squares. Setting 'startPosition' true has precedence over
-	 * 'startSquares'.
+	 * Constructs the King class with the required squares (can be null) or the default start squares. Setting
+	 * 'startPosition' true has precedence over 'startSquares'.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public King(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.KING);
@@ -261,17 +264,19 @@ public class King extends AbstractPiece {
 	 * checks if castling is possible. the approriate squares must be empty and not in check from other pieces.
 	 *
 	 * @param posn the current position
+	 * @param myColou my colour
 	 * @param oppositeColour opponent's colour
 	 * @param castlingRights which way to castle
 	 * @return true if castling is possible
 	 */
-	private boolean isCastlingLegal(
+	public static boolean isCastlingLegal(
 			Position posn,
+			Colour myColour,
 			Colour oppositeColour,
 			CastlingRights castlingRights) {
 		boolean canCastle = true;
 		// check squares are empty
-		for (int bitIndex : CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[getColour().ordinal()][castlingRights.ordinal()]) {
+		for (int bitIndex : CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[myColour.ordinal()][castlingRights.ordinal()]) {
 			if (canCastle) {
 				canCastle = canCastle && !posn.getTotalPieces().getBitSet().get(bitIndex);
 			}
@@ -280,7 +285,7 @@ public class King extends AbstractPiece {
 			return false;
 		}
 		// check squares are not attacked by an enemy piece
-		for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK[getColour().ordinal()][castlingRights.ordinal()]) {
+		for (Square sq : CASTLING_SQUARES_NOT_IN_CHECK[myColour.ordinal()][castlingRights.ordinal()]) {
 			if (canCastle) {
 				canCastle = canCastle && !posn.squareIsAttacked(sq, oppositeColour);
 			}
@@ -293,42 +298,42 @@ public class King extends AbstractPiece {
 			Position posn,
 			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
-		List<Move> moves = findPotentialMoves(posn); // TODO does not handle castling!!!!!!
+		List<Move> moves = findPotentialMoves(posn);
 
 		long time1 = stopwatch.read();
 
-		// castling -- can't castle out of check
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
-		if (!kingInCheck) {
-			if (posn.canCastle(getColour(), CastlingRights.KINGS_SIDE) && isCastlingLegal(posn, oppositeColour, CastlingRights.KINGS_SIDE)) {
-				moves.add(Move.castleKingsSide(getColour()));
-			}
-			if (posn.canCastle(getColour(), CastlingRights.QUEENS_SIDE) && isCastlingLegal(posn, oppositeColour, CastlingRights.QUEENS_SIDE)) {
-				moves.add(Move.castleQueensSide(getColour()));
-			}
-		}
-		long time2 = stopwatch.read();
 
 		// make sure king is not/no longer in check
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
-			Square myKing = move.to();
-			if (Position.isKingInCheck(posn, move, Colour.oppositeColour(getColour()), myKing, kingInCheck)) {
-				iter.remove();
+			// castling -- can't castle out of check or over a square in check
+			if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+				if (kingInCheck) {
+					iter.remove();
+				} else {
+					if (move.isCastleKingsSide() && !isCastlingLegal(posn, getColour(), oppositeColour, CastlingRights.KINGS_SIDE)) {
+						iter.remove();
+					} else if (move.isCastleQueensSide() && !isCastlingLegal(posn, getColour(), oppositeColour, CastlingRights.QUEENS_SIDE)) {
+						iter.remove();
+					}
+				}
+			} else {
+				Square myKing = move.to();
+				if (KingCheck.isKingInCheck(posn, move, Colour.oppositeColour(getColour()), myKing, kingInCheck)) {
+					iter.remove();
+				}
 			}
 		}
 
 		long time3 = stopwatch.read();
 		if (time3 != 0) {
-			LOG.debug("found " + moves.size() + " moves in " + time1 + "," + time2 + "," + time3 + ", fen: " + Fen.encode(posn));
+			LOG.debug("found " + moves.size() + " moves in " + time1 + "," + time3 + ", fen: " + Fen.encode(posn));
 		}
 		return moves;
 	}
 
-	/**
-	 * NB: does NOT add castling at the moment! **************************
-	 */
 	@Override
 	public List<Move> findPotentialMoves(
 			Position posn) {
@@ -345,7 +350,8 @@ public class King extends AbstractPiece {
 		possibleMoves.andNot(MOVES[opponentsKingSquare.bitIndex()]);
 
 		/*
-		 * possibleMoves now contains the possible moves apart from castling. (Moving the king to an attacked square has not been checked yet.)
+		 * possibleMoves now contains the possible moves apart from castling. (Moving the king to an attacked square has not
+		 * been checked yet.)
 		 */
 
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
@@ -361,6 +367,14 @@ public class King extends AbstractPiece {
 			} else {
 				moves.add(new Move(PieceType.KING, getColour(), kingsSquare, targetSquare));
 			}
+		}
+
+		// castling added if possible (without checking if legal)
+		if (posn.canCastle(getColour(), CastlingRights.KINGS_SIDE)) {
+			moves.add(Move.castleKingsSide(getColour()));
+		}
+		if (posn.canCastle(getColour(), CastlingRights.QUEENS_SIDE)) {
+			moves.add(Move.castleQueensSide(getColour()));
 		}
 
 		return moves;
@@ -381,8 +395,8 @@ public class King extends AbstractPiece {
 			SquareCache<Boolean> discoveredCheckCache) {
 		// checks: a king move can only give check if (a) castled with check or (b) discovered check
 		/*
-		 * all king moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
+		 * all king moves have the same starting square. If we've already checked for discovered check for this square, then can
+		 * use the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
 		boolean isCheck;
 		Boolean lookup = discoveredCheckCache.lookup(move.from());

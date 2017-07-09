@@ -23,7 +23,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 
 	// lookup table for each square sq1, storing the DIAGONAL ray (or null) for every other square relative to sq1
 	private final static Ray[][] DIAGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
-	// lookup table for each square sq1, storing the HORIZONTAL/VERTICAL ray (or null) for every other square relative to sq1
+	// lookup table for each square sq1, storing the HORIZONTAL/VERTICAL ray (or null) for every other square relative to
+	// sq1
 	private final static Ray[][] ORTHOGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
 
 	static {
@@ -49,15 +50,18 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along rank or file, taking into account any
-	 * intervening pieces.
+	 * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along rank or file,
+	 * taking into account any intervening pieces.
 	 *
 	 * @param pieces which pieces are available. This should represent the rooks and queens in the game.
 	 * @param emptySquares which squares are currently empty.
 	 * @param targetSquare which square should be attacked
 	 * @return true if at least one of the given pieces can attack the target square along a rank or file.
 	 */
-	public static boolean attacksSquareOnRankOrFile(BitSet pieces, BitSet emptySquares, Square targetSquare) {
+	public static boolean attacksSquareOnRankOrFile(
+			BitSet pieces,
+			BitSet emptySquares,
+			Square targetSquare) {
 		// version using canReachTargetSquare is slower than
 		// attacksSquareRankOrFile...
 
@@ -81,15 +85,18 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along a diagonal, taking into account any
-	 * intervening pieces.
+	 * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along a diagonal,
+	 * taking into account any intervening pieces.
 	 *
 	 * @param bishopsAndQueens which pieces are available. This should represent the bishops and queens in the game.
 	 * @param emptySquares which squares are currently empty.
 	 * @param targetSquare which square should be attacked
 	 * @return true if at least one of the given pieces can attack the target square along a diagonal.
 	 */
-	public static boolean attacksSquareOnDiagonal(BitSet bishopsAndQueens, BitSet emptySquares, Square targetSquare) {
+	public static boolean attacksSquareOnDiagonal(
+			BitSet bishopsAndQueens,
+			BitSet emptySquares,
+			Square targetSquare) {
 		for (int i = bishopsAndQueens.nextSetBit(0); i >= 0; i = bishopsAndQueens.nextSetBit(i + 1)) {
 			if (attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSquare, null /* TODO checkCache */)) {
 				return true;
@@ -99,13 +106,16 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Searches for moves in the direction specified by the {@link Ray} implementation. This is for rooks, bishops, and queens.
+	 * Searches for moves in the direction specified by the {@link Ray} implementation. This is for rooks, bishops, and
+	 * queens.
 	 *
 	 * @param posn state of the board
 	 * @param ray the ray (direction) in which to search
 	 * @return the moves found
 	 */
-	protected List<Move> search(Position posn, Ray ray) {
+	protected List<Move> search(
+			Position posn,
+			Ray ray) {
 		List<Move> moves = new ArrayList<>(30);
 
 		final Colour opponentsColour = Colour.oppositeColour(getColour());
@@ -137,17 +147,23 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * This is for bishop-type moves.
 	 *
 	 * @param posn the position. Only used if emptySquares is null.
-	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). If not null, 'posn' is not used.
+	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). If not
+	 *           null, 'posn' is not used.
 	 * @param move the move
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check
 	 */
-	protected boolean findDiagonalCheck(Position posn, BitSet emptySquares, Move move, Square opponentsKing,
+	protected boolean findDiagonalCheck(
+			Position posn,
+			BitSet emptySquares,
+			Move move,
+			Square opponentsKing,
 			SquareCache<CheckStates> checkCache) {
 
 		/**
 		 * two optimizations: <br>
-		 * 1) if the ray move.from <-> king and move.to <-> king is the same, then it can't be check (unless we've captured a piece) <br>
+		 * 1) if the ray move.from <-> king and move.to <-> king is the same, then it can only be check if we've captured a
+		 * piece <br>
 		 * 2) if the ray move.from <-> move.to is the opposite to move.to <-> king, then it can't be check
 		 * <p>
 		 * See for example r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 <br>
@@ -157,21 +173,48 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		 * <p>
 		 */
 
-		// case 1:
 		Ray fromDestinationToKing = DIAGONAL_RAYS_BETWEEN_SQUARES[move.to().bitIndex()][opponentsKing.bitIndex()];
+		if (fromDestinationToKing == null) {
+			checkCache.store(move.to(), CheckStates.NOT_CHECK);
+			return false;
+		}
 		Ray fromOriginToKing = DIAGONAL_RAYS_BETWEEN_SQUARES[move.from().bitIndex()][opponentsKing.bitIndex()];
+		// case 1:
 		if (!((fromDestinationToKing == null) || (fromOriginToKing == null))) {
 			if (fromOriginToKing == fromDestinationToKing) {
+				// move.from <-> king and move.to <-> king have the same ray
 				if (!emptySquares.get(move.to().bitIndex())) {
-					checkCache.store(move.to(), CheckStates.CHECK_IF_CAPTURE);
-					return true;
+					// if there are now just empty squares between move.to and the king, this is a CHECK_IF_CAPTURE. Otherwise NOT_CHECK
+					Iterator<Integer> iter = fromDestinationToKing.squaresFrom(move.to());
+					boolean foundPiece = false;
+					boolean foundKing = false;
+					while (iter.hasNext() && !foundPiece && !foundKing) {
+						Integer sqIndex = iter.next();
+						if (sqIndex == opponentsKing.bitIndex()) {
+							foundKing = true;
+						} else if (!emptySquares.get(sqIndex)) {
+							foundPiece = true;
+						}
+					}
+					if (foundPiece) {
+						checkCache.store(move.to(), CheckStates.NOT_CHECK);
+						return false;
+					} else if (foundKing) {
+						// no intervening pieces
+						checkCache.store(move.to(), CheckStates.CHECK_IF_CAPTURE);
+						return true;
+					} else {
+						throw new IllegalStateException("exited loop without finding the king");
+					}
 				} else {
+					// move.from <-> king and move.to <-> king has the same ray, so cannot be check since didn't capture a piece
 					checkCache.store(move.to(), CheckStates.NOT_CHECK);
 					return false;
 				}
 			}
 
 			// case 2:
+			// TODO this is only correct in context of above 'if'
 			Ray fromDestinationToOrigin = RayUtils.getRay(move.to(), move.from());
 			if (fromDestinationToOrigin.oppositeOf(fromDestinationToKing)) {
 				checkCache.store(move.to(), CheckStates.NOT_CHECK);
@@ -183,10 +226,11 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Checks if a bishop/queen on the given startSquare attacks the given targetSquare, i.e. the target square can be reached (diagonally) from the
-	 * start square and there are no intervening pieces.
+	 * Checks if a bishop/queen on the given startSquare attacks the given targetSquare, i.e. the target square can be
+	 * reached (diagonally) from the start square and there are no intervening pieces.
 	 * <p>
-	 * NB <b>do not use this method for checks</b>, see instead {@link #findDiagonalCheck(Position, BitSet, Move, Square, SquareCache)}.
+	 * NB <b>do not use this method for checks</b>, see instead
+	 * {@link #findDiagonalCheck(Position, BitSet, Move, Square, SquareCache)}.
 	 *
 	 * @param emptySquares the empty squares of the board
 	 * @param startSquare start square
@@ -194,7 +238,10 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param checkCache (optional -- but not null) will be updated with results from the search.
 	 * @return true if the target square is attacked (diagonally) from the start square.
 	 */
-	protected static boolean attacksSquareDiagonally(BitSet emptySquares, Square startSquare, Square targetSquare,
+	protected static boolean attacksSquareDiagonally(
+			BitSet emptySquares,
+			Square startSquare,
+			Square targetSquare,
 			SquareCache<CheckStates> checkCache) {
 		// give up straight away if start and target are the same
 		if (startSquare == targetSquare) {
@@ -228,10 +275,11 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 					overallState = result;
 					finished = true;
 				} else {
-					squaresVisited.add(currentSquare);
 					if (!emptySquares.get(currentSquare)) {
 						overallState = CheckStates.NOT_CHECK;
 						finished = true;
+					} else {
+						squaresVisited.add(currentSquare);
 					}
 				}
 			}
@@ -257,18 +305,23 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Checks if the given move would place the opponent's king in check, i.e. the destination square of the move attacks the location of the king
-	 * along a rank or file.
+	 * Checks if the given move would place the opponent's king in check, i.e. the destination square of the move attacks
+	 * the location of the king along a rank or file.
 	 * <p>
 	 * This is for rook-type moves.
 	 *
 	 * @param posn the position. Only used if emptySquares is null.
-	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). In this case posn is not used.
+	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). In this
+	 *           case posn is not used.
 	 * @param move the move
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check
 	 */
-	protected boolean findRankOrFileCheck(Position posn, BitSet emptySquares, Move move, Square opponentsKing) {
+	protected boolean findRankOrFileCheck(
+			Position posn,
+			BitSet emptySquares,
+			Move move,
+			Square opponentsKing) {
 		// abort if dest sq rank/file is not the same as the king's rank/file
 		if (move.to().file() == opponentsKing.file() || move.to().rank() == opponentsKing.rank()) {
 			return attacksSquareRankOrFile(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(), opponentsKing);
@@ -278,8 +331,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Checks if a rook/queen on the given startSquare attacks the given targetSquare, i.e. on the same rank or file and no intervening pieces. This is
-	 * for rook-type moves i.e. straight along files or ranks.
+	 * Checks if a rook/queen on the given startSquare attacks the given targetSquare, i.e. on the same rank or file and no
+	 * intervening pieces. This is for rook-type moves i.e. straight along files or ranks.
 	 *
 	 * @param emptySquares a bit set representing the empty squares on the board
 	 * @param startSquare start square
@@ -287,7 +340,10 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @return true if the target square is attacked (straight-line) from the start square.
 	 */
 	// public, since King need this too for castling
-	public static boolean attacksSquareRankOrFile(BitSet emptySquares, Square startSquare, Square targetSquare) {
+	public static boolean attacksSquareRankOrFile(
+			BitSet emptySquares,
+			Square startSquare,
+			Square targetSquare) {
 		// give up straight away if start and target are the same
 		if (startSquare == targetSquare) {
 			return false;

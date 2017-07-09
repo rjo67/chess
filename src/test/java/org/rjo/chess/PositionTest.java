@@ -96,7 +96,7 @@ public class PositionTest {
 		Position newPosn = posn.move(new Move(PieceType.PAWN, Colour.WHITE, Square.b2, Square.b4));
 
 		assertEmptySquare(newPosn, Square.b2);
-		assertPieceAt(newPosn, Square.b4, PieceType.PAWN);
+		assertPieceAt(newPosn, Square.b4, PieceType.PAWN, Colour.WHITE);
 	}
 
 	@Test
@@ -314,9 +314,9 @@ public class PositionTest {
 		Game game = Fen.decode("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KkQq - 0 1");
 		Position newPosn = game.getPosition().move(Move.castleKingsSide(Colour.WHITE));
 		assertEmptySquare(newPosn, Square.e1);
-		assertPieceAt(newPosn, Square.g1, PieceType.KING);
+		assertPieceAt(newPosn, Square.g1, PieceType.KING, Colour.WHITE);
 		assertEmptySquare(newPosn, Square.h1);
-		assertPieceAt(newPosn, Square.f1, PieceType.ROOK);
+		assertPieceAt(newPosn, Square.f1, PieceType.ROOK, Colour.WHITE);
 		assertFalse(newPosn.canCastle(Colour.WHITE, CastlingRights.KINGS_SIDE));
 	}
 
@@ -325,9 +325,9 @@ public class PositionTest {
 		Game game = Fen.decode("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KkQq - 0 1");
 		Position newPosn = game.getPosition().move(Move.castleKingsSide(Colour.BLACK));
 		assertEmptySquare(newPosn, Square.e8);
-		assertPieceAt(newPosn, Square.g8, PieceType.KING);
+		assertPieceAt(newPosn, Square.g8, PieceType.KING, Colour.BLACK);
 		assertEmptySquare(newPosn, Square.h8);
-		assertPieceAt(newPosn, Square.f8, PieceType.ROOK);
+		assertPieceAt(newPosn, Square.f8, PieceType.ROOK, Colour.BLACK);
 		assertFalse(newPosn.canCastle(Colour.BLACK, CastlingRights.KINGS_SIDE));
 	}
 
@@ -336,9 +336,9 @@ public class PositionTest {
 		Game game = Fen.decode("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KkQq - 0 1");
 		Position newPosn = game.getPosition().move(Move.castleQueensSide(Colour.WHITE));
 		assertEmptySquare(newPosn, Square.e1);
-		assertPieceAt(newPosn, Square.c1, PieceType.KING);
+		assertPieceAt(newPosn, Square.c1, PieceType.KING, Colour.WHITE);
 		assertEmptySquare(newPosn, Square.a1);
-		assertPieceAt(newPosn, Square.d1, PieceType.ROOK);
+		assertPieceAt(newPosn, Square.d1, PieceType.ROOK, Colour.WHITE);
 		assertFalse(newPosn.canCastle(Colour.WHITE, CastlingRights.QUEENS_SIDE));
 	}
 
@@ -347,9 +347,9 @@ public class PositionTest {
 		Game game = Fen.decode("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KkQq - 0 1");
 		Position newPosn = game.getPosition().move(Move.castleQueensSide(Colour.BLACK));
 		assertEmptySquare(newPosn, Square.e8);
-		assertPieceAt(newPosn, Square.c8, PieceType.KING);
+		assertPieceAt(newPosn, Square.c8, PieceType.KING, Colour.BLACK);
 		assertEmptySquare(newPosn, Square.a8);
-		assertPieceAt(newPosn, Square.d8, PieceType.ROOK);
+		assertPieceAt(newPosn, Square.d8, PieceType.ROOK, Colour.BLACK);
 		assertFalse(newPosn.canCastle(Colour.BLACK, CastlingRights.QUEENS_SIDE));
 	}
 
@@ -358,7 +358,7 @@ public class PositionTest {
 		Game game = Fen.decode("8/8/8/3p4/2P5/8/8/8 w - - 0 1");
 		Position newPosn = game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5, PieceType.PAWN));
 		assertEmptySquare(newPosn, Square.c4);
-		assertPieceAt(newPosn, Square.d5, PieceType.PAWN);
+		assertPieceAt(newPosn, Square.d5, PieceType.PAWN, Colour.WHITE);
 		assertTrue(newPosn.getPieces(Colour.BLACK)[PieceType.PAWN.ordinal()].getBitBoard().getBitSet().isEmpty());
 	}
 
@@ -375,7 +375,7 @@ public class PositionTest {
 		move.setPromotionPiece(PieceType.QUEEN);
 		Position newPosn = game.getPosition().move(move);
 		assertEmptySquare(newPosn, Square.f2);
-		assertPieceAt(newPosn, Square.f1, PieceType.QUEEN);
+		assertPieceAt(newPosn, Square.f1, PieceType.QUEEN, Colour.BLACK);
 	}
 
 	@Test
@@ -414,11 +414,17 @@ public class PositionTest {
 		System.out.println(moveMap);
 	}
 
-	private void assertPieceAt(Position cb, Square sq, PieceType expectedPiece) {
-		assertEquals(expectedPiece, cb.pieceAt(sq));
+	private void assertPieceAt(
+			Position cb,
+			Square sq,
+			PieceType expectedPiece,
+			Colour expectedColour) {
+		assertEquals(expectedPiece, cb.pieceAt(sq, expectedColour));
 	}
 
-	private void assertMoveNotPresent(List<Move> moves, String requiredMove) {
+	private void assertMoveNotPresent(
+			List<Move> moves,
+			String requiredMove) {
 		for (Move move : moves) {
 			if (requiredMove.equals(move.toString())) {
 				throw new AssertionError("move '" + requiredMove + "' was found in " + moves);
@@ -426,7 +432,9 @@ public class PositionTest {
 		}
 	}
 
-	private void assertMovePresent(List<Move> moves, String requiredMove) {
+	private void assertMovePresent(
+			List<Move> moves,
+			String requiredMove) {
 		boolean found = false;
 		for (Move move : moves) {
 			if (requiredMove.equals(move.toString())) {
@@ -439,9 +447,11 @@ public class PositionTest {
 		}
 	}
 
-	private void assertEmptySquare(Position cb, Square sq) {
+	private void assertEmptySquare(
+			Position cb,
+			Square sq) {
 		try {
-			cb.pieceAt(sq);
+			cb.pieceAt(sq, null);
 			fail("expected exception");
 		} catch (IllegalArgumentException x) {
 			// ok
@@ -462,7 +472,8 @@ public class PositionTest {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(
+				Object obj) {
 			if (!(obj instanceof InternalState)) {
 				return false;
 			}

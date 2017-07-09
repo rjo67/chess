@@ -8,6 +8,7 @@ import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,6 +44,11 @@ public class Position {
 	private static ExecutorService threadPool = Executors.newFixedThreadPool(PieceType.getPieceTypes().length);
 
 	/**
+	 * if TRUE, finds all moves (potentially non-legal) and removes illegal moves later. If FALSE, just finds legal moves.
+	 */
+	private static final boolean GENERATE_ILLEGAL_MOVES = Boolean.parseBoolean(System.getProperty("generateIllegalMoves", "false"));
+
+	/**
 	 * Controls access to the pieces in the game.
 	 */
 	private PieceManager pieceMgr;
@@ -53,7 +59,8 @@ public class Position {
 	private BitBoard[] allEnemyPieces;
 
 	/**
-	 * bitboard of all pieces on the board (irrespective of colour). Logical NOT of this BitBoard gives a bitboard of all empty squares.
+	 * bitboard of all pieces on the board (irrespective of colour). Logical NOT of this BitBoard gives a bitboard of all
+	 * empty squares.
 	 */
 	private BitBoard totalPieces;
 
@@ -67,7 +74,8 @@ public class Position {
 	private Colour sideToMove;
 
 	/**
-	 * if the king (of the sideToMove) is currently in check. Normally deduced from the last move but can be set delibarately for tests.
+	 * if the king (of the sideToMove) is currently in check. Normally deduced from the last move but can be set
+	 * delibarately for tests.
 	 */
 	private boolean inCheck;
 
@@ -277,12 +285,24 @@ public class Position {
 	private List<Move> findMoves(
 			Colour colour,
 			boolean inCheck) {
-		List<Move> moves = new ArrayList<>(150);
+		List<Move> moves = new ArrayList<>(100);
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece p = getPieces(colour)[type.ordinal()];
-			moves.addAll(p.findMoves(this, inCheck));
+			if (GENERATE_ILLEGAL_MOVES) {
+				moves.addAll(p.findPotentialMoves(this));
+			} else {
+				moves.addAll(p.findMoves(this, inCheck));
+			}
 		}
-		// now need to establish which moves leave the opponent's king in check
+		if (GENERATE_ILLEGAL_MOVES) {
+			// 'moves' must now be pruned to get rid of illegal moves,
+			// i.e. those leaving my king in check
+			checkMovesForLegality(moves, inCheck);
+		}
+
+		/*
+		 * at this point have found all legal moves. Now need to establish which moves leave the opponent's king in check
+		 */
 		final Square opponentsKing = King.findOpponentsKing(getSideToMove(), this);
 		final SquareCache<CheckStates> checkCache = new SquareCache<>();
 		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>();
@@ -293,6 +313,54 @@ public class Position {
 		}
 
 		return moves;
+	}
+
+	/**
+	 * Removes any moves that leave my king in check, i.e. which are illegal.
+	 *
+	 * @param moves the potential moves found so far
+	 * @param inCheck whether the king is in check already
+	 */
+	private void checkMovesForLegality(
+			List<Move> moves,
+			boolean inCheck) {
+		final SquareCache<CheckStates> checkCache = new SquareCache<>();
+		final Square myKing = King.findKing(getSideToMove(), this);
+
+		BitSet friendlyPieces = this.getAllPieces(sideToMove).getBitSet();
+		Colour opponentsColour = Colour.oppositeColour(sideToMove);
+		BitSet[] enemyPieces = Position.setupEnemyBitsets(this.getPieces(opponentsColour));
+
+		// check if the piece moving away from 'fromSquare' has left my king in (discovered) check
+		ListIterator<Move> iter = moves.listIterator();
+		while (iter.hasNext()) {
+			Move move = iter.next();
+
+			// special for castling
+			// castling -- can't castle out of check or over a square in check
+			if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+				if (inCheck) {
+					iter.remove();
+				} else {
+					if (move.isCastleKingsSide() && !King.isCastlingLegal(this, sideToMove, opponentsColour, CastlingRights.KINGS_SIDE)) {
+						iter.remove();
+					}
+					if (move.isCastleQueensSide() && !King.isCastlingLegal(this, sideToMove, opponentsColour, CastlingRights.QUEENS_SIDE)) {
+						iter.remove();
+					}
+				}
+			} else {
+
+				enemyPieces = Position.setupEnemyBitsets(this.getPieces(opponentsColour));
+				if (KingCheck.isKingInCheckAfterMove(myKing, sideToMove, friendlyPieces, enemyPieces, move, inCheck)) {
+					iter.remove();
+				}
+
+				// Square fromSquare = move.from();
+				// Ray rayToKing = RayUtils.getRay(fromSquare, myKing);
+			}
+		}
+
 	}
 
 	// public List<Move> findMovesParallel(Colour colour) {
@@ -439,15 +507,15 @@ public class Position {
 	}
 
 	/**
-	 * Calculates a static value for the current position. In order for NegaMax to work, it is important to return the score relative to the side being
-	 * evaluated.
+	 * Calculates a static value for the current position. In order for NegaMax to work, it is important to return the score
+	 * relative to the side being evaluated.
 	 *
 	 * @return a value in centipawns
 	 */
 	public int evaluate() {
 		/*
-		 * materialScore = kingWt * (wK-bK) + queenWt * (wQ-bQ) + rookWt * (wR-bR) + knightWt* (wN-bN) + bishopWt* (wB-bB) + pawnWt * (wP-bP)
-		 * mobilityScore = mobilityWt * (wMobility-bMobility)
+		 * materialScore = kingWt * (wK-bK) + queenWt * (wQ-bQ) + rookWt * (wR-bR) + knightWt* (wN-bN) + bishopWt* (wB-bB) +
+		 * pawnWt * (wP-bP) mobilityScore = mobilityWt * (wMobility-bMobility)
 		 */
 		int materialScore = 0;
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
@@ -620,8 +688,8 @@ public class Position {
 	// }
 
 	/**
-	 * Updates the given bitset to represent the move. The from and to squares will be flipped. If castling then the rook's move is also taken into
-	 * a/c.
+	 * Updates the given bitset to represent the move. The from and to squares will be flipped. If castling then the rook's
+	 * move is also taken into a/c.
 	 *
 	 * @param bitset the bitset to be updated.
 	 * @param move the move. NB only non-capture moves are supported by this method!
@@ -660,7 +728,8 @@ public class Position {
 	}
 
 	/**
-	 * Access to a BitBoard of all the pieces irrespective of colour. Logical NOT of this BitBoard gives a bitboard of all empty squares.
+	 * Access to a BitBoard of all the pieces irrespective of colour. Logical NOT of this BitBoard gives a bitboard of all
+	 * empty squares.
 	 *
 	 * @return a BitBoard containing all the pieces irrespective of colour.
 	 */
@@ -736,7 +805,8 @@ public class Position {
 	/**
 	 * Checks for a discovered check after the move 'move'.
 	 * <p>
-	 * This will not be 100% correct for moves along the same ray to the opponent's king. But these moves are already check and not discovered check.
+	 * This will not be 100% correct for moves along the same ray to the opponent's king. But these moves are already check
+	 * and not discovered check.
 	 *
 	 * @param posn the chessboard
 	 * @param move the move
@@ -771,7 +841,8 @@ public class Position {
 	}
 
 	/**
-	 * Returns true if a piece on 'startSquare' attacks 'targetSquare', i.e. the two squares are on the same ray and there are no intervening pieces.
+	 * Returns true if a piece on 'startSquare' attacks 'targetSquare', i.e. the two squares are on the same ray and there
+	 * are no intervening pieces.
 	 * <p>
 	 * It still depends on the piece type to determine whether there really is an attack.
 	 *
@@ -829,45 +900,6 @@ public class Position {
 	// }
 
 	/**
-	 * Checks if my king is in check after the move 'move'.
-	 *
-	 * @param posn the chessboard
-	 * @param move the move
-	 * @param opponentsColour this colour's pieces will be inspected to see if they check my king
-	 * @param king where my king is
-	 * @param kingIsAlreadyInCheck true if the king was already in check before the 'move'
-	 * @return true if this move leaves the king in check (i.e. is an illegal move)
-	 */
-	// TODO this seems to be duplicated in KingChecker
-	public static boolean isKingInCheck(
-			Position posn,
-			Move move,
-			Colour opponentsColour,
-			Square king,
-			boolean kingIsAlreadyInCheck) {
-
-		// short circuit if king was not in check beforehand (therefore only
-		// need to check for a pinned piece) and the
-		// moving piece's original square is not on a ray to the king
-		if (!kingIsAlreadyInCheck && (move.getPiece() != PieceType.KING)) {
-			if (null == RayUtils.getRay(king, move.from())) {
-				return false;
-			}
-		}
-
-		BitSet friendlyPieces = posn.getAllPieces(Colour.oppositeColour(opponentsColour)).getBitSet();
-		BitSet[] enemyPieces = setupEnemyBitsets(posn.getPieces(opponentsColour));
-
-		if (kingIsAlreadyInCheck) {
-			return KingCheck.isKingInCheckAfterMove_PreviouslyWasInCheck(king, Colour.oppositeColour(opponentsColour), friendlyPieces,
-					enemyPieces, move);
-		} else {
-			return KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(king, Colour.oppositeColour(opponentsColour), friendlyPieces,
-					enemyPieces, move);
-		}
-	}
-
-	/**
 	 * Returns the bitsets of the pieces parameter.
 	 *
 	 * @param pieces
@@ -880,20 +912,6 @@ public class Position {
 			enemyPieces[type.ordinal()] = pieces[type.ordinal()].getBitBoard().getBitSet();
 		}
 		return enemyPieces;
-	}
-
-	/**
-	 * Finds the piece at the given square.
-	 *
-	 * @param targetSquare square to use
-	 * @return the piece at this location.
-	 * @throws IllegalArgumentException if no piece exists at the given square.
-	 * @deprecated should be possible to always rewrite using {@link #pieceAt(Square, Colour)}.
-	 */
-	@Deprecated
-	public PieceType pieceAt(
-			Square targetSquare) {
-		return pieceAt(targetSquare, null);
 	}
 
 	/**

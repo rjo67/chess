@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
+import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
@@ -30,21 +31,16 @@ public class Rook extends SlidingPiece {
 
 	private static final Logger LOG = LogManager.getLogger(Rook.class);
 	/*
-	 * if useMovemap is defined, we'll use the data structures moveMap, vertMoveMap. Otherwise the ray algorithm will be used.
+	 * if useMovemap is defined, we'll use the data structures moveMap, vertMoveMap. Otherwise the ray algorithm will be
+	 * used.
 	 */
-	private static final boolean USE_MOVE_MAP;
-
-	static {
-		String val = System.getProperty("useMovemap");
-		USE_MOVE_MAP = (val != null);
-		LOG.debug("using moveMap algorithm: " + USE_MOVE_MAP);
-	}
+	private static final boolean USE_MOVE_MAP = Boolean.parseBoolean(System.getProperty("useMoveMap", "false"));
 
 	/** piece value in centipawns */
 	private static final int PIECE_VALUE = 500;
 
 	private static int[] SQUARE_VALUE =
-		// @formatter:off
+	// @formatter:off
       new int[] {
          0,  0,  0,  5,  5,  0,  0,  0,
         -5,  0,  0,  0,  0,  0,  0, -5,
@@ -58,11 +54,13 @@ public class Rook extends SlidingPiece {
       // @formatter:on
 
 	/**
-	 * stores possible moves from posn 'x' (first array dimension). x is the file (in bits from right, RHS==0). so moveMap[4] stores patterns where the
-	 * rook is on the 4th file. In the map itself: the key is the value of the byte pattern (file 'x' is always 1). the value stores which moves are
-	 * valid for this pattern. The maps are immutable.
+	 * stores possible moves from posn 'x' (first array dimension). x is the file (in bits from right, RHS==0). so
+	 * moveMap[4] stores patterns where the rook is on the 4th file. In the map itself: the key is the value of the byte
+	 * pattern (file 'x' is always 1). the value stores which moves are valid for this pattern. The maps are immutable.
 	 */
+	@SuppressWarnings("unchecked")
 	private final static Map<Integer, MoveInfo>[] moveMap = new Map[8];
+	@SuppressWarnings("unchecked")
 	private final static Map<Integer, MoveInfo>[] vertMoveMap = new Map[8];
 
 	static {
@@ -93,13 +91,14 @@ public class Rook extends SlidingPiece {
        */
 
 		/*
-		 * general algorithm: 'tmpMoveMap' stores the bitmaps to the 'left' and the 'right' of piecePosn. In the 3rd for loop, these get concatenated
-		 * into 'concatMoveMap' -- one value for both the LHS and the RHS. These values are then stored as immutable maps. 'vertMoveMap' is then
-		 * generated from the horizontal 'moveMap'.
+		 * general algorithm: 'tmpMoveMap' stores the bitmaps to the 'left' and the 'right' of piecePosn. In the 3rd for loop,
+		 * these get concatenated into 'concatMoveMap' -- one value for both the LHS and the RHS. These values are then stored
+		 * as immutable maps. 'vertMoveMap' is then generated from the horizontal 'moveMap'.
 		 */
 
 		// achtung! In this array the index starts from the right!
 		// in the 'real' moveMap [0] is the leftmost file, e.g. A1
+		@SuppressWarnings("unchecked")
 		Map<Integer, MoveInfo>[][] tmpMoveMap = new HashMap[8][2];
 		// add squares to left of posn
 		for (int piecePosn = 0; piecePosn < 8; piecePosn++) {
@@ -169,6 +168,7 @@ public class Rook extends SlidingPiece {
 
 		// concat the two dimensions together to get the definitive moveMap
 		// Achtung! concatMoveMap[0] is the leftmost file, e.g. A1. this is the opposite of tmpMoveMap.
+		@SuppressWarnings("unchecked")
 		Map<Integer, MoveInfo>[] concatMoveMap = new HashMap[8];
 		for (int piecePosn = 0; piecePosn < 8; piecePosn++) {
 			int translatedPiecePosn = 7 - piecePosn;
@@ -204,6 +204,7 @@ public class Rook extends SlidingPiece {
 			moveMap[piecePosn] = Collections.unmodifiableMap(concatMoveMap[piecePosn]);
 		}
 		// copy moveMap to the vertical
+		@SuppressWarnings("unchecked")
 		Map<Integer, MoveInfo>[] tmpVertMoveMap = new HashMap[8];
 		for (int piecePosn = 0; piecePosn < 8; piecePosn++) {
 			tmpVertMoveMap[piecePosn] = new HashMap<>(30);
@@ -246,19 +247,21 @@ public class Rook extends SlidingPiece {
 	 * Constructs the Rook class, defining the start squares.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public Rook(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Rook class with the required squares (can be null) or the default start squares. Setting 'startPosition' true has precedence over
-	 * 'startSquares'.
+	 * Constructs the Rook class with the required squares (can be null) or the default start squares. Setting
+	 * 'startPosition' true has precedence over 'startSquares'.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public Rook(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.ROOK);
@@ -360,12 +363,11 @@ public class Rook extends SlidingPiece {
 
 		// make sure king is not/no longer in check
 		Square myKing = King.findKing(getColour(), posn);
-		Iterator<Move> iter = moves.listIterator();
 		Colour opponentsColour = Colour.oppositeColour(getColour());
+		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
-			boolean inCheck = Position.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck);
-			if (inCheck) {
+			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck)) {
 				iter.remove();
 			}
 		}
@@ -402,8 +404,8 @@ public class Rook extends SlidingPiece {
 			SquareCache<CheckStates> checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		/*
-		 * most moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
+		 * most moves have the same starting square. If we've already checked for discovered check for this square, then can use
+		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
 		boolean isCheck = findRankOrFileCheck(posn, emptySquares, move, opponentsKing);
 		// if it's already check, don't need to calculate discovered check

@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
-import org.rjo.chess.KingChecker;
+import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
@@ -51,7 +51,8 @@ public class Bishop extends SlidingPiece {
 	}
 
 	/**
-	 * Constructs the Bishop class -- with no pieces on the board. Delegates to Bishop(Colour, boolean) with parameter false.
+	 * Constructs the Bishop class -- with no pieces on the board. Delegates to Bishop(Colour, boolean) with parameter
+	 * false.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 */
@@ -73,19 +74,21 @@ public class Bishop extends SlidingPiece {
 	 * Constructs the Bishop class, defining the start squares.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public Bishop(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Bishop class with the required squares (can be null) or the default start squares. Setting 'startPosition' true has precedence
-	 * over 'startSquares'.
+	 * Constructs the Bishop class with the required squares (can be null) or the default start squares. Setting
+	 * 'startPosition' true has precedence over 'startSquares'.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public Bishop(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.BISHOP);
@@ -112,17 +115,11 @@ public class Bishop extends SlidingPiece {
 
 		// make sure king is not/no longer in check
 		Square myKing = King.findKing(getColour(), posn);
-		KingChecker kingChecker = new KingChecker(posn, Colour.oppositeColour(getColour()), myKing);
+		KingCheck kingChecker = new KingCheck(posn, Colour.oppositeColour(getColour()), myKing);
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
-			boolean inCheck = false;
-			if (!move.isCapture()) {
-				inCheck = kingChecker.isKingInCheck(move, kingInCheck);
-			} else {
-				inCheck = Position.isKingInCheck(posn, move, Colour.oppositeColour(getColour()), myKing, kingInCheck);
-			}
-			if (inCheck) {
+			if (kingChecker.isKingInCheck(move, kingInCheck)) {
 				iter.remove();
 			}
 		}
@@ -156,8 +153,8 @@ public class Bishop extends SlidingPiece {
 			SquareCache<CheckStates> checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		/*
-		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
+		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use
+		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
 		boolean isCheck = findDiagonalCheck(posn, emptySquares, move, opponentsKing, checkCache);
 		// if it's already check, don't need to calculate discovered check

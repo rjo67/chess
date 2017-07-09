@@ -1,6 +1,6 @@
 # Diary #
 
-## Overview of commits and perfmance
+## Overview of commits and performance
 date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 ---- | ----------- | ------ | -----
 17.07.16 | project subdirs removed. Added Rook::findMovesUsingMoveMap, introducing hashmaps. | ac7390a | 2069,0 moves/ms
@@ -11,6 +11,10 @@ date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 10.04.15 | pawn optimisations | | 2360,5 moves/ms
 06.04.15 | using rays, caching discovered check | | 1522,4 moves/ms
 03.04.15 | | | 1148,7 moves/ms
+
+## 09.07.17
+Branch moveswithcheck: Fixed error in posn2 ply4 (which has been wrong since commit f322b19 (introduction of check-cache
+and optimizations in SlidingPiece::findDiagonalCheck).
 
 ## 28.10.16
 

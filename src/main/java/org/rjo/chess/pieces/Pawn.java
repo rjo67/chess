@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
+import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
@@ -27,9 +28,10 @@ public class Pawn extends AbstractBitBoardPiece {
 	private static final int PIECE_VALUE = 100;
 
 	/**
-	 * Stores the piece-square values. http://chessprogramming.wikispaces.com/Simplified+evaluation+function. These values (mirrored for black) should
-	 * be added to VALUE to get a piece-square value for each pawn. Important: array value [0] corresponds to square a1; [63] == h8. For black, the
-	 * position as given below corresponds to the actual board, i.e. a1 is bottom RHS [63]
+	 * Stores the piece-square values. http://chessprogramming.wikispaces.com/Simplified+evaluation+function. These values
+	 * (mirrored for black) should be added to VALUE to get a piece-square value for each pawn. Important: array value [0]
+	 * corresponds to square a1; [63] == h8. For black, the position as given below corresponds to the actual board, i.e. a1
+	 * is bottom RHS [63]
 	 */
 	private static int[] SQUARE_VALUE =
 	// @formatter:off
@@ -79,19 +81,21 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * Constructs the Pawn class, defining the start squares.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public Pawn(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Pawn class with the required squares (can be null) or the default start squares. Setting 'startPosition' true has precedence over
-	 * 'startSquares'.
+	 * Constructs the Pawn class with the required squares (can be null) or the default start squares. Setting
+	 * 'startPosition' true has precedence over 'startSquares'.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pawns are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pawns are placed on
+	 *           the board.
 	 */
 	public Pawn(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.PAWN);
@@ -130,8 +134,7 @@ public class Pawn extends AbstractBitBoardPiece {
 		while (iter.hasNext()) {
 			Move move = iter.next();
 			// make sure my king is not/no longer in check
-			boolean inCheck = Position.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck);
-			if (inCheck) {
+			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck)) {
 				iter.remove();
 			}
 		}
@@ -148,8 +151,8 @@ public class Pawn extends AbstractBitBoardPiece {
 			Position posn) {
 
 		/*
-		 * The pawn move is complicated by the different directions for white and black pawns. This is the only piece to have this complication. This
-		 * difference is catered for by the 'MoveHelper' implementations.
+		 * The pawn move is complicated by the different directions for white and black pawns. This is the only piece to have
+		 * this complication. This difference is catered for by the 'MoveHelper' implementations.
 		 */
 
 		List<Move> moves = new ArrayList<>();
@@ -239,8 +242,8 @@ public class Pawn extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Second step during calculation of the 2 square pawn moves. Takes a bitset of pawns already shifted one square forward and 'moves' the pawns
-	 * another square forward.
+	 * Second step during calculation of the 2 square pawn moves. Takes a bitset of pawns already shifted one square forward
+	 * and 'moves' the pawns another square forward.
 	 *
 	 * @param oneSquareForward state of the pawns having moved one square forward already
 	 * @param totalPieces total pieces
@@ -264,7 +267,8 @@ public class Pawn extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * generates pawn moves from the given bitset. This only contains pawns which have moved one square forward to a non-empty square.
+	 * generates pawn moves from the given bitset. This only contains pawns which have moved one square forward to a
+	 * non-empty square.
 	 *
 	 * @param oneSquareForward the bitset containing the pawns
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
@@ -298,8 +302,8 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param position state of the board
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @param captureLeft if true, check for captures 'left'. Otherwise, 'right'.
-	 * @param checkingForAttack if true, this routine returns all possible moves to the 'left'. The normal value of false returns only moves which are
-	 *           captures i.e. the opponent's pieces are taken into account.
+	 * @param checkingForAttack if true, this routine returns all possible moves to the 'left'. The normal value of false
+	 *           returns only moves which are captures i.e. the opponent's pieces are taken into account.
 	 * @return list of moves found by this method
 	 */
 	private List<Move> capture(
@@ -374,8 +378,8 @@ public class Pawn extends AbstractBitBoardPiece {
 	 *
 	 * @param chessboard state of the board
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkingForAttack if true, this routine returns all possible moves to the 'left'. The normal value of false returns only moves which are
-	 *           captures i.e. the opponent's pieces are taken into account.
+	 * @param checkingForAttack if true, this routine returns all possible moves to the 'left'. The normal value of false
+	 *           returns only moves which are captures i.e. the opponent's pieces are taken into account.
 	 * @return list of moves found by this method
 	 */
 	private List<Move> captureLeft(
@@ -390,8 +394,8 @@ public class Pawn extends AbstractBitBoardPiece {
 	 *
 	 * @param chessboard state of the board
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkingForAttack if true, this routine returns all possible moves to the 'right'. The normal value of false returns only moves which are
-	 *           captures i.e. the opponent's pieces are taken into account.
+	 * @param checkingForAttack if true, this routine returns all possible moves to the 'right'. The normal value of false
+	 *           returns only moves which are captures i.e. the opponent's pieces are taken into account.
 	 * @return list of moves found by this method
 	 */
 	private List<Move> captureRight(
@@ -497,8 +501,8 @@ public class Pawn extends AbstractBitBoardPiece {
 				int bitIndex);
 
 		/**
-		 * Given the starting bitset, returns a new bitset representing the pawn capture 'to the right' as seen from white's POV, e.g. b3xc4 or for a
-		 * black move e.g. b6xc5.
+		 * Given the starting bitset, returns a new bitset representing the pawn capture 'to the right' as seen from white's
+		 * POV, e.g. b3xc4 or for a black move e.g. b6xc5.
 		 *
 		 * @param startPosn starting bitset
 		 * @return the shifted bitset
@@ -507,8 +511,8 @@ public class Pawn extends AbstractBitBoardPiece {
 				BitSet startPosn);
 
 		/**
-		 * Given the starting bitset, returns a new bitset representing the pawn capture 'to the left' as seen from white's POV, e.g. b3xa4 or for a
-		 * black move e.g. b6xa5.
+		 * Given the starting bitset, returns a new bitset representing the pawn capture 'to the left' as seen from white's POV,
+		 * e.g. b3xa4 or for a black move e.g. b6xa5.
 		 *
 		 * @param startPosn starting bitset
 		 * @return the shifted bitset

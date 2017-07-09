@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
-import org.rjo.chess.KingChecker;
+import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
@@ -60,8 +60,8 @@ public class Knight extends AbstractBitBoardPiece {
 			knightMoves[i] = new BitSet(64);
 			knightMoves[i].set(i);
 			/*
-			 * LHS: blank first file for -10 and +6 - blank first and 2nd file for -17 and +15 RHS: blank last file for +10 and -6 - blank 7th and 8th
-			 * file for +17 and -15 Don't need to blank ranks, these just 'drop off' during the bit shift.
+			 * LHS: blank first file for -10 and +6 - blank first and 2nd file for -17 and +15 RHS: blank last file for +10 and -6 -
+			 * blank 7th and 8th file for +17 and -15 Don't need to blank ranks, these just 'drop off' during the bit shift.
 			 */
 
 			BitSet[] work = new BitSet[8];
@@ -108,7 +108,8 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Constructs the Knight class -- with no pieces on the board. Delegates to Knight(Colour, boolean) with parameter false.
+	 * Constructs the Knight class -- with no pieces on the board. Delegates to Knight(Colour, boolean) with parameter
+	 * false.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 */
@@ -130,19 +131,21 @@ public class Knight extends AbstractBitBoardPiece {
 	 * Constructs the Knight class, defining the start squares.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public Knight(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Knight class with the required squares (can be null) or the default start squares. Setting 'startPosition' true has precedence
-	 * over 'startSquares'.
+	 * Constructs the Knight class with the required squares (can be null) or the default start squares. Setting
+	 * 'startPosition' true has precedence over 'startSquares'.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public Knight(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.KNIGHT);
@@ -176,16 +179,7 @@ public class Knight extends AbstractBitBoardPiece {
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
-
-			KingChecker kingChecker = new KingChecker(posn, Colour.oppositeColour(getColour()), myKing);
-
-			boolean inCheck = false;
-			if (move.isCapture()) {
-				inCheck = Position.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck);
-			} else {
-				inCheck = kingChecker.isKingInCheck(move, kingInCheck);
-			}
-			if (inCheck) {
+			if (KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck)) {
 				iter.remove();
 			}
 		}
@@ -243,8 +237,8 @@ public class Knight extends AbstractBitBoardPiece {
 			SquareCache<Boolean> discoveredCheckCache) {
 		final int opponentsKingIndex = opponentsKing.bitIndex();
 		/*
-		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
+		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use
+		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
 		boolean isCheck = checkIfMoveAttacksSquare(move, opponentsKingIndex);
 		// if it's already check, don't need to calculate discovered check

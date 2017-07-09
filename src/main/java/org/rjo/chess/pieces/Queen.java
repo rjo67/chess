@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
+import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
@@ -32,7 +33,7 @@ public class Queen extends SlidingPiece {
 	 */
 	// Important: array value [0] corresponds to square a1; [63] == h8.
 	private static int[] SQUARE_VALUE =
-			// @formatter:off
+	// @formatter:off
 			new int[] { -20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 5, 0, 0, 0, 0, -10, -10, 0, 5, 5, 5, 5, 0, -10, 0,
 					0, 5, 5, 5, 5, 0, -5, -5, 0, 5, 5, 5, 5, 0, -5, -10, 5, 5, 5, 5, 5, 0, -10, -10, 0, 0, 0, 0, 0, 0,
 					-10, -20, -10, -10, -5, -5, -10, -10, -20 };
@@ -66,19 +67,21 @@ public class Queen extends SlidingPiece {
 	 * Constructs the Queen class, defining the start squares.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public Queen(Colour colour, Square... startSquares) {
 		this(colour, false, startSquares);
 	}
 
 	/**
-	 * Constructs the Queen class with the required squares (can be null) or the default start squares. Setting 'startPosition' true has precedence
-	 * over 'startSquares'.
+	 * Constructs the Queen class with the required squares (can be null) or the default start squares. Setting
+	 * 'startPosition' true has precedence over 'startSquares'.
 	 *
 	 * @param colour indicates the colour of the pieces
 	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on the board.
+	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
+	 *           the board.
 	 */
 	public Queen(Colour colour, boolean startPosition, Square... startSquares) {
 		super(colour, PieceType.QUEEN);
@@ -109,8 +112,7 @@ public class Queen extends SlidingPiece {
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
-			boolean inCheck = Position.isKingInCheck(posn, move, Colour.oppositeColour(getColour()), myKing, kingInCheck);
-			if (inCheck) {
+			if (KingCheck.isKingInCheck(posn, move, Colour.oppositeColour(getColour()), myKing, kingInCheck)) {
 				iter.remove();
 			}
 		}
@@ -146,8 +148,8 @@ public class Queen extends SlidingPiece {
 			SquareCache<CheckStates> checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		/*
-		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use the cached result.
-		 * (Discovered check only looks along one ray from move.from() to the opponent's king.)
+		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use
+		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
 		boolean isCheck = findRankOrFileCheck(posn, emptySquares, move, opponentsKing);
 		if (!isCheck) {
