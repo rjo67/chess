@@ -158,6 +158,13 @@ public class Position {
 		sideToMove = posn.sideToMove;
 	}
 
+	/**
+	 * Returns true if the king of the given colour can castle on the given side (king's or queen's).
+	 *
+	 * @param colour the colour
+	 * @param rights whether king's or queen's side
+	 * @return true if can castle
+	 */
 	public boolean canCastle(
 			Colour colour,
 			CastlingRights rights) {
