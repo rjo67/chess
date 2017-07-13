@@ -171,6 +171,15 @@ public class Position {
 		return castling[colour.ordinal()].contains(rights);
 	}
 
+	/**
+	 * return the castling rights of the current posn. this is for the zobrist calculation.
+	 *
+	 * @return
+	 */
+	public EnumSet<CastlingRights>[] getCastlingRights() {
+		return castling;
+	}
+
 	public void setCastlingRights(
 			Colour colour,
 			CastlingRights... rights) {
@@ -570,53 +579,43 @@ public class Position {
 		return (mobilityScore + materialScore) * (getSideToMove() == Colour.WHITE ? 1 : -1);
 	}
 
+	/**
+	 * If the king moved then remove all castling rights<br>
+	 * and if a rook moved, remove the appropriate castling right
+	 */
 	private void updateCastlingRightsAfterMove(
 			Move move,
 			Writer debugWriter) {
 		if (PieceType.KING == move.getPiece()) {
 			move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
 			castling[sideToMove.ordinal()].clear();
-			// writeDebug(debugWriter,
-			// "move: " + move + ", sideToMove: " + sideToMove + ", castling=" +
-			// castling[sideToMove.ordinal()]);
+			// writeDebug(debugWriter, "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
 		} else if (PieceType.ROOK == move.getPiece()) {
 			// remove castling rights if rook has moved
 			move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
-			if (castling[sideToMove.ordinal()].contains(CastlingRights.KINGS_SIDE)) {
-				Square targetSquare = (sideToMove == Colour.WHITE) ? Square.h1 : Square.h8;
-				if (move.from() == targetSquare) {
-					castling[sideToMove.ordinal()].remove(CastlingRights.KINGS_SIDE);
-				}
+			if (CastlingRights.kingsSideCastlingRightsGoneAfterMove(castling[sideToMove.ordinal()], sideToMove, move)) {
+				castling[sideToMove.ordinal()].remove(CastlingRights.KINGS_SIDE);
 			}
-			if (castling[sideToMove.ordinal()].contains(CastlingRights.QUEENS_SIDE)) {
-				Square targetSquare = (sideToMove == Colour.WHITE) ? Square.a1 : Square.a8;
-				if (move.from() == targetSquare) {
-					castling[sideToMove.ordinal()].remove(CastlingRights.QUEENS_SIDE);
-				}
+			if (CastlingRights.queensSideCastlingRightsGoneAfterMove(castling[sideToMove.ordinal()], sideToMove, move)) {
+				castling[sideToMove.ordinal()].remove(CastlingRights.QUEENS_SIDE);
 			}
-			// writeDebug(debugWriter,
-			// "move: " + move + ", sideToMove: " + sideToMove + ", castling=" +
-			// castling[sideToMove.ordinal()]);
+			// writeDebug(debugWriter, "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
 		}
 		// update OPPONENT's castling rights if necessary
 		if (move.isCapture()) {
 			final Colour opponentsColour = Colour.oppositeColour(sideToMove);
-			Square targetSquare = (sideToMove == Colour.WHITE) ? Square.h8 : Square.h1;
 			boolean processed = false;
-			if (move.to().equals(targetSquare)) {
+			if (CastlingRights.opponentKingsSideCastlingRightsGoneAfterMove(castling[opponentsColour.ordinal()], sideToMove, move)) {
 				move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
 				castling[opponentsColour.ordinal()].remove(CastlingRights.KINGS_SIDE);
 				processed = true;
-				// writeDebug(debugWriter, "move: " + move + ", removed kings
-				// side castling for " + opponentsColour);
+				// writeDebug(debugWriter, "move: " + move + ", removed kings side castling for " + opponentsColour);
 			}
 			if (!processed) {
-				targetSquare = (sideToMove == Colour.WHITE) ? Square.a8 : Square.a1;
-				if (move.to().equals(targetSquare)) {
+				if (CastlingRights.opponentQueensSideCastlingRightsGoneAfterMove(castling[opponentsColour.ordinal()], sideToMove, move)) {
 					move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
 					castling[opponentsColour.ordinal()].remove(CastlingRights.QUEENS_SIDE);
-					// writeDebug(debugWriter, "move: " + move + ", removed
-					// queens side castling for " + opponentsColour);
+					// writeDebug(debugWriter, "move: " + move + ", removed queens side castling for " + opponentsColour);
 				}
 			}
 		}
@@ -795,8 +794,7 @@ public class Position {
 			Colour opponentsColour) {
 		Piece[] opponentsPieces = getPieces(opponentsColour);
 		// iterate over the pieces
-		// TODO instead of treating queens separately, could 'merge' them with the rooks and the
-		// bishops
+		// TODO instead of treating queens separately, could 'merge' them with the rooks and the bishops
 		BitSet emptySquares = getTotalPieces().flip();
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece piece = opponentsPieces[type.ordinal()];
@@ -840,8 +838,7 @@ public class Position {
 		emptySquares.set(moveFromIndex);
 		myPieces.clear(moveFromIndex);
 
-		// 1) do not need to set 'move.to()' -- if we're moving on the same ray,
-		// then it will be check already
+		// 1) do not need to set 'move.to()' -- if we're moving on the same ray, then it will be check already
 		// 2) can't get a discovered check from castling
 
 		return RayUtils.discoveredCheck(colour, posn, emptySquares, myPieces, opponentsKing, move.from());
@@ -889,8 +886,7 @@ public class Position {
 	 * @param myKing where my king is
 	 * @return true if this move is illegal since the piece that moved was pinned
 	 */
-	// public static boolean checkForPinnedPiece(Position posn, Move move, Colour colour, Square
-	// myKing) {
+	// public static boolean checkForPinnedPiece(Position posn, Move move, Colour colour, Square myKing) {
 	// // set up the bitsets *after* this move
 	// BitSet emptySquares = posn.getTotalPieces().flip();
 	// BitSet myPieces = posn.getAllPieces(colour).cloneBitSet();
