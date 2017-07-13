@@ -93,7 +93,8 @@ public class Move {
 	 *
 	 * @param type to which piece the pawn gets promoted
 	 */
-	public void setPromotionPiece(PieceType type) {
+	public void setPromotionPiece(
+			PieceType type) {
 		if (piece != PieceType.PAWN) {
 			throw new IllegalArgumentException("can only specify a promotion piece for a pawn move");
 		}
@@ -131,35 +132,36 @@ public class Move {
 		}
 	}
 
-	public static Move castleKingsSide(Colour colour) {
+	public static Move castleKingsSide(
+			Colour colour) {
 		Move move;
 		if (Colour.WHITE == colour) {
 			move = new Move(PieceType.KING, Colour.WHITE, Square.e1, Square.g1);
-			move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE,
-					new Move(PieceType.ROOK, Colour.WHITE, Square.h1, Square.f1));
+			move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(PieceType.ROOK, Colour.WHITE, Square.h1, Square.f1));
 		} else {
 			move = new Move(PieceType.KING, Colour.BLACK, Square.e8, Square.g8);
-			move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE,
-					new Move(PieceType.ROOK, Colour.BLACK, Square.h8, Square.f8));
+			move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(PieceType.ROOK, Colour.BLACK, Square.h8, Square.f8));
 		}
 		return move;
 	}
 
-	public static Move castleQueensSide(Colour colour) {
+	public static Move castleQueensSide(
+			Colour colour) {
 		Move move;
 		if (Colour.WHITE == colour) {
 			move = new Move(PieceType.KING, Colour.WHITE, Square.e1, Square.c1);
-			move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE,
-					new Move(PieceType.ROOK, Colour.WHITE, Square.a1, Square.d1));
+			move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(PieceType.ROOK, Colour.WHITE, Square.a1, Square.d1));
 		} else {
 			move = new Move(PieceType.KING, Colour.BLACK, Square.e8, Square.c8);
-			move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE,
-					new Move(PieceType.ROOK, Colour.BLACK, Square.a8, Square.d8));
+			move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(PieceType.ROOK, Colour.BLACK, Square.a8, Square.d8));
 		}
 		return move;
 	}
 
-	public static Move enpassant(Colour colour, Square from, Square to) {
+	public static Move enpassant(
+			Colour colour,
+			Square from,
+			Square to) {
 		Move move = new Move(PieceType.PAWN, colour, from, to, PieceType.PAWN);
 		move.enpassant = true;
 		return move;
@@ -171,7 +173,9 @@ public class Move {
 	 * @param moveStr uci move e.g. b7d5
 	 * @return move object. Whether 'Check' is not examined!
 	 */
-	public static Move fromUCIString(String moveStr, final Game game) {
+	public static Move fromUCIString(
+			String moveStr,
+			final Game game) {
 		Square from = Square.fromString(moveStr.substring(0, 2));
 		Square to = Square.fromString(moveStr.substring(2, 4));
 		PieceType piece = game.getPosition().pieceAt(from, game.getPosition().getSideToMove());
@@ -207,7 +211,8 @@ public class Move {
 		return m;
 	}
 
-	public void setCheck(boolean check) {
+	public void setCheck(
+			boolean check) {
 		this.check = check;
 	}
 
@@ -231,6 +236,9 @@ public class Move {
 		}
 	}
 
+	/**
+	 * true if this move represents a pawn promotion.
+	 */
 	public boolean isPromotion() {
 		return promotionInfo != null;
 	}
@@ -268,12 +276,13 @@ public class Move {
 	}
 
 	/**
-	 * Set the castling rights previous to this move. This should always be filled for a king or a
-	 * rook move, and can be filled for other moves.
+	 * Set the castling rights previous to this move. This should always be filled for a king or a rook move, and can be
+	 * filled for other moves.
 	 *
 	 * @param previousCastlingRights
 	 */
-	public void setPreviousCastlingRights(EnumSet<CastlingRights> previousCastlingRights) {
+	public void setPreviousCastlingRights(
+			EnumSet<CastlingRights> previousCastlingRights) {
 		this.castlingRightsInfo.setPreviousCastlingRights(previousCastlingRights.clone());
 	}
 
@@ -282,8 +291,7 @@ public class Move {
 	}
 
 	/**
-	 * Use this to find out if the previousCastlingRights have been set, prior to calling
-	 * getPreviousCastlingRights.
+	 * Use this to find out if the previousCastlingRights have been set, prior to calling getPreviousCastlingRights.
 	 *
 	 * @return
 	 */
@@ -292,12 +300,13 @@ public class Move {
 	}
 
 	/**
-	 * Set the castling rights FOR THE OPPONENT previous to this move. This should be filled for a
-	 * move which affects a1, a8, h1, h8.
+	 * Set the castling rights FOR THE OPPONENT previous to this move. This should be filled for a move which affects a1,
+	 * a8, h1, h8.
 	 *
 	 * @param previousCastlingRights
 	 */
-	public void setPreviousCastlingRightsOpponent(EnumSet<CastlingRights> previousCastlingRights) {
+	public void setPreviousCastlingRightsOpponent(
+			EnumSet<CastlingRights> previousCastlingRights) {
 		this.castlingRightsInfo.setPreviousCastlingRightsOpponent(previousCastlingRights.clone());
 	}
 
@@ -316,8 +325,8 @@ public class Move {
 	}
 
 	/**
-	 * Returns true if this move was a pawn move of two squares forward. This implies a potential
-	 * enpassant move for the opponent.
+	 * Returns true if this move was a pawn move of two squares forward. This implies a potential enpassant move for the
+	 * opponent.
 	 *
 	 * @return true if this move was a pawn move of two squares forward.
 	 */
@@ -347,15 +356,14 @@ public class Move {
 	 */
 	private static class CastlingRightsInfo {
 		/**
-		 * Stores castling rights BEFORE this move. To enable unmove. Value gets set for each king and
-		 * rook move. and for each (opponent's) move which has target square a1, a8, h1, or h8.
+		 * Stores castling rights BEFORE this move. To enable unmove. Value gets set for each king and rook move. and for each
+		 * (opponent's) move which has target square a1, a8, h1, or h8.
 		 */
 		private EnumSet<CastlingRights> previousCastlingRights;
 
 		/**
-		 * Stores castling rights of the OPPONENT BEFORE this move. To enable unmove. Value gets set
-		 * for moves such as Nb6xa8 (target squares a1, a8, h1, or h8), when the opponent can no
-		 * longer castle on this side.
+		 * Stores castling rights of the OPPONENT BEFORE this move. To enable unmove. Value gets set for moves such as Nb6xa8
+		 * (target squares a1, a8, h1, or h8), when the opponent can no longer castle on this side.
 		 */
 		private EnumSet<CastlingRights> previousCastlingRightsOpponent;
 
@@ -364,7 +372,8 @@ public class Move {
 			this.previousCastlingRightsOpponent = null;
 		}
 
-		public void setPreviousCastlingRights(EnumSet<CastlingRights> previousCastlingRights) {
+		public void setPreviousCastlingRights(
+				EnumSet<CastlingRights> previousCastlingRights) {
 			this.previousCastlingRights = previousCastlingRights.clone();
 		}
 
@@ -372,7 +381,8 @@ public class Move {
 			return previousCastlingRights;
 		}
 
-		public void setPreviousCastlingRightsOpponent(EnumSet<CastlingRights> previousCastlingRights) {
+		public void setPreviousCastlingRightsOpponent(
+				EnumSet<CastlingRights> previousCastlingRights) {
 			this.previousCastlingRightsOpponent = previousCastlingRights.clone();
 		}
 

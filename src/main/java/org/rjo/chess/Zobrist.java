@@ -111,111 +111,121 @@ public class Zobrist {
 				Square[] locations = piece.getLocations();
 				for (Square square : locations) {
 					hash ^= squareValues[colour.ordinal()][piece.getType().ordinal()][square.bitIndex()];
-					System.out.println("hash: colour: " + colour + ", piece: " + piece.getType() + ", square: " + square);
 				}
 			}
 		}
 		if (posn.getSideToMove() == Colour.BLACK) {
 			hash ^= blackToMove;
-			System.out.println("hash: blackToMove");
 		}
 		for (Colour colour : Colour.ALL_COLOURS) {
 			for (CastlingRights rights : CastlingRights.values()) {
 				if (posn.canCastle(colour, rights)) {
 					hash ^= castlingValues[colour.ordinal()][rights.ordinal()];
-					System.out.println("hash: colour: " + colour + ", rights: " + rights);
 				}
 			}
 		}
 		if (posn.getEnpassantSquare() != null) {
 			hash ^= enpassantValues[posn.getEnpassantSquare().file()];
-			System.out.println("enpassant: " + posn.getEnpassantSquare().file());
 		}
 
 		return hash;
 	}
 
 	/**
-	 * Returns a new Zobrist hash after the move 'move'. The fact that the xor-operation is own inverse and can be undone by
-	 * using the same xor-operation again, allows a fast incremental update of the hash key.
+	 * Returns a new Zobrist hash after <code>move</code>. The fact that the xor-operation is own inverse and can be undone
+	 * by using the same xor-operation again, allows a fast incremental update of the hash key.
 	 *
 	 * @param hash the zobrist hash
 	 * @param move the move
+	 * @param castlingRightsBeforeMove castling rights before <code>move</code>
+	 * @param enpassantSquare enpassant square before <code>move</code>
 	 * @return the updated hash
 	 */
 	public long update(
 			long hash,
 			Move move,
-			EnumSet<CastlingRights>[] castlingRightsBeforeMove) {
-
-		// TODO also check for promotion
-		//TODO handle move which affects opponents castling rights (see CastlingRights, Position:updateCastlingRightsAfterMove)
+			EnumSet<CastlingRights>[] castlingRightsBeforeMove,
+			Square enpassantSquare) {
 
 		// xor original hash with move.from()
 		PieceType movingPiece = move.getPiece();
-		Colour movingColour = move.getColour();
-		hash ^= squareValues[movingColour.ordinal()][movingPiece.ordinal()][move.from().bitIndex()];
-		System.out.println("updated " + move.from() + " movingPiece: " + movingPiece);
+		Colour sideToMove = move.getColour();
+		hash ^= squareValues[sideToMove.ordinal()][movingPiece.ordinal()][move.from().bitIndex()];
 		if (move.isCapture()) {
 			// xor with captured piece at move.to()
-			PieceType capturedPiece = move.getCapturedPiece();
-			hash ^= squareValues[Colour.oppositeColour(movingColour).ordinal()][capturedPiece.ordinal()][move.to().bitIndex()];
-			System.out.println("updated " + move.to() + " captured: " + capturedPiece);
+			final PieceType capturedPiece = move.getCapturedPiece();
+			final Colour opponentsColour = Colour.oppositeColour(sideToMove);
+			if (move.isEnpassant()) {
+				Square sq = Square.findMoveFromEnpassantSquare(move.to());
+				hash ^= squareValues[opponentsColour.ordinal()][capturedPiece.ordinal()][sq.bitIndex()];
+			} else {
+				hash ^= squareValues[opponentsColour.ordinal()][capturedPiece.ordinal()][move.to().bitIndex()];
+			}
+			if (move.isPromotion()) {
+				hash ^= squareValues[sideToMove.ordinal()][move.getPromotedPiece().ordinal()][move.to().bitIndex()];
+			}
+
+			// update OPPONENT's castling rights if necessary
+			boolean processed = false;
+			if (CastlingRights.opponentKingsSideCastlingRightsGoneAfterMove(castlingRightsBeforeMove[opponentsColour.ordinal()], sideToMove,
+					move)) {
+				hash ^= castlingValues[opponentsColour.ordinal()][CastlingRights.KINGS_SIDE.ordinal()];
+				processed = true;
+			}
+			if (!processed) {
+				if (CastlingRights.opponentQueensSideCastlingRightsGoneAfterMove(castlingRightsBeforeMove[opponentsColour.ordinal()],
+						sideToMove, move)) {
+					hash ^= castlingValues[opponentsColour.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()];
+				}
+			}
+
 		}
 		// xor with piece moving to move.to()
-		hash ^= squareValues[movingColour.ordinal()][movingPiece.ordinal()][move.to().bitIndex()];
-		System.out.println("updated " + move.to() + " movingPiece: " + movingPiece);
+		if (!move.isPromotion()) {
+			hash ^= squareValues[sideToMove.ordinal()][movingPiece.ordinal()][move.to().bitIndex()];
+		}
 
 		// cater for rook's move if castling
 		if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
 			Move rooksMove = move.getRooksCastlingMove();
-			hash ^= squareValues[movingColour.ordinal()][PieceType.ROOK.ordinal()][rooksMove.from().bitIndex()];
-			System.out.println("updated " + rooksMove.from() + " movingPiece: rook");
-			hash ^= squareValues[movingColour.ordinal()][PieceType.ROOK.ordinal()][rooksMove.to().bitIndex()];
-			System.out.println("updated " + rooksMove.to() + " movingPiece: rook");
+			hash ^= squareValues[sideToMove.ordinal()][PieceType.ROOK.ordinal()][rooksMove.from().bitIndex()];
+			hash ^= squareValues[sideToMove.ordinal()][PieceType.ROOK.ordinal()][rooksMove.to().bitIndex()];
 
 			// both king's and queen's side castling rights have now gone
-			hash ^= castlingValues[movingColour.ordinal()][CastlingRights.KINGS_SIDE.ordinal()];
-			System.out.println("updated king-side castling rights");
-			hash ^= castlingValues[movingColour.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()];
-			System.out.println("updated queen-side castling rights");
+			hash ^= castlingValues[sideToMove.ordinal()][CastlingRights.KINGS_SIDE.ordinal()];
+			hash ^= castlingValues[sideToMove.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()];
 		} else {
 			// enpassant if pawn move to 4th rank from 2nd rank
-			if ((move.getPiece() == PieceType.PAWN) && (move.from().rank() == 1) && (move.to().rank() == 3)) {
+			if (move.isPawnMoveTwoSquaresForward()) {
 				hash ^= enpassantValues[move.to().file()];
-				System.out.println("updated enpassant: " + move.to().file());
 			}
 			// remove castling rights (if set) on king move
 			else if (move.getPiece() == PieceType.KING) {
-				if (castlingRightsBeforeMove[movingColour.ordinal()].contains(CastlingRights.KINGS_SIDE)) {
-					hash ^= castlingValues[movingColour.ordinal()][CastlingRights.KINGS_SIDE.ordinal()];
-					System.out.println("updated king-side castling rights");
+				if (castlingRightsBeforeMove[sideToMove.ordinal()].contains(CastlingRights.KINGS_SIDE)) {
+					hash ^= castlingValues[sideToMove.ordinal()][CastlingRights.KINGS_SIDE.ordinal()];
 				}
-				if (castlingRightsBeforeMove[movingColour.ordinal()].contains(CastlingRights.QUEENS_SIDE)) {
-					hash ^= castlingValues[movingColour.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()];
-					System.out.println("updated queen-side castling rights");
+				if (castlingRightsBeforeMove[sideToMove.ordinal()].contains(CastlingRights.QUEENS_SIDE)) {
+					hash ^= castlingValues[sideToMove.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()];
 				}
 			}
-			// remove castling rights on rook move
+			// remove castling rights (if set) on rook move
 			else if (move.getPiece() == PieceType.ROOK) {
-
-				if (CastlingRights.kingsSideCastlingRightsGoneAfterMove(castlingRightsBeforeMove[movingColour.ordinal()], movingColour, move)) {
-					hash ^= castlingValues[movingColour.ordinal()][CastlingRights.KINGS_SIDE.ordinal()];
-					System.out.println("updated king-side castling rights");
+				if (CastlingRights.kingsSideCastlingRightsGoneAfterMove(castlingRightsBeforeMove[sideToMove.ordinal()], sideToMove, move)) {
+					hash ^= castlingValues[sideToMove.ordinal()][CastlingRights.KINGS_SIDE.ordinal()];
 				}
-				if (CastlingRights.queensSideCastlingRightsGoneAfterMove(castlingRightsBeforeMove[movingColour.ordinal()], movingColour,
-						move)) {
-					hash ^= castlingValues[movingColour.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()];
-					System.out.println("updated queen-side castling rights");
+				if (CastlingRights.queensSideCastlingRightsGoneAfterMove(castlingRightsBeforeMove[sideToMove.ordinal()], sideToMove, move)) {
+					hash ^= castlingValues[sideToMove.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()];
 				}
-
 			}
 		}
-		// xor for black-to-move
-		if (movingColour == Colour.WHITE) {
-			hash ^= blackToMove;
-			System.out.println("updated blackToMove");
+
+		// 'remove' enpassant square if one existed before move
+		if (enpassantSquare != null) {
+			hash ^= enpassantValues[enpassantSquare.file()];
 		}
+
+		// ALWAYS need to xor for black-to-move
+		hash ^= blackToMove;
 
 		return hash;
 	}
