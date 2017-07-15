@@ -1,7 +1,7 @@
 package org.rjo.chess;
 
 /**
- * Stores possible values for the 'check' Cache, used in Position::findMove.
+ * Stores possible values for the <code>check</code> Cache, used in Position::findMove.
  *
  * @author rich
  * @since 2016-10-28

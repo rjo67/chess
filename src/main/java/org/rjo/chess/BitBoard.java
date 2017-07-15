@@ -17,14 +17,14 @@ import java.util.BitSet;
 public class BitBoard {
 
 	/**
-	 * BitSets for each 'file' of the board.
+	 * BitSets for each <code>file</code> of the board.
 	 * <p>
 	 * Usage: to just get pieces on the second file, 'and' the bitset with FILE[1]. TODO maybe store
 	 * these as immutable BitSets?
 	 */
 	public final static BitSet[] FILE = new BitSet[8];
 	/**
-	 * BitSets for every 'file' of the board <b>except</b> the file of the array index. The opposite
+	 * BitSets for every <code>file</code> of the board <b>except</b> the file of the array index. The opposite
 	 * of FILE.
 	 * <p>
 	 * Usage: to get all pieces EXCEPT those on the second file, 'and' the bitset with EXCEPT_FILE[1]

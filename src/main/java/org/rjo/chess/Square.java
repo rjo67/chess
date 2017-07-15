@@ -68,7 +68,8 @@ public enum Square {
 	 * @param bitIndex the required bit index (0..63)
 	 * @return the matching square or null
 	 */
-	public static Square fromBitIndex(int bitIndex) {
+	public static Square fromBitIndex(
+			int bitIndex) {
 		return bitIndexToSquare[bitIndex];
 	}
 
@@ -78,7 +79,8 @@ public enum Square {
 	 * @param coord a string of length 2. Values A..H and 1..8.
 	 * @return a Square or null.
 	 */
-	public static Square fromString(String coord) {
+	public static Square fromString(
+			String coord) {
 		if (coord.length() != 2) {
 			throw new IllegalArgumentException("expected a string of length 2. Got '" + coord + "'");
 		}
@@ -101,18 +103,23 @@ public enum Square {
 	 * @param file the file (0..7)
 	 * @return the square
 	 */
-	public static Square fromRankAndFile(int rank, int file) {
+	public static Square fromRankAndFile(
+			int rank,
+			int file) {
 		int bitPosn = (rank * 8) + (file);
 		return Square.fromBitIndex(bitPosn);
 	}
 
 	/**
-	 * Returns the square where the pawn must be, given the enpassant square. e.g. given b6, returns b5.
+	 * Returns the square where the (captured) pawn must be, given the enpassant square. e.g. given b6, returns b5.
+	 * <p>
+	 * Or, for black, given d3, returns d4.
 	 *
 	 * @param sq start square. Must be either on the 6th rank (for a black move) or on the 3rd rank (for a white move).
 	 * @return the square where the pawn moved to (on the 5th rank for black or the 4th rank for white).
 	 */
-	public static Square findMoveFromEnpassantSquare(Square sq) {
+	public static Square findMoveFromEnpassantSquare(
+			Square sq) {
 		if (sq.rank() == 5) {
 			return Square.fromRankAndFile(4, sq.file());
 		} else if (sq.rank() == 2) {
@@ -128,7 +135,8 @@ public enum Square {
 	 * @param sq the square where the pawn moved to (on the 5th rank for black or the 4th rank for white).
 	 * @return enpassant square. Must be either on the 6th rank (for a black move) or on the 3rd rank (for a white move).
 	 */
-	public static Square findEnpassantSquareFromMove(Square sq) {
+	public static Square findEnpassantSquareFromMove(
+			Square sq) {
 		if (sq.rank() == 4) {
 			return Square.fromRankAndFile(5, sq.file());
 		} else if (sq.rank() == 3) {

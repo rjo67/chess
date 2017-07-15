@@ -54,7 +54,7 @@ public class PieceManager {
 
 	/**
 	 * Copy constructor. Copies the contents of the hashmap into a new hashmap. This references the
-	 * same 'pieces' as before. Need to clone iff these objects get changed.
+	 * same <code>pieces</code> as before. Need to clone iff these objects get changed.
 	 * 
 	 * @param pieceManager the pieceManager that gets copied
 	 */
@@ -69,7 +69,7 @@ public class PieceManager {
 
 	/**
 	 * returns a particular Piece object from the map. The Piece object <b>will be cloned</b> and
-	 * re-inserted into the 'pieces' hashmap the first time.
+	 * re-inserted into the <code>pieces</code> hashmap the first time.
 	 * 
 	 * @param colour the required colour
 	 * @param pieceType the required piece type

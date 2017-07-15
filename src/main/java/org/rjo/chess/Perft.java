@@ -42,14 +42,14 @@ public class Perft {
 	}
 
 	/**
-	 * Find the number of possible moves at the given depth, starting at the current position given by 'game'. I.e., for a
+	 * Find the number of possible moves at the given depth, starting at the current position given by <code>game</code>. I.e., for a
 	 * depth of 2 and start colour white, all of black's moves will be returned for each of the possible white moves. NB:
 	 * Only leaf nodes are counted.
 	 *
 	 * @param posn a game position
 	 * @param sideToMove the starting colour
 	 * @param depth the required depth to search
-	 * @return a map containing all the start moves for the 'sideToMove' and for each map entry, a number representing how
+	 * @return a map containing all the start moves for the <code>sideToMove</code> and for each map entry, a number representing how
 	 *         many leaf nodes there are from this starting move.
 	 */
 	public static Map<String, Integer> findMoves(
@@ -82,7 +82,7 @@ public class Perft {
 	}
 
 	/**
-	 * Find the number of possible moves at the given depth, starting at the current position given by 'game'. I.e., for a
+	 * Find the number of possible moves at the given depth, starting at the current position given by <code>game</code>. I.e., for a
 	 * depth of 2 and start colour white, all of black's moves will be returned for each of the possible white moves. NB:
 	 * Only leaf nodes are counted.
 	 *

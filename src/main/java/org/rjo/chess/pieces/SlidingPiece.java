@@ -50,7 +50,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along rank or file,
+	 * This checks all pieces in the given bitset to see if they can attack the given <code>targetSquare</code> along rank or file,
 	 * taking into account any intervening pieces.
 	 *
 	 * @param pieces which pieces are available. This should represent the rooks and queens in the game.
@@ -85,7 +85,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * This checks all pieces in the given bitset to see if they can attack the given 'targetSquare' along a diagonal,
+	 * This checks all pieces in the given bitset to see if they can attack the given <code>targetSquare</code> along a diagonal,
 	 * taking into account any intervening pieces.
 	 *
 	 * @param bishopsAndQueens which pieces are available. This should represent the bishops and queens in the game.
@@ -148,7 +148,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 *
 	 * @param posn the position. Only used if emptySquares is null.
 	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). If not
-	 *           null, 'posn' is not used.
+	 *           null, <code>posn</code> is not used.
 	 * @param move the move
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check

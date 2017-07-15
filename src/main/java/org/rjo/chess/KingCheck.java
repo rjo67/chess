@@ -39,10 +39,10 @@ public class KingCheck {
 	}
 
 	/**
-	 * Checks if my king is in check after the move 'move'. Uses the position supplied in the constructor.
+	 * Checks if my king is in check after <code>move</code>. Uses the position supplied in the constructor.
 	 *
 	 * @param move the move
-	 * @param kingIsAlreadyInCheck true if the king was already in check before the 'move'
+	 * @param kingIsAlreadyInCheck true if the king was already in check before the <code>move</code>
 	 * @return true if this move leaves the king in check (i.e. is an illegal move)
 	 */
 	public boolean isKingInCheck(
@@ -58,13 +58,13 @@ public class KingCheck {
 	}
 
 	/**
-	 * Checks if my king is in check after the move 'move'.
+	 * Checks if my king is in check after <code>move</code>.
 	 *
 	 * @param posn the chessboard
 	 * @param move the move
 	 * @param opponentsColour this colour's pieces will be inspected to see if they check my king
 	 * @param king where my king is
-	 * @param kingIsAlreadyInCheck true if the king was already in check before the 'move'
+	 * @param kingIsAlreadyInCheck true if the king was already in check before the <code>move</code>
 	 * @return true if this move leaves the king in check (i.e. is an illegal move)
 	 */
 	public static boolean isKingInCheck(
@@ -196,15 +196,15 @@ public class KingCheck {
 	}
 
 	/**
-	 * Returns true if the king would be in check after the given move.
+	 * Returns true if the king would be in check after <code>move</code>.
 	 * <p>
 	 * Helper-Method, delegates to {@link #isKingInCheckAfterMove(Square, Colour, BitSet, Map, Move, boolean)} with last
 	 * parameter==true.
 	 * <p>
 	 * <b>Use this procedure if the king was already in check before the given move.</b>
 	 *
-	 * @param kingsSquare where the king is. If 'move' indicated that the king has moved, this value will be ignored and the
-	 *           king's new square will be calculated.
+	 * @param kingsSquare where the king is. If <code>move</code> indicated that the king has moved, this value will be
+	 *           ignored and the king's new square will be calculated.
 	 * @param kingsColour colour of the king.
 	 * @param friendlyPieces bitset indicating location of the friendly pieces (pre-move).
 	 * @param enemyPieces bitsets indicating location of the enemy pieces (pre-move).
@@ -221,15 +221,15 @@ public class KingCheck {
 	}
 
 	/**
-	 * Returns true if the king would be in check after the given move.
+	 * Returns true if the king would be in check after <code>move</code>.
 	 * <p>
 	 * Helper-Method, delegates to {@link #isKingInCheckAfterMove(Square, Colour, BitSet, Map, Move, boolean)} with last
 	 * parameter==false.
 	 * <p>
 	 * <b>Use this procedure if the king was NOT in check before the given move.</b>
 	 *
-	 * @param kingsSquare where the king is. If 'move' indicated that the king has moved, this value will be ignored and the
-	 *           king's new square will be calculated.
+	 * @param kingsSquare where the king is. If <code>move</code> indicated that the king has moved, this value will be
+	 *           ignored and the king's new square will be calculated.
 	 * @param kingsColour colour of the king.
 	 * @param friendlyPieces bitset indicating location of the friendly pieces (pre-move).
 	 * @param enemyPieces bitsets indicating location of the enemy pieces (pre-move).
@@ -246,17 +246,18 @@ public class KingCheck {
 	}
 
 	/**
-	 * Returns true if the king would be in check after the given move. This method can be called directly, but there are
+	 * Returns true if the king would be in check after <code>move</code>. This method can be called directly, but there are
 	 * helper methods available (see isKingInCheckAfterMove_PreviouslyNotInCheck and
 	 * isKingInCheckAfterMove_PreviouslyWasInCheck).
 	 * <p>
-	 * <b>If the king is already in check before the given move, you must set the parameter kingWasInCheck to true.</b>
+	 * <b>If the king is already in check before <code>move</code>, you must set the parameter <code>kingWasInCheck</code>
+	 * to true.</b>
 	 * <p>
 	 * An optimised search is used. Assuming the king himself has not moved, and the king was not previously in check, only
 	 * the ray given by the king's square and the vacated square needs to be examined.
 	 *
-	 * @param kingsSquare where the king is. If 'move' indicated that the king has moved, this value will be ignored and the
-	 *           new king's square will be calculated.
+	 * @param kingsSquare where the king is. If <code>move</code> indicated that the king has moved, this value will be
+	 *           ignored and the new king's square will be calculated.
 	 * @param kingsColour colour of the king.
 	 * @param friendlyPieces bitset indicating location of the friendly pieces (pre-move).
 	 * @param enemyPieces bitsets indicating location of the enemy pieces (pre-move).

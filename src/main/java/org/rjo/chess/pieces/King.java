@@ -167,10 +167,10 @@ public class King extends AbstractPiece {
 
 	/**
 	 * Constructs the King class with the required squares (can be null) or the default start squares. Setting
-	 * 'startPosition' true has precedence over 'startSquares'.
+	 * <code>startPosition</code> true has precedence over <code>startSquares</code>.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be ignored.
 	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
 	 *           the board.
 	 */
@@ -415,7 +415,7 @@ public class King extends AbstractPiece {
 	}
 
 	/**
-	 * Locates the enemy's king. TODO store this value in 'Game' after each move, to make this lookup quicker.
+	 * Locates the enemy's king. TODO store this value in <code>Game</code> after each move, to make this lookup quicker.
 	 *
 	 * @param myColour my colour
 	 * @param chessboard the board

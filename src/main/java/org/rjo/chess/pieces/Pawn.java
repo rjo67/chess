@@ -90,10 +90,10 @@ public class Pawn extends AbstractBitBoardPiece {
 
 	/**
 	 * Constructs the Pawn class with the required squares (can be null) or the default start squares. Setting
-	 * 'startPosition' true has precedence over 'startSquares'.
+	 * <code>startPosition</code> true has precedence over <code>startSquares</code>.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be ignored.
 	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pawns are placed on
 	 *           the board.
 	 */
@@ -152,7 +152,7 @@ public class Pawn extends AbstractBitBoardPiece {
 
 		/*
 		 * The pawn move is complicated by the different directions for white and black pawns. This is the only piece to have
-		 * this complication. This difference is catered for by the 'MoveHelper' implementations.
+		 * this complication. This difference is catered for by the <code>MoveHelper</code> implementations.
 		 */
 
 		List<Move> moves = new ArrayList<>();
@@ -460,9 +460,9 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * Whether one or more of the pawns described in 'pawns' attack the square 'targetSq'.
 	 *
 	 * @param targetSq square to be attacked
-	 * @param colour colour of the pawns in 'pawns'.
+	 * @param colour colour of the pawns in <code>pawns</code>.
 	 * @param pawns bitset describing where the pawns are
-	 * @return true if 'targetSq' is attacked by one or more pawns
+	 * @return true if <code>targetSq</code> is attacked by one or more pawns
 	 */
 	public static boolean attacksSquare(
 			Square targetSq,

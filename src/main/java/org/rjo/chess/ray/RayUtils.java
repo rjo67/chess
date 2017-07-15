@@ -41,7 +41,7 @@ public class RayUtils {
 	}
 
 	/**
-	 * Finds a discovered check on the opponent's king after a move from square 'moveFromSquare'.
+	 * Finds a discovered check on the opponent's king after a move from square <code>moveFromSquare</code>.
 	 *
 	 * @param myColour my colour
 	 * @param cb the chessboard -- required for pieceAt()
@@ -49,7 +49,7 @@ public class RayUtils {
 	 * @param myPieces BitSet of my pieces
 	 * @param opponentsKingsSquare where the opponent's king is
 	 * @param moveFromSquare the square where the piece moved from
-	 * @return true if the move from square 'moveFromSquare' leads to a discovered check on the king.
+	 * @return true if the move from square <code>moveFromSquare</code> leads to a discovered check on the king.
 	 */
 	public static boolean discoveredCheck(Colour myColour, Position cb, BitSet emptySquares, BitSet myPieces,
 			Square opponentsKingsSquare, Square moveFromSquare) {
@@ -71,7 +71,7 @@ public class RayUtils {
 	}
 
 	/**
-	 * Finds a discovered check on the opponent's king after a move from square 'moveFromSquare'.
+	 * Finds a discovered check on the opponent's king after a move from square <code>moveFromSquare</code>.
 	 *
 	 * @param myColour my colour
 	 * @param cb the chessboard -- required for pieceAt()
@@ -79,7 +79,7 @@ public class RayUtils {
 	 * @param myPieces BitSet of my pieces
 	 * @param opponentsKingsSquare where the opponent's king is
 	 * @param moveFromSquare the square where the piece moved from
-	 * @return true if the move from square 'moveFromSquare' leads to a discovered check on the king.
+	 * @return true if the move from square <code>moveFromSquare</code> leads to a discovered check on the king.
 	 */
 	public static boolean kingInCheck(Colour kingsColour, Position cb, BitSet emptySquares, BitSet kingsColourPieces,
 			Square kingsSquare, Square moveFromSquare) {

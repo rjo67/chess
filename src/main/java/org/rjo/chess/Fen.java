@@ -64,7 +64,7 @@ public class Fen {
 
 	/**
 	 * Creates a FEN notation for the given position. NB: not a complete FEN string, since
-	 * information about the move nbr / halfmove clock is only available from the 'Game' object.
+	 * information about the move nbr / halfmove clock is only available from the <code>Game</code> object.
 	 *
 	 * @param position state of the positino
 	 * @return a FEN string

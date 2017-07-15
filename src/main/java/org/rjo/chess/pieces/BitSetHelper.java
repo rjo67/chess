@@ -32,7 +32,7 @@ public class BitSetHelper {
    }
 
    /**
-    * Shifts the bits in 'startPosn' one rank to North.
+    * Shifts the bits in <code>startPosn</code> one rank to North.
     *
     * @param startPosn
     *           starting position. Does not get changed by this routine.
@@ -48,7 +48,7 @@ public class BitSetHelper {
    }
 
    /**
-    * Shifts the bits in 'startPosn' one rank to South.
+    * Shifts the bits in <code>startPosn</code> one rank to South.
     *
     * @param startPosn
     *           starting position. Does not get changed by this routine.
@@ -63,7 +63,7 @@ public class BitSetHelper {
    }
 
    /**
-    * Shifts the bits in 'startPosn' one file to West.
+    * Shifts the bits in <code>startPosn</code> one file to West.
     * File 1 does not get wrapped.
     *
     * @param startPosn
@@ -75,13 +75,13 @@ public class BitSetHelper {
    }
 
    /**
-    * Shifts the bits in 'startPosn' one file to West.
+    * Shifts the bits in <code>startPosn</code> one file to West.
     * File 1 does not get wrapped.
     *
     * @param startPosn
-    *           starting position. <b>May</b> get changed, depending on the value of 'clone'.
+    *           starting position. <b>May</b> get changed, depending on the value of <code>clone</code>.
     * @param clone
-    *           if true, will always clone 'startPosn'. If false, 'startPosn' will be changed by this call.
+    *           if true, will always clone <code>startPosn</code>. If false, <code>startPosn</code> will be changed by this call.
     * @return a (potentially new) bitset with the shifted bits.
     */
    public static BitSet shiftOneWest(BitSet startPosn, boolean clone) {
@@ -108,7 +108,7 @@ public class BitSetHelper {
    }
 
    /**
-    * Shifts the bits in 'startPosn' one file to East.
+    * Shifts the bits in <code>startPosn</code> one file to East.
     *
     * @param startPosn
     *           starting position. Does not get changed by this routine.
@@ -119,12 +119,12 @@ public class BitSetHelper {
    }
 
    /**
-    * Shifts the bits in 'startPosn' one file to East.
+    * Shifts the bits in <code>startPosn</code> one file to East.
     *
     * @param startPosn
-    *           starting position. <b>May</b> get changed, depending on the value of 'clone'.
+    *           starting position. <b>May</b> get changed, depending on the value of <code>clone</code>.
     * @param clone
-    *           if true, will always clone 'startPosn'. If false, 'startPosn' will be changed by this call.
+    *           if true, will always clone <code>startPosn</code>. If false, <code>startPosn</code> will be changed by this call.
     * @return a (potentially new) bitset with the shifted bits.
     */
    public static BitSet shiftOneEast(BitSet startPosn, boolean clone) {
@@ -151,7 +151,7 @@ public class BitSetHelper {
    }
 
    /**
-    * Shifts the bits in 'startPosn' one file to west and one rank north.
+    * Shifts the bits in <code>startPosn</code> one file to west and one rank north.
     *
     * @param startPosn
     *           starting position. Does not get changed by this routine.
@@ -163,7 +163,7 @@ public class BitSetHelper {
    }
 
    /**
-    * Shifts the bits in 'startPosn' one file to west and one rank south.
+    * Shifts the bits in <code>startPosn</code> one file to west and one rank south.
     *
     * @param startPosn
     *           starting position. Does not get changed by this routine.
@@ -175,7 +175,7 @@ public class BitSetHelper {
    }
 
    /**
-    * Shifts the bits in 'startPosn' one file to east and one rank north.
+    * Shifts the bits in <code>startPosn</code> one file to east and one rank north.
     *
     * @param startPosn
     *           starting position. Does not get changed by this routine.
@@ -187,7 +187,7 @@ public class BitSetHelper {
    }
 
    /**
-    * Shifts the bits in 'startPosn' one file to east and one rank south.
+    * Shifts the bits in <code>startPosn</code> one file to east and one rank south.
     *
     * @param startPosn
     *           starting position. Does not get changed by this routine.

@@ -17,7 +17,7 @@ public class Game {
 	private int halfmoveClock;
 
 	/**
-	 * move number of the next move. Not calculated from size of 'gameProgress' since we don't have
+	 * move number of the next move. Not calculated from size of <code>gameProgress</code> since we don't have
 	 * to start at move 1.
 	 */
 	private int moveNbr;

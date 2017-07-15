@@ -14,14 +14,14 @@ public enum CastlingRights {
 	QUEENS_SIDE, KINGS_SIDE;
 
 	/**
-	 * Checks if, after 'move', 'sideToMove' can (still) castle king's-side.
+	 * Checks if, after <code>move</code>, <code>sideToMove</code> can (still) castle king's-side.
 	 * <p>
-	 * Actual check is to see if 'move' is a rook move from h1/h8, and king's-side castling was possible beforehand.
+	 * Actual check is to see if <code>move</code> is a rook move from h1/h8, and king's-side castling was possible beforehand.
 	 *
 	 * @param castlingRights whether castling was allowed before the move
 	 * @param sideToMove which side is moving
 	 * @param move the move
-	 * @return true if 'sideToMove' can no longer castle on the king's side after the move. Will return FALSE if could not
+	 * @return true if <code>sideToMove</code> can no longer castle on the king's side after the move. Will return FALSE if could not
 	 *         castle king's side before the move.
 	 */
 	public static boolean kingsSideCastlingRightsGoneAfterMove(
@@ -37,14 +37,14 @@ public enum CastlingRights {
 	}
 
 	/**
-	 * Checks if, after 'move', 'sideToMove' can (still) castle queen's-side.
+	 * Checks if, after <code>move</code>, <code>sideToMove</code> can (still) castle queen's-side.
 	 * <p>
-	 * Actual check is to see if 'move' is a rook move from a1/a8, and queen's-side castling was possible beforehand.
+	 * Actual check is to see if <code>move</code> is a rook move from a1/a8, and queen's-side castling was possible beforehand.
 	 *
 	 * @param castlingRights whether castling was allowed before the move
 	 * @param sideToMove which side is moving
 	 * @param move the move
-	 * @return true if 'sideToMove' can no longer castle on the queen's side after the move. Will return FALSE if could not
+	 * @return true if <code>sideToMove</code> can no longer castle on the queen's side after the move. Will return FALSE if could not
 	 *         castle queens's side before the move.
 	 */
 	public static boolean queensSideCastlingRightsGoneAfterMove(
@@ -60,9 +60,9 @@ public enum CastlingRights {
 	}
 
 	/**
-	 * Checks if, after 'move', the opponent can (still) castle king's-side.
+	 * Checks if, after <code>move</code>, the opponent can (still) castle king's-side.
 	 * <p>
-	 * Actual check is to see if 'move' is a capture on h8/h1, and king's-side castling was possible beforehand.
+	 * Actual check is to see if <code>move</code> is a capture on h8/h1, and king's-side castling was possible beforehand.
 	 *
 	 * @param opponentsCastlingRights whether castling was allowed before the move FOR OPPONENT
 	 * @param sideToMove which side is moving
@@ -82,9 +82,9 @@ public enum CastlingRights {
 	}
 
 	/**
-	 * Checks if, after 'move', the opponent can (still) castle queen's-side.
+	 * Checks if, after <code>move</code>, the opponent can (still) castle queen's-side.
 	 * <p>
-	 * Actual check is to see if 'move' is a rook move from a1/a8, and queen's-side castling was possible beforehand.
+	 * Actual check is to see if <code>move</code> is a rook move from a1/a8, and queen's-side castling was possible beforehand.
 	 *
 	 * @param opponentsCastlingRights whether castling was allowed before the move FOR OPPONENT
 	 * @param sideToMove which side is moving

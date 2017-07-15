@@ -292,7 +292,7 @@ public class Position {
 	}
 
 	/**
-	 * Find all moves for the given colour from the current position, overriding the position's 'inCheck' value.
+	 * Find all moves for the given colour from the current position, overriding the position's <code>inCheck</code> value.
 	 *
 	 * @param colour the required colour
 	 * @param inCheck whether the king is in check in this position
@@ -808,7 +808,7 @@ public class Position {
 	}
 
 	/**
-	 * Checks for a discovered check after the move 'move'.
+	 * Checks for a discovered check after the move <code>move</code>.
 	 * <p>
 	 * This will not be 100% correct for moves along the same ray to the opponent's king. But these moves are already check
 	 * and not discovered check.
@@ -845,7 +845,7 @@ public class Position {
 	}
 
 	/**
-	 * Returns true if a piece on 'startSquare' attacks 'targetSquare', i.e. the two squares are on the same ray and there
+	 * Returns true if a piece on <code>startSquare</code> attacks <code>targetSquare</code>, i.e. the two squares are on the same ray and there
 	 * are no intervening pieces.
 	 * <p>
 	 * It still depends on the piece type to determine whether there really is an attack.
@@ -855,7 +855,7 @@ public class Position {
 	 * @param myColour my colour
 	 * @param startSquare start square
 	 * @param targetSquare target square
-	 * @return true if a piece on 'startSquare' attacks 'targetSquare'
+	 * @return true if a piece on <code>startSquare</code> attacks <code>targetSquare</code>
 	 */
 	// public static boolean checkIfPieceOnSquare1CouldAttackSquare2(BitSet emptySquares, BitSet
 	// myPieces, Colour myColour,

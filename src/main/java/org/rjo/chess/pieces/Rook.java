@@ -256,10 +256,10 @@ public class Rook extends SlidingPiece {
 
 	/**
 	 * Constructs the Rook class with the required squares (can be null) or the default start squares. Setting
-	 * 'startPosition' true has precedence over 'startSquares'.
+	 * 'startPosition' true has precedence over <code>startSquares</code>.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of 'startSquares' will be ignored.
+	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be ignored.
 	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
 	 *           the board.
 	 */

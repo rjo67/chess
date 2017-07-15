@@ -11,16 +11,16 @@ import org.rjo.chess.pieces.PieceType;
  */
 public class Move {
 
-	private Square from;
-	private Square to;
+	private final Square from;
+	private final Square to;
 
 	/** which piece is moving */
-	private PieceType piece;
+	private final PieceType piece;
 	/** colour of the piece */
-	private Colour colour;
+	private final Colour colour;
 
 	/** capture info -- if not null, implies that this move was a capture */
-	private CaptureInfo captureInfo;
+	private final CaptureInfo captureInfo;
 
 	/** whether this move was a check */
 	private boolean check;
@@ -79,9 +79,7 @@ public class Move {
 		this.colour = colour;
 		this.from = from;
 		this.to = to;
-		if (capturedPiece != null) {
-			this.captureInfo = new CaptureInfo(capturedPiece);
-		}
+		this.captureInfo = (capturedPiece != null) ? new CaptureInfo(capturedPiece) : null;
 		this.check = check;
 		this.castlingInfo = null;
 		this.enpassant = false;
