@@ -22,6 +22,13 @@ import org.rjo.chess.pieces.PieceType;
  */
 public class Zobrist {
 
+	/**
+	 * if TRUE, re-calculate the zobrist hash in order to check that the update function works
+	 */
+	public static final boolean CHECK_HASH_UPDATE_AFTER_MOVE = Boolean.parseBoolean(System.getProperty("checkZobristHash", "false"));
+
+	public static final Zobrist INSTANCE = new Zobrist();
+
 	/** the random number generator for all the numbers required by this class */
 	private Random randomGenerator;
 
@@ -51,12 +58,14 @@ public class Zobrist {
 	/**
 	 * Creates a new class with a 'randomly' seeded random number generator.
 	 */
-	public Zobrist() {
+	private Zobrist() {
 		this(new Random());
 	}
 
 	/**
 	 * Creates a new class with the random number generator seeded with the given seed.
+	 * <p>
+	 * Mainly for tests -- see {@link #INSTANCE}.
 	 *
 	 * @param seed the random number seed
 	 */

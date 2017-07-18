@@ -92,7 +92,7 @@ public class PositionTest {
 
 	@Test
 	public void testMove() {
-		Position posn = new Position();
+		Position posn = Position.startPosition();
 		Position newPosn = posn.move(new Move(PieceType.PAWN, Colour.WHITE, Square.b2, Square.b4));
 
 		assertEmptySquare(newPosn, Square.b2);
@@ -355,7 +355,7 @@ public class PositionTest {
 
 	@Test
 	public void capture() {
-		Game game = Fen.decode("8/8/8/3p4/2P5/8/8/8 w - - 0 1");
+		Game game = Fen.decode("k1K5/8/8/3p4/2P5/8/8/8 w - - 0 1");
 		Position newPosn = game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5, PieceType.PAWN));
 		assertEmptySquare(newPosn, Square.c4);
 		assertPieceAt(newPosn, Square.d5, PieceType.PAWN, Colour.WHITE);
@@ -364,13 +364,13 @@ public class PositionTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void noPieceToCapture() {
-		Game game = Fen.decode("8/8/8/3p4/2P5/8/8/8 w - - 0 1");
+		Game game = Fen.decode("k1K5/8/8/3p4/2P5/8/8/8 w - - 0 1");
 		game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.b5, PieceType.PAWN));
 	}
 
 	@Test
 	public void promotion() {
-		Game game = Fen.decode("8/8/8/8/8/8/5p2/8 b - - 0 1");
+		Game game = Fen.decode("k1K5/8/8/8/8/8/5p2/8 b - - 0 1");
 		Move move = new Move(PieceType.PAWN, Colour.BLACK, Square.f2, Square.f1);
 		move.setPromotionPiece(PieceType.QUEEN);
 		Position newPosn = game.getPosition().move(move);

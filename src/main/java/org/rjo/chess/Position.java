@@ -79,9 +79,11 @@ public class Position {
 	 */
 	private boolean inCheck;
 
+	/** zobrist value of this position */
+	private long zobristHash;
+
 	public static Position startPosition() {
-		Position p = new Position();
-		return p;
+		return new Position(Colour.WHITE);
 	}
 
 	public static void debugLog(
@@ -94,7 +96,7 @@ public class Position {
 	/**
 	 * Constructs a new position with default starting positions and default castling rights.
 	 */
-	public Position() {
+	public Position(Colour sideToMove) {
 		// default piece positions
 		this(new HashSet<Piece>(Arrays.asList(new Pawn(Colour.WHITE, true), new Rook(Colour.WHITE, true), new Knight(Colour.WHITE, true),
 				new Bishop(Colour.WHITE, true), new Queen(Colour.WHITE, true), new King(Colour.WHITE, true))),
@@ -102,14 +104,14 @@ public class Position {
 						new Bishop(Colour.BLACK, true), new Queen(Colour.BLACK, true), new King(Colour.BLACK, true))),
 				// default castling rights
 				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE),
-				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE));
+				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE), sideToMove);
 	}
 
 	/**
 	 * Creates a chessboard with the given piece settings. Castling rights are set to 'none'.
 	 */
-	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces) {
-		this(whitePieces, blackPieces, EnumSet.noneOf(CastlingRights.class), EnumSet.noneOf(CastlingRights.class));
+	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, Colour sideToMove) {
+		this(whitePieces, blackPieces, EnumSet.noneOf(CastlingRights.class), EnumSet.noneOf(CastlingRights.class), sideToMove);
 	}
 
 	/**
@@ -117,15 +119,16 @@ public class Position {
 	 */
 	@SuppressWarnings("unchecked")
 	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, EnumSet<CastlingRights> whiteCastlingRights,
-			EnumSet<CastlingRights> blackCastlingRights) {
+			EnumSet<CastlingRights> blackCastlingRights, Colour sideToMove) {
 		initBoard(whitePieces, blackPieces);
 		castling = new EnumSet[2];
 		castling[Colour.WHITE.ordinal()] = whiteCastlingRights;
 		castling[Colour.BLACK.ordinal()] = blackCastlingRights;
-		sideToMove = Colour.WHITE;
+		this.sideToMove = sideToMove;
 
 		NBR_INSTANCES_CREATED++;
 
+		this.zobristHash = Zobrist.INSTANCE.hash(this);
 	}
 
 	/**
@@ -138,7 +141,7 @@ public class Position {
 		internInit(posn);
 
 		NBR_INSTANCES_CREATED++;
-
+		this.zobristHash = posn.zobristHash;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -193,11 +196,6 @@ public class Position {
 
 	public Colour getSideToMove() {
 		return sideToMove;
-	}
-
-	public void setSideToMove(
-			Colour sideToMove) {
-		this.sideToMove = sideToMove;
 	}
 
 	/**
@@ -460,6 +458,9 @@ public class Position {
 			throw new IllegalArgumentException("move is for '" + move.getColour() + "' but sideToMove=" + sideToMove);
 		}
 
+		// update hash before the castling rights / enpassant square are changed
+		zobristHash = Zobrist.INSTANCE.update(zobristHash, move, castling, enpassantSquare);
+
 		if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
 			pieceMgr.getClonedPiece(sideToMove, move.getPiece()).move(move);
 			pieceMgr.getClonedPiece(sideToMove, PieceType.ROOK).move(move.getRooksCastlingMove());
@@ -492,7 +493,7 @@ public class Position {
 		} else {
 			setEnpassantSquare(null);
 		}
-		setSideToMove(Colour.oppositeColour(sideToMove));
+		sideToMove = Colour.oppositeColour(sideToMove);
 		inCheck = move.isCheck();
 	}
 
@@ -845,8 +846,8 @@ public class Position {
 	}
 
 	/**
-	 * Returns true if a piece on <code>startSquare</code> attacks <code>targetSquare</code>, i.e. the two squares are on the same ray and there
-	 * are no intervening pieces.
+	 * Returns true if a piece on <code>startSquare</code> attacks <code>targetSquare</code>, i.e. the two squares are on
+	 * the same ray and there are no intervening pieces.
 	 * <p>
 	 * It still depends on the piece type to determine whether there really is an attack.
 	 *

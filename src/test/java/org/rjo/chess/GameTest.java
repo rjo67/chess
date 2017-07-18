@@ -38,7 +38,7 @@ public class GameTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void illegalMoveToNonEmptySquare() {
-		Game game = Fen.decode("8/8/8/3p4/2P5/8/8/8 w - - 0 1");
+		Game game = Fen.decode("k1K5/8/8/3p4/2P5/8/8/8 w - - 0 1");
 		game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5));
 	}
 

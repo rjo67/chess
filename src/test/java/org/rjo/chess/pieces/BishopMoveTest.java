@@ -29,13 +29,15 @@ public class BishopMoveTest {
 	private Game game;
 	private Piece whiteBishop;
 
-	private void setupGame(String fen) {
+	private void setupGame(
+			String fen) {
 		game = Fen.decode(fen);
 		whiteBishop = game.getPosition().getPieces(Colour.WHITE)[PieceType.BISHOP.ordinal()];
 	}
 
 	// need this, since findMoves no longer checks for checks
-	private List<Move> findMoves(Position posn) {
+	private List<Move> findMoves(
+			Position posn) {
 		List<Move> moves = whiteBishop.findMoves(posn);
 		final Square opponentsKing = King.findOpponentsKing(posn.getSideToMove(), posn);
 		final BitSet emptySquares = posn.getTotalPieces().flip();
@@ -174,12 +176,8 @@ public class BishopMoveTest {
 
 	@Test
 	public void attacksSquare() {
-		Bishop whiteBishop = new Bishop(Colour.WHITE, Square.d8);
-		Pawn pawn = new Pawn(Colour.BLACK, Square.e5);
-		King king = new King(Colour.WHITE, Square.f8);
-		Set<Piece> whitePieces = new HashSet<>(Arrays.asList(king, whiteBishop));
-		Set<Piece> opponentsPieces = new HashSet<>(Arrays.asList(pawn, opponentsKing));
-		Position posn = new Position(whitePieces, opponentsPieces);
+		setupGame("k2B1K2/8/8/4P3/8/8/8/8 w - - 0 4");
+		Position posn = game.getPosition();
 		for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
 			assertTrue("square " + sq, whiteBishop.attacksSquare(posn.getTotalPieces().flip(), sq));
 		}
