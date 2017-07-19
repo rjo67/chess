@@ -1,22 +1,14 @@
 package org.rjo.chess.pieces;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.rjo.chess.CastlingRights;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
-import org.rjo.chess.Position;
-import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
 
 /**
@@ -144,52 +136,4 @@ public class KingMoveTest {
 		TestUtil.checkMoves(whiteKing.findMoves(game.getPosition()), "Ke1-d1", "Ke1-f1", "Ke1-d2", "Ke1-e2", "Ke1-f2", "O-O-O");
 	}
 
-	@Test
-	@Ignore // no unmove
-	public void castleQueensSideMoveUnmove() {
-		whiteKing.initPosition(Square.e1);
-		blackKing.initPosition(Square.h7);
-		Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing, new Rook(Colour.WHITE, Square.a1)));
-		Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing));
-		Position posn = new Position(whitePieces, blackPieces, Colour.WHITE);
-		posn.setCastlingRights(Colour.WHITE, CastlingRights.QUEENS_SIDE);
-		String previousFen = Fen.encode(posn);
-		Move move = Move.castleQueensSide(Colour.WHITE);
-		posn.move(move);
-		// game.unmove(move);
-		assertEquals(previousFen, Fen.encode(game));
-	}
-
-	@Test
-	@Ignore // no unmove
-	public void castleKingsSideBlackMoveUnmove() {
-		whiteKing.initPosition(Square.g1);
-		blackKing.initPosition(Square.e8);
-		Set<Piece> blackPieces = new HashSet<>(
-				Arrays.asList(blackKing, new Pawn(Colour.BLACK, Square.d7, Square.e7, Square.f7), new Rook(Colour.BLACK, Square.h8)));
-		Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing));
-		Game game = new Game(new Position(whitePieces, blackPieces, Colour.BLACK));
-		game.getPosition().setCastlingRights(Colour.BLACK, CastlingRights.KINGS_SIDE);
-		String previousFen = Fen.encode(game);
-		Move move = Move.castleKingsSide(Colour.BLACK);
-		game.getPosition().move(move);
-		// game.unmove(move);
-		assertEquals(previousFen, Fen.encode(game));
-	}
-
-	@Test
-	@Ignore // no unmove
-	public void castleQueensSideBlackMoveUnmove() {
-		whiteKing.initPosition(Square.g1);
-		blackKing.initPosition(Square.e8);
-		Set<Piece> blackPieces = new HashSet<>(Arrays.asList(blackKing, new Rook(Colour.BLACK, Square.a8)));
-		Set<Piece> whitePieces = new HashSet<>(Arrays.asList(whiteKing));
-		Game game = new Game(new Position(whitePieces, blackPieces, Colour.BLACK));
-		game.getPosition().setCastlingRights(Colour.BLACK, CastlingRights.QUEENS_SIDE);
-		String previousFen = Fen.encode(game);
-		Move move = Move.castleQueensSide(Colour.BLACK);
-		game.getPosition().move(move);
-		// game.unmove(move);
-		assertEquals(previousFen, Fen.encode(game));
-	}
 }

@@ -75,6 +75,14 @@ public class ZobristTest {
 
 	@Test
 	public void incrementalPromotionWhite() {
+		// avoid capturing on a8, since this affects castling rights
+		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.b7, Square.b8);
+		move.setPromotionPiece(PieceType.QUEEN);
+		checkMove(Fen.decode("r1bqkbnr/pPpppppp/8/8/8/8/1PPPPPPP/RNBQKBNR w KQkq - 0 0").getPosition(), move);
+	}
+
+	@Test
+	public void incrementalPromotionCaptureWhite() {
 		// avoid capturing on a1, since this affects castling rights
 		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.b7, Square.c8, PieceType.BISHOP);
 		move.setPromotionPiece(PieceType.QUEEN);
@@ -83,6 +91,14 @@ public class ZobristTest {
 
 	@Test
 	public void incrementalPromotionBlack() {
+		// avoid capturing on a1, since this affects castling rights
+		Move move = new Move(PieceType.PAWN, Colour.BLACK, Square.c2, Square.c1);
+		move.setPromotionPiece(PieceType.BISHOP);
+		checkMove(Fen.decode("rnbqkbnr/p1pppppp/8/8/8/8/PPpPPPPP/RN1QKBNR b KQkq - 0 0").getPosition(), move);
+	}
+
+	@Test
+	public void incrementalPromotionCaptureBlack() {
 		// avoid capturing on a1, since this affects castling rights
 		Move move = new Move(PieceType.PAWN, Colour.BLACK, Square.c2, Square.d1, PieceType.QUEEN);
 		move.setPromotionPiece(PieceType.BISHOP);

@@ -1,6 +1,7 @@
 package org.rjo.chess;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -133,9 +134,8 @@ public class Fen {
 			throw new IllegalArgumentException("invalid FEN string: expected at least 4 fields (space-separated) in input '" + fen + "'");
 		}
 
-		Position posn = parsePosition(fenTokenizer.nextToken(), parseActiveColour(fenTokenizer.nextToken()));
-		parseCastlingRights(posn, fenTokenizer.nextToken());
-		parseEnpassantSquare(posn, fenTokenizer.nextToken());
+		Position posn = parsePosition(fenTokenizer.nextToken(), parseActiveColour(fenTokenizer.nextToken()),
+				parseCastlingRights(fenTokenizer.nextToken()), parseEnpassantSquare(fenTokenizer.nextToken()));
 
 		Game game = new Game(posn);
 		if (fenTokenizer.hasMoreTokens()) {
@@ -183,29 +183,30 @@ public class Fen {
 	 * can castle kingside), "Q" (White can castle queenside), "k" (Black can castle kingside), and/or "q" (Black can castle
 	 * queenside).
 	 *
-	 * @param posn position state
 	 * @param token token representing castling rights
+	 * @return castlingrights array
 	 */
-	private static void parseCastlingRights(
-			Position posn,
+	private static EnumSet<CastlingRights>[] parseCastlingRights(
 			String token) {
 
-		List<CastlingRights> whiteRights = new ArrayList<>(2);
-		List<CastlingRights> blackRights = new ArrayList<>(2);
+		@SuppressWarnings("unchecked")
+		EnumSet<CastlingRights>[] rights = new EnumSet[Colour.ALL_COLOURS.length];
+		rights[Colour.WHITE.ordinal()] = EnumSet.noneOf(CastlingRights.class);
+		rights[Colour.BLACK.ordinal()] = EnumSet.noneOf(CastlingRights.class);
+
 		if (token.contains("K")) {
-			whiteRights.add(CastlingRights.KINGS_SIDE);
+			rights[Colour.WHITE.ordinal()].add(CastlingRights.KINGS_SIDE);
 		}
 		if (token.contains("Q")) {
-			whiteRights.add(CastlingRights.QUEENS_SIDE);
+			rights[Colour.WHITE.ordinal()].add(CastlingRights.QUEENS_SIDE);
 		}
 		if (token.contains("k")) {
-			blackRights.add(CastlingRights.KINGS_SIDE);
+			rights[Colour.BLACK.ordinal()].add(CastlingRights.KINGS_SIDE);
 		}
 		if (token.contains("q")) {
-			blackRights.add(CastlingRights.QUEENS_SIDE);
+			rights[Colour.BLACK.ordinal()].add(CastlingRights.QUEENS_SIDE);
 		}
-		posn.setCastlingRights(Colour.WHITE, whiteRights.toArray(new CastlingRights[2]));
-		posn.setCastlingRights(Colour.BLACK, blackRights.toArray(new CastlingRights[2]));
+		return rights;
 	}
 
 	private static String addCastlingRights(
@@ -235,14 +236,15 @@ public class Fen {
 	 * just made a two-square move, this is the position "behind" the pawn. This is recorded regardless of whether there is
 	 * a pawn in position to make an en passant capture.
 	 *
-	 * @param posn position
 	 * @param token parsed token
+	 * @return enpassant square, or null
 	 */
-	private static void parseEnpassantSquare(
-			Position posn,
+	private static Square parseEnpassantSquare(
 			String token) {
 		if (!token.equals("-")) {
-			posn.setEnpassantSquare(Square.fromString(token));
+			return Square.fromString(token);
+		} else {
+			return null;
 		}
 	}
 
@@ -303,7 +305,9 @@ public class Fen {
 
 	private static Position parsePosition(
 			String fen,
-			Colour sideToMove) {
+			Colour sideToMove,
+			EnumSet<CastlingRights>[] castlingRights,
+			Square enpassantSquare) {
 		// this array is used to reference the FEN symbols for all the pieces
 		// and to store the parsed positions (at the end of the routine)
 		Piece[] allPieces = new Piece[] { new Pawn(Colour.WHITE), new Pawn(Colour.BLACK), new Rook(Colour.WHITE), new Rook(Colour.BLACK),
@@ -379,7 +383,8 @@ public class Fen {
 				pieces[piece.getColour().ordinal()].add(piece);
 			}
 		}
-		return new Position(pieces[Colour.WHITE.ordinal()], pieces[Colour.BLACK.ordinal()], sideToMove);
+		return new Position(pieces[Colour.WHITE.ordinal()], pieces[Colour.BLACK.ordinal()], sideToMove,
+				castlingRights[Colour.WHITE.ordinal()], castlingRights[Colour.BLACK.ordinal()], enpassantSquare);
 	}
 
 }

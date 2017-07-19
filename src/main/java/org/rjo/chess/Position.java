@@ -102,29 +102,39 @@ public class Position {
 				new Bishop(Colour.WHITE, true), new Queen(Colour.WHITE, true), new King(Colour.WHITE, true))),
 				new HashSet<Piece>(Arrays.asList(new Pawn(Colour.BLACK, true), new Rook(Colour.BLACK, true), new Knight(Colour.BLACK, true),
 						new Bishop(Colour.BLACK, true), new Queen(Colour.BLACK, true), new King(Colour.BLACK, true))),
+				sideToMove,
 				// default castling rights
 				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE),
-				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE), sideToMove);
+				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE), null);
 	}
 
 	/**
-	 * Creates a chessboard with the given piece settings. Castling rights are set to 'none'.
+	 * Creates a chessboard with the given piece settings. Castling rights are set to 'none'. Enpassant square is set to
+	 * 'null'.
 	 */
 	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, Colour sideToMove) {
-		this(whitePieces, blackPieces, EnumSet.noneOf(CastlingRights.class), EnumSet.noneOf(CastlingRights.class), sideToMove);
+		this(whitePieces, blackPieces, sideToMove, EnumSet.noneOf(CastlingRights.class), EnumSet.noneOf(CastlingRights.class), null);
 	}
 
 	/**
-	 * Creates a chessboard with the given piece settings and castling rights.
+	 * Creates a chessboard with the given piece settings, side to move, castling rights, and enpassant square.
+	 *
+	 * @param whitePieces the white pieces
+	 * @param blackPieces the black pieces
+	 * @param sideToMove side to move
+	 * @param whiteCastlingRights white's castling rights
+	 * @param blackCastlingRights black's castling rights
+	 * @param enpassantSquare enpassant square (or null)
 	 */
 	@SuppressWarnings("unchecked")
-	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, EnumSet<CastlingRights> whiteCastlingRights,
-			EnumSet<CastlingRights> blackCastlingRights, Colour sideToMove) {
+	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, Colour sideToMove, EnumSet<CastlingRights> whiteCastlingRights,
+			EnumSet<CastlingRights> blackCastlingRights, Square enpassantSquare) {
 		initBoard(whitePieces, blackPieces);
 		castling = new EnumSet[2];
 		castling[Colour.WHITE.ordinal()] = whiteCastlingRights;
 		castling[Colour.BLACK.ordinal()] = blackCastlingRights;
 		this.sideToMove = sideToMove;
+		this.enpassantSquare = enpassantSquare;
 
 		NBR_INSTANCES_CREATED++;
 
@@ -181,17 +191,6 @@ public class Position {
 	 */
 	public EnumSet<CastlingRights>[] getCastlingRights() {
 		return castling;
-	}
-
-	public void setCastlingRights(
-			Colour colour,
-			CastlingRights... rights) {
-		castling[colour.ordinal()].clear();
-		for (CastlingRights right : rights) {
-			if (right != null) {
-				castling[colour.ordinal()].add(right);
-			}
-		}
 	}
 
 	public Colour getSideToMove() {
@@ -442,6 +441,13 @@ public class Position {
 			Writer debugWriter) {
 		Position newPosn = new Position(this);
 		newPosn.internalMove(move, debugWriter);
+		if (Zobrist.CHECK_HASH_UPDATE_AFTER_MOVE) {
+			long updatedHash = newPosn.zobristHash;
+			Position posnAfterMove = Fen.decode(Fen.encode(newPosn)).getPosition();
+			if (updatedHash != posnAfterMove.zobristHash) {
+				throw new IllegalStateException("non-matching zobrist\nposn:\n" + this + "\nmove: " + move + "\nnewPosn:\n" + newPosn);
+			}
+		}
 		return newPosn;
 	}
 
@@ -489,9 +495,9 @@ public class Position {
 
 		updateCastlingRightsAfterMove(move, debugWriter);
 		if (move.isPawnMoveTwoSquaresForward()) {
-			setEnpassantSquare(Square.findEnpassantSquareFromMove(move.to()));
+			enpassantSquare = Square.findEnpassantSquareFromMove(move.to());
 		} else {
-			setEnpassantSquare(null);
+			enpassantSquare = null;
 		}
 		sideToMove = Colour.oppositeColour(sideToMove);
 		inCheck = move.isCheck();
@@ -554,24 +560,24 @@ public class Position {
 		// the other side (who has just moved) cannot be in check
 		// if enpassant square is set, this can only apply to the sidetomove
 		int whiteMobility, blackMobility;
-		Square enpassantSquare = null;
+		Square prevEnpassantSquare = null;
 		if (getSideToMove() != Colour.WHITE) {
-			enpassantSquare = getEnpassantSquare();
-			setEnpassantSquare(null);
+			prevEnpassantSquare = getEnpassantSquare();
+			enpassantSquare = null;
 		}
 		List<Move> moves = findMoves(Colour.WHITE, getSideToMove() == Colour.WHITE ? true : false);
 		if (getSideToMove() != Colour.WHITE) {
-			setEnpassantSquare(enpassantSquare);
+			enpassantSquare = prevEnpassantSquare;
 		}
 		whiteMobility = moves.size();
 		moves = new ArrayList<>(60);
 		if (getSideToMove() != Colour.BLACK) {
-			enpassantSquare = getEnpassantSquare();
-			setEnpassantSquare(null);
+			prevEnpassantSquare = getEnpassantSquare();
+			enpassantSquare = null;
 		}
 		moves = findMoves(Colour.BLACK, getSideToMove() == Colour.BLACK ? true : false);
 		if (getSideToMove() != Colour.BLACK) {
-			setEnpassantSquare(enpassantSquare);
+			enpassantSquare = prevEnpassantSquare;
 		}
 		blackMobility = moves.size();
 
@@ -644,10 +650,23 @@ public class Position {
 			}
 		}
 
-		StringBuilder sb = new StringBuilder(80);
+		StringBuilder sb = new StringBuilder(150);
 		for (int rank = 7; rank >= 0; rank--) {
 			for (int file = 0; file < 8; file++) {
 				sb.append(board[rank][file]);
+			}
+			switch (rank) {
+			case 7:
+				sb.append("   " + sideToMove + " to move");
+				break;
+			case 6:
+				sb.append("   castlingRights: " + castling[0] + ", " + castling[1]);
+				break;
+			case 5:
+				sb.append("   enpassant square: " + enpassantSquare);
+				break;
+			default:
+				break;
 			}
 			sb.append("\n");
 		}
@@ -766,11 +785,6 @@ public class Position {
 		System.out.println(totalPieces.display());
 		System.out.println("---");
 
-	}
-
-	public void setEnpassantSquare(
-			Square enpassantSquare) {
-		this.enpassantSquare = enpassantSquare;
 	}
 
 	/**

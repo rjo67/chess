@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
@@ -23,8 +22,6 @@ import org.rjo.chess.TestUtil;
 import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 
 public class BishopMoveTest {
-
-	private King opponentsKing;
 
 	private Game game;
 	private Piece whiteBishop;
@@ -48,11 +45,6 @@ public class BishopMoveTest {
 					whiteBishop.isOpponentsKingInCheckAfterMove(posn, move, opponentsKing, emptySquares, checkCache, discoveredCheckCache));
 		}
 		return moves;
-	}
-
-	@Before
-	public void setup() {
-		opponentsKing = new King(Colour.BLACK, true);
 	}
 
 	@Test

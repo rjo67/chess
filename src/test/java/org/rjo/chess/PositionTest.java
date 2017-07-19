@@ -43,9 +43,9 @@ public class PositionTest {
 
 		// toString() always displays board from white POV
 
-		expected.append("r...kr.Q").append("\n");
-		expected.append("p.ppqpb.").append("\n");
-		expected.append("bn..pnp.").append("\n");
+		expected.append("r...kr.Q   Black to move").append("\n");
+		expected.append("p.ppqpb.   castlingRights: [QUEENS_SIDE, KINGS_SIDE], [QUEENS_SIDE]").append("\n");
+		expected.append("bn..pnp.   enpassant square: null").append("\n");
 		expected.append("...PN...").append("\n");
 		expected.append(".p..P...").append("\n");
 		expected.append("..N.....").append("\n");
