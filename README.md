@@ -16,7 +16,8 @@ appropriate KingCheck method.
 - [x] change various methods to return immutable version
 - [ ] iterative deepening
 - [ ] thread for search, interrupt from uci controller
-
+- [ ] search for moves in parallel
+- [ ] move search starting with pieces instead of pawns
 
 Branch 'moveswithcheck': rewrites Piece::findMoves to return all possible moves (including non-legal).
 This list is then refined in Position::findMoves to remove all moves which leave my king in check.

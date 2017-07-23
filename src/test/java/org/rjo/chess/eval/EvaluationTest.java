@@ -55,7 +55,7 @@ public class EvaluationTest {
 	@Test
 	public void mateInOne() {
 		Game game = Fen.decode("r3k3/pppppp2/8/8/8/8/8/4K2R w - - 0 2");
-		SearchStrategy strat = new AlphaBeta();
+		SearchStrategy strat = new AlphaBeta(game.getZobristMap());
 		MoveInfo m = strat.findMove(game.getPosition());
 		assertEquals("Rh1-h8+", m.getMove().toString());
 	}
@@ -64,7 +64,7 @@ public class EvaluationTest {
 	@Ignore // test fails, good position though
 	public void test() {
 		Game game = Fen.decode("r1b1kb2/ppppqpp1/2n4r/4P3/2B4P/2P2Q2/PP3PP1/RN2R1K1 b q - 0 2");
-		SearchStrategy strat = new AlphaBeta();
+		SearchStrategy strat = new AlphaBeta(game.getZobristMap());
 		MoveInfo m = strat.findMove(game.getPosition());
 		assertEquals("Rh1-h8+", m.getMove().toString());
 	}
@@ -72,7 +72,7 @@ public class EvaluationTest {
 	@Test
 	public void mateInTwo() {
 		Game game = Fen.decode("4k3/3ppp2/5n2/6KR/8/8/8/8 w - - 0 2");
-		SearchStrategy strat = new AlphaBeta();
+		SearchStrategy strat = new AlphaBeta(game.getZobristMap());
 		MoveInfo m = strat.findMove(game.getPosition());
 		assertEquals("Rh5-h8+", m.getMove().toString());
 	}
@@ -80,7 +80,7 @@ public class EvaluationTest {
 	@Test
 	public void opponentMateInOne() {
 		Game game = Fen.decode("4k3/8/8/8/8/4P1PP/3PrPPP/7K b - - 0 1 ");
-		SearchStrategy strat = new AlphaBeta();
+		SearchStrategy strat = new AlphaBeta(game.getZobristMap());
 		MoveInfo m = strat.findMove(game.getPosition());
 		assertEquals("Re2-e1+", m.getMove().toString());
 	}
@@ -88,7 +88,7 @@ public class EvaluationTest {
 	@Test
 	public void mateInOneBetterThanMateInTwo() {
 		Game game = Fen.decode("r1r3k1/5ppp/2R5/2R5/8/8/1B6/3K2Q1 w - - 0 15");
-		SearchStrategy strat = new AlphaBeta();
+		SearchStrategy strat = new AlphaBeta(game.getZobristMap());
 		MoveInfo m = strat.findMove(game.getPosition());
 		assertEquals("Qg1xg7+", m.getMove().toString());
 	}

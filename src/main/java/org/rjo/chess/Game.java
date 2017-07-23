@@ -1,7 +1,9 @@
 package org.rjo.chess;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Encapsulates the board, the moves, castling rights, etc (clocks?).
@@ -17,13 +19,15 @@ public class Game {
 	private int halfmoveClock;
 
 	/**
-	 * move number of the next move. Not calculated from size of <code>gameProgress</code> since we don't have
-	 * to start at move 1.
+	 * move number of the next move. Not calculated from size of <code>gameProgress</code> since we don't have to start at
+	 * move 1.
 	 */
 	private int moveNbr;
 
 	// this points to the last position stored in 'gameProgress'.
 	private int currentMoveOffset;
+
+	private Map<Position, Position> zobristMap;
 
 	/**
 	 * Constructs a game with the default start position.
@@ -42,15 +46,21 @@ public class Game {
 		gameProgress.add(new MovePosition(null, position));
 		moveNbr = 1;
 		currentMoveOffset = 0;
+		zobristMap = new HashMap<>();
 	}
 
 	public void makeMove(Move move) {
-		gameProgress.add(new MovePosition(move, gameProgress.get(currentMoveOffset).getPosition().move(move)));
+		Position posnAfterMove = gameProgress.get(currentMoveOffset).getPosition().move(move);
+		gameProgress.add(new MovePosition(move, posnAfterMove));
 		currentMoveOffset++;
 		halfmoveClock++;
 		if (Colour.BLACK == move.getColour()) {
 			moveNbr++;
 		}
+	}
+
+	public Map<Position, Position> getZobristMap() {
+		return zobristMap;
 	}
 
 	public Position getPosition() {

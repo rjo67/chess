@@ -26,7 +26,6 @@ public class UCI {
 
 	public void run() {
 		boolean finished = false;
-		strategy = new AlphaBeta(/* new PrintStream(new NullOutputStream()) */);
 		try (Scanner sc = new Scanner(System.in)) {
 			while (!finished) {
 				String line = sc.nextLine();
@@ -89,6 +88,7 @@ public class UCI {
 				fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kqKQ - 0 1";
 			}
 			game = Fen.decode(fen);
+			strategy = new AlphaBeta(/* new PrintStream(new NullOutputStream()), */ game.getZobristMap());
 			// move on to "moves"
 			if (lineScanner.hasNext()) {
 				subcmd = lineScanner.next();
@@ -101,7 +101,7 @@ public class UCI {
 				boolean lastmove = !lineScanner.hasNext();
 				Move m = Move.fromUCIString(moveStr, game);
 				// only worry about check for the last move
-				game.getPosition().move(m);
+				game.makeMove(m);
 				if (lastmove) {
 					Square kingsSquare = King.findKing(game.getPosition().getSideToMove(), game.getPosition());
 					boolean incheck = game.getPosition().squareIsAttacked(kingsSquare,

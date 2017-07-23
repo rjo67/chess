@@ -11,7 +11,7 @@
                </File>
 	</Appenders>
 	<Loggers>
-<!-- 		<Logger name="org.rjo.chess.pieces" level="debug"/> -->
+		<Logger name="org.rjo.chess.pieces" level="info"/> 
 		<!-- <Logger name="org.rjo.chess.Chessboard" level="debug"/> -->
       
       <!--  set to 'debug' to activate logging in Perft -->
@@ -19,7 +19,7 @@
             <AppenderRef ref="File" />
        </Logger>
       
-		<Root level="warn">
+		<Root level="info">
 			<AppenderRef ref="Console" />
 		</Root>
 	</Loggers>

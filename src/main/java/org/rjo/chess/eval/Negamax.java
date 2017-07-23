@@ -29,8 +29,7 @@ public class Negamax implements SearchStrategy {
 				moveInfo.setMove(move);
 				System.out.println("******   (" + move + ": " + score + ")");
 			}
-			System.out.println(String.format("(%7s,%5d,%7d,%5dms)", move, score, nbrNodesEvaluated,
-					(System.currentTimeMillis() - startTime)));
+			System.out.println(String.format("(%7s,%5d,%7d,%5dms)", move, score, nbrNodesEvaluated, (System.currentTimeMillis() - startTime)));
 		}
 		long overallStopTime = System.currentTimeMillis();
 		System.out.println(String.format("time: %7.2fs, %9.2f nodes/s", (overallStopTime - overallStartTime) / 1000.0,
@@ -38,7 +37,8 @@ public class Negamax implements SearchStrategy {
 		return moveInfo;
 	}
 
-	private int negaMax(int depth, Position posn) {
+	private int negaMax(int depth,
+			Position posn) {
 		if (depth == 0) {
 			nbrNodesEvaluated++;
 			return posn.evaluate();

@@ -26,10 +26,9 @@ public class SimpleStrategy implements SearchStrategy {
 			int PLAY_BEST_MOVE = 95; // play 'best' move x% of the time
 			evalList.sort(new Comparator<MoveEval>() {
 				@Override
-				public int compare(MoveEval arg0, MoveEval arg1) {
-					return arg1.getValue() - arg0.getValue(); // to sort in
-																// 'best-first'
-																// order
+				public int compare(MoveEval arg0,
+						MoveEval arg1) {
+					return arg1.getValue() - arg0.getValue(); // to sort in 'best-first' order
 				}
 			});
 			System.out.println(evalList);
@@ -46,4 +45,5 @@ public class SimpleStrategy implements SearchStrategy {
 		}
 		return moveInfo;
 	}
+
 }

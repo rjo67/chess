@@ -20,3 +20,4 @@ target/
 hs_err_pid*
 
 tags
+dependency-reduced-pom.xml

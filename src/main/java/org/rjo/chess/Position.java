@@ -82,12 +82,17 @@ public class Position {
 	/** zobrist value of this position */
 	private long zobristHash;
 
+	/** stores the fen of this position */
+	private String fen;
+
+	/** the evaluated score for this position */
+	private PositionScore positionScore;
+
 	public static Position startPosition() {
 		return new Position(Colour.WHITE);
 	}
 
-	public static void debugLog(
-			String str) {
+	public static void debugLog(String str) {
 		if (System.getProperty("CHECK-DEBUG") != null) {
 			System.out.println(str);
 		}
@@ -139,6 +144,7 @@ public class Position {
 		NBR_INSTANCES_CREATED++;
 
 		this.zobristHash = Zobrist.INSTANCE.hash(this);
+		this.fen = Fen.encode(this);
 	}
 
 	/**
@@ -152,11 +158,11 @@ public class Position {
 
 		NBR_INSTANCES_CREATED++;
 		this.zobristHash = posn.zobristHash;
+		// fen is not set here, since will be making a move and then should create it
 	}
 
 	@SuppressWarnings("unchecked")
-	private void internInit(
-			final Position posn) {
+	private void internInit(final Position posn) {
 		// need to clone here, since these structures are changed incrementally in updateStructures()
 
 		totalPieces = new BitBoard(posn.totalPieces);
@@ -178,8 +184,7 @@ public class Position {
 	 * @param rights whether king's or queen's side
 	 * @return true if can castle
 	 */
-	public boolean canCastle(
-			Colour colour,
+	public boolean canCastle(Colour colour,
 			CastlingRights rights) {
 		return castling[colour.ordinal()].contains(rights);
 	}
@@ -197,14 +202,20 @@ public class Position {
 		return sideToMove;
 	}
 
+	public String getFen() {
+		if (fen == null) {
+			fen = Fen.encode(this);
+		}
+		return fen;
+	}
+
 	/**
 	 * Sets up all pieces and related data structures corresponding to the input parameters.
 	 *
 	 * @param whitePieces layout of the white pieces
 	 * @param blackPieces layout of the black pieces
 	 */
-	private void initBoard(
-			Set<Piece> whitePieces,
+	private void initBoard(Set<Piece> whitePieces,
 			Set<Piece> blackPieces) {
 		this.pieceMgr = new PieceManager(whitePieces, blackPieces);
 		allEnemyPieces = new BitBoard[2];
@@ -230,8 +241,7 @@ public class Position {
 	 * @param move the move
 	 */
 	// package private for tests
-	void updateStructures(
-			Move move) {
+	void updateStructures(Move move) {
 		// @formatter:off
       // (f=flip)
       // White-Move       non-capture      capture
@@ -282,8 +292,7 @@ public class Position {
 	 * @param colour the required colour
 	 * @return all moves for this colour.
 	 */
-	public List<Move> findMoves(
-			Colour colour) {
+	public List<Move> findMoves(Colour colour) {
 		// return findMovesParallel(colour);
 		return findMoves(colour, this.inCheck);
 	}
@@ -295,8 +304,7 @@ public class Position {
 	 * @param inCheck whether the king is in check in this position
 	 * @return all moves for this colour.
 	 */
-	private List<Move> findMoves(
-			Colour colour,
+	private List<Move> findMoves(Colour colour,
 			boolean inCheck) {
 		List<Move> moves = new ArrayList<>(100);
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
@@ -334,8 +342,7 @@ public class Position {
 	 * @param moves the potential moves found so far
 	 * @param inCheck whether the king is in check already
 	 */
-	private void checkMovesForLegality(
-			List<Move> moves,
+	private void checkMovesForLegality(List<Move> moves,
 			boolean inCheck) {
 		final SquareCache<CheckStates> checkCache = new SquareCache<>();
 		final Square myKing = King.findKing(getSideToMove(), this);
@@ -406,8 +413,7 @@ public class Position {
 	// return moves;
 	// }
 
-	private void writeDebug(
-			Writer debugWriter,
+	private void writeDebug(Writer debugWriter,
 			String string) {
 		if (debugWriter != null) {
 			try {
@@ -424,8 +430,7 @@ public class Position {
 	 * @param move the move
 	 * @return a new Position object with the position after the given move
 	 */
-	public Position move(
-			Move move) {
+	public Position move(Move move) {
 		return move(move, null);
 	}
 
@@ -436,8 +441,7 @@ public class Position {
 	 * @param debugWriter if not null, debug info will be written here
 	 * @return a new Position object with the position after the given move
 	 */
-	public Position move(
-			Move move,
+	public Position move(Move move,
 			Writer debugWriter) {
 		Position newPosn = new Position(this);
 		newPosn.internalMove(move, debugWriter);
@@ -457,8 +461,7 @@ public class Position {
 	 * @param move the move
 	 * @param debugWriter if not null, debug info will be written here
 	 */
-	private void internalMove(
-			Move move,
+	private void internalMove(Move move,
 			Writer debugWriter) {
 		if (move.getColour() != sideToMove) {
 			throw new IllegalArgumentException("move is for '" + move.getColour() + "' but sideToMove=" + sideToMove);
@@ -508,13 +511,16 @@ public class Position {
 	 *
 	 * @param inCheck true when the king is in check.
 	 */
-	public void setInCheck(
-			boolean inCheck) {
+	public void setInCheck(boolean inCheck) {
 		this.inCheck = inCheck;
 	}
 
 	public boolean isInCheck() {
 		return inCheck;
+	}
+
+	public void setPositionScore(PositionScore positionScore) {
+		this.positionScore = positionScore;
 	}
 
 	/**
@@ -523,8 +529,7 @@ public class Position {
 	 * @param move the move
 	 * @return a value in centipawns
 	 */
-	public int evaluate(
-			Move move) {
+	public int evaluate(Move move) {
 		Position newPosn = move(move);
 		return newPosn.evaluate();
 	}
@@ -590,8 +595,7 @@ public class Position {
 	 * If the king moved then remove all castling rights<br>
 	 * and if a rook moved, remove the appropriate castling right
 	 */
-	private void updateCastlingRightsAfterMove(
-			Move move,
+	private void updateCastlingRightsAfterMove(Move move,
 			Writer debugWriter) {
 		if (PieceType.KING == move.getPiece()) {
 			move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
@@ -665,6 +669,9 @@ public class Position {
 			case 5:
 				sb.append("   enpassant square: " + enpassantSquare);
 				break;
+			case 4:
+				sb.append("   hash (zobrist): " + hashCode());
+				break;
 			default:
 				break;
 			}
@@ -720,8 +727,7 @@ public class Position {
 	 * @param bitset the bitset to be updated.
 	 * @param move the move. NB only non-capture moves are supported by this method!
 	 */
-	private void updateBitSet(
-			BitSet bitset,
+	private void updateBitSet(BitSet bitset,
 			Move move) {
 		bitset.flip(move.from().bitIndex());
 		bitset.flip(move.to().bitIndex());
@@ -737,8 +743,7 @@ public class Position {
 	 * @param colour the required colour
 	 * @return the pieces of this colour
 	 */
-	public Piece[] getPieces(
-			Colour colour) {
+	public Piece[] getPieces(Colour colour) {
 		return pieceMgr.getPiecesForColour(colour);
 	}
 
@@ -748,8 +753,7 @@ public class Position {
 	 * @param colour the required colour
 	 * @return a BitBoard containing all the pieces of a given colour.
 	 */
-	public BitBoard getAllPieces(
-			Colour colour) {
+	public BitBoard getAllPieces(Colour colour) {
 		return allEnemyPieces[colour.ordinal()];
 	}
 
@@ -765,6 +769,10 @@ public class Position {
 
 	public PieceManager getPieceManager() {
 		return pieceMgr;
+	}
+
+	public PositionScore getPositionScore() {
+		return positionScore;
 	}
 
 	public void debug() {
@@ -804,8 +812,7 @@ public class Position {
 	 * @param opponentsColour the colour of the opponent
 	 * @return true if this square is attacked by the opponent
 	 */
-	public boolean squareIsAttacked(
-			Square targetSquare,
+	public boolean squareIsAttacked(Square targetSquare,
 			Colour opponentsColour) {
 		Piece[] opponentsPieces = getPieces(opponentsColour);
 		// iterate over the pieces
@@ -834,8 +841,7 @@ public class Position {
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move leads to a discovered check
 	 */
-	public static boolean checkForDiscoveredCheck(
-			Position posn,
+	public static boolean checkForDiscoveredCheck(Position posn,
 			Move move,
 			Colour colour,
 			Square opponentsKing) {
@@ -923,8 +929,7 @@ public class Position {
 	 * @param pieces
 	 * @return a bitset array
 	 */
-	public static BitSet[] setupEnemyBitsets(
-			Piece[] pieces) {
+	public static BitSet[] setupEnemyBitsets(Piece[] pieces) {
 		BitSet[] enemyPieces = new BitSet[PieceType.ALL_PIECE_TYPES.length];
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			enemyPieces[type.ordinal()] = pieces[type.ordinal()].getBitBoard().getBitSet();
@@ -940,8 +945,7 @@ public class Position {
 	 * @return the piece at this location.
 	 * @throws IllegalArgumentException if no piece [of the given colour] exists at the given square.
 	 */
-	public PieceType pieceAt(
-			Square targetSquare,
+	public PieceType pieceAt(Square targetSquare,
 			Colour expectedColour) {
 		for (Colour colour : Colour.ALL_COLOURS) {
 			if ((expectedColour != null) && (colour != expectedColour)) {
@@ -962,4 +966,22 @@ public class Position {
 		}
 	}
 
+	@Override
+	public int hashCode() {
+		return (int) this.zobristHash;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+
+		if (other instanceof Position) {
+			Position otherPosn = (Position) other;
+			if (this.zobristHash != otherPosn.zobristHash) {
+				return false;
+			}
+			return this.getFen().equals(otherPosn.getFen());
+		} else {
+			return false;
+		}
+	}
 }

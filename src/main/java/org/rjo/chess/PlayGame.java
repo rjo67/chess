@@ -11,20 +11,15 @@ import org.rjo.chess.pieces.PieceType;
 
 public class PlayGame {
 
-	private SearchStrategy strategy;
-
-	public PlayGame(SearchStrategy strategy) {
-		this.strategy = strategy;
-	}
-
 	public static void main(String[] args) throws IOException {
-		PlayGame p = new PlayGame(new AlphaBeta());
+		PlayGame p = new PlayGame();
 		p.run();
 	}
 
 	private void run() throws IOException {
-		System.out.println("Starting new game with strategy: " + strategy.toString());
 		Game game = new Game();
+		SearchStrategy strategy = new AlphaBeta(game.getZobristMap());
+		System.out.println("Starting new game with strategy: " + strategy.toString());
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
 			boolean finished = false;
 			while (!finished) {
@@ -52,7 +47,8 @@ public class PlayGame {
 		}
 	}
 
-	private void checkValidity(Move move, Game game) throws IllegalArgumentException {
+	private void checkValidity(Move move,
+			Game game) throws IllegalArgumentException {
 		// piece at given square?
 		if (move.getPiece() != game.getPosition().pieceAt(move.from(), game.getPosition().getSideToMove())) {
 			throw new IllegalArgumentException("no " + move.getPiece() + " at " + move.from());
@@ -72,7 +68,8 @@ public class PlayGame {
 		// king in check after move?
 	}
 
-	private Move getMove(Game game, BufferedReader in) throws IllegalArgumentException, IOException {
+	private Move getMove(Game game,
+			BufferedReader in) throws IllegalArgumentException, IOException {
 		Move m;
 		String moveStr = in.readLine();
 		if ("O-O".equals(moveStr)) {
@@ -98,8 +95,7 @@ public class PlayGame {
 				}
 			}
 			if (!((moveStr.charAt(startOfFromSquare + 2) == 'x') || (moveStr.charAt(startOfFromSquare + 2) == '-'))) {
-				throw new IllegalArgumentException(
-						"invalid input. Expected 'x' or '-' at position " + (startOfFromSquare + 3));
+				throw new IllegalArgumentException("invalid input. Expected 'x' or '-' at position " + (startOfFromSquare + 3));
 			}
 			Square from = Square.fromString(moveStr.substring(startOfFromSquare, startOfFromSquare + 2));
 			if (game.getPosition().pieceAt(from, game.getPosition().getSideToMove()) != pt) {
@@ -108,8 +104,7 @@ public class PlayGame {
 			boolean capture = moveStr.charAt(startOfFromSquare + 2) == 'x';
 			Square to = Square.fromString(moveStr.substring(startOfFromSquare + 3, startOfFromSquare + 5));
 			if (capture) {
-				PieceType capturedPiece = game.getPosition().pieceAt(to,
-						Colour.oppositeColour(game.getPosition().getSideToMove()));
+				PieceType capturedPiece = game.getPosition().pieceAt(to, Colour.oppositeColour(game.getPosition().getSideToMove()));
 				m = new Move(pt, game.getPosition().getSideToMove(), from, to, capturedPiece);
 			} else {
 				m = new Move(pt, game.getPosition().getSideToMove(), from, to);
