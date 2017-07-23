@@ -3,8 +3,8 @@ package org.rjo.chess.pieces;
 import org.rjo.chess.Colour;
 
 /**
- * Piece types. NB: when iterating over this enum, do not use {@link PieceType#values()} since this will also return a 'dummy' value. Use instead
- * {@link PieceType#getPieceTypes()}.
+ * Piece types. NB: when iterating over this enum, do not use {@link PieceType#values()} since this will also return a
+ * 'dummy' value. Use instead {@link PieceType#getPieceTypes()}.
  *
  * @author rich
  */
@@ -17,16 +17,15 @@ public enum PieceType {
 		 * {@inheritDoc}
 		 */
 		@Override
-		public String getFenSymbol(
-				Colour colour) {
+		public String getFenSymbol(Colour colour) {
 			return colour == Colour.WHITE ? "P" : "p";
 		}
 	},
 	ROOK("R"), KNIGHT("N"), BISHOP("B"), QUEEN("Q"), KING("K"),
 
 	/**
-	 * this is a dummy piece. Used only when working out if a square is attacked (a capture Move stores which piece is captured). It is enough to know
-	 * in this case that the square is attacked, we don't care which piece is attacked.
+	 * this is a dummy piece. Used only when working out if a square is attacked (a capture Move stores which piece is
+	 * captured). It is enough to know in this case that the square is attacked, we don't care which piece is attacked.
 	 */
 	DUMMY("?");
 
@@ -65,8 +64,7 @@ public enum PieceType {
 	 *
 	 * @return the FEN symbol for this piece.
 	 */
-	public String getFenSymbol(
-			Colour colour) {
+	public String getFenSymbol(Colour colour) {
 		return colour == Colour.WHITE ? getSymbol() : getSymbol().toLowerCase();
 	}
 
@@ -84,8 +82,7 @@ public enum PieceType {
 		return ALL_PIECE_TYPES;
 	}
 
-	public static PieceType getPieceTypeFromSymbol(
-			String symbol) {
+	public static PieceType getPieceTypeFromSymbol(String symbol) {
 		for (PieceType pt : PieceType.values()) {
 			if (symbol.toUpperCase().equals(pt.getSymbol())) {
 				return pt;

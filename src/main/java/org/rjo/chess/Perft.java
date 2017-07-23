@@ -25,8 +25,7 @@ public class Perft {
 
 	private static final Logger MOVE_LOGGER = LogManager.getLogger("MOVE-LOG");
 
-	public static void main(
-			String[] args) {
+	public static void main(String[] args) {
 		// see PerftTest::posn6ply5
 		// 5ply: 164.075.551 moves
 		Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
@@ -53,8 +52,7 @@ public class Perft {
 	 * @return a map containing all the start moves for the <code>sideToMove</code> and for each map entry, a number
 	 *         representing how many leaf nodes there are from this starting move.
 	 */
-	public static Map<String, Integer> findMoves(
-			Position posn,
+	public static Map<String, Integer> findMoves(Position posn,
 			Colour sideToMove,
 			int depth) {
 		if (depth < 1) {
@@ -73,8 +71,7 @@ public class Perft {
 	/**
 	 * Helper routine to return the total number of moves found, given a map as returned from findMoves.
 	 */
-	public static int countMoves(
-			Map<String, Integer> moveMap) {
+	public static int countMoves(Map<String, Integer> moveMap) {
 		int nbrMoves = 0;
 		for (String move : moveMap.keySet()) {
 			nbrMoves += moveMap.get(move);
@@ -92,8 +89,7 @@ public class Perft {
 	 * @param depth the required depth to search
 	 * @return the total number of moves (leaf nodes) found from this position.
 	 */
-	private static int findMovesInternal(
-			final Position posn,
+	private static int findMovesInternal(final Position posn,
 			Colour sideToMove,
 			int depth) {
 		if (depth == 0) {
@@ -108,8 +104,7 @@ public class Perft {
 		return totalMoves;
 	}
 
-	private static void logMove(
-			int depth,
+	private static void logMove(int depth,
 			Move move,
 			Position posn) {
 		if (MOVE_LOGGER.isDebugEnabled()) {
@@ -128,8 +123,7 @@ public class Perft {
 	 * @return the list of possible moves at the given depth. The string representation is stored in order to save memory.
 	 * @throws IOException if can't write to temp file
 	 */
-	public static List<String> findMovesDebug(
-			Game game,
+	public static List<String> findMovesDebug(Game game,
 			Colour sideToMove,
 			int depth) throws IOException {
 		File file = File.createTempFile("perft", null);
@@ -151,8 +145,7 @@ public class Perft {
 	 * @param debugWriter if not null, debug-info will be written to this file
 	 * @return the list of possible moves at the given depth. The string representation is stored in order to save memory.
 	 */
-	private static List<String> findMovesInternalDebug(
-			Position posn,
+	private static List<String> findMovesInternalDebug(Position posn,
 			Colour sideToMove,
 			int depth,
 			Deque<String> movesSoFar,

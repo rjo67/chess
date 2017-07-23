@@ -19,8 +19,7 @@ public class KingCheckTest {
 	private Game game;
 	private BitSet[] enemyPieces;
 
-	private void setup(
-			String fen) {
+	private void setup(String fen) {
 		game = Fen.decode(fen);
 		enemyPieces = setupBlackBitsets(game.getPosition());
 	}
@@ -225,13 +224,11 @@ public class KingCheckTest {
 				enemyPieces, move));
 	}
 
-	private BitSet getWhitePieces(
-			Position chessboard) {
+	private BitSet getWhitePieces(Position chessboard) {
 		return chessboard.getAllPieces(Colour.WHITE).getBitSet();
 	}
 
-	private BitSet[] setupBlackBitsets(
-			Position posn) {
+	private BitSet[] setupBlackBitsets(Position posn) {
 		BitSet[] enemyPieces = new BitSet[PieceType.ALL_PIECE_TYPES.length];
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			enemyPieces[type.ordinal()] = posn.getPieces(Colour.BLACK)[type.ordinal()].getBitBoard().getBitSet();

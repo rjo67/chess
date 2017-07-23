@@ -259,7 +259,8 @@ public class Rook extends SlidingPiece {
 	 * 'startPosition' true has precedence over <code>startSquares</code>.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be ignored.
+	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be
+	 *           ignored.
 	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
 	 *           the board.
 	 */
@@ -280,8 +281,7 @@ public class Rook extends SlidingPiece {
 	}
 
 	/** uses the moveMap and vertMoveMap structures to find possible moves */
-	private List<Move> findMovesUsingMoveMap(
-			Position posn) {
+	private List<Move> findMovesUsingMoveMap(Position posn) {
 		List<Move> moves = new ArrayList<>();
 		Colour opponentsColour = Colour.oppositeColour(getColour());
 		BitBoard allPieces = posn.getTotalPieces();
@@ -329,8 +329,7 @@ public class Rook extends SlidingPiece {
 	 * @param fromSquareIndex square corresponding to bitIndexOfPiece
 	 * @param moveinfo the MoveInfo object corresponding to the file (or rank) which we're currently looking at.
 	 */
-	private void addMoves(
-			Position chessboard,
+	private void addMoves(Position chessboard,
 			List<Move> moves,
 			Colour opponentsColour,
 			BitSet opponentsPieces,
@@ -354,8 +353,7 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public List<Move> findMoves(
-			Position posn,
+	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
 
@@ -380,8 +378,7 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public List<Move> findPotentialMoves(
-			Position posn) {
+	public List<Move> findPotentialMoves(Position posn) {
 		List<Move> moves = new ArrayList<>(30);
 
 		// search for moves
@@ -396,8 +393,7 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(
-			Position posn,
+	public boolean isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
 			BitSet emptySquares,
@@ -422,8 +418,7 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(
-			BitSet emptySquares,
+	public boolean attacksSquare(BitSet emptySquares,
 			Square targetSq,
 			SquareCache<CheckStates> checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
@@ -443,8 +438,7 @@ public class Rook extends SlidingPiece {
 	 * @param checkCache cache of previously found results
 	 * @return true if targetSquare is attacked from startSquare, otherwise false.
 	 */
-	public static boolean attacksSquare(
-			BitSet emptySquares,
+	public static boolean attacksSquare(BitSet emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			SquareCache<CheckStates> checkCache) {
@@ -474,8 +468,7 @@ class MoveInfo {
 
 	// replaces the move offsets by the given offsetMultiplier and returns a new
 	// MoveInfo
-	public static MoveInfo copyWithOffsetMultiplier(
-			MoveInfo m1,
+	public static MoveInfo copyWithOffsetMultiplier(MoveInfo m1,
 			int offsetMultiplier) {
 		Integer[] newMoveOffsets = m1.getMoveOffsets().clone();
 		Integer[] newCaptureOffsets = m1.getPossibleCapturesOffset().clone();
@@ -489,8 +482,7 @@ class MoveInfo {
 	}
 
 	// concats the info in m1 and m2 and returns a new MoveInfo
-	public static MoveInfo concat(
-			MoveInfo m1,
+	public static MoveInfo concat(MoveInfo m1,
 			MoveInfo m2) {
 		List<Integer> moves = new ArrayList<>();
 		for (Integer i : m1.moveOffsets) {

@@ -50,16 +50,15 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * This checks all pieces in the given bitset to see if they can attack the given <code>targetSquare</code> along rank or file,
-	 * taking into account any intervening pieces.
+	 * This checks all pieces in the given bitset to see if they can attack the given <code>targetSquare</code> along rank
+	 * or file, taking into account any intervening pieces.
 	 *
 	 * @param pieces which pieces are available. This should represent the rooks and queens in the game.
 	 * @param emptySquares which squares are currently empty.
 	 * @param targetSquare which square should be attacked
 	 * @return true if at least one of the given pieces can attack the target square along a rank or file.
 	 */
-	public static boolean attacksSquareOnRankOrFile(
-			BitSet pieces,
+	public static boolean attacksSquareOnRankOrFile(BitSet pieces,
 			BitSet emptySquares,
 			Square targetSquare) {
 		// version using canReachTargetSquare is slower than
@@ -85,16 +84,15 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * This checks all pieces in the given bitset to see if they can attack the given <code>targetSquare</code> along a diagonal,
-	 * taking into account any intervening pieces.
+	 * This checks all pieces in the given bitset to see if they can attack the given <code>targetSquare</code> along a
+	 * diagonal, taking into account any intervening pieces.
 	 *
 	 * @param bishopsAndQueens which pieces are available. This should represent the bishops and queens in the game.
 	 * @param emptySquares which squares are currently empty.
 	 * @param targetSquare which square should be attacked
 	 * @return true if at least one of the given pieces can attack the target square along a diagonal.
 	 */
-	public static boolean attacksSquareOnDiagonal(
-			BitSet bishopsAndQueens,
+	public static boolean attacksSquareOnDiagonal(BitSet bishopsAndQueens,
 			BitSet emptySquares,
 			Square targetSquare) {
 		for (int i = bishopsAndQueens.nextSetBit(0); i >= 0; i = bishopsAndQueens.nextSetBit(i + 1)) {
@@ -113,8 +111,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param ray the ray (direction) in which to search
 	 * @return the moves found
 	 */
-	protected List<Move> search(
-			Position posn,
+	protected List<Move> search(Position posn,
 			Ray ray) {
 		List<Move> moves = new ArrayList<>(30);
 
@@ -153,8 +150,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check
 	 */
-	protected boolean findDiagonalCheck(
-			Position posn,
+	protected boolean findDiagonalCheck(Position posn,
 			BitSet emptySquares,
 			Move move,
 			Square opponentsKing,
@@ -238,8 +234,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param checkCache (optional -- but not null) will be updated with results from the search.
 	 * @return true if the target square is attacked (diagonally) from the start square.
 	 */
-	protected static boolean attacksSquareDiagonally(
-			BitSet emptySquares,
+	protected static boolean attacksSquareDiagonally(BitSet emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			SquareCache<CheckStates> checkCache) {
@@ -317,8 +312,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check
 	 */
-	protected boolean findRankOrFileCheck(
-			Position posn,
+	protected boolean findRankOrFileCheck(Position posn,
 			BitSet emptySquares,
 			Move move,
 			Square opponentsKing) {
@@ -340,8 +334,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @return true if the target square is attacked (straight-line) from the start square.
 	 */
 	// public, since King need this too for castling
-	public static boolean attacksSquareRankOrFile(
-			BitSet emptySquares,
+	public static boolean attacksSquareRankOrFile(BitSet emptySquares,
 			Square startSquare,
 			Square targetSquare) {
 		// give up straight away if start and target are the same

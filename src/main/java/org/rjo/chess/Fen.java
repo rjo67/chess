@@ -51,8 +51,7 @@ public class Fen {
 	 * @param game state of the game
 	 * @return a FEN string
 	 */
-	public static String encode(
-			Game game) {
+	public static String encode(Game game) {
 
 		StringBuilder fen = new StringBuilder(encode(game.getPosition()));
 
@@ -69,8 +68,7 @@ public class Fen {
 	 * @param position state of the position
 	 * @return a FEN string
 	 */
-	public static String encode(
-			Position posn) {
+	public static String encode(Position posn) {
 		char[][] board = new char[8][];
 		for (int rank = 0; rank < 8; rank++) {
 			board[rank] = new char[8];
@@ -126,8 +124,7 @@ public class Fen {
 	 * @param fen a FEN representation of a chess position
 	 * @return a Game object, containing a Position
 	 */
-	public static Game decode(
-			String fen) {
+	public static Game decode(String fen) {
 
 		StringTokenizer fenTokenizer = new StringTokenizer(fen, " ");
 		if (fenTokenizer.countTokens() < 4) {
@@ -158,8 +155,7 @@ public class Fen {
 	 * @param token token repesenting the active colour
 	 * @return colour of the side to move
 	 */
-	private static Colour parseActiveColour(
-			String token) {
+	private static Colour parseActiveColour(String token) {
 		if (token.length() != 1) {
 			throw new IllegalArgumentException("Invalid FEN string: expected 1 char for field 2: active colour");
 		}
@@ -173,8 +169,7 @@ public class Fen {
 		}
 	}
 
-	private static String addActiveColour(
-			Position posn) {
+	private static String addActiveColour(Position posn) {
 		return posn.getSideToMove() == Colour.WHITE ? "w" : "b";
 	}
 
@@ -186,8 +181,7 @@ public class Fen {
 	 * @param token token representing castling rights
 	 * @return castlingrights array
 	 */
-	private static EnumSet<CastlingRights>[] parseCastlingRights(
-			String token) {
+	private static EnumSet<CastlingRights>[] parseCastlingRights(String token) {
 
 		@SuppressWarnings("unchecked")
 		EnumSet<CastlingRights>[] rights = new EnumSet[Colour.ALL_COLOURS.length];
@@ -209,8 +203,7 @@ public class Fen {
 		return rights;
 	}
 
-	private static String addCastlingRights(
-			Position posn) {
+	private static String addCastlingRights(Position posn) {
 		StringBuilder sb = new StringBuilder(4);
 		if (posn.canCastle(Colour.WHITE, CastlingRights.KINGS_SIDE)) {
 			sb.append('K');
@@ -239,8 +232,7 @@ public class Fen {
 	 * @param token parsed token
 	 * @return enpassant square, or null
 	 */
-	private static Square parseEnpassantSquare(
-			String token) {
+	private static Square parseEnpassantSquare(String token) {
 		if (!token.equals("-")) {
 			return Square.fromString(token);
 		} else {
@@ -248,8 +240,7 @@ public class Fen {
 		}
 	}
 
-	private static String addEnpassantSquare(
-			Position posn) {
+	private static String addEnpassantSquare(Position posn) {
 		Square sq = posn.getEnpassantSquare();
 		if (sq == null) {
 			return "-";
@@ -265,8 +256,7 @@ public class Fen {
 	 * @param game
 	 * @param token
 	 */
-	private static void parseHalfmoveClock(
-			Game game,
+	private static void parseHalfmoveClock(Game game,
 			String token) {
 		try {
 			Integer halfmoves = Integer.parseInt(token);
@@ -276,8 +266,7 @@ public class Fen {
 		}
 	}
 
-	private static String addHalfmoveClock(
-			Game game) {
+	private static String addHalfmoveClock(Game game) {
 		return "" + game.getHalfmoveClock();
 	}
 
@@ -287,8 +276,7 @@ public class Fen {
 	 * @param game
 	 * @param token
 	 */
-	private static void parseFullmoveNumber(
-			Game game,
+	private static void parseFullmoveNumber(Game game,
 			String token) {
 		try {
 			Integer fullmoves = Integer.parseInt(token);
@@ -298,13 +286,11 @@ public class Fen {
 		}
 	}
 
-	private static String addFullmoveNumber(
-			Game game) {
+	private static String addFullmoveNumber(Game game) {
 		return "" + game.getMoveNumber();
 	}
 
-	private static Position parsePosition(
-			String fen,
+	private static Position parsePosition(String fen,
 			Colour sideToMove,
 			EnumSet<CastlingRights>[] castlingRights,
 			Square enpassantSquare) {

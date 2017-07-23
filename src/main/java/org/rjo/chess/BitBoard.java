@@ -3,8 +3,8 @@ package org.rjo.chess;
 import java.util.BitSet;
 
 /**
- * Representation of the chessboard using 64 bits. http://chessprogramming.wikispaces.com/Bitboards.
- * Little-Endian Rank-File Mapping:
+ * Representation of the chessboard using 64 bits. http://chessprogramming.wikispaces.com/Bitboards. Little-Endian
+ * Rank-File Mapping:
  * <ul>
  * <li>bit index 0 == bottom left of board == A1</li>
  * <li>bit index 7 == bottom right of board == H1</li>
@@ -19,13 +19,12 @@ public class BitBoard {
 	/**
 	 * BitSets for each <code>file</code> of the board.
 	 * <p>
-	 * Usage: to just get pieces on the second file, 'and' the bitset with FILE[1]. TODO maybe store
-	 * these as immutable BitSets?
+	 * Usage: to just get pieces on the second file, 'and' the bitset with FILE[1]. TODO maybe store these as immutable
+	 * BitSets?
 	 */
 	public final static BitSet[] FILE = new BitSet[8];
 	/**
-	 * BitSets for every <code>file</code> of the board <b>except</b> the file of the array index. The opposite
-	 * of FILE.
+	 * BitSets for every <code>file</code> of the board <b>except</b> the file of the array index. The opposite of FILE.
 	 * <p>
 	 * Usage: to get all pieces EXCEPT those on the second file, 'and' the bitset with EXCEPT_FILE[1]
 	 */
@@ -39,8 +38,7 @@ public class BitBoard {
 	public final static BitSet[] RANK = new BitSet[8];
 
 	/**
-	 * BitSets for every rank of the board <b>except</b> the rank of the array index. The opposite of
-	 * RANK.
+	 * BitSets for every rank of the board <b>except</b> the rank of the array index. The opposite of RANK.
 	 * <p>
 	 * Usage: to get all pieces EXCEPT those on the second file, 'and' the bitset with EXCEPT_RANK[1]
 	 */
@@ -265,10 +263,9 @@ public class BitBoard {
 	/**
 	 * Initialise a bitboard.
 	 *
-	 * @param input must be an array of 8 bytes describing the bits that are set. The eighth byte
-	 *           corresponds to the bottom row of the board (rank 1). The first byte corresponds to
-	 *           the top row (rank 8). The bits of the input bytes will be mapped to the bit set,
-	 *           starting at bottom left === index 0. For example
+	 * @param input must be an array of 8 bytes describing the bits that are set. The eighth byte corresponds to the bottom
+	 *           row of the board (rank 1). The first byte corresponds to the top row (rank 8). The bits of the input bytes
+	 *           will be mapped to the bit set, starting at bottom left === index 0. For example
 	 *
 	 *           <pre>
 	 * new byte[] { (byte) 0b1110_0010, ... };
@@ -276,12 +273,11 @@ public class BitBoard {
 	 *
 	 *           This will lead to the bits 56, 57, 58 and 62 being set in the BitSet.
 	 *           <p>
-	 *           The advantage of this format is that the initialisation byte array can be read like
-	 *           a chessboard, e.g.:
+	 *           The advantage of this format is that the initialisation byte array can be read like a chessboard, e.g.:
 	 *
 	 *           <pre>
-	 *           new BitBoard(new byte[] { (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111,
-	 *           		(byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111 });
+	 *           new BitBoard(new byte[] { (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111,
+	 *           		(byte) 0b01111111, (byte) 0b01111111, (byte) 0b01111111 });
 	 *           </pre>
 	 *
 	 *           <B>This is not the same order as used by the BitSet.parse(byte[]) method!!</B>
@@ -370,8 +366,7 @@ public class BitBoard {
 	}
 
 	/**
-	 * Convenience method to return this BitBoard's BitSet 'flipped', i.e. each set bit is unset and
-	 * v.v.
+	 * Convenience method to return this BitBoard's BitSet 'flipped', i.e. each set bit is unset and v.v.
 	 *
 	 * @return a new BitSet, complement of this BitBoard's BitSet.
 	 */

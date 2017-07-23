@@ -51,15 +51,18 @@ public class RayUtils {
 	 * @param moveFromSquare the square where the piece moved from
 	 * @return true if the move from square <code>moveFromSquare</code> leads to a discovered check on the king.
 	 */
-	public static boolean discoveredCheck(Colour myColour, Position cb, BitSet emptySquares, BitSet myPieces,
-			Square opponentsKingsSquare, Square moveFromSquare) {
+	public static boolean discoveredCheck(Colour myColour,
+			Position cb,
+			BitSet emptySquares,
+			BitSet myPieces,
+			Square opponentsKingsSquare,
+			Square moveFromSquare) {
 		// if moveFromSquare is on a ray to kingsSquare,
 		// then inspect this ray for a checking bishop/queen/rook
 		Ray ray = RayUtils.getRay(opponentsKingsSquare, moveFromSquare);
 		if (ray != null) {
 			// TODO optimization: only interested in my pieces here
-			RayInfo info = RayUtils.findFirstPieceOnRay(myColour, emptySquares, myPieces, ray,
-					opponentsKingsSquare.bitIndex());
+			RayInfo info = RayUtils.findFirstPieceOnRay(myColour, emptySquares, myPieces, ray, opponentsKingsSquare.bitIndex());
 			if (info.foundPiece() && (info.getColour() == myColour)) {
 				PieceType firstPieceFound = cb.pieceAt(Square.fromBitIndex(info.getIndexOfPiece()), myColour);
 				if (ray.isRelevantPieceForDiscoveredCheck(firstPieceFound)) {
@@ -81,17 +84,19 @@ public class RayUtils {
 	 * @param moveFromSquare the square where the piece moved from
 	 * @return true if the move from square <code>moveFromSquare</code> leads to a discovered check on the king.
 	 */
-	public static boolean kingInCheck(Colour kingsColour, Position cb, BitSet emptySquares, BitSet kingsColourPieces,
-			Square kingsSquare, Square moveFromSquare) {
+	public static boolean kingInCheck(Colour kingsColour,
+			Position cb,
+			BitSet emptySquares,
+			BitSet kingsColourPieces,
+			Square kingsSquare,
+			Square moveFromSquare) {
 		// if moveFromSquare is on a ray to kingsSquare,
 		// then inspect this ray for a checking bishop/queen/rook
 		Ray ray = RayUtils.getRay(kingsSquare, moveFromSquare);
 		if (ray != null) {
-			RayInfo info = RayUtils.findFirstPieceOnRay(kingsColour, emptySquares, kingsColourPieces, ray,
-					kingsSquare.bitIndex());
+			RayInfo info = RayUtils.findFirstPieceOnRay(kingsColour, emptySquares, kingsColourPieces, ray, kingsSquare.bitIndex());
 			if (info.foundPiece() && (info.getColour() != kingsColour)) {
-				PieceType firstPieceFound = cb.pieceAt(Square.fromBitIndex(info.getIndexOfPiece()),
-						Colour.oppositeColour(kingsColour));
+				PieceType firstPieceFound = cb.pieceAt(Square.fromBitIndex(info.getIndexOfPiece()), Colour.oppositeColour(kingsColour));
 				if (ray.isRelevantPieceForDiscoveredCheck(firstPieceFound)) {
 					return true;
 				}
@@ -101,25 +106,31 @@ public class RayUtils {
 	}
 
 	/**
-	 * Inspects the squares returned by the ray's iterator. A square with a piece on it gets recorded and the routine returns immediately. Otherwise,
-	 * the empty square is recorded and the search repeats for the next value.
+	 * Inspects the squares returned by the ray's iterator. A square with a piece on it gets recorded and the routine
+	 * returns immediately. Otherwise, the empty square is recorded and the search repeats for the next value.
 	 * <p>
-	 * At the end, the information returned has the empty squares (if any) and the first piece found (if any) on the ray. The piece type is not
-	 * recorded here since this would require an extra lookup. Instead, the square and the colour of the piece are recorded.
+	 * At the end, the information returned has the empty squares (if any) and the first piece found (if any) on the ray.
+	 * The piece type is not recorded here since this would require an extra lookup. Instead, the square and the colour of
+	 * the piece are recorded.
 	 * <p>
-	 * Special case: if called with emptySquares=BitSet(-1) and myPieces=opponentsPieces=BitSet(0), then this routine will return all squares for this
-	 * ray.
+	 * Special case: if called with emptySquares=BitSet(-1) and myPieces=opponentsPieces=BitSet(0), then this routine will
+	 * return all squares for this ray.
 	 * <p>
-	 * It is assumed that if the square is not empty and does not contain a piece of my colour, it contains an opponent's piece.
+	 * It is assumed that if the square is not empty and does not contain a piece of my colour, it contains an opponent's
+	 * piece.
 	 *
 	 * @param myColour my colour.
 	 * @param emptySquares bitset of empty squares.
 	 * @param myPieces bitset of my pieces.
 	 * @param ray ray
 	 * @param startSquare index of start square
-	 * @return information about the first piece found on this ray and/or empty squares on the ray, starting from startSquare.
+	 * @return information about the first piece found on this ray and/or empty squares on the ray, starting from
+	 *         startSquare.
 	 */
-	public static RayInfo findFirstPieceOnRay(Colour myColour, BitSet emptySquares, BitSet myPieces, Ray ray,
+	public static RayInfo findFirstPieceOnRay(Colour myColour,
+			BitSet emptySquares,
+			BitSet myPieces,
+			Ray ray,
 			int startSquare) {
 		RayInfo info = new RayInfo();
 		int distance = 0;
@@ -152,7 +163,8 @@ public class RayUtils {
 	 * @param sq2 second square
 	 * @return the Ray object joining the two squares, or null if not on a ray.
 	 */
-	public static Ray getRay(Square sq1, Square sq2) {
+	public static Ray getRay(Square sq1,
+			Square sq2) {
 		return RAYS_BETWEEN_SQUARES[sq1.bitIndex()][sq2.bitIndex()];
 	}
 

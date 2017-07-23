@@ -97,8 +97,7 @@ public class PieceManagerTest {
 	 * @param allowedChangesWhite which white pieces should have been cloned
 	 * @param allowedChangesBlack which black pieces should have been cloned
 	 */
-	private void checkPieceObjects(
-			Position before,
+	private void checkPieceObjects(Position before,
 			Position after,
 			Set<PieceType> allowedChangesWhite,
 			Set<PieceType> allowedChangesBlack) {

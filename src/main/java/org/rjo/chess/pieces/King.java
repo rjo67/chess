@@ -170,7 +170,8 @@ public class King extends AbstractPiece {
 	 * <code>startPosition</code> true has precedence over <code>startSquares</code>.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be ignored.
+	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be
+	 *           ignored.
 	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
 	 *           the board.
 	 */
@@ -191,8 +192,7 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public void initPosition(
-			Square... requiredSquares) {
+	public void initPosition(Square... requiredSquares) {
 		if (requiredSquares != null) {
 			if (requiredSquares.length > 1) {
 				throw new IllegalArgumentException("king cannot have more than one start square");
@@ -202,8 +202,7 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public boolean pieceAt(
-			Square targetSquare) {
+	public boolean pieceAt(Square targetSquare) {
 		return kingsSquare == targetSquare;
 	}
 
@@ -223,8 +222,7 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public void addPiece(
-			Square square) {
+	public void addPiece(Square square) {
 		if (kingsSquare != null) {
 			throw new IllegalStateException("cannot add more than one king");
 		}
@@ -237,14 +235,12 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public void removePiece(
-			@SuppressWarnings("unused") Square square) {
+	public void removePiece(@SuppressWarnings("unused") Square square) {
 		throw new IllegalStateException("cannot remove king!?");
 	}
 
 	@Override
-	public void move(
-			Move move) {
+	public void move(Move move) {
 		if (kingsSquare != move.from()) {
 			throw new IllegalArgumentException("the king is not on square " + move.from() + ". Move=" + move);
 		}
@@ -269,8 +265,7 @@ public class King extends AbstractPiece {
 	 * @param castlingRights which way to castle
 	 * @return true if castling is possible
 	 */
-	public static boolean isCastlingLegal(
-			Position posn,
+	public static boolean isCastlingLegal(Position posn,
 			Colour myColour,
 			Colour oppositeColour,
 			CastlingRights castlingRights) {
@@ -294,8 +289,7 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public List<Move> findMoves(
-			Position posn,
+	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
 		List<Move> moves = findPotentialMoves(posn);
@@ -335,8 +329,7 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public List<Move> findPotentialMoves(
-			Position posn) {
+	public List<Move> findPotentialMoves(Position posn) {
 		List<Move> moves = new ArrayList<>();
 
 		Square opponentsKingSquare = findOpponentsKing(posn);
@@ -380,14 +373,12 @@ public class King extends AbstractPiece {
 		return moves;
 	}
 
-	private Square findOpponentsKing(
-			Position chessboard) {
+	private Square findOpponentsKing(Position chessboard) {
 		return findOpponentsKing(getColour(), chessboard);
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(
-			Position posn,
+	public boolean isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
 			@SuppressWarnings("unused") BitSet emptySquares,
@@ -421,8 +412,7 @@ public class King extends AbstractPiece {
 	 * @param chessboard the board
 	 * @return location of the other colour's king.
 	 */
-	public static Square findOpponentsKing(
-			Colour myColour,
+	public static Square findOpponentsKing(Colour myColour,
 			Position chessboard) {
 		return findKing(Colour.oppositeColour(myColour), chessboard);
 	}
@@ -434,15 +424,13 @@ public class King extends AbstractPiece {
 	 * @param posn the board
 	 * @return location of this colour's king.
 	 */
-	public static Square findKing(
-			Colour colour,
+	public static Square findKing(Colour colour,
 			Position posn) {
 		return posn.getPieces(colour)[PieceType.KING.ordinal()].getLocations()[0];
 	}
 
 	@Override
-	public boolean attacksSquare(
-			@SuppressWarnings("unused") BitSet emptySquares,
+	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares,
 			Square sq,
 			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
 		return MoveDistance.calculateDistance(kingsSquare, sq) == 1;

@@ -91,8 +91,7 @@ public class Move {
 	 *
 	 * @param type to which piece the pawn gets promoted
 	 */
-	public void setPromotionPiece(
-			PieceType type) {
+	public void setPromotionPiece(PieceType type) {
 		if (piece != PieceType.PAWN) {
 			throw new IllegalArgumentException("can only specify a promotion piece for a pawn move");
 		}
@@ -130,8 +129,7 @@ public class Move {
 		}
 	}
 
-	public static Move castleKingsSide(
-			Colour colour) {
+	public static Move castleKingsSide(Colour colour) {
 		Move move;
 		if (Colour.WHITE == colour) {
 			move = new Move(PieceType.KING, Colour.WHITE, Square.e1, Square.g1);
@@ -143,8 +141,7 @@ public class Move {
 		return move;
 	}
 
-	public static Move castleQueensSide(
-			Colour colour) {
+	public static Move castleQueensSide(Colour colour) {
 		Move move;
 		if (Colour.WHITE == colour) {
 			move = new Move(PieceType.KING, Colour.WHITE, Square.e1, Square.c1);
@@ -156,8 +153,7 @@ public class Move {
 		return move;
 	}
 
-	public static Move enpassant(
-			Colour colour,
+	public static Move enpassant(Colour colour,
 			Square from,
 			Square to) {
 		Move move = new Move(PieceType.PAWN, colour, from, to, PieceType.PAWN);
@@ -171,8 +167,7 @@ public class Move {
 	 * @param moveStr uci move e.g. b7d5
 	 * @return move object. Whether 'Check' is not examined!
 	 */
-	public static Move fromUCIString(
-			String moveStr,
+	public static Move fromUCIString(String moveStr,
 			final Game game) {
 		Square from = Square.fromString(moveStr.substring(0, 2));
 		Square to = Square.fromString(moveStr.substring(2, 4));
@@ -209,8 +204,7 @@ public class Move {
 		return m;
 	}
 
-	public void setCheck(
-			boolean check) {
+	public void setCheck(boolean check) {
 		this.check = check;
 	}
 
@@ -279,8 +273,7 @@ public class Move {
 	 *
 	 * @param previousCastlingRights
 	 */
-	public void setPreviousCastlingRights(
-			EnumSet<CastlingRights> previousCastlingRights) {
+	public void setPreviousCastlingRights(EnumSet<CastlingRights> previousCastlingRights) {
 		this.castlingRightsInfo.setPreviousCastlingRights(previousCastlingRights.clone());
 	}
 
@@ -303,8 +296,7 @@ public class Move {
 	 *
 	 * @param previousCastlingRights
 	 */
-	public void setPreviousCastlingRightsOpponent(
-			EnumSet<CastlingRights> previousCastlingRights) {
+	public void setPreviousCastlingRightsOpponent(EnumSet<CastlingRights> previousCastlingRights) {
 		this.castlingRightsInfo.setPreviousCastlingRightsOpponent(previousCastlingRights.clone());
 	}
 
@@ -370,8 +362,7 @@ public class Move {
 			this.previousCastlingRightsOpponent = null;
 		}
 
-		public void setPreviousCastlingRights(
-				EnumSet<CastlingRights> previousCastlingRights) {
+		public void setPreviousCastlingRights(EnumSet<CastlingRights> previousCastlingRights) {
 			this.previousCastlingRights = previousCastlingRights.clone();
 		}
 
@@ -379,8 +370,7 @@ public class Move {
 			return previousCastlingRights;
 		}
 
-		public void setPreviousCastlingRightsOpponent(
-				EnumSet<CastlingRights> previousCastlingRights) {
+		public void setPreviousCastlingRightsOpponent(EnumSet<CastlingRights> previousCastlingRights) {
 			this.previousCastlingRightsOpponent = previousCastlingRights.clone();
 		}
 

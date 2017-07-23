@@ -16,16 +16,16 @@ public enum CastlingRights {
 	/**
 	 * Checks if, after <code>move</code>, <code>sideToMove</code> can (still) castle king's-side.
 	 * <p>
-	 * Actual check is to see if <code>move</code> is a rook move from h1/h8, and king's-side castling was possible beforehand.
+	 * Actual check is to see if <code>move</code> is a rook move from h1/h8, and king's-side castling was possible
+	 * beforehand.
 	 *
 	 * @param castlingRights whether castling was allowed before the move
 	 * @param sideToMove which side is moving
 	 * @param move the move
-	 * @return true if <code>sideToMove</code> can no longer castle on the king's side after the move. Will return FALSE if could not
-	 *         castle king's side before the move.
+	 * @return true if <code>sideToMove</code> can no longer castle on the king's side after the move. Will return FALSE if
+	 *         could not castle king's side before the move.
 	 */
-	public static boolean kingsSideCastlingRightsGoneAfterMove(
-			EnumSet<CastlingRights> castlingRights,
+	public static boolean kingsSideCastlingRightsGoneAfterMove(EnumSet<CastlingRights> castlingRights,
 			Colour sideToMove,
 			Move move) {
 		if ((PieceType.ROOK == move.getPiece()) && castlingRights.contains(CastlingRights.KINGS_SIDE)) {
@@ -39,16 +39,16 @@ public enum CastlingRights {
 	/**
 	 * Checks if, after <code>move</code>, <code>sideToMove</code> can (still) castle queen's-side.
 	 * <p>
-	 * Actual check is to see if <code>move</code> is a rook move from a1/a8, and queen's-side castling was possible beforehand.
+	 * Actual check is to see if <code>move</code> is a rook move from a1/a8, and queen's-side castling was possible
+	 * beforehand.
 	 *
 	 * @param castlingRights whether castling was allowed before the move
 	 * @param sideToMove which side is moving
 	 * @param move the move
-	 * @return true if <code>sideToMove</code> can no longer castle on the queen's side after the move. Will return FALSE if could not
-	 *         castle queens's side before the move.
+	 * @return true if <code>sideToMove</code> can no longer castle on the queen's side after the move. Will return FALSE if
+	 *         could not castle queens's side before the move.
 	 */
-	public static boolean queensSideCastlingRightsGoneAfterMove(
-			EnumSet<CastlingRights> castlingRights,
+	public static boolean queensSideCastlingRightsGoneAfterMove(EnumSet<CastlingRights> castlingRights,
 			Colour sideToMove,
 			Move move) {
 		if ((PieceType.ROOK == move.getPiece()) && castlingRights.contains(CastlingRights.QUEENS_SIDE)) {
@@ -69,8 +69,7 @@ public enum CastlingRights {
 	 * @param move the move
 	 * @return true if the opponent can no longer castle on the king's side after the move
 	 */
-	public static boolean opponentKingsSideCastlingRightsGoneAfterMove(
-			EnumSet<CastlingRights> opponentsCastlingRights,
+	public static boolean opponentKingsSideCastlingRightsGoneAfterMove(EnumSet<CastlingRights> opponentsCastlingRights,
 			Colour sideToMove,
 			Move move) {
 		if (move.isCapture() && opponentsCastlingRights.contains(CastlingRights.KINGS_SIDE)) {
@@ -84,15 +83,15 @@ public enum CastlingRights {
 	/**
 	 * Checks if, after <code>move</code>, the opponent can (still) castle queen's-side.
 	 * <p>
-	 * Actual check is to see if <code>move</code> is a rook move from a1/a8, and queen's-side castling was possible beforehand.
+	 * Actual check is to see if <code>move</code> is a rook move from a1/a8, and queen's-side castling was possible
+	 * beforehand.
 	 *
 	 * @param opponentsCastlingRights whether castling was allowed before the move FOR OPPONENT
 	 * @param sideToMove which side is moving
 	 * @param move the move
 	 * @return true if the opponent can no longer castle on the queen's side after the move
 	 */
-	public static boolean opponentQueensSideCastlingRightsGoneAfterMove(
-			EnumSet<CastlingRights> opponentsCastlingRights,
+	public static boolean opponentQueensSideCastlingRightsGoneAfterMove(EnumSet<CastlingRights> opponentsCastlingRights,
 			Colour sideToMove,
 			Move move) {
 		if (move.isCapture() && opponentsCastlingRights.contains(CastlingRights.QUEENS_SIDE)) {

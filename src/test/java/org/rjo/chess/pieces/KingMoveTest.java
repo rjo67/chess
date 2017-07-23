@@ -22,8 +22,7 @@ public class KingMoveTest {
 	private Piece blackKing;
 	private Game game;
 
-	private void setupGame(
-			String fen) {
+	private void setupGame(String fen) {
 		game = Fen.decode(fen);
 		setupKings();
 	}

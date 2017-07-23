@@ -34,14 +34,12 @@ public class NorthWestRay extends BaseRay {
 	}
 
 	@Override
-	public Iterator<Integer> squaresFrom(
-			int startSquareIndex) {
+	public Iterator<Integer> squaresFrom(int startSquareIndex) {
 		return RAY_SQUARES[startSquareIndex].iterator();
 	}
 
 	@Override
-	public final boolean oppositeOf(
-			Ray ray) {
+	public final boolean oppositeOf(Ray ray) {
 		return ray.getRayType() == RayType.SOUTHEAST;
 	}
 }

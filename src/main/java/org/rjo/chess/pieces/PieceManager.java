@@ -13,8 +13,8 @@ import org.rjo.chess.Colour;
  */
 public class PieceManager {
 	/**
-	 * Stores the pieces in the game. The first dimension indicates the colour {white, black}. The
-	 * second dimension corresponds to {@link PieceType#ALL_PIECE_TYPES}.
+	 * Stores the pieces in the game. The first dimension indicates the colour {white, black}. The second dimension
+	 * corresponds to {@link PieceType#ALL_PIECE_TYPES}.
 	 */
 	private Piece[][] pieces;
 
@@ -53,8 +53,8 @@ public class PieceManager {
 	}
 
 	/**
-	 * Copy constructor. Copies the contents of the hashmap into a new hashmap. This references the
-	 * same <code>pieces</code> as before. Need to clone iff these objects get changed.
+	 * Copy constructor. Copies the contents of the hashmap into a new hashmap. This references the same <code>pieces</code>
+	 * as before. Need to clone iff these objects get changed.
 	 * 
 	 * @param pieceManager the pieceManager that gets copied
 	 */
@@ -68,14 +68,15 @@ public class PieceManager {
 	}
 
 	/**
-	 * returns a particular Piece object from the map. The Piece object <b>will be cloned</b> and
-	 * re-inserted into the <code>pieces</code> hashmap the first time.
+	 * returns a particular Piece object from the map. The Piece object <b>will be cloned</b> and re-inserted into the
+	 * <code>pieces</code> hashmap the first time.
 	 * 
 	 * @param colour the required colour
 	 * @param pieceType the required piece type
 	 * @return a Piece object
 	 */
-	public Piece getClonedPiece(Colour colour, PieceType pieceType) {
+	public Piece getClonedPiece(Colour colour,
+			PieceType pieceType) {
 		if (alreadyCloned[colour.ordinal()][pieceType.ordinal()]) {
 			return getPiece(colour, pieceType);
 		}
@@ -106,7 +107,8 @@ public class PieceManager {
 	 * @param pieceType the required piece type
 	 * @return a Piece object
 	 */
-	public Piece getPiece(Colour colour, PieceType pieceType) {
+	public Piece getPiece(Colour colour,
+			PieceType pieceType) {
 		return pieces[colour.ordinal()][pieceType.ordinal()];
 	}
 

@@ -45,8 +45,7 @@ public class KingCheck {
 	 * @param kingIsAlreadyInCheck true if the king was already in check before the <code>move</code>
 	 * @return true if this move leaves the king in check (i.e. is an illegal move)
 	 */
-	public boolean isKingInCheck(
-			Move move,
+	public boolean isKingInCheck(Move move,
 			boolean kingIsAlreadyInCheck) {
 		// need to distinguish capture moves here, since the KingCheck method changes 'enemyPieces' for a
 		// capture
@@ -67,8 +66,7 @@ public class KingCheck {
 	 * @param kingIsAlreadyInCheck true if the king was already in check before the <code>move</code>
 	 * @return true if this move leaves the king in check (i.e. is an illegal move)
 	 */
-	public static boolean isKingInCheck(
-			Position posn,
+	public static boolean isKingInCheck(Position posn,
 			Move move,
 			Colour opponentsColour,
 			Square king,
@@ -109,8 +107,7 @@ public class KingCheck {
 	 * @param enemyPieces bitsets indicating location of the enemy pieces.
 	 * @return true if the king is in check.
 	 */
-	public static boolean isKingInCheck(
-			Square kingsSquare,
+	public static boolean isKingInCheck(Square kingsSquare,
 			Colour kingsColour,
 			BitSet friendlyPieces,
 			BitSet[] enemyPieces) {
@@ -132,8 +129,7 @@ public class KingCheck {
 	 *           set</b> if the king himself has moved.
 	 * @return true if the king is in check.
 	 */
-	public static boolean isKingInCheck(
-			Square kingsSquare,
+	public static boolean isKingInCheck(Square kingsSquare,
 			Colour kingsColour,
 			BitSet friendlyPieces,
 			BitSet[] enemyPieces,
@@ -211,8 +207,7 @@ public class KingCheck {
 	 * @param move the move to make
 	 * @return true if the king would be in check after the move.
 	 */
-	public static boolean isKingInCheckAfterMove_PreviouslyWasInCheck(
-			Square kingsSquare,
+	public static boolean isKingInCheckAfterMove_PreviouslyWasInCheck(Square kingsSquare,
 			Colour kingsColour,
 			BitSet friendlyPieces,
 			BitSet[] enemyPieces,
@@ -236,8 +231,7 @@ public class KingCheck {
 	 * @param move the move to make
 	 * @return true if the king would be in check after the move.
 	 */
-	public static boolean isKingInCheckAfterMove_PreviouslyNotInCheck(
-			Square kingsSquare,
+	public static boolean isKingInCheckAfterMove_PreviouslyNotInCheck(Square kingsSquare,
 			Colour kingsColour,
 			BitSet friendlyPieces,
 			BitSet[] enemyPieces,
@@ -266,8 +260,7 @@ public class KingCheck {
 	 *           search.
 	 * @return true if the king would be in check after the move.
 	 */
-	public static boolean isKingInCheckAfterMove(
-			Square kingsSquare,
+	public static boolean isKingInCheckAfterMove(Square kingsSquare,
 			Colour kingsColour,
 			BitSet friendlyPieces,
 			BitSet[] enemyPieces,

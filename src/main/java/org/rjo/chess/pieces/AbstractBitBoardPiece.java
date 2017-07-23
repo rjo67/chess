@@ -33,8 +33,7 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 	}
 
 	@Override
-	public void move(
-			Move move) {
+	public void move(Move move) {
 		if (!pieces.getBitSet().get(move.from().bitIndex())) {
 			throw new IllegalArgumentException("no " + getType() + " found on square " + move.from() + ". Move: " + move);
 		}
@@ -45,8 +44,7 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 	}
 
 	@Override
-	public void removePiece(
-			Square square) {
+	public void removePiece(Square square) {
 		if (!pieces.getBitSet().get(square.bitIndex())) {
 			throw new IllegalArgumentException("no " + getType() + " found on square " + square);
 		}
@@ -54,8 +52,7 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 	}
 
 	@Override
-	public void addPiece(
-			Square square) {
+	public void addPiece(Square square) {
 		pieces.getBitSet().set(square.bitIndex());
 	}
 
@@ -65,8 +62,7 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 	}
 
 	@Override
-	public void initPosition(
-			Square... requiredSquares) {
+	public void initPosition(Square... requiredSquares) {
 		pieces = new BitBoard();
 		if (requiredSquares != null) {
 			pieces.setBitsAt(requiredSquares);
@@ -83,8 +79,7 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 	}
 
 	@Override
-	public boolean pieceAt(
-			Square targetSquare) {
+	public boolean pieceAt(Square targetSquare) {
 		return pieces.getBitSet().get(targetSquare.bitIndex());
 	}
 
@@ -97,8 +92,7 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 	@Override
 	public abstract int calculatePieceSquareValue();
 
-	public static int pieceSquareValue(
-			final BitSet piecesBitSet,
+	public static int pieceSquareValue(final BitSet piecesBitSet,
 			final Colour colour,
 			final int pieceValue,
 			final int[] squareValue) {

@@ -140,8 +140,7 @@ public class ZobristTest {
 		checkMove(Fen.decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQ - 0 0").getPosition(), Move.castleQueensSide(Colour.WHITE));
 	}
 
-	private void checkMove(
-			Position posn1,
+	private void checkMove(Position posn1,
 			Move move) {
 		Zobrist zob = new Zobrist(10);
 		Position posn2 = posn1.move(move);

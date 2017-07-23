@@ -414,16 +414,14 @@ public class PositionTest {
 		System.out.println(moveMap);
 	}
 
-	private void assertPieceAt(
-			Position cb,
+	private void assertPieceAt(Position cb,
 			Square sq,
 			PieceType expectedPiece,
 			Colour expectedColour) {
 		assertEquals(expectedPiece, cb.pieceAt(sq, expectedColour));
 	}
 
-	private void assertMoveNotPresent(
-			List<Move> moves,
+	private void assertMoveNotPresent(List<Move> moves,
 			String requiredMove) {
 		for (Move move : moves) {
 			if (requiredMove.equals(move.toString())) {
@@ -432,8 +430,7 @@ public class PositionTest {
 		}
 	}
 
-	private void assertMovePresent(
-			List<Move> moves,
+	private void assertMovePresent(List<Move> moves,
 			String requiredMove) {
 		boolean found = false;
 		for (Move move : moves) {
@@ -447,8 +444,7 @@ public class PositionTest {
 		}
 	}
 
-	private void assertEmptySquare(
-			Position cb,
+	private void assertEmptySquare(Position cb,
 			Square sq) {
 		try {
 			cb.pieceAt(sq, null);
@@ -472,8 +468,7 @@ public class PositionTest {
 		}
 
 		@Override
-		public boolean equals(
-				Object obj) {
+		public boolean equals(Object obj) {
 			if (!(obj instanceof InternalState)) {
 				return false;
 			}

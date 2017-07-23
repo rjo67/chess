@@ -111,8 +111,7 @@ public class Zobrist {
 	 * @param posn the position
 	 * @return the hash
 	 */
-	public long hash(
-			Position posn) {
+	public long hash(Position posn) {
 
 		long hash = 0;
 
@@ -152,8 +151,7 @@ public class Zobrist {
 	 * @param enpassantSquare enpassant square before <code>move</code>
 	 * @return the updated hash
 	 */
-	public long update(
-			long hash,
+	public long update(long hash,
 			Move move,
 			EnumSet<CastlingRights>[] castlingRightsBeforeMove,
 			Square enpassantSquare) {
@@ -244,8 +242,7 @@ public class Zobrist {
 		return hash;
 	}
 
-	private long rehashIfKingsSideCastlingPresent(
-			long hash,
+	private long rehashIfKingsSideCastlingPresent(long hash,
 			Colour sideToMove,
 			EnumSet<CastlingRights> castlingRightsBeforeMove) {
 		if (castlingRightsBeforeMove.contains(CastlingRights.KINGS_SIDE)) {
@@ -254,8 +251,7 @@ public class Zobrist {
 		return hash;
 	}
 
-	private long rehashIfQueensSideCastlingPresent(
-			long hash,
+	private long rehashIfQueensSideCastlingPresent(long hash,
 			Colour sideToMove,
 			EnumSet<CastlingRights> castlingRightsBeforeMove) {
 		if (castlingRightsBeforeMove.contains(CastlingRights.QUEENS_SIDE)) {

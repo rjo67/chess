@@ -86,7 +86,8 @@ public class Bishop extends SlidingPiece {
 	 * <code>startPosition</code> true has precedence over <code>startSquares</code>.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be ignored.
+	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be
+	 *           ignored.
 	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
 	 *           the board.
 	 */
@@ -107,8 +108,7 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public List<Move> findMoves(
-			Position posn,
+	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
 		List<Move> moves = findPotentialMoves(posn);
@@ -132,8 +132,7 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public List<Move> findPotentialMoves(
-			Position posn) {
+	public List<Move> findPotentialMoves(Position posn) {
 		List<Move> moves = new ArrayList<>(30);
 
 		// search for moves
@@ -145,8 +144,7 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(
-			Position posn,
+	public boolean isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
 			BitSet emptySquares,
@@ -171,8 +169,7 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(
-			BitSet emptySquares,
+	public boolean attacksSquare(BitSet emptySquares,
 			Square targetSq,
 			SquareCache<CheckStates> checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
@@ -192,8 +189,7 @@ public class Bishop extends SlidingPiece {
 	 * @param checkCache cache of previously found results
 	 * @return true if targetSquare is attacked from startSquare, otherwise false.
 	 */
-	public static boolean attacksSquare(
-			BitSet emptySquares,
+	public static boolean attacksSquare(BitSet emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			SquareCache<CheckStates> checkCache) {

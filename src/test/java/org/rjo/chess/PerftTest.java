@@ -65,21 +65,18 @@ public class PerftTest {
 	 * <li>Took 57s on 03.04.2015.</li>
 	 * </ul>
 	 */
-	public static void main(
-			String[] args) {
+	public static void main(String[] args) {
 		System.out.println("Running all tests");
 		long start = System.currentTimeMillis();
 		new PerftTest().allTests();
 		System.out.println(String.format(Locale.GERMANY, "Finished in %,6d s", (System.currentTimeMillis() - start) / 1000));
 	}
 
-	private void doTest(
-			String testname) {
+	private void doTest(String testname) {
 		doTest(findTest(testname));
 	}
 
-	private void doTest(
-			Object[] testdata) {
+	private void doTest(Object[] testdata) {
 		doTest((String) testdata[0], (String) testdata[1], (Colour) testdata[2], (int[]) testdata[3], true);
 	}
 
@@ -92,8 +89,7 @@ public class PerftTest {
 	 * @param sideToMove which side to move
 	 * @param expectedNbrOfMoves int array with expected number of moves.
 	 */
-	private void doTest(
-			String testname,
+	private void doTest(String testname,
 			String fenString,
 			Colour sideToMove,
 			int[] expectedNbrOfMoves,
@@ -287,8 +283,7 @@ public class PerftTest {
 		doTest("discoveredCheck", "8/8/8/2k3PR/8/1p2K3/2P2B2/2Q5 w - - 0 10", Colour.WHITE, new int[] { 31 }, false);
 	}
 
-	private Object[] findTest(
-			String testName) {
+	private Object[] findTest(String testName) {
 		for (Object[] d : data) {
 			if (((String) d[0]).equals(testName)) {
 				return d;

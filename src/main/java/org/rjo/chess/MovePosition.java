@@ -1,8 +1,7 @@
 package org.rjo.chess;
 
 /**
- * A composite class containing a move object with the corresponding position
- * after the move.
+ * A composite class containing a move object with the corresponding position after the move.
  *
  * @author rich
  * @since 2016-09-04

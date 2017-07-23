@@ -143,7 +143,8 @@ public class Knight extends AbstractBitBoardPiece {
 	 * <code>startPosition</code> true has precedence over <code>startSquares</code>.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be ignored.
+	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be
+	 *           ignored.
 	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
 	 *           the board.
 	 */
@@ -164,8 +165,7 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public List<Move> findMoves(
-			Position posn,
+	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
 		final Square myKing = King.findKing(getColour(), posn);
@@ -192,8 +192,7 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public List<Move> findPotentialMoves(
-			Position posn) {
+	public List<Move> findPotentialMoves(Position posn) {
 		List<Move> moves = new ArrayList<>(20);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
 		final BitSet allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
@@ -228,8 +227,7 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(
-			Position posn,
+	public boolean isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
 			@SuppressWarnings("unused") BitSet emptySquares,
@@ -262,8 +260,7 @@ public class Knight extends AbstractBitBoardPiece {
 	 * @return true if the given move attacks the given square.
 	 */
 	// also required by Pawn
-	public static boolean checkIfMoveAttacksSquare(
-			Move move,
+	public static boolean checkIfMoveAttacksSquare(Move move,
 			int targetSquareIndex) {
 		// check if the target square is a knight move away from the destination
 		// square of the move
@@ -271,8 +268,7 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(
-			@SuppressWarnings("unused") BitSet emptySquares,
+	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares,
 			Square targetSq,
 			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
 		return Knight.attacksSquare(targetSq, pieces.getBitSet());
@@ -285,8 +281,7 @@ public class Knight extends AbstractBitBoardPiece {
 	 * @param knights bitset describing where the knights are
 	 * @return true if <code>targetSq</code> is attacked by one or more knights
 	 */
-	public static boolean attacksSquare(
-			Square targetSq,
+	public static boolean attacksSquare(Square targetSq,
 			BitSet knights) {
 		BitSet possibleMovesFromTargetSquare = knightMoves[targetSq.bitIndex()];
 		return possibleMovesFromTargetSquare.intersects(knights);
