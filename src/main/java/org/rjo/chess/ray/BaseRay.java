@@ -1,6 +1,8 @@
 package org.rjo.chess.ray;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
 
 import org.rjo.chess.Square;
 import org.rjo.chess.pieces.PieceType;
@@ -32,6 +34,8 @@ public abstract class BaseRay implements Ray {
 
 	private RayType rayType;
 	private boolean diagonal;
+	@SuppressWarnings("unchecked")
+	protected final List<Integer>[] raySquares = new List[64];
 	protected PieceType[] piecesThatCanGiveCheckOnThisRay;
 
 	protected BaseRay(RayType rayType, boolean diagonal, PieceType[] pieceTypes) {
@@ -56,6 +60,21 @@ public abstract class BaseRay implements Ray {
 	}
 
 	@Override
+	public Iterator<Integer> squaresFrom(int startSquareIndex) {
+		return raySquares[startSquareIndex].iterator();
+	}
+
+	@Override
+	public final Stream<Integer> streamSquaresFrom(Square startSquare) {
+		return streamSquaresFrom(startSquare.bitIndex());
+	}
+
+	@Override
+	public Stream<Integer> streamSquaresFrom(int startSquareIndex) {
+		return raySquares[startSquareIndex].stream();
+	}
+
+	@Override
 	public boolean isRelevantPieceForDiscoveredCheck(PieceType piece) {
 		for (PieceType pt : piecesThatCanGiveCheckOnThisRay) {
 			if (pt == piece) {
@@ -63,6 +82,11 @@ public abstract class BaseRay implements Ray {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public String toString() {
+		return rayType.getAbbreviation();
 	}
 
 }
