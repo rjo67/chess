@@ -247,10 +247,20 @@ public class Move {
 		return (castlingInfo != null) ? castlingInfo.rooksMove : null;
 	}
 
+	/**
+	 * which piece is moving.
+	 * 
+	 * @return the moving piece.
+	 */
 	public PieceType getPiece() {
 		return piece;
 	}
 
+	/**
+	 * colour of moving piece.
+	 * 
+	 * @return the colour of the moving piece.
+	 */
 	public Colour getColour() {
 		return colour;
 	}

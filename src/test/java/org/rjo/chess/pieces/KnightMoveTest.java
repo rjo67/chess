@@ -7,15 +7,15 @@ import java.util.BitSet;
 import java.util.List;
 
 import org.junit.Test;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
+import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
-import org.rjo.chess.pieces.AbstractPiece.SquareCache;
+import org.rjo.chess.util.SquareCache;
 
 public class KnightMoveTest {
 
@@ -32,8 +32,8 @@ public class KnightMoveTest {
 		List<Move> moves = whiteKnight.findMoves(posn);
 		final Square opponentsKing = King.findOpponentsKing(posn.getSideToMove(), posn);
 		final BitSet emptySquares = posn.getTotalPieces().flip();
-		final SquareCache<CheckStates> checkCache = new SquareCache<>();
-		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>();
+		final PositionCheckState checkCache = new PositionCheckState();
+		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>(Boolean.FALSE);
 		for (Move move : moves) {
 			move.setCheck(
 					whiteKnight.isOpponentsKingInCheckAfterMove(posn, move, opponentsKing, emptySquares, checkCache, discoveredCheckCache));

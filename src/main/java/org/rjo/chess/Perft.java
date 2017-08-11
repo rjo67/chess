@@ -108,7 +108,7 @@ public class Perft {
 			Move move,
 			Position posn) {
 		if (MOVE_LOGGER.isDebugEnabled()) {
-			MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn));
+			MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn) + "\n" + posn.getCheckState()[0] + "\n" + posn.getCheckState()[1]);
 		}
 	}
 

@@ -8,12 +8,13 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
+import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.SquareCache;
 import org.rjo.chess.util.Stopwatch;
 
 /**
@@ -231,7 +232,7 @@ public class Knight extends AbstractBitBoardPiece {
 			Move move,
 			Square opponentsKing,
 			@SuppressWarnings("unused") BitSet emptySquares,
-			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache,
+			@SuppressWarnings("unused") PositionCheckState checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		final int opponentsKingIndex = opponentsKing.bitIndex();
 		/*
@@ -270,7 +271,7 @@ public class Knight extends AbstractBitBoardPiece {
 	@Override
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares,
 			Square targetSq,
-			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
+			@SuppressWarnings("unused") PositionCheckState checkCache) {
 		return Knight.attacksSquare(targetSq, pieces.getBitSet());
 	}
 

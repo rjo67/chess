@@ -45,6 +45,10 @@ import org.junit.Test;
  *    promotion www.rocechess.ch/perft.html  5ply:    3.605.103 moves (    2.328 ms) ( 1548,6 moves/ms)
  * Finished in     35 s
  * </pre>
+ * <p>
+ * <h1>Debugging tips</h1> If the Perft does not return the correct number of moves, one way of attacking the problem is
+ * to use the excellent "JetChess" to calculate the perft scores. Then see which move(s) return the wrong number of
+ * moves, and take it from there (at depth-1).
  *
  * @author rich
  * @see http://chessprogramming.wikispaces.com/Perft
@@ -216,6 +220,32 @@ public class PerftTest {
 	@Test
 	public void posn3() {
 		doTest(findTest("posn3"));
+	}
+
+	// test1 .. testn are tests used for debugging with help of jetchess
+	@Test
+	public void test1() {
+		Object[] d = new Object[] { "rjo", "n7/nPPk4/8/8/8/8/4Kppp/5N1N w - - 0 1", Colour.WHITE, new int[] { -1, -1, -1, 185316 } };
+		doTest((String) d[0], (String) d[1], (Colour) d[2], (int[]) d[3], false);
+	}
+
+	@Test
+	public void test2() {
+		Object[] d = new Object[] { "rjo", "n7/nPPk4/8/8/8/8/5ppp/3K1N1N b - - 0 1", Colour.BLACK, new int[] { -1, -1, 7434 } };
+		doTest((String) d[0], (String) d[1], (Colour) d[2], (int[]) d[3], false);
+	}
+
+	@Test
+	public void test3() {
+		Object[] d = new Object[] { "rjo", "n3k3/nPP5/8/8/8/8/5ppp/3K1N1N w - - 0 1", Colour.WHITE, new int[] { -1, 354 } };
+		doTest((String) d[0], (String) d[1], (Colour) d[2], (int[]) d[3], false);
+	}
+
+	// TODO position does not realise when king is already in check
+	@Test
+	public void test4() {
+		Object[] d = new Object[] { "rjo", "R3k3/n1P5/8/8/8/8/5ppp/3K1N1N b - - 0 1", Colour.BLACK, new int[] { 4 } };
+		doTest((String) d[0], (String) d[1], (Colour) d[2], (int[]) d[3], false);
 	}
 
 	@Test

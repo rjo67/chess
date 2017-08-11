@@ -37,25 +37,6 @@ public class PositionTest {
 	}
 
 	@Test
-	public void testToString() {
-		Game game = Fen.decode("r3kr1Q/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQ-q - 0 1");
-		StringBuilder expected = new StringBuilder(80);
-
-		// toString() always displays board from white POV
-
-		expected.append("r...kr.Q   Black to move").append("\n");
-		expected.append("p.ppqpb.   castlingRights: [QUEENS_SIDE, KINGS_SIDE], [QUEENS_SIDE]").append("\n");
-		expected.append("bn..pnp.   enpassant square: null").append("\n");
-		expected.append("...PN...").append("\n");
-		expected.append(".p..P...").append("\n");
-		expected.append("..N.....").append("\n");
-		expected.append("PPPBBPPP").append("\n");
-		expected.append("R...K..R").append("\n");
-
-		assertEquals(expected.toString(), game.getPosition().toString());
-	}
-
-	@Test
 	public void checkImmutable() {
 		Position p = Position.startPosition();
 		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.a2, Square.a4);

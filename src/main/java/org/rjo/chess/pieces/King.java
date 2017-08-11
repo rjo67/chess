@@ -9,14 +9,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.CastlingRights;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.MoveDistance;
 import org.rjo.chess.Position;
+import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.SquareCache;
 import org.rjo.chess.util.Stopwatch;
 
 /**
@@ -382,7 +383,7 @@ public class King extends AbstractPiece {
 			Move move,
 			Square opponentsKing,
 			@SuppressWarnings("unused") BitSet emptySquares,
-			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache,
+			PositionCheckState checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		// checks: a king move can only give check if (a) castled with check or (b) discovered check
 		/*
@@ -399,7 +400,8 @@ public class King extends AbstractPiece {
 		}
 		if (!isCheck) {
 			if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-				isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getTotalPieces().flip(), move.getRooksCastlingMove().to(), opponentsKing);
+				isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getTotalPieces().flip(), move.getRooksCastlingMove().to(), opponentsKing,
+						checkCache, move.isCapture());
 			}
 		}
 		return isCheck;
@@ -432,7 +434,7 @@ public class King extends AbstractPiece {
 	@Override
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares,
 			Square sq,
-			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
+			@SuppressWarnings("unused") PositionCheckState checkCache) {
 		return MoveDistance.calculateDistance(kingsSquare, sq) == 1;
 	}
 }

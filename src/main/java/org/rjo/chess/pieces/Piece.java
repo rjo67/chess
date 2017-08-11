@@ -4,13 +4,13 @@ import java.util.BitSet;
 import java.util.List;
 
 import org.rjo.chess.BitBoard;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
+import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
-import org.rjo.chess.pieces.AbstractPiece.SquareCache;
+import org.rjo.chess.util.SquareCache;
 
 /**
  * The interface for a chess piece.
@@ -92,7 +92,7 @@ public interface Piece extends Cloneable {
 			Move move,
 			Square opponentsKing,
 			BitSet emptySquares,
-			SquareCache<CheckStates> checkCache,
+			PositionCheckState checkCache,
 			SquareCache<Boolean> discoveredCheckCache);
 
 	/**
@@ -105,7 +105,7 @@ public interface Piece extends Cloneable {
 	 */
 	public boolean attacksSquare(BitSet emptySquares,
 			Square targetSq,
-			SquareCache<CheckStates> checkCache);
+			PositionCheckState checkCache);
 
 	/**
 	 * Checks to see if the given square is attacked by one or more pieces of this piece type. <B>without check cache --

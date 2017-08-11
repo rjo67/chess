@@ -11,15 +11,15 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
+import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
-import org.rjo.chess.pieces.AbstractPiece.SquareCache;
+import org.rjo.chess.util.SquareCache;
 
 public class BishopMoveTest {
 
@@ -36,8 +36,8 @@ public class BishopMoveTest {
 		List<Move> moves = whiteBishop.findMoves(posn);
 		final Square opponentsKing = King.findOpponentsKing(posn.getSideToMove(), posn);
 		final BitSet emptySquares = posn.getTotalPieces().flip();
-		final SquareCache<CheckStates> checkCache = new SquareCache<>();
-		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>();
+		PositionCheckState checkCache = new PositionCheckState();
+		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>(Boolean.FALSE);
 		for (Move move : moves) {
 			move.setCheck(
 					whiteBishop.isOpponentsKingInCheckAfterMove(posn, move, opponentsKing, emptySquares, checkCache, discoveredCheckCache));
@@ -58,7 +58,7 @@ public class BishopMoveTest {
 	public void startPosition() {
 		Game game = new Game();
 		Bishop whiteBishop = new Bishop(Colour.WHITE);
-		TestUtil.checkMoves(whiteBishop.findMoves(game.getPosition()), new HashSet<>());
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getPosition()), new String[0]);
 	}
 
 	@Test

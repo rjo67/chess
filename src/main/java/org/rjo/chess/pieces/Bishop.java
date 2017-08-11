@@ -7,14 +7,15 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
+import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
 import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
+import org.rjo.chess.util.SquareCache;
 import org.rjo.chess.util.Stopwatch;
 
 /**
@@ -148,7 +149,7 @@ public class Bishop extends SlidingPiece {
 			Move move,
 			Square opponentsKing,
 			BitSet emptySquares,
-			SquareCache<CheckStates> checkCache,
+			PositionCheckState checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		/*
 		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use
@@ -171,9 +172,10 @@ public class Bishop extends SlidingPiece {
 	@Override
 	public boolean attacksSquare(BitSet emptySquares,
 			Square targetSq,
-			SquareCache<CheckStates> checkCache) {
+			PositionCheckState checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache)) {
+			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false/** TODO */
+			)) {
 				return true;
 			}
 		}
@@ -192,8 +194,9 @@ public class Bishop extends SlidingPiece {
 	public static boolean attacksSquare(BitSet emptySquares,
 			Square startSquare,
 			Square targetSquare,
-			SquareCache<CheckStates> checkCache) {
-		return attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache);
+			PositionCheckState checkCache,
+			boolean isCapture) {
+		return attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture);
 	}
 
 }

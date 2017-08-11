@@ -1,8 +1,7 @@
 package org.rjo.chess.ray;
 
 public enum RayType {
-	NORTH(0, "N "), NORTHEAST(1, "NW"), EAST(2, "E "), SOUTHEAST(3, "SE"), SOUTH(4, "S "), SOUTHWEST(5, "SW"), WEST(6, "W "), NORTHWEST(7,
-			"NW");
+	NORTH(0, "N"), NORTHEAST(1, "NE"), EAST(2, "E"), SOUTHEAST(3, "SE"), SOUTH(4, "S"), SOUTHWEST(5, "SW"), WEST(6, "W"), NORTHWEST(7, "NW");
 
 	public static final RayType[] RAY_TYPES_DIAGONAL = new RayType[] { RayType.SOUTHEAST, RayType.SOUTHWEST, RayType.NORTHEAST,
 			RayType.NORTHWEST };

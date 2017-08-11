@@ -1,6 +1,5 @@
 package org.rjo.chess.pieces;
 
-import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Before;
@@ -44,8 +43,8 @@ public class KingMoveTest {
 		Game game = new Game();
 		whiteKing = new King(Colour.WHITE, true);
 		blackKing = new King(Colour.BLACK, true);
-		TestUtil.checkMoves(whiteKing.findMoves(game.getPosition()), new HashSet<>());
-		TestUtil.checkMoves(blackKing.findMoves(game.getPosition()), new HashSet<>());
+		TestUtil.checkMoves(whiteKing.findMoves(game.getPosition()), new String[0]);
+		TestUtil.checkMoves(blackKing.findMoves(game.getPosition()), new String[0]);
 	}
 
 	@Test
