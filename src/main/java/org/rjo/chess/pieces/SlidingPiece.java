@@ -1,7 +1,6 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -10,9 +9,11 @@ import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
+import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayInfo;
 import org.rjo.chess.ray.RayUtils;
+import org.rjo.chess.util.BitSetUnifier;
 
 /**
  * Represents the pieces which can move over a greater distance: rooks, bishops, queens.
@@ -34,8 +35,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param targetSquare which square should be attacked
 	 * @return true if at least one of the given pieces can attack the target square along a rank or file.
 	 */
-	public static boolean attacksSquareOnRankOrFile(BitSet pieces,
-			BitSet emptySquares,
+	public static boolean attacksSquareOnRankOrFile(BitSetUnifier pieces,
+			BitSetUnifier emptySquares,
 			Square targetSquare) {
 		for (int i = pieces.nextSetBit(0); i >= 0; i = pieces.nextSetBit(i + 1)) {
 			if (attacksSquareRankOrFile(emptySquares, Square.fromBitIndex(i), targetSquare)) {
@@ -54,8 +55,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param targetSquare which square should be attacked
 	 * @return true if at least one of the given pieces can attack the target square along a diagonal.
 	 */
-	public static boolean attacksSquareOnDiagonal(BitSet bishopsAndQueens,
-			BitSet emptySquares,
+	public static boolean attacksSquareOnDiagonal(BitSetUnifier bishopsAndQueens,
+			BitSetUnifier emptySquares,
 			Square targetSquare) {
 		for (int i = bishopsAndQueens.nextSetBit(0); i >= 0; i = bishopsAndQueens.nextSetBit(i + 1)) {
 			if (attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSquare, null /* TODO checkCache */)) {
@@ -81,7 +82,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		/*
 		 * for each piece, use the ray to find emptySquares / firstPiece on the ray
 		 */
-		BitSet emptySquares = posn.getEmptySquares();
+		BitSetUnifier emptySquares = posn.getEmptySquares();
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			Square fromSquareIndex = Square.fromBitIndex(i);
 
@@ -113,7 +114,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @return true if this move is a check
 	 */
 	protected boolean findDiagonalCheck(Position posn,
-			BitSet emptySquares,
+			BitSetUnifier emptySquares,
 			Move move,
 			Square opponentsKing,
 			SquareCache<CheckStates> checkCache) {
@@ -196,7 +197,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param checkCache (optional -- but not null) will be updated with results from the search.
 	 * @return true if the target square is attacked (diagonally) from the start square.
 	 */
-	protected static boolean attacksSquareDiagonally(BitSet emptySquares,
+	protected static boolean attacksSquareDiagonally(BitSetUnifier emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			SquareCache<CheckStates> checkCache) {
@@ -274,7 +275,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @return true if this move is a check
 	 */
 	protected boolean findRankOrFileCheck(Position posn,
-			BitSet emptySquares,
+			BitSetUnifier emptySquares,
 			Move move,
 			Square opponentsKing) {
 		// abort if dest sq rank/file is not the same as the king's rank/file
@@ -295,7 +296,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @return true if the target square is attacked (straight-line) from the start square.
 	 */
 	// public, since King need this too for castling
-	public static boolean attacksSquareRankOrFile(BitSet emptySquares,
+	public static boolean attacksSquareRankOrFile(BitSetUnifier emptySquares,
 			Square startSquare,
 			Square targetSquare) {
 		// give up straight away if start and target are the same

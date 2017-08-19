@@ -3,7 +3,6 @@ package org.rjo.chess.pieces;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.BitSet;
 import java.util.List;
 
 import org.junit.Test;
@@ -16,6 +15,7 @@ import org.rjo.chess.Position;
 import org.rjo.chess.Square;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.pieces.AbstractPiece.SquareCache;
+import org.rjo.chess.util.BitSetUnifier;
 
 public class KnightMoveTest {
 
@@ -31,7 +31,7 @@ public class KnightMoveTest {
 	private List<Move> findMoves(Position posn) {
 		List<Move> moves = whiteKnight.findMoves(posn);
 		final Square opponentsKing = King.findOpponentsKing(posn.getSideToMove(), posn);
-		final BitSet emptySquares = posn.getTotalPieces().flip();
+		final BitSetUnifier emptySquares = posn.getTotalPieces().flip();
 		final SquareCache<CheckStates> checkCache = new SquareCache<>();
 		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>();
 		for (Move move : moves) {

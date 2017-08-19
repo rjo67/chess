@@ -1,8 +1,8 @@
 package org.rjo.chess.pieces;
 
-import java.util.BitSet;
-
 import org.rjo.chess.BitBoard;
+import org.rjo.chess.util.BitSetFactory;
+import org.rjo.chess.util.BitSetUnifier;
 
 public class BitSetHelper {
 
@@ -16,17 +16,17 @@ public class BitSetHelper {
 	 * @param shift how much to shift. Positive==shift to right (<<). Negative==shift to left (>>>).
 	 * @return a new bitset with the shifted bits.
 	 */
-	public static BitSet shift(BitSet startPosn,
+	public static BitSetUnifier shift(BitSetUnifier startPosn,
 			int shift) {
 		if (startPosn.isEmpty()) {
-			return (BitSet) startPosn.clone();
+			return (BitSetUnifier) startPosn.clone();
 		}
 
 		long lo = startPosn.toLongArray()[0];
 		if (shift < 0) {
-			return BitSet.valueOf(new long[] { (lo >>> Math.abs(shift)) });
+			return BitSetFactory.createBitSet(new long[] { (lo >>> Math.abs(shift)) });
 		} else {
-			return BitSet.valueOf(new long[] { (lo << shift) });
+			return BitSetFactory.createBitSet(new long[] { (lo << shift) });
 		}
 	}
 
@@ -36,13 +36,13 @@ public class BitSetHelper {
 	 * @param startPosn starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
-	public static BitSet shiftOneNorth(BitSet startPosn) {
+	public static BitSetUnifier shiftOneNorth(BitSetUnifier startPosn) {
 		if (startPosn.isEmpty()) {
-			return (BitSet) startPosn.clone();
+			return (BitSetUnifier) startPosn.clone();
 		}
 		long lo = startPosn.toLongArray()[0];
 		// don't need to check for 'overlap' off 8th rank, since only passing one long to valueOf().
-		return BitSet.valueOf(new long[] { (lo << 8) });
+		return BitSetFactory.createBitSet(new long[] { (lo << 8) });
 	}
 
 	/**
@@ -51,12 +51,12 @@ public class BitSetHelper {
 	 * @param startPosn starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
-	public static BitSet shiftOneSouth(BitSet startPosn) {
+	public static BitSetUnifier shiftOneSouth(BitSetUnifier startPosn) {
 		if (startPosn.isEmpty()) {
-			return (BitSet) startPosn.clone();
+			return (BitSetUnifier) startPosn.clone();
 		}
 		long lo = startPosn.toLongArray()[0];
-		return BitSet.valueOf(new long[] { (lo >>> 8) });
+		return BitSetFactory.createBitSet(new long[] { (lo >>> 8) });
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class BitSetHelper {
 	 * @param startPosn starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
-	public static BitSet shiftOneWest(BitSet startPosn) {
+	public static BitSetUnifier shiftOneWest(BitSetUnifier startPosn) {
 		return shiftOneWest(startPosn, true);
 	}
 
@@ -77,18 +77,18 @@ public class BitSetHelper {
 	 *           this call.
 	 * @return a (potentially new) bitset with the shifted bits.
 	 */
-	public static BitSet shiftOneWest(BitSet startPosn,
+	public static BitSetUnifier shiftOneWest(BitSetUnifier startPosn,
 			boolean clone) {
 		if (startPosn.isEmpty()) {
 			if (clone) {
-				return (BitSet) startPosn.clone();
+				return (BitSetUnifier) startPosn.clone();
 			} else {
 				return startPosn;
 			}
 		}
-		BitSet bs;
+		BitSetUnifier bs;
 		if (clone) {
-			bs = (BitSet) startPosn.clone();
+			bs = (BitSetUnifier) startPosn.clone();
 		} else {
 			bs = startPosn;
 		}
@@ -97,7 +97,7 @@ public class BitSetHelper {
 			return bs;
 		}
 		long lo = bs.toLongArray()[0];
-		bs = BitSet.valueOf(new long[] { (lo >>> 1) }); // unsigned shift
+		bs = BitSetFactory.createBitSet(new long[] { (lo >>> 1) }); // unsigned shift
 		return bs;
 	}
 
@@ -107,7 +107,7 @@ public class BitSetHelper {
 	 * @param startPosn starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
-	public static BitSet shiftOneEast(BitSet startPosn) {
+	public static BitSetUnifier shiftOneEast(BitSetUnifier startPosn) {
 		return shiftOneEast(startPosn, true);
 	}
 
@@ -119,18 +119,18 @@ public class BitSetHelper {
 	 *           this call.
 	 * @return a (potentially new) bitset with the shifted bits.
 	 */
-	public static BitSet shiftOneEast(BitSet startPosn,
+	public static BitSetUnifier shiftOneEast(BitSetUnifier startPosn,
 			boolean clone) {
 		if (startPosn.isEmpty()) {
 			if (clone) {
-				return (BitSet) startPosn.clone();
+				return (BitSetUnifier) startPosn.clone();
 			} else {
 				return startPosn;
 			}
 		}
-		BitSet bs;
+		BitSetUnifier bs;
 		if (clone) {
-			bs = (BitSet) startPosn.clone();
+			bs = (BitSetUnifier) startPosn.clone();
 		} else {
 			bs = startPosn;
 		}
@@ -139,7 +139,7 @@ public class BitSetHelper {
 			return bs;
 		}
 		long lo = bs.toLongArray()[0];
-		bs = BitSet.valueOf(new long[] { (lo << 1) });
+		bs = BitSetFactory.createBitSet(new long[] { (lo << 1) });
 		return bs;
 	}
 
@@ -149,8 +149,8 @@ public class BitSetHelper {
 	 * @param startPosn starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
-	public static BitSet shiftOneNorthWest(BitSet startBoard) {
-		BitSet bs = shiftOneNorth(startBoard);
+	public static BitSetUnifier shiftOneNorthWest(BitSetUnifier startBoard) {
+		BitSetUnifier bs = shiftOneNorth(startBoard);
 		return shiftOneWest(bs);
 	}
 
@@ -160,8 +160,8 @@ public class BitSetHelper {
 	 * @param startPosn starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
-	public static BitSet shiftOneSouthWest(BitSet startBoard) {
-		BitSet bs = shiftOneSouth(startBoard);
+	public static BitSetUnifier shiftOneSouthWest(BitSetUnifier startBoard) {
+		BitSetUnifier bs = shiftOneSouth(startBoard);
 		return shiftOneWest(bs);
 	}
 
@@ -171,8 +171,8 @@ public class BitSetHelper {
 	 * @param startPosn starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
-	public static BitSet shiftOneNorthEast(BitSet startBoard) {
-		BitSet bs = shiftOneNorth(startBoard);
+	public static BitSetUnifier shiftOneNorthEast(BitSetUnifier startBoard) {
+		BitSetUnifier bs = shiftOneNorth(startBoard);
 		return shiftOneEast(bs);
 	}
 
@@ -182,8 +182,8 @@ public class BitSetHelper {
 	 * @param startPosn starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
-	public static BitSet shiftOneSouthEast(BitSet startBoard) {
-		BitSet bs = shiftOneSouth(startBoard);
+	public static BitSetUnifier shiftOneSouthEast(BitSetUnifier startBoard) {
+		BitSetUnifier bs = shiftOneSouth(startBoard);
 		return shiftOneEast(bs);
 	}
 }

@@ -1,6 +1,5 @@
 package org.rjo.chess.pieces;
 
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -8,6 +7,7 @@ import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.BitSetUnifier;
 
 /**
  * Base class for all pieces which use a BitBoard to store the piece locations.
@@ -92,7 +92,7 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 	@Override
 	public abstract int calculatePieceSquareValue();
 
-	public static int pieceSquareValue(final BitSet piecesBitSet,
+	public static int pieceSquareValue(final BitSetUnifier piecesBitSet,
 			final Colour colour,
 			final int pieceValue,
 			final int[] squareValue) {

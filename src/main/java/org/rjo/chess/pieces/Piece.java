@@ -1,6 +1,5 @@
 package org.rjo.chess.pieces;
 
-import java.util.BitSet;
 import java.util.List;
 
 import org.rjo.chess.BitBoard;
@@ -11,6 +10,7 @@ import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
 import org.rjo.chess.pieces.AbstractPiece.SquareCache;
+import org.rjo.chess.util.BitSetUnifier;
 
 /**
  * The interface for a chess piece.
@@ -91,7 +91,7 @@ public interface Piece extends Cloneable {
 	public boolean isOpponentsKingInCheckAfterMove(Position position,
 			Move move,
 			Square opponentsKing,
-			BitSet emptySquares,
+			BitSetUnifier emptySquares,
 			SquareCache<CheckStates> checkCache,
 			SquareCache<Boolean> discoveredCheckCache);
 
@@ -103,7 +103,7 @@ public interface Piece extends Cloneable {
 	 * @param checkCache check cache
 	 * @return true if it is attacked, otherwise false.
 	 */
-	public boolean attacksSquare(BitSet emptySquares,
+	public boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq,
 			SquareCache<CheckStates> checkCache);
 
@@ -115,7 +115,7 @@ public interface Piece extends Cloneable {
 	 * @param targetSq the square to check.
 	 * @return true if it is attacked, otherwise false.
 	 */
-	public boolean attacksSquare(BitSet emptySquares,
+	public boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq);
 
 	/**

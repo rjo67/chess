@@ -1,7 +1,6 @@
 package org.rjo.chess.pieces;
 
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,6 +8,7 @@ import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.BitSetUnifier;
 
 /**
  * For pieces which aren't stored in a bitset.
@@ -91,7 +91,7 @@ public abstract class AbstractSetPiece extends AbstractPiece {
 	//
 	// not nice to have these....
 	//
-	protected BitSet createBitSetOfPieces() {
+	protected BitSetUnifier createBitSetOfPieces() {
 		return getBitBoard().getBitSet();
 	}
 

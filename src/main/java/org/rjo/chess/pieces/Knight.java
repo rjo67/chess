@@ -1,7 +1,6 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,6 +13,8 @@ import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.BitSetFactory;
+import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.Stopwatch;
 
 /**
@@ -47,47 +48,47 @@ public class Knight extends AbstractSetPiece {
 	/**
 	 * Stores for each square on the board the possible moves for a knight on that square.
 	 */
-	private static final BitSet[] knightMoves = new BitSet[64];
+	private static final BitSetUnifier[] knightMoves = new BitSetUnifier[64];
 
 	// set up knight moves look up table
 	static {
 		for (int i = 0; i < 64; i++) {
-			knightMoves[i] = new BitSet(64);
+			knightMoves[i] = BitSetFactory.createBitSet(64);
 			knightMoves[i].set(i);
 			/*
 			 * LHS: blank first file for -10 and +6 - blank first and 2nd file for -17 and +15 RHS: blank last file for +10 and -6 -
 			 * blank 7th and 8th file for +17 and -15 Don't need to blank ranks, these just 'drop off' during the bit shift.
 			 */
 
-			BitSet[] work = new BitSet[8];
+			BitSetUnifier[] work = new BitSetUnifier[8];
 
 			// to avoid wrapping:
 			// - work[0,1] == file one blanked
 			// - work[2,3] == file two blanked as well
 			// - work[4,5] == file 8 blanked
 			// - work[6,7] == file 7 blanked as well
-			work[0] = (BitSet) knightMoves[i].clone();
+			work[0] = (BitSetUnifier) knightMoves[i].clone();
 			work[0].and(BitBoard.EXCEPT_FILE[0]);
-			work[2] = (BitSet) work[0].clone();
+			work[2] = (BitSetUnifier) work[0].clone();
 			work[2].and(BitBoard.EXCEPT_FILE[1]);
 
 			// store another copy
-			work[1] = (BitSet) work[0].clone();
-			work[3] = (BitSet) work[2].clone();
+			work[1] = (BitSetUnifier) work[0].clone();
+			work[3] = (BitSetUnifier) work[2].clone();
 
 			work[0] = BitSetHelper.shift(work[0], 15); // file-1,rank+2
 			work[1] = BitSetHelper.shift(work[1], -17);// file-1,rank-2
 			work[2] = BitSetHelper.shift(work[2], 6);// file-2,rank+1
 			work[3] = BitSetHelper.shift(work[3], -10);// file-2,rank-1
 
-			work[4] = (BitSet) knightMoves[i].clone();
+			work[4] = (BitSetUnifier) knightMoves[i].clone();
 			work[4].and(BitBoard.EXCEPT_FILE[7]);
-			work[6] = (BitSet) work[4].clone();
+			work[6] = (BitSetUnifier) work[4].clone();
 			work[6].and(BitBoard.EXCEPT_FILE[6]);
 
 			// store another copy
-			work[5] = (BitSet) work[4].clone();
-			work[7] = (BitSet) work[6].clone();
+			work[5] = (BitSetUnifier) work[4].clone();
+			work[7] = (BitSetUnifier) work[6].clone();
 
 			work[4] = BitSetHelper.shift(work[4], 17); // file+1,rank+2
 			work[5] = BitSetHelper.shift(work[5], -15);// file+1,rank-2
@@ -96,7 +97,7 @@ public class Knight extends AbstractSetPiece {
 
 			// store results
 			knightMoves[i].clear(i); // clear the start position
-			for (BitSet element : work) {
+			for (BitSetUnifier element : work) {
 				knightMoves[i].or(element);
 			}
 		}
@@ -195,14 +196,14 @@ public class Knight extends AbstractSetPiece {
 	public List<Move> findPotentialMoves(Position posn) {
 		List<Move> moves = new ArrayList<>(20);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
-		final BitSet allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
-		final BitSet allOpponentsPiecesBitSet = posn.getAllPieces(oppositeColour).getBitSet();
+		final BitSetUnifier allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
+		final BitSetUnifier allOpponentsPiecesBitSet = posn.getAllPieces(oppositeColour).getBitSet();
 
 		/*
 		 * for each knight on the board, finds its moves using the lookup table
 		 */
 		for (Square knightStartSquare : pieces) {
-			BitSet possibleMoves = knightMoves[knightStartSquare.bitIndex()];
+			BitSetUnifier possibleMoves = knightMoves[knightStartSquare.bitIndex()];
 
 			/*
 			 * Iterates over all possible moves and stores them as moves or captures
@@ -231,7 +232,7 @@ public class Knight extends AbstractSetPiece {
 	public boolean isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
-			@SuppressWarnings("unused") BitSet emptySquares,
+			@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		final int opponentsKingIndex = opponentsKing.bitIndex();
@@ -269,7 +270,7 @@ public class Knight extends AbstractSetPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares,
+	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square targetSq,
 			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
 		return Knight.attacksSquare(targetSq, createBitSetOfPieces());
@@ -283,8 +284,8 @@ public class Knight extends AbstractSetPiece {
 	 * @return true if <code>targetSq</code> is attacked by one or more knights
 	 */
 	public static boolean attacksSquare(Square targetSq,
-			BitSet knights) {
-		BitSet possibleMovesFromTargetSquare = knightMoves[targetSq.bitIndex()];
+			BitSetUnifier knights) {
+		BitSetUnifier possibleMovesFromTargetSquare = knightMoves[targetSq.bitIndex()];
 		return possibleMovesFromTargetSquare.intersects(knights);
 	}
 

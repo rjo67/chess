@@ -1,6 +1,5 @@
 package org.rjo.chess;
 
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -11,6 +10,7 @@ import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.ray.RayUtils;
+import org.rjo.chess.util.BitSetUnifier;
 
 /**
  * Routines to discover if the king is in check.
@@ -22,8 +22,8 @@ import org.rjo.chess.ray.RayUtils;
  */
 public class KingCheck {
 
-	private BitSet friendlyPieces;
-	private BitSet[] enemyPieces;
+	private BitSetUnifier friendlyPieces;
+	private BitSetUnifier[] enemyPieces;
 	private Square myKing;
 	private Colour myColour;
 	private Colour opponentsColour;
@@ -80,8 +80,8 @@ public class KingCheck {
 			}
 		}
 
-		BitSet friendlyPieces = posn.getAllPieces(Colour.oppositeColour(opponentsColour)).getBitSet();
-		BitSet[] enemyPieces = Position.setupEnemyBitsets(posn.getPieces(opponentsColour));
+		BitSetUnifier friendlyPieces = posn.getAllPieces(Colour.oppositeColour(opponentsColour)).getBitSet();
+		BitSetUnifier[] enemyPieces = Position.setupEnemyBitsets(posn.getPieces(opponentsColour));
 
 		if (kingIsAlreadyInCheck) {
 			return isKingInCheckAfterMove_PreviouslyWasInCheck(king, Colour.oppositeColour(opponentsColour), friendlyPieces, enemyPieces,
@@ -109,8 +109,8 @@ public class KingCheck {
 	 */
 	public static boolean isKingInCheck(Square kingsSquare,
 			Colour kingsColour,
-			BitSet friendlyPieces,
-			BitSet[] enemyPieces) {
+			BitSetUnifier friendlyPieces,
+			BitSetUnifier[] enemyPieces) {
 		return isKingInCheck(kingsSquare, kingsColour, friendlyPieces, enemyPieces, (RayType) null);
 	}
 
@@ -131,8 +131,8 @@ public class KingCheck {
 	 */
 	public static boolean isKingInCheck(Square kingsSquare,
 			Colour kingsColour,
-			BitSet friendlyPieces,
-			BitSet[] enemyPieces,
+			BitSetUnifier friendlyPieces,
+			BitSetUnifier[] enemyPieces,
 			RayType rayToExamine) {
 
 		boolean optimizedRaySearch = (rayToExamine != null);
@@ -209,8 +209,8 @@ public class KingCheck {
 	 */
 	public static boolean isKingInCheckAfterMove_PreviouslyWasInCheck(Square kingsSquare,
 			Colour kingsColour,
-			BitSet friendlyPieces,
-			BitSet[] enemyPieces,
+			BitSetUnifier friendlyPieces,
+			BitSetUnifier[] enemyPieces,
 			Move move) {
 		return isKingInCheckAfterMove(kingsSquare, kingsColour, friendlyPieces, enemyPieces, move, true);
 	}
@@ -233,8 +233,8 @@ public class KingCheck {
 	 */
 	public static boolean isKingInCheckAfterMove_PreviouslyNotInCheck(Square kingsSquare,
 			Colour kingsColour,
-			BitSet friendlyPieces,
-			BitSet[] enemyPieces,
+			BitSetUnifier friendlyPieces,
+			BitSetUnifier[] enemyPieces,
 			Move move) {
 		return isKingInCheckAfterMove(kingsSquare, kingsColour, friendlyPieces, enemyPieces, move, false);
 	}
@@ -262,8 +262,8 @@ public class KingCheck {
 	 */
 	public static boolean isKingInCheckAfterMove(Square kingsSquare,
 			Colour kingsColour,
-			BitSet friendlyPieces,
-			BitSet[] enemyPieces,
+			BitSetUnifier friendlyPieces,
+			BitSetUnifier[] enemyPieces,
 			Move move,
 			boolean kingWasInCheck) {
 
@@ -283,7 +283,7 @@ public class KingCheck {
 			}
 		}
 
-		friendlyPieces = (BitSet) friendlyPieces.clone();
+		friendlyPieces = (BitSetUnifier) friendlyPieces.clone();
 		friendlyPieces.set(move.to().bitIndex());
 		friendlyPieces.clear(move.from().bitIndex());
 
@@ -296,7 +296,7 @@ public class KingCheck {
 		if (move.isCapture()) {
 			// need to modify BitSet for the opponent's captured piece,
 			// therefore clone and resave in 'enemyPieces'
-			BitSet opponentsCapturedPiece = (BitSet) enemyPieces[move.getCapturedPiece().ordinal()].clone();
+			BitSetUnifier opponentsCapturedPiece = (BitSetUnifier) enemyPieces[move.getCapturedPiece().ordinal()].clone();
 			enemyPieces[move.getCapturedPiece().ordinal()] = opponentsCapturedPiece;
 			// .. and remove captured piece
 			Square capturedPieceSquare = move.to();

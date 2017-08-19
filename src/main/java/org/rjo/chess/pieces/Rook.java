@@ -1,7 +1,6 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,8 +16,10 @@ import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
+import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
+import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.BitValueCalculator;
 import org.rjo.chess.util.Stopwatch;
 
@@ -285,7 +286,7 @@ public class Rook extends SlidingPiece {
 		List<Move> moves = new ArrayList<>();
 		Colour opponentsColour = Colour.oppositeColour(getColour());
 		BitBoard allPieces = posn.getTotalPieces();
-		BitSet opponentsPieces = posn.getAllPieces(opponentsColour).getBitSet();
+		BitSetUnifier opponentsPieces = posn.getAllPieces(opponentsColour).getBitSet();
 
 		// rank, getValueForRank()
 		Map<Integer, Integer> rankValueCache = new HashMap<>();
@@ -332,7 +333,7 @@ public class Rook extends SlidingPiece {
 	private void addMoves(Position chessboard,
 			List<Move> moves,
 			Colour opponentsColour,
-			BitSet opponentsPieces,
+			BitSetUnifier opponentsPieces,
 			int bitIndexOfPiece,
 			Square fromSquareIndex,
 			MoveInfo moveinfo) {
@@ -396,7 +397,7 @@ public class Rook extends SlidingPiece {
 	public boolean isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
-			BitSet emptySquares,
+			BitSetUnifier emptySquares,
 			SquareCache<CheckStates> checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		/*
@@ -418,7 +419,7 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet emptySquares,
+	public boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq,
 			SquareCache<CheckStates> checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
@@ -438,7 +439,7 @@ public class Rook extends SlidingPiece {
 	 * @param checkCache cache of previously found results
 	 * @return true if targetSquare is attacked from startSquare, otherwise false.
 	 */
-	public static boolean attacksSquare(BitSet emptySquares,
+	public static boolean attacksSquare(BitSetUnifier emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			SquareCache<CheckStates> checkCache) {

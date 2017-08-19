@@ -1,7 +1,6 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -13,8 +12,10 @@ import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
+import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
+import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.Stopwatch;
 
 /**
@@ -147,7 +148,7 @@ public class Bishop extends SlidingPiece {
 	public boolean isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
-			BitSet emptySquares,
+			BitSetUnifier emptySquares,
 			SquareCache<CheckStates> checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		/*
@@ -169,7 +170,7 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSet emptySquares,
+	public boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq,
 			SquareCache<CheckStates> checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
@@ -189,7 +190,7 @@ public class Bishop extends SlidingPiece {
 	 * @param checkCache cache of previously found results
 	 * @return true if targetSquare is attacked from startSquare, otherwise false.
 	 */
-	public static boolean attacksSquare(BitSet emptySquares,
+	public static boolean attacksSquare(BitSetUnifier emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			SquareCache<CheckStates> checkCache) {

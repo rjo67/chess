@@ -4,11 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.BitSet;
 import java.util.Map;
 
 import org.junit.Test;
 import org.rjo.chess.pieces.PieceType;
+import org.rjo.chess.util.BitSetUnifier;
 
 /**
  * Test determination of whether the king is in check.
@@ -17,7 +17,7 @@ import org.rjo.chess.pieces.PieceType;
  */
 public class KingCheckTest {
 	private Game game;
-	private BitSet[] enemyPieces;
+	private BitSetUnifier[] enemyPieces;
 
 	private void setup(String fen) {
 		game = Fen.decode(fen);
@@ -70,7 +70,7 @@ public class KingCheckTest {
 	@Test
 	public void knightGivesCheck() {
 		setup("8/4k3/8/2n5/4P3/3K4/8/8 w - - 10 10");
-		BitSet[] enemyPieces = setupBlackBitsets(game.getPosition());
+		BitSetUnifier[] enemyPieces = setupBlackBitsets(game.getPosition());
 		assertTrue(KingCheck.isKingInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()), enemyPieces));
 	}
 
@@ -130,12 +130,12 @@ public class KingCheckTest {
 
 	/**
 	 * the 'friendlyPieces' bitset must not get changed by the call to
-	 * {@link KingCheck#isKingInCheck(Square, Colour, BitSet, Map, Move)}.
+	 * {@link KingCheck#isKingInCheck(Square, Colour, BitSetUnifier, Map, Move)}.
 	 */
 	@Test
 	public void friendlyPiecesDoesNotGetChangedAfterMove() {
 		setup("3bq3/pp2k3/8/rn3b2/4P3/3K1Pr1/8/8 w - - 10 10");
-		BitSet friendlyPieces = getWhitePieces(game.getPosition());
+		BitSetUnifier friendlyPieces = getWhitePieces(game.getPosition());
 		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.e4, Square.e5);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d3, Colour.WHITE, friendlyPieces, enemyPieces, move));
 		assertEquals(friendlyPieces, getWhitePieces(game.getPosition()));
@@ -143,12 +143,12 @@ public class KingCheckTest {
 
 	/**
 	 * the 'enemyPieces' bitset must not get changed by the call to
-	 * {@link KingCheck#isKingInCheck(Square, Colour, BitSet, Map, Move)}.
+	 * {@link KingCheck#isKingInCheck(Square, Colour, BitSetUnifier, Map, Move)}.
 	 */
 	@Test
 	public void enemyPiecesNotChangedAfterCaptureMove() {
 		setup("3r4/4k3/8/r7/4P3/8/2Kb4/8 w - - 10 10");
-		BitSet bishopBitSet = game.getPosition().getPieces(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard().getBitSet();
+		BitSetUnifier bishopBitSet = game.getPosition().getPieces(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard().getBitSet();
 		Move move = new Move(PieceType.KING, Colour.WHITE, Square.c2, Square.d2, PieceType.BISHOP);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d2, Colour.WHITE, getWhitePieces(game.getPosition()),
 				enemyPieces, move));
@@ -224,12 +224,12 @@ public class KingCheckTest {
 				enemyPieces, move));
 	}
 
-	private BitSet getWhitePieces(Position chessboard) {
+	private BitSetUnifier getWhitePieces(Position chessboard) {
 		return chessboard.getAllPieces(Colour.WHITE).getBitSet();
 	}
 
-	private BitSet[] setupBlackBitsets(Position posn) {
-		BitSet[] enemyPieces = new BitSet[PieceType.ALL_PIECE_TYPES.length];
+	private BitSetUnifier[] setupBlackBitsets(Position posn) {
+		BitSetUnifier[] enemyPieces = new BitSetUnifier[PieceType.ALL_PIECE_TYPES.length];
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			enemyPieces[type.ordinal()] = posn.getPieces(Colour.BLACK)[type.ordinal()].getBitBoard().getBitSet();
 		}

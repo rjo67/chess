@@ -12,6 +12,44 @@ date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 06.04.15 | using rays, caching discovered check | | 1522,4 moves/ms
 03.04.15 | | | 1148,7 moves/ms
 
+
+## 19.08.17
+
+Added 'BitSetUnifier' interface and two further bitset implementations (lucene and javolution (snapshot version)).
+Still work to do for Javolution.
+
+http://lucene.apache.org/core/6_6_0/core/org/apache/lucene/util/FixedBitSet.html
+http://javolution.org/apidocs/javolution/util/FastBitSet.html
+
+
+javautil
+operation: flip, time: 17, 0.00000170
+operation: set, time: 52, 0.00000520
+operation: and, time: 89, 0.00000890
+operation: or, time: 68, 0.00000680
+operation: xor, time: 107, 0.00001070
+operation: cardinality, time: 44, 0.00000440
+
+
+lucene
+operation: flip, time: 14, 0.00000140
+operation: set, time: 31, 0.00000310
+operation: and, time: 95, 0.00000950
+operation: or, time: 63, 0.00000630
+operation: xor, time: 63, 0.00000630
+operation: cardinality, time: 49, 0.00000490
+
+
+javolution
+operation: flip, time: 13, 0.00000130
+operation: set, time: 37, 0.00000370
+operation: and, time: 91, 0.00000910
+operation: or, time: 67, 0.00000670
+operation: xor, time: 66, 0.00000660
+operation: cardinality, time: 45, 0.00000450
+
+
+
 ## 09.07.17
 Branch moveswithcheck: Fixed error in posn2 ply4 (which has been wrong since commit f322b19 (introduction of check-cache
 and optimizations in SlidingPiece::findDiagonalCheck).

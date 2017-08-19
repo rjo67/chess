@@ -1,6 +1,5 @@
 package org.rjo.chess.pieces;
 
-import java.util.BitSet;
 import java.util.List;
 
 import org.rjo.chess.Colour;
@@ -8,6 +7,7 @@ import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.BitSetUnifier;
 
 /**
  * Stores the type and colour of a piece.
@@ -86,7 +86,7 @@ public abstract class AbstractPiece implements Piece {
 	}
 
 	@Override
-	public final boolean attacksSquare(BitSet emptySquares,
+	public final boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq) {
 		return attacksSquare(emptySquares, targetSq, new SquareCache<>());
 	}

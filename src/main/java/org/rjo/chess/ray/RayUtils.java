@@ -1,7 +1,6 @@
 package org.rjo.chess.ray;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -11,6 +10,7 @@ import org.rjo.chess.Colour;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
 import org.rjo.chess.pieces.PieceType;
+import org.rjo.chess.util.BitSetUnifier;
 
 public class RayUtils {
 	// lookup table for each square sq1, storing the ray for every other square relative to sq1
@@ -27,7 +27,7 @@ public class RayUtils {
 	private final static List<Integer>[][] SQUARES_ON_RAY = new List[64][64];
 
 	// this is the same info as SQUARES_ON_RAY, but stored as a bitset
-	private final static BitSet[][] BITSET_SQUARES_ON_RAY = new BitSet[64][64];
+	private final static BitSetUnifier[][] BITSET_SQUARES_ON_RAY = new BitSetUnifier[64][64];
 
 	// set up static lookups
 	static {
@@ -87,8 +87,8 @@ public class RayUtils {
 	 */
 	public static boolean discoveredCheck(Colour myColour,
 			Position cb,
-			BitSet emptySquares,
-			BitSet myPieces,
+			BitSetUnifier emptySquares,
+			BitSetUnifier myPieces,
 			Square opponentsKingsSquare,
 			Square moveFromSquare) {
 		// if moveFromSquare is on a ray to kingsSquare,
@@ -120,8 +120,8 @@ public class RayUtils {
 	 */
 	public static boolean kingInCheck(Colour kingsColour,
 			Position cb,
-			BitSet emptySquares,
-			BitSet kingsColourPieces,
+			BitSetUnifier emptySquares,
+			BitSetUnifier kingsColourPieces,
 			Square kingsSquare,
 			Square moveFromSquare) {
 		// if moveFromSquare is on a ray to kingsSquare,
@@ -162,8 +162,8 @@ public class RayUtils {
 	 *         startSquare.
 	 */
 	public static RayInfo findFirstPieceOnRay(Colour myColour,
-			BitSet emptySquares,
-			BitSet myPieces,
+			BitSetUnifier emptySquares,
+			BitSetUnifier myPieces,
 			Ray ray,
 			int startSquare) {
 		RayInfo info = new RayInfo();
@@ -212,12 +212,12 @@ public class RayUtils {
 		return ORTHOGONAL_RAYS_BETWEEN_SQUARES[sq1.bitIndex()][sq2.bitIndex()];
 	}
 
-	public static BitSet getBitSetOfSquaresBetween(Square sq1,
+	public static BitSetUnifier getBitSetOfSquaresBetween(Square sq1,
 			Square sq2) {
 		return BITSET_SQUARES_ON_RAY[sq1.bitIndex()][sq2.bitIndex()];
 	}
 
-	public static BitSet getBitSetOfSquaresBetween(int sq1,
+	public static BitSetUnifier getBitSetOfSquaresBetween(int sq1,
 			int sq2) {
 		return BITSET_SQUARES_ON_RAY[sq1][sq2];
 	}

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +25,7 @@ import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
 import org.rjo.chess.ray.RayUtils;
+import org.rjo.chess.util.BitSetUnifier;
 
 /**
  * An immutable object which stores the board position after a particular move.<br>
@@ -68,7 +68,7 @@ public class Position {
 	 * BitSet of all empty squares. Logical NOT of this BitBoard gives {@link #totalPieces}. Only created 'on demand', see
 	 * {@link #getEmptySquares()}.
 	 */
-	private BitSet emptySquares;
+	private BitSetUnifier emptySquares;
 
 	/** Indicates an enpassant square; can be null. */
 	private Square enpassantSquare;
@@ -336,7 +336,7 @@ public class Position {
 		final Square opponentsKing = King.findOpponentsKing(getSideToMove(), this);
 		final SquareCache<CheckStates> checkCache = new SquareCache<>();
 		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>();
-		final BitSet emptySquares = getEmptySquares();
+		final BitSetUnifier emptySquares = getEmptySquares();
 		for (Move move : moves) {
 			Piece p = getPieces(colour)[move.getPiece().ordinal()];
 			move.setCheck(p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares, checkCache, discoveredCheckCache));
@@ -356,9 +356,9 @@ public class Position {
 		final SquareCache<CheckStates> checkCache = new SquareCache<>();
 		final Square myKing = King.findKing(getSideToMove(), this);
 
-		BitSet friendlyPieces = this.getAllPieces(sideToMove).getBitSet();
+		BitSetUnifier friendlyPieces = this.getAllPieces(sideToMove).getBitSet();
 		Colour opponentsColour = Colour.oppositeColour(sideToMove);
-		BitSet[] enemyPieces = Position.setupEnemyBitsets(this.getPieces(opponentsColour));
+		BitSetUnifier[] enemyPieces = Position.setupEnemyBitsets(this.getPieces(opponentsColour));
 
 		// check if the piece moving away from 'fromSquare' has left my king in (discovered) check
 		ListIterator<Move> iter = moves.listIterator();
@@ -696,7 +696,7 @@ public class Position {
 	 * @param bitset the bitset to be updated.
 	 * @param move the move. NB only non-capture moves are supported by this method!
 	 */
-	private void updateBitSet(BitSet bitset,
+	private void updateBitSet(BitSetUnifier bitset,
 			Move move) {
 		bitset.flip(move.from().bitIndex());
 		bitset.flip(move.to().bitIndex());
@@ -742,7 +742,7 @@ public class Position {
 	 *
 	 * @return the bitset of all empty squares.
 	 */
-	public BitSet getEmptySquares() {
+	public BitSetUnifier getEmptySquares() {
 		if (emptySquares == null) {
 			emptySquares = getTotalPieces().flip();
 		}
@@ -799,7 +799,7 @@ public class Position {
 		Piece[] opponentsPieces = getPieces(opponentsColour);
 		// iterate over the pieces
 		// TODO instead of treating queens separately, could 'merge' them with the rooks and the bishops
-		BitSet emptySquares = getEmptySquares();
+		BitSetUnifier emptySquares = getEmptySquares();
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece piece = opponentsPieces[type.ordinal()];
 			if (piece != null) {
@@ -835,8 +835,8 @@ public class Position {
 		}
 
 		// set up the emptySquares and myPieces bitsets *after* this move
-		BitSet emptySquares = posn.getTotalPieces().flip();// need a clone, therefore not using getEmptySquares
-		BitSet myPieces = posn.getAllPieces(colour).cloneBitSet();
+		BitSetUnifier emptySquares = posn.getTotalPieces().flip();// need a clone, therefore not using getEmptySquares
+		BitSetUnifier myPieces = posn.getAllPieces(colour).cloneBitSet();
 
 		emptySquares.set(moveFromIndex);
 		myPieces.clear(moveFromIndex);
@@ -853,8 +853,8 @@ public class Position {
 	 * @param pieces
 	 * @return a bitset array
 	 */
-	public static BitSet[] setupEnemyBitsets(Piece[] pieces) {
-		BitSet[] enemyPieces = new BitSet[PieceType.ALL_PIECE_TYPES.length];
+	public static BitSetUnifier[] setupEnemyBitsets(Piece[] pieces) {
+		BitSetUnifier[] enemyPieces = new BitSetUnifier[PieceType.ALL_PIECE_TYPES.length];
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			enemyPieces[type.ordinal()] = pieces[type.ordinal()].getBitBoard().getBitSet();
 		}

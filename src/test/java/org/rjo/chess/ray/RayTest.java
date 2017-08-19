@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.BitSet;
 import java.util.Random;
 
 import org.junit.Test;
@@ -13,6 +12,8 @@ import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.BitSetFactory;
+import org.rjo.chess.util.BitSetUnifier;
 
 public class RayTest {
 
@@ -42,9 +43,9 @@ public class RayTest {
 		Game game = Fen.decode("r3k2r/p3r2p/8/1P6/B1p1b3/8/P6P/R3K2R b - - 0 0");
 		// now move: Be4-f5 (discovered check)
 		// need to manipulate chessboard to remove the bishop at e4
-		BitSet emptySquares = game.getPosition().getTotalPieces().flip();
+		BitSetUnifier emptySquares = game.getPosition().getTotalPieces().flip();
 		emptySquares.set(Square.e4.bitIndex());
-		BitSet myPieces = game.getPosition().getAllPieces(Colour.BLACK).getBitSet();
+		BitSetUnifier myPieces = game.getPosition().getAllPieces(Colour.BLACK).getBitSet();
 		myPieces.clear(Square.e4.bitIndex());
 		assertTrue(RayUtils.discoveredCheck(Colour.BLACK, game.getPosition(), emptySquares, myPieces, Square.e1, Square.e4));
 	}
@@ -54,9 +55,9 @@ public class RayTest {
 		Game game = Fen.decode("r3k2r/p3r2p/8/1P6/B1p1b3/8/P6P/R3K2R w - - 0 0");
 		// now move: b5-b6 (discovered check)
 		// need to manipulate chessboard to remove the pawn at b5
-		BitSet emptySquares = game.getPosition().getTotalPieces().flip();
+		BitSetUnifier emptySquares = game.getPosition().getTotalPieces().flip();
 		emptySquares.set(Square.b5.bitIndex());
-		BitSet myPieces = game.getPosition().getAllPieces(Colour.WHITE).getBitSet();
+		BitSetUnifier myPieces = game.getPosition().getAllPieces(Colour.WHITE).getBitSet();
 		myPieces.clear(Square.b5.bitIndex());
 		assertTrue(RayUtils.discoveredCheck(Colour.WHITE, game.getPosition(), emptySquares, myPieces, Square.e8, Square.b5));
 	}
@@ -66,9 +67,9 @@ public class RayTest {
 		Game game = Fen.decode("r3k2r/p3n2p/8/1P6/B1p1b3/8/P6P/R3K2R b - - 0 0");
 		// now move: Be4-f5 (not discovered check)
 		// need to manipulate chessboard to remove the bishop at e4
-		BitSet emptySquares = game.getPosition().getTotalPieces().flip();
+		BitSetUnifier emptySquares = game.getPosition().getTotalPieces().flip();
 		emptySquares.set(Square.e4.bitIndex());
-		BitSet myPieces = game.getPosition().getAllPieces(Colour.BLACK).getBitSet();
+		BitSetUnifier myPieces = game.getPosition().getAllPieces(Colour.BLACK).getBitSet();
 		myPieces.clear(Square.e4.bitIndex());
 		assertFalse(RayUtils.discoveredCheck(Colour.BLACK, game.getPosition(), emptySquares, myPieces, Square.e1, Square.e4));
 	}
@@ -96,8 +97,8 @@ public class RayTest {
 
 	@Test
 	public void speed() {
-		BitSet emptySquares = BitSet.valueOf(new long[] { -1 });
-		BitSet myPieces = BitSet.valueOf(new long[] { 0 });
+		BitSetUnifier emptySquares = BitSetFactory.createBitSet(new long[] { -1 });
+		BitSetUnifier myPieces = BitSetFactory.createBitSet(new long[] { 0 });
 		Square startSquare = Square.a4;
 		Square targetSquare = Square.d7;
 		long start = System.currentTimeMillis();

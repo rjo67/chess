@@ -1,6 +1,7 @@
 package org.rjo.chess;
 
-import java.util.BitSet;
+import org.rjo.chess.util.BitSetFactory;
+import org.rjo.chess.util.BitSetUnifier;
 
 /**
  * Representation of the chessboard using 64 bits. http://chessprogramming.wikispaces.com/Bitboards. Little-Endian
@@ -22,27 +23,27 @@ public class BitBoard {
 	 * Usage: to just get pieces on the second file, 'and' the bitset with FILE[1]. TODO maybe store these as immutable
 	 * BitSets?
 	 */
-	public final static BitSet[] FILE = new BitSet[8];
+	public final static BitSetUnifier[] FILE = new BitSetUnifier[8];
 	/**
 	 * BitSets for every <code>file</code> of the board <b>except</b> the file of the array index. The opposite of FILE.
 	 * <p>
 	 * Usage: to get all pieces EXCEPT those on the second file, 'and' the bitset with EXCEPT_FILE[1]
 	 */
-	public final static BitSet[] EXCEPT_FILE = new BitSet[8];
+	public final static BitSetUnifier[] EXCEPT_FILE = new BitSetUnifier[8];
 
 	/**
 	 * BitSets for each rank of the board.
 	 * <p>
 	 * Usage: to just get pieces on the second rank, 'and' the bitset with RANK[1]
 	 */
-	public final static BitSet[] RANK = new BitSet[8];
+	public final static BitSetUnifier[] RANK = new BitSetUnifier[8];
 
 	/**
 	 * BitSets for every rank of the board <b>except</b> the rank of the array index. The opposite of RANK.
 	 * <p>
 	 * Usage: to get all pieces EXCEPT those on the second file, 'and' the bitset with EXCEPT_RANK[1]
 	 */
-	public final static BitSet[] EXCEPT_RANK = new BitSet[8];
+	public final static BitSetUnifier[] EXCEPT_RANK = new BitSetUnifier[8];
 
 	// set up the static constants
 	static {
@@ -205,26 +206,26 @@ public class BitBoard {
 		}
 	}
 
-	private BitSet bs;
+	private BitSetUnifier bs;
 
 	/**
 	 * default constructor. Initialises the underlying bit set to 64 bits.
 	 */
 	public BitBoard() {
-		bs = new BitSet(64);
+		bs = BitSetFactory.createBitSet(64);
 	}
 
 	/**
 	 * Fills the underlying bit with the given 64 bits.
 	 */
 	public BitBoard(long lo) {
-		bs = BitSet.valueOf(new long[] { lo });
+		bs = BitSetFactory.createBitSet(new long[] { lo });
 	}
 
 	/**
 	 * Fills the underlying bit with the given bitset.
 	 */
-	public BitBoard(BitSet bs) {
+	public BitBoard(BitSetUnifier bs) {
 		this.bs = bs;
 	}
 
@@ -283,7 +284,7 @@ public class BitBoard {
 	 *           <B>This is not the same order as used by the BitSet.parse(byte[]) method!!</B>
 	 */
 	public BitBoard(byte[] input) {
-		bs = new BitSet(64);
+		bs = BitSetFactory.createBitSet(64);
 		if (input.length != 8) {
 			throw new IllegalArgumentException("must supply 8 bytes");
 		}
@@ -316,7 +317,7 @@ public class BitBoard {
 	 *
 	 * @return the bitset representing the BitBoard.
 	 */
-	public BitSet getBitSet() {
+	public BitSetUnifier getBitSet() {
 		return bs;
 	}
 
@@ -325,8 +326,8 @@ public class BitBoard {
 	 *
 	 * @return a copy of the underlying bitset.
 	 */
-	public BitSet cloneBitSet() {
-		return (BitSet) bs.clone();
+	public BitSetUnifier cloneBitSet() {
+		return (BitSetUnifier) bs.clone();
 	}
 
 	/**
@@ -346,7 +347,7 @@ public class BitBoard {
 	/**
 	 * Static method to display a given bitset.
 	 */
-	public static String display(BitSet bs) {
+	public static String display(BitSetUnifier bs) {
 		if (bs.size() != 64) {
 			return "cannot display bitset of size " + bs.size();
 		}
@@ -370,8 +371,8 @@ public class BitBoard {
 	 *
 	 * @return a new BitSet, complement of this BitBoard's BitSet.
 	 */
-	public BitSet flip() {
-		BitSet bs = cloneBitSet();
+	public BitSetUnifier flip() {
+		BitSetUnifier bs = cloneBitSet();
 		bs.flip(0, 64);
 		return bs;
 	}

@@ -1,6 +1,5 @@
 package org.rjo.chess.util;
 
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -39,13 +38,13 @@ public class BitValueCalculator {
 		StringBuilder sbLO = new StringBuilder(1000);
 		cacheHI.clear();
 		cacheLO.clear();
-		BitSet posnOfPiece = new BitSet(8);
+		BitSetUnifier posnOfPiece = BitSetFactory.createBitSet(8);
 		posnOfPiece.set(piecePosn);
 
 		int countHI = 0;
 		int countLO = 0;
 		for (int i = 0; i < 256; i++) {
-			BitSet bs = BitSet.valueOf(new long[] { i });
+			BitSetUnifier bs = BitSetFactory.createBitSet(new long[] { i });
 			bs.or(posnOfPiece);
 			int val = getVal(bs);
 			// since we're always setting "posnOfPiece", we get some duplicates
@@ -111,7 +110,7 @@ public class BitValueCalculator {
 		}
 	}
 
-	private int getVal(BitSet bs) {
+	private int getVal(BitSetUnifier bs) {
 		int val = 0;
 		if (bs.toLongArray().length >= 1) {
 			val = (int) bs.toLongArray()[0];

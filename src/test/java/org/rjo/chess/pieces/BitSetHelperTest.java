@@ -1,12 +1,12 @@
 package org.rjo.chess.pieces;
 
-import java.util.BitSet;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.rjo.chess.BitBoard;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.rjo.chess.util.BitSetFactory;
+import org.rjo.chess.util.BitSetUnifier;
 
 public class BitSetHelperTest {
 
@@ -22,7 +22,7 @@ public class BitSetHelperTest {
 
 	@Test
 	public void allBitsOneRankNorth() {
-		BitSet expected = new BitBoard(new byte[] {
+		BitSetUnifier expected = new BitBoard(new byte[] {
 				//@formatter:off
             (byte) 0b11111111,
             (byte) 0b11111111,
@@ -33,7 +33,7 @@ public class BitSetHelperTest {
             (byte) 0b11111111,
             (byte) 0b00000000 }).getBitSet();
       //@formatter:on
-		BitSet result = BitSetHelper.shiftOneNorth(BitSet.valueOf(new long[] { -1 }));
+		BitSetUnifier result = BitSetHelper.shiftOneNorth(BitSetFactory.createBitSet(new long[] { -1 }));
 		assertEquals(expected, result);
 	}
 
@@ -45,7 +45,7 @@ public class BitSetHelperTest {
 
 	@Test
 	public void allBitsOneNorthWest() {
-		BitSet expected = new BitBoard(new byte[] {
+		BitSetUnifier expected = new BitBoard(new byte[] {
 				//@formatter:off
             (byte) 0b11111110,
             (byte) 0b11111110,
@@ -56,7 +56,7 @@ public class BitSetHelperTest {
             (byte) 0b11111110,
             (byte) 0b00000000 }).getBitSet();
       //@formatter:on
-		BitSet result = BitSetHelper.shiftOneNorthWest(BitSet.valueOf(new long[] { -1 }));
+		BitSetUnifier result = BitSetHelper.shiftOneNorthWest(BitSetFactory.createBitSet(new long[] { -1 }));
 		assertEquals(expected, result);
 	}
 
@@ -69,7 +69,7 @@ public class BitSetHelperTest {
 
 	@Test
 	public void allBitsOneNorthEast() {
-		BitSet expected = new BitBoard(new byte[] {
+		BitSetUnifier expected = new BitBoard(new byte[] {
 				//@formatter:off
             (byte) 0b01111111,
             (byte) 0b01111111,
@@ -80,8 +80,8 @@ public class BitSetHelperTest {
             (byte) 0b01111111,
             (byte) 0b00000000 }).getBitSet();
       //@formatter:on
-		BitSet result = BitSetHelper.shiftOneNorthEast(BitSet.valueOf(new long[] { -1 }));
-		assertEquals(expected, result);
+		BitSetUnifier result = BitSetHelper.shiftOneNorthEast(BitSetFactory.createBitSet(new long[] { -1 }));
+		assertTrue(expected.equals(result));
 	}
 
 	@Test
@@ -93,7 +93,7 @@ public class BitSetHelperTest {
 
 	@Test
 	public void allBitsOneSouthEast() {
-		BitSet expected = new BitBoard(new byte[] {
+		BitSetUnifier expected = new BitBoard(new byte[] {
 				//@formatter:off
             (byte) 0b00000000,
             (byte) 0b01111111,
@@ -104,7 +104,7 @@ public class BitSetHelperTest {
             (byte) 0b01111111,
             (byte) 0b01111111 }).getBitSet();
       //@formatter:on
-		BitSet result = BitSetHelper.shiftOneSouthEast(BitSet.valueOf(new long[] { -1 }));
+		BitSetUnifier result = BitSetHelper.shiftOneSouthEast(BitSetFactory.createBitSet(new long[] { -1 }));
 		assertEquals(expected, result);
 	}
 
@@ -116,7 +116,7 @@ public class BitSetHelperTest {
 
 	@Test
 	public void allBitsOneSouthWest() {
-		BitSet expected = new BitBoard(new byte[] {
+		BitSetUnifier expected = new BitBoard(new byte[] {
 				//@formatter:off
             (byte) 0b00000000,
             (byte) 0b11111110,
@@ -127,7 +127,7 @@ public class BitSetHelperTest {
             (byte) 0b11111110,
             (byte) 0b11111110 }).getBitSet();
       //@formatter:on
-		BitSet result = BitSetHelper.shiftOneSouthWest(BitSet.valueOf(new long[] { -1 }));
+		BitSetUnifier result = BitSetHelper.shiftOneSouthWest(BitSetFactory.createBitSet(new long[] { -1 }));
 		assertEquals(expected, result);
 	}
 
@@ -139,7 +139,7 @@ public class BitSetHelperTest {
 
 	@Test
 	public void allBitsOneRankSouth() {
-		BitSet expected = new BitBoard(new byte[] {
+		BitSetUnifier expected = new BitBoard(new byte[] {
 				//@formatter:off
             (byte) 0b00000000,
             (byte) 0b11111111,
@@ -150,7 +150,7 @@ public class BitSetHelperTest {
             (byte) 0b11111111,
             (byte) 0b11111111 }).getBitSet();
       //@formatter:on
-		BitSet result = BitSetHelper.shiftOneSouth(BitSet.valueOf(new long[] { -1 }));
+		BitSetUnifier result = BitSetHelper.shiftOneSouth(BitSetFactory.createBitSet(new long[] { -1 }));
 		assertEquals(expected, result);
 	}
 
@@ -161,7 +161,7 @@ public class BitSetHelperTest {
 
 	@Test
 	public void allBitsOneFileWest() {
-		BitSet expected = new BitBoard(new byte[] {
+		BitSetUnifier expected = new BitBoard(new byte[] {
 				//@formatter:off
             (byte) 0b11111110,
             (byte) 0b11111110,
@@ -172,7 +172,7 @@ public class BitSetHelperTest {
             (byte) 0b11111110,
             (byte) 0b11111110 }).getBitSet();
       //@formatter:on
-		BitSet result = BitSetHelper.shiftOneWest(BitSet.valueOf(new long[] { -1 }));
+		BitSetUnifier result = BitSetHelper.shiftOneWest(BitSetFactory.createBitSet(new long[] { -1 }));
 		assertEquals(expected, result);
 	}
 
@@ -183,7 +183,7 @@ public class BitSetHelperTest {
 
 	@Test
 	public void allBitsOneFileEast() {
-		BitSet expected = new BitBoard(new byte[] {
+		BitSetUnifier expected = new BitBoard(new byte[] {
 				//@formatter:off
             (byte) 0b01111111,
             (byte) 0b01111111,
@@ -194,7 +194,7 @@ public class BitSetHelperTest {
             (byte) 0b01111111,
             (byte) 0b01111111 }).getBitSet();
       //@formatter:on
-		BitSet result = BitSetHelper.shiftOneEast(BitSet.valueOf(new long[] { -1 }));
+		BitSetUnifier result = BitSetHelper.shiftOneEast(BitSetFactory.createBitSet(new long[] { -1 }));
 		assertEquals(expected, result);
 	}
 
@@ -204,8 +204,8 @@ public class BitSetHelperTest {
 	 * @param setBits bits to set
 	 * @return a new bit set with the required bits set.
 	 */
-	private BitSet initStartBits(int[] setBits) {
-		BitSet bs = new BitSet(64);
+	private BitSetUnifier initStartBits(int[] setBits) {
+		BitSetUnifier bs = BitSetFactory.createBitSet(64);
 		for (int setBit : setBits) {
 			bs.set(setBit);
 		}
@@ -218,7 +218,7 @@ public class BitSetHelperTest {
 	 * @param bs bitset to check. Will be modified by this method!
 	 * @param setBits bits that should be set
 	 */
-	private void checkResult(BitSet bs,
+	private void checkResult(BitSetUnifier bs,
 			int[] setBits) {
 		for (int setBit : setBits) {
 			assertTrue("bit " + setBit + " not set: remaining bits in result: " + bs, bs.get(setBit));

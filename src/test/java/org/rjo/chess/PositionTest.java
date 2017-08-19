@@ -6,13 +6,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.rjo.chess.pieces.PieceType;
+import org.rjo.chess.util.BitSetFactory;
+import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.Stopwatch;
 
 /**
@@ -140,25 +141,25 @@ public class PositionTest {
 		Position posnAfterMove = posn.move(move);
 		InternalState newState = new InternalState(posnAfterMove);
 
-		BitSet expectedBishopsAndQueens = new BitSet(64);
+		BitSetUnifier expectedBishopsAndQueens = BitSetFactory.createBitSet(64);
 		expectedBishopsAndQueens.set(14);
 		expectedBishopsAndQueens.set(47);
 
-		BitSet expectedEmptySquares = (BitSet) prevState.emptySquares.clone();
+		BitSetUnifier expectedEmptySquares = (BitSetUnifier) prevState.emptySquares.clone();
 		assertFalse(expectedEmptySquares.get(Square.f4.bitIndex()));
 		expectedEmptySquares.set(Square.f4.bitIndex());
 
-		BitSet expectedTotalPieces = (BitSet) prevState.totalPieces.clone();
+		BitSetUnifier expectedTotalPieces = (BitSetUnifier) prevState.totalPieces.clone();
 		assertTrue(expectedTotalPieces.get(Square.f4.bitIndex()));
 		expectedTotalPieces.clear(Square.f4.bitIndex());
 
-		BitSet expectedAllPiecesWhite = (BitSet) prevState.allPiecesWhite.clone();
+		BitSetUnifier expectedAllPiecesWhite = (BitSetUnifier) prevState.allPiecesWhite.clone();
 		assertTrue(expectedAllPiecesWhite.get(Square.f4.bitIndex()));
 		assertFalse(expectedAllPiecesWhite.get(Square.h6.bitIndex()));
 		expectedAllPiecesWhite.clear(Square.f4.bitIndex());
 		expectedAllPiecesWhite.set(Square.h6.bitIndex());
 
-		BitSet expectedAllPiecesBlack = (BitSet) prevState.allPiecesBlack.clone();
+		BitSetUnifier expectedAllPiecesBlack = (BitSetUnifier) prevState.allPiecesBlack.clone();
 		assertTrue(expectedAllPiecesBlack.get(Square.h6.bitIndex()));
 		expectedAllPiecesBlack.clear(Square.h6.bitIndex());
 
@@ -183,23 +184,23 @@ public class PositionTest {
 		Position posnAfterMove = posn.move(move);
 		InternalState newState = new InternalState(posnAfterMove);
 
-		BitSet expectedEmptySquares = (BitSet) prevState.emptySquares.clone();
+		BitSetUnifier expectedEmptySquares = (BitSetUnifier) prevState.emptySquares.clone();
 		assertFalse(expectedEmptySquares.get(Square.e4.bitIndex()));
 		assertFalse(expectedEmptySquares.get(Square.d5.bitIndex()));
 		expectedEmptySquares.set(Square.e4.bitIndex());
 
-		BitSet expectedTotalPieces = (BitSet) prevState.totalPieces.clone();
+		BitSetUnifier expectedTotalPieces = (BitSetUnifier) prevState.totalPieces.clone();
 		assertTrue(expectedTotalPieces.get(Square.e4.bitIndex()));
 		assertTrue(expectedTotalPieces.get(Square.d5.bitIndex()));
 		expectedTotalPieces.clear(Square.e4.bitIndex());
 
-		BitSet expectedAllPiecesWhite = (BitSet) prevState.allPiecesWhite.clone();
+		BitSetUnifier expectedAllPiecesWhite = (BitSetUnifier) prevState.allPiecesWhite.clone();
 		assertTrue(expectedAllPiecesWhite.get(Square.e4.bitIndex()));
 		assertFalse(expectedAllPiecesWhite.get(Square.d5.bitIndex()));
 		expectedAllPiecesWhite.clear(Square.e4.bitIndex());
 		expectedAllPiecesWhite.set(Square.d5.bitIndex());
 
-		BitSet expectedAllPiecesBlack = (BitSet) prevState.allPiecesBlack.clone();
+		BitSetUnifier expectedAllPiecesBlack = (BitSetUnifier) prevState.allPiecesBlack.clone();
 		assertTrue(expectedAllPiecesBlack.get(Square.d5.bitIndex()));
 		expectedAllPiecesBlack.clear(Square.d5.bitIndex());
 
@@ -225,35 +226,35 @@ public class PositionTest {
 		Position posnAfterMove = posn.move(move);
 		InternalState newState = new InternalState(posnAfterMove);
 
-		BitSet expectedRooksAndQueensWhite = new BitSet(64);
+		BitSetUnifier expectedRooksAndQueensWhite = BitSetFactory.createBitSet(64);
 		expectedRooksAndQueensWhite.set(Square.a1.bitIndex());
 		expectedRooksAndQueensWhite.set(Square.h1.bitIndex());
 		expectedRooksAndQueensWhite.set(Square.a8.bitIndex());
-		BitSet expectedRooksAndQueensBlack = new BitSet(64);
+		BitSetUnifier expectedRooksAndQueensBlack = BitSetFactory.createBitSet(64);
 		expectedRooksAndQueensBlack.set(Square.h8.bitIndex());
 
-		BitSet expectedBishopsAndQueensWhite = new BitSet(64);
+		BitSetUnifier expectedBishopsAndQueensWhite = BitSetFactory.createBitSet(64);
 		expectedBishopsAndQueensWhite.set(Square.g2.bitIndex());
 		expectedBishopsAndQueensWhite.set(Square.f4.bitIndex());
 		expectedBishopsAndQueensWhite.set(Square.a8.bitIndex());
 
-		BitSet expectedEmptySquares = (BitSet) prevState.emptySquares.clone();
+		BitSetUnifier expectedEmptySquares = (BitSetUnifier) prevState.emptySquares.clone();
 		assertFalse(expectedEmptySquares.get(Square.b7.bitIndex()));
 		assertFalse(expectedEmptySquares.get(Square.a8.bitIndex()));
 		expectedEmptySquares.set(Square.b7.bitIndex());
 
-		BitSet expectedTotalPieces = (BitSet) prevState.totalPieces.clone();
+		BitSetUnifier expectedTotalPieces = (BitSetUnifier) prevState.totalPieces.clone();
 		assertTrue(expectedTotalPieces.get(Square.b7.bitIndex()));
 		assertTrue(expectedTotalPieces.get(Square.a8.bitIndex()));
 		expectedTotalPieces.clear(Square.b7.bitIndex());
 
-		BitSet expectedAllPiecesWhite = (BitSet) prevState.allPiecesWhite.clone();
+		BitSetUnifier expectedAllPiecesWhite = (BitSetUnifier) prevState.allPiecesWhite.clone();
 		assertTrue(expectedAllPiecesWhite.get(Square.b7.bitIndex()));
 		assertFalse(expectedAllPiecesWhite.get(Square.a8.bitIndex()));
 		expectedAllPiecesWhite.clear(Square.b7.bitIndex());
 		expectedAllPiecesWhite.set(Square.a8.bitIndex());
 
-		BitSet expectedAllPiecesBlack = (BitSet) prevState.allPiecesBlack.clone();
+		BitSetUnifier expectedAllPiecesBlack = (BitSetUnifier) prevState.allPiecesBlack.clone();
 		assertTrue(expectedAllPiecesBlack.get(Square.a8.bitIndex()));
 		expectedAllPiecesBlack.clear(Square.a8.bitIndex());
 
@@ -278,25 +279,25 @@ public class PositionTest {
 		Position posnAfterMove = posn.move(move);
 		InternalState newState = new InternalState(posnAfterMove);
 
-		BitSet expectedEmptySquares = (BitSet) prevState.emptySquares.clone();
+		BitSetUnifier expectedEmptySquares = (BitSetUnifier) prevState.emptySquares.clone();
 		assertFalse(expectedEmptySquares.get(Square.b4.bitIndex()));
 		assertFalse(expectedEmptySquares.get(Square.a4.bitIndex()));
 		expectedEmptySquares.set(Square.b4.bitIndex());
 		expectedEmptySquares.set(Square.a4.bitIndex());
 		expectedEmptySquares.clear(Square.a3.bitIndex());
 
-		BitSet expectedTotalPieces = (BitSet) prevState.totalPieces.clone();
+		BitSetUnifier expectedTotalPieces = (BitSetUnifier) prevState.totalPieces.clone();
 		assertTrue(expectedTotalPieces.get(Square.b4.bitIndex()));
 		assertTrue(expectedTotalPieces.get(Square.a4.bitIndex()));
 		expectedTotalPieces.clear(Square.b4.bitIndex());
 		expectedTotalPieces.clear(Square.a4.bitIndex());
 		expectedTotalPieces.set(Square.a3.bitIndex());
 
-		BitSet expectedAllPiecesWhite = (BitSet) prevState.allPiecesWhite.clone();
+		BitSetUnifier expectedAllPiecesWhite = (BitSetUnifier) prevState.allPiecesWhite.clone();
 		assertTrue(expectedAllPiecesWhite.get(Square.a4.bitIndex()));
 		expectedAllPiecesWhite.clear(Square.a4.bitIndex());
 
-		BitSet expectedAllPiecesBlack = (BitSet) prevState.allPiecesBlack.clone();
+		BitSetUnifier expectedAllPiecesBlack = (BitSetUnifier) prevState.allPiecesBlack.clone();
 		assertTrue(expectedAllPiecesBlack.get(Square.b4.bitIndex()));
 		expectedAllPiecesBlack.clear(Square.b4.bitIndex());
 		expectedAllPiecesBlack.set(Square.a3.bitIndex());
@@ -457,10 +458,10 @@ public class PositionTest {
 	}
 
 	class InternalState {
-		BitSet emptySquares;
-		BitSet allPiecesWhite;
-		BitSet allPiecesBlack;
-		BitSet totalPieces;
+		BitSetUnifier emptySquares;
+		BitSetUnifier allPiecesWhite;
+		BitSetUnifier allPiecesBlack;
+		BitSetUnifier totalPieces;
 
 		InternalState(Position posn) {
 			emptySquares = posn.getTotalPieces().flip();

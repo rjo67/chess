@@ -1,7 +1,6 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -17,6 +16,8 @@ import org.rjo.chess.Move;
 import org.rjo.chess.MoveDistance;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
+import org.rjo.chess.util.BitSetFactory;
+import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.Stopwatch;
 
 /**
@@ -102,26 +103,26 @@ public class King extends AbstractSetPiece {
 	/**
 	 * Valid squares to move to
 	 */
-	private static final BitSet[] MOVES = new BitSet[64];
+	private static final BitSetUnifier[] MOVES = new BitSetUnifier[64];
 
 	static {
 		for (int i = 0; i < 64; i++) {
-			BitSet myBitSet = new BitSet(64);
+			BitSetUnifier myBitSet = BitSetFactory.createBitSet(64);
 			myBitSet.set(i);
 
 			/*
 			 * calculate left and right attack then shift up and down one rank
 			 */
-			BitSet combined = BitSetHelper.shiftOneWest(myBitSet);
-			BitSet east = BitSetHelper.shiftOneEast(myBitSet);
+			BitSetUnifier combined = BitSetHelper.shiftOneWest(myBitSet);
+			BitSetUnifier east = BitSetHelper.shiftOneEast(myBitSet);
 			combined.or(east);
 
 			// save the current state
-			BitSet possibleMoves = (BitSet) combined.clone();
+			BitSetUnifier possibleMoves = (BitSetUnifier) combined.clone();
 			// now add the king's position again and shift up and down one rank
 			combined.or(myBitSet);
-			BitSet north = BitSetHelper.shiftOneNorth(combined);
-			BitSet south = BitSetHelper.shiftOneSouth(combined);
+			BitSetUnifier north = BitSetHelper.shiftOneNorth(combined);
+			BitSetUnifier south = BitSetHelper.shiftOneSouth(combined);
 			// add to result
 			possibleMoves.or(north);
 			possibleMoves.or(south);
@@ -301,7 +302,7 @@ public class King extends AbstractSetPiece {
 		Square kingsSquare = pieces.iterator().next();
 		Square opponentsKingSquare = findOpponentsKing(posn);
 
-		BitSet possibleMoves = (BitSet) MOVES[kingsSquare.bitIndex()].clone();
+		BitSetUnifier possibleMoves = (BitSetUnifier) MOVES[kingsSquare.bitIndex()].clone();
 
 		// move can't be to a square with a piece of the same colour on it
 		possibleMoves.andNot(posn.getAllPieces(getColour()).getBitSet());
@@ -315,7 +316,7 @@ public class King extends AbstractSetPiece {
 		 */
 
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
-		BitSet opponentsPieces = posn.getAllPieces(oppositeColour).getBitSet();
+		BitSetUnifier opponentsPieces = posn.getAllPieces(oppositeColour).getBitSet();
 		// check the possibleMoves and store them as moves / captures.
 		for (int i = possibleMoves.nextSetBit(0); i >= 0; i = possibleMoves.nextSetBit(i + 1)) {
 			Square targetSquare = Square.fromBitIndex(i);
@@ -348,7 +349,7 @@ public class King extends AbstractSetPiece {
 	public boolean isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
-			@SuppressWarnings("unused") BitSet emptySquares,
+			@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		// checks: a king move can only give check if (a) castled with check or (b) discovered check
@@ -398,7 +399,7 @@ public class King extends AbstractSetPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares,
+	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square sq,
 			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
 		return MoveDistance.calculateDistance(pieces.iterator().next(), sq) == 1;
