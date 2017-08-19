@@ -122,7 +122,7 @@ public class UCI {
 
 	class NullOutputStream extends OutputStream {
 		@Override
-		public void write(int arg0) throws IOException {
+		public void write(@SuppressWarnings("unused") int arg0) throws IOException {
 		}
 	}
 

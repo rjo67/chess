@@ -175,10 +175,8 @@ public class Pawn extends AbstractBitBoardPiece {
 			@SuppressWarnings("unused") BitSet emptySquares,
 			SquareCache<CheckStates> checkCache,
 			@SuppressWarnings("unused") SquareCache<Boolean> discoveredCheckCache) {
-		BitSet opponentsKingBitset = new BitSet(64);
-		opponentsKingBitset.set(opponentsKing.bitIndex());
 		// probably not worth caching discovered check results for pawns
-		boolean isCheck = checkIfCheckInternal(posn, move, opponentsKing, opponentsKingBitset, checkCache, helper[getColour().ordinal()]);
+		boolean isCheck = checkIfCheckInternal(posn, move, opponentsKing, checkCache, helper[getColour().ordinal()]);
 		// if it's already check, don't need to calculate discovered check
 		if (!isCheck) {
 			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
@@ -401,7 +399,6 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param posn the board
 	 * @param move the pawn move
 	 * @param opponentsKing square of the opponent's king
-	 * @param opponentsKingBitset bitset for the opponent's king (passed in as optimization)
 	 * @param checkCache stores whether a particular square checks the opponents king. Only for B/R/Q.
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @return true if this move leaves the king in check
@@ -409,14 +406,13 @@ public class Pawn extends AbstractBitBoardPiece {
 	private boolean checkIfCheckInternal(Position posn,
 			Move move,
 			Square opponentsKing,
-			BitSet opponentsKingBitset,
 			SquareCache<CheckStates> checkCache,
 			MoveHelper helper) {
 		if (move.isPromotion()) {
 			if (move.getPromotedPiece() == PieceType.KNIGHT) {
 				return Knight.checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
 			} else {
-				BitSet emptySquares = posn.getTotalPieces().flip();
+				BitSet emptySquares = (BitSet) posn.getEmptySquares().clone(); // need a clone, since changing it hereafter
 				emptySquares.set(move.from().bitIndex());
 				emptySquares.clear(move.to().bitIndex());
 

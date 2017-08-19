@@ -34,7 +34,10 @@ public abstract class AbstractPiece implements Piece {
 
 	@Override
 	public Object clone() throws CloneNotSupportedException {
-		return super.clone();
+		AbstractPiece newPiece = (AbstractPiece) super.clone();
+		newPiece.type = this.type;
+		newPiece.colour = this.colour;
+		return newPiece;
 	}
 
 	/**

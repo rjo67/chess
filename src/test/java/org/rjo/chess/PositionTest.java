@@ -33,7 +33,9 @@ public class PositionTest {
 			@SuppressWarnings("unused")
 			Position p2 = new Position(p);
 		}
-		System.out.println(nbrIter + " new Positions in " + sw.read() + "ms");
+		long duration = sw.read();
+		System.out
+				.println(nbrIter + " new Positions in " + duration + "ms " + String.format("%9.7f", ((1.0 * duration) / nbrIter)) + "/posn");
 	}
 
 	@Test

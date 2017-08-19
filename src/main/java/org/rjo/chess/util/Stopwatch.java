@@ -16,4 +16,8 @@ public class Stopwatch {
 		return System.currentTimeMillis() - start;
 	}
 
+	public long getStart() {
+		return start;
+	}
+
 }

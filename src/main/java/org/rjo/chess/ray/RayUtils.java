@@ -1,8 +1,12 @@
 package org.rjo.chess.ray;
 
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
+import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
@@ -11,6 +15,19 @@ import org.rjo.chess.pieces.PieceType;
 public class RayUtils {
 	// lookup table for each square sq1, storing the ray for every other square relative to sq1
 	private final static Ray[][] RAYS_BETWEEN_SQUARES = new Ray[64][64];
+	// lookup table for each square sq1, storing the DIAGONAL ray (or null) for every other square relative to sq1
+	private final static Ray[][] DIAGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
+	// lookup table for each square sq1, storing the HORIZONTAL/VERTICAL ray (or null) for every other square relative to sq1
+	private final static Ray[][] ORTHOGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
+
+	@SuppressWarnings("unchecked")
+	// stores for each starting square, a list of the squares in between to get to sq2 (sq1, sq2 not included)
+	// can be null: no ray between the two squares, or empty list.
+	// SQUARES_ON_RAY[a1][c3] delivers the squares between a1 and c3 -- b2 in this case.
+	private final static List<Integer>[][] SQUARES_ON_RAY = new List[64][64];
+
+	// this is the same info as SQUARES_ON_RAY, but stored as a bitset
+	private final static BitSet[][] BITSET_SQUARES_ON_RAY = new BitSet[64][64];
 
 	// set up static lookups
 	static {
@@ -25,11 +42,28 @@ public class RayUtils {
 						break;
 					}
 					Iterator<Integer> iter = BaseRay.getRay(rayType).squaresFrom(sq1);
+					List<Integer> squaresFound = new ArrayList<>();
 					while (iter.hasNext() && !found) {
-						if (sq2 == iter.next()) {
+						Integer square = iter.next();
+						if (sq2 == square) {
 							found = true;
-							RAYS_BETWEEN_SQUARES[sq1][sq2] = BaseRay.getRay(rayType);
+							Ray ray = BaseRay.getRay(rayType);
+							RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;
+							if (ray.isDiagonal()) {
+								DIAGONAL_RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;
+							} else {
+								ORTHOGONAL_RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;
+							}
+						} else {
+							squaresFound.add(square);
 						}
+					}
+					if (found) {
+						SQUARES_ON_RAY[sq1][sq2] = Collections.unmodifiableList(squaresFound);
+						// System.out.println(sq1 + " -> " + sq2 + ": " + SQUARES_ON_RAY[sq1][sq2]);
+						BitBoard bb = new BitBoard();
+						squaresFound.stream().forEach(sq -> bb.setBitsAt(Square.fromBitIndex(sq)));
+						BITSET_SQUARES_ON_RAY[sq1][sq2] = bb.getBitSet();
 					}
 				}
 			}
@@ -168,4 +202,23 @@ public class RayUtils {
 		return RAYS_BETWEEN_SQUARES[sq1.bitIndex()][sq2.bitIndex()];
 	}
 
+	public static Ray getDiagonalRay(Square sq1,
+			Square sq2) {
+		return DIAGONAL_RAYS_BETWEEN_SQUARES[sq1.bitIndex()][sq2.bitIndex()];
+	}
+
+	public static Ray getOrthogonalRay(Square sq1,
+			Square sq2) {
+		return ORTHOGONAL_RAYS_BETWEEN_SQUARES[sq1.bitIndex()][sq2.bitIndex()];
+	}
+
+	public static BitSet getBitSetOfSquaresBetween(Square sq1,
+			Square sq2) {
+		return BITSET_SQUARES_ON_RAY[sq1.bitIndex()][sq2.bitIndex()];
+	}
+
+	public static BitSet getBitSetOfSquaresBetween(int sq1,
+			int sq2) {
+		return BITSET_SQUARES_ON_RAY[sq1][sq2];
+	}
 }

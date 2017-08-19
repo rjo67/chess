@@ -23,7 +23,7 @@ import org.rjo.chess.util.BitValueCalculator;
 import org.rjo.chess.util.Stopwatch;
 
 /**
- * Stores information about the rooks (still) in the game.
+ * Stores information about the rooks in the game.
  *
  * @author rich
  */

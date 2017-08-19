@@ -21,7 +21,7 @@ import org.rjo.chess.util.Stopwatch;
  *
  * @author rich
  */
-public class Knight extends AbstractBitBoardPiece {
+public class Knight extends AbstractSetPiece {
 	private static final Logger LOG = LogManager.getLogger(Knight.class);
 
 	/** piece value in centipawns */
@@ -43,11 +43,6 @@ public class Knight extends AbstractBitBoardPiece {
 				-40, -20,   0,   0,   0,   0, -20, -40,
 				-50, -40, -30, -30, -30, -30, -40, -50, };
 	// @formatter:on
-
-	@Override
-	public int calculatePieceSquareValue() {
-		return AbstractBitBoardPiece.pieceSquareValue(pieces.getBitSet(), getColour(), PIECE_VALUE, SQUARE_VALUE);
-	}
 
 	/**
 	 * Stores for each square on the board the possible moves for a knight on that square.
@@ -165,6 +160,11 @@ public class Knight extends AbstractBitBoardPiece {
 	}
 
 	@Override
+	public int calculatePieceSquareValue() {
+		return pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);
+	}
+
+	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
 		Stopwatch stopwatch = new Stopwatch();
@@ -201,26 +201,27 @@ public class Knight extends AbstractBitBoardPiece {
 		/*
 		 * for each knight on the board, finds its moves using the lookup table
 		 */
-		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-			BitSet possibleMoves = (BitSet) knightMoves[i].clone();
-			// move can't be to a square with a piece of the same colour on it
-			possibleMoves.andNot(allMyPiecesBitSet);
-
-			final Square knightStartSquare = Square.fromBitIndex(i);
+		for (Square knightStartSquare : pieces) {
+			BitSet possibleMoves = knightMoves[knightStartSquare.bitIndex()];
 
 			/*
 			 * Iterates over all possible moves and stores them as moves or captures
 			 */
 			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
-				Square targetSquare = Square.fromBitIndex(k);
-				Move move;
-				if (allOpponentsPiecesBitSet.get(k)) {
-					// capture
-					move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare, posn.pieceAt(targetSquare, oppositeColour));
-				} else {
-					move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare);
+				// move can't be to a square with a piece of the same colour on it
+				if (!allMyPiecesBitSet.get(k)) {
+					Square targetSquare = Square.fromBitIndex(k);
+					Move move;
+					// decide if capture or not
+					if (allOpponentsPiecesBitSet.get(k)) {
+						// capture
+						move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare,
+								posn.pieceAt(targetSquare, oppositeColour));
+					} else {
+						move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare);
+					}
+					moves.add(move);
 				}
-				moves.add(move);
 			}
 		}
 		return moves;
@@ -271,7 +272,7 @@ public class Knight extends AbstractBitBoardPiece {
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares,
 			Square targetSq,
 			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
-		return Knight.attacksSquare(targetSq, pieces.getBitSet());
+		return Knight.attacksSquare(targetSq, createBitSetOfPieces());
 	}
 
 	/**

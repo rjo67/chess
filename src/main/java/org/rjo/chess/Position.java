@@ -60,9 +60,15 @@ public class Position {
 
 	/**
 	 * bitboard of all pieces on the board (irrespective of colour). Logical NOT of this BitBoard gives a bitboard of all
-	 * empty squares.
+	 * empty squares (see {@link #emptySquares}.
 	 */
 	private BitBoard totalPieces;
+
+	/**
+	 * BitSet of all empty squares. Logical NOT of this BitBoard gives {@link #totalPieces}. Only created 'on demand', see
+	 * {@link #getEmptySquares()}.
+	 */
+	private BitSet emptySquares;
 
 	/** Indicates an enpassant square; can be null. */
 	private Square enpassantSquare;
@@ -166,6 +172,7 @@ public class Position {
 		// need to clone here, since these structures are changed incrementally in updateStructures()
 
 		totalPieces = new BitBoard(posn.totalPieces);
+		emptySquares = null;
 
 		allEnemyPieces = new BitBoard[2];
 		castling = new EnumSet[2];
@@ -231,6 +238,7 @@ public class Position {
 		totalPieces = new BitBoard();
 		totalPieces.getBitSet().or(allEnemyPieces[Colour.WHITE.ordinal()].getBitSet());
 		totalPieces.getBitSet().or(allEnemyPieces[Colour.BLACK.ordinal()].getBitSet());
+		emptySquares = null;
 
 		enpassantSquare = null;
 	}
@@ -284,6 +292,7 @@ public class Position {
 				totalPieces.getBitSet().flip(enpassantSquareBitIndex);
 			}
 		}
+		emptySquares = null; // will be recreated on-demand
 	}
 
 	/**
@@ -327,7 +336,7 @@ public class Position {
 		final Square opponentsKing = King.findOpponentsKing(getSideToMove(), this);
 		final SquareCache<CheckStates> checkCache = new SquareCache<>();
 		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>();
-		final BitSet emptySquares = getTotalPieces().flip();
+		final BitSet emptySquares = getEmptySquares();
 		for (Move move : moves) {
 			Piece p = getPieces(colour)[move.getPiece().ordinal()];
 			move.setCheck(p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares, checkCache, discoveredCheckCache));
@@ -680,46 +689,6 @@ public class Position {
 		return sb.toString();
 	}
 
-	// private BitBoard updateBishopsAndQueens(Map<PieceType, Piece> pieces) {
-	// Piece queens = pieces.get(PieceType.QUEEN);
-	// BitSet queensBitSet;
-	// if (queens == null) {
-	// queensBitSet = new BitSet(64);
-	// } else {
-	// queensBitSet = queens.getBitBoard().getBitSet();
-	// }
-	//
-	// Piece bishops = pieces.get(PieceType.BISHOP);
-	// BitSet bishopsAndQueens;
-	// if (bishops == null) {
-	// bishopsAndQueens = new BitSet(64);
-	// } else {
-	// bishopsAndQueens = bishops.getBitBoard().cloneBitSet();
-	// }
-	// bishopsAndQueens.or(queensBitSet);
-	// return new BitBoard(bishopsAndQueens);
-	// }
-	//
-	// private BitBoard updateRooksAndQueens(Map<PieceType, Piece> pieces) {
-	// Piece queens = pieces.get(PieceType.QUEEN);
-	// BitSet queensBitSet;
-	// if (queens == null) {
-	// queensBitSet = new BitSet(64);
-	// } else {
-	// queensBitSet = queens.getBitBoard().getBitSet();
-	// }
-	//
-	// Piece rooks = pieces.get(PieceType.ROOK);
-	// BitSet rooksAndQueens;
-	// if (rooks == null) {
-	// rooksAndQueens = new BitSet(64);
-	// } else {
-	// rooksAndQueens = rooks.getBitBoard().cloneBitSet();
-	// }
-	// rooksAndQueens.or(queensBitSet);
-	// return new BitBoard(rooksAndQueens);
-	// }
-
 	/**
 	 * Updates the given bitset to represent the move. The from and to squares will be flipped. If castling then the rook's
 	 * move is also taken into a/c.
@@ -765,6 +734,19 @@ public class Position {
 	 */
 	public BitBoard getTotalPieces() {
 		return totalPieces;
+	}
+
+	/**
+	 * returns the bitset of all empty squares (logical NOT of {@link #getTotalPieces()}). The bitset will be created on
+	 * first usage.
+	 *
+	 * @return the bitset of all empty squares.
+	 */
+	public BitSet getEmptySquares() {
+		if (emptySquares == null) {
+			emptySquares = getTotalPieces().flip();
+		}
+		return emptySquares;
 	}
 
 	public PieceManager getPieceManager() {
@@ -817,7 +799,7 @@ public class Position {
 		Piece[] opponentsPieces = getPieces(opponentsColour);
 		// iterate over the pieces
 		// TODO instead of treating queens separately, could 'merge' them with the rooks and the bishops
-		BitSet emptySquares = getTotalPieces().flip();
+		BitSet emptySquares = getEmptySquares();
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece piece = opponentsPieces[type.ordinal()];
 			if (piece != null) {
@@ -853,7 +835,7 @@ public class Position {
 		}
 
 		// set up the emptySquares and myPieces bitsets *after* this move
-		BitSet emptySquares = posn.getTotalPieces().flip();
+		BitSet emptySquares = posn.getTotalPieces().flip();// need a clone, therefore not using getEmptySquares
 		BitSet myPieces = posn.getAllPieces(colour).cloneBitSet();
 
 		emptySquares.set(moveFromIndex);
@@ -864,64 +846,6 @@ public class Position {
 
 		return RayUtils.discoveredCheck(colour, posn, emptySquares, myPieces, opponentsKing, move.from());
 	}
-
-	/**
-	 * Returns true if a piece on <code>startSquare</code> attacks <code>targetSquare</code>, i.e. the two squares are on
-	 * the same ray and there are no intervening pieces.
-	 * <p>
-	 * It still depends on the piece type to determine whether there really is an attack.
-	 *
-	 * @param emptySquares bitset of empty Squares
-	 * @param myPieces bitset of my pieces
-	 * @param myColour my colour
-	 * @param startSquare start square
-	 * @param targetSquare target square
-	 * @return true if a piece on <code>startSquare</code> attacks <code>targetSquare</code>
-	 */
-	// public static boolean checkIfPieceOnSquare1CouldAttackSquare2(BitSet emptySquares, BitSet
-	// myPieces, Colour myColour,
-	// Square startSquare, Square targetSquare) {
-	// Ray ray = RayUtils.getRay(startSquare, targetSquare);
-	// if (ray != null) {
-	// RayInfo info = RayUtils.findFirstPieceOnRay(myColour, emptySquares, myPieces, ray,
-	// startSquare.bitIndex());
-	// int targetSquareIndex = targetSquare.bitIndex();
-	// if (info.foundPiece() && info.getIndexOfPiece() == targetSquareIndex) {
-	// return true;
-	// }
-	// for (int sq : info.getEmptySquares()) {
-	// if (sq == targetSquareIndex) {
-	// return true;
-	// }
-	// }
-	// }
-	// return false;
-	// }
-
-	/**
-	 * Checks if my king is in check after my move, i.e. the piece that moved was actually pinned.
-	 *
-	 * @param posn the current posn
-	 * @param move the move
-	 * @param colour which side is moving
-	 * @param myKing where my king is
-	 * @return true if this move is illegal since the piece that moved was pinned
-	 */
-	// public static boolean checkForPinnedPiece(Position posn, Move move, Colour colour, Square myKing) {
-	// // set up the bitsets *after* this move
-	// BitSet emptySquares = posn.getTotalPieces().flip();
-	// BitSet myPieces = posn.getAllPieces(colour).cloneBitSet();
-	//
-	// emptySquares.set(move.from().bitIndex());
-	// emptySquares.clear(move.to().bitIndex());
-	// if (move.isEnpassant()) {
-	// emptySquares.set(Square.findMoveFromEnpassantSquare(move.to()).bitIndex());
-	// }
-	// myPieces.clear(move.from().bitIndex());
-	// myPieces.set(move.to().bitIndex());
-	//
-	// return RayUtils.kingInCheck(colour, posn, emptySquares, myPieces, myKing, move.from());
-	// }
 
 	/**
 	 * Returns the bitsets of the pieces parameter.

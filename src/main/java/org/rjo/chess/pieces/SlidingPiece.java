@@ -21,30 +21,6 @@ import org.rjo.chess.ray.RayUtils;
  */
 public abstract class SlidingPiece extends AbstractBitBoardPiece {
 
-	// lookup table for each square sq1, storing the DIAGONAL ray (or null) for every other square relative to sq1
-	private final static Ray[][] DIAGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
-	// lookup table for each square sq1, storing the HORIZONTAL/VERTICAL ray (or null) for every other square relative to
-	// sq1
-	private final static Ray[][] ORTHOGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
-
-	static {
-		for (int sq1 = 0; sq1 < 64; sq1++) {
-			for (int sq2 = 0; sq2 < 64; sq2++) {
-				if (sq1 == sq2) {
-					continue;
-				}
-				Ray ray = RayUtils.getRay(Square.fromBitIndex(sq1), Square.fromBitIndex(sq2));
-				if (ray != null) {
-					if (ray.isDiagonal()) {
-						DIAGONAL_RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;
-					} else {
-						ORTHOGONAL_RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;
-					}
-				}
-			}
-		}
-	}
-
 	protected SlidingPiece(Colour colour, PieceType type) {
 		super(colour, type);
 	}
@@ -61,20 +37,6 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	public static boolean attacksSquareOnRankOrFile(BitSet pieces,
 			BitSet emptySquares,
 			Square targetSquare) {
-		// version using canReachTargetSquare is slower than
-		// attacksSquareRankOrFile...
-
-		// final BitSet targetSquareBitSet = new BitSet(64);
-		// targetSquareBitSet.set(targetSquare.bitIndex());
-		// for (MoveHelper helper : new MoveHelper[] {
-		// NorthMoveHelper.instance(), EastMoveHelper.instance(),
-		// SouthMoveHelper.instance(), WestMoveHelper.instance() }) {
-		// if (canReachTargetSquare(pieces, emptySquares, helper,
-		// targetSquareBitSet)) {
-		// return true;
-		// }
-		// }
-		// return false;
 		for (int i = pieces.nextSetBit(0); i >= 0; i = pieces.nextSetBit(i + 1)) {
 			if (attacksSquareRankOrFile(emptySquares, Square.fromBitIndex(i), targetSquare)) {
 				return true;
@@ -119,7 +81,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		/*
 		 * for each piece, use the ray to find emptySquares / firstPiece on the ray
 		 */
-		BitSet emptySquares = posn.getTotalPieces().flip();
+		BitSet emptySquares = posn.getEmptySquares();
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			Square fromSquareIndex = Square.fromBitIndex(i);
 
@@ -144,8 +106,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * This is for bishop-type moves.
 	 *
 	 * @param posn the position. Only used if emptySquares is null.
-	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). If not
-	 *           null, <code>posn</code> is not used.
+	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getEmptySquares(). If not null,
+	 *           <code>posn</code> is not used.
 	 * @param move the move
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check
@@ -169,12 +131,12 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		 * <p>
 		 */
 
-		Ray fromDestinationToKing = DIAGONAL_RAYS_BETWEEN_SQUARES[move.to().bitIndex()][opponentsKing.bitIndex()];
+		Ray fromDestinationToKing = RayUtils.getDiagonalRay(move.to(), opponentsKing);
 		if (fromDestinationToKing == null) {
 			checkCache.store(move.to(), CheckStates.NOT_CHECK);
 			return false;
 		}
-		Ray fromOriginToKing = DIAGONAL_RAYS_BETWEEN_SQUARES[move.from().bitIndex()][opponentsKing.bitIndex()];
+		Ray fromOriginToKing = RayUtils.getDiagonalRay(move.from(), opponentsKing);
 		// case 1:
 		if (!((fromDestinationToKing == null) || (fromOriginToKing == null))) {
 			if (fromOriginToKing == fromDestinationToKing) {
@@ -217,7 +179,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 				return false;
 			}
 		}
-		return attacksSquareDiagonally(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(), opponentsKing,
+		return attacksSquareDiagonally(emptySquares == null ? posn.getEmptySquares() : emptySquares, move.to(), opponentsKing,
 				checkCache);
 	}
 
@@ -247,7 +209,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		if (overallState != null) {
 			return overallState == CheckStates.CHECK || overallState == CheckStates.CHECK_IF_CAPTURE;
 		}
-		Ray ray = DIAGONAL_RAYS_BETWEEN_SQUARES[startSquare.bitIndex()][targetSquare.bitIndex()];
+		Ray ray = RayUtils.getDiagonalRay(startSquare, targetSquare);
 		if (ray == null) {
 			checkCache.store(startSquare, CheckStates.NOT_CHECK);
 			return false;
@@ -306,8 +268,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * This is for rook-type moves.
 	 *
 	 * @param posn the position. Only used if emptySquares is null.
-	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getTotalPieces.flip(). In this
-	 *           case posn is not used.
+	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getEmptySquares().
 	 * @param move the move
 	 * @param opponentsKing where the opponent's king is
 	 * @return true if this move is a check
@@ -318,7 +279,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			Square opponentsKing) {
 		// abort if dest sq rank/file is not the same as the king's rank/file
 		if (move.to().file() == opponentsKing.file() || move.to().rank() == opponentsKing.rank()) {
-			return attacksSquareRankOrFile(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(), opponentsKing);
+			return attacksSquareRankOrFile(emptySquares == null ? posn.getEmptySquares() : emptySquares, move.to(), opponentsKing);
 		} else {
 			return false;
 		}
@@ -341,7 +302,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		if (startSquare == targetSquare) {
 			return false;
 		}
-		Ray ray = ORTHOGONAL_RAYS_BETWEEN_SQUARES[startSquare.bitIndex()][targetSquare.bitIndex()];
+		Ray ray = RayUtils.getOrthogonalRay(startSquare, targetSquare);
 		if (ray == null) {
 			return false;
 		}

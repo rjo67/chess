@@ -2,12 +2,12 @@ package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.rjo.chess.BitBoard;
 import org.rjo.chess.CastlingRights;
 import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
@@ -25,7 +25,7 @@ import org.rjo.chess.util.Stopwatch;
  * @author rich
  * @see http://chessprogramming.wikispaces.com/King+Pattern
  */
-public class King extends AbstractPiece {
+public class King extends AbstractSetPiece {
 	private static final Logger LOG = LogManager.getLogger(King.class);
 
 	/** piece value in centipawns */
@@ -131,11 +131,6 @@ public class King extends AbstractPiece {
 	}
 
 	/**
-	 * location of the king
-	 */
-	private Square kingsSquare;
-
-	/**
 	 * Constructs the King class -- with no pieces on the board. Delegates to King(Colour, boolean) with parameter false.
 	 *
 	 * @param colour indicates the colour of the pieces
@@ -197,19 +192,15 @@ public class King extends AbstractPiece {
 			if (requiredSquares.length > 1) {
 				throw new IllegalArgumentException("king cannot have more than one start square");
 			}
-			kingsSquare = requiredSquares[0];
+			pieces = new HashSet<>(1);
+			pieces.add(requiredSquares[0]);
 		}
-	}
-
-	@Override
-	public boolean pieceAt(Square targetSquare) {
-		return kingsSquare == targetSquare;
 	}
 
 	@Override
 	public int calculatePieceSquareValue() {
 
-		int bitIndex = kingsSquare.bitIndex();
+		int bitIndex = pieces.iterator().next().bitIndex();
 
 		int sqValue;
 		if (getColour() == Colour.WHITE) {
@@ -222,38 +213,13 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public void addPiece(Square square) {
-		if (kingsSquare != null) {
-			throw new IllegalStateException("cannot add more than one king");
-		}
-		kingsSquare = square;
-	}
-
-	@Override
-	public Square[] getLocations() {
-		return new Square[] { kingsSquare };
+	public void addPiece(@SuppressWarnings("unused") Square square) {
+		throw new IllegalStateException("cannot add king!?");
 	}
 
 	@Override
 	public void removePiece(@SuppressWarnings("unused") Square square) {
 		throw new IllegalStateException("cannot remove king!?");
-	}
-
-	@Override
-	public void move(Move move) {
-		if (kingsSquare != move.from()) {
-			throw new IllegalArgumentException("the king is not on square " + move.from() + ". Move=" + move);
-		}
-		kingsSquare = move.to();
-	}
-
-	@Override
-	public BitBoard getBitBoard() {
-		BitBoard bb = new BitBoard();
-		if (kingsSquare != null) {
-			bb.setBitsAt(kingsSquare);
-		}
-		return bb;
 	}
 
 	/**
@@ -332,6 +298,7 @@ public class King extends AbstractPiece {
 	public List<Move> findPotentialMoves(Position posn) {
 		List<Move> moves = new ArrayList<>();
 
+		Square kingsSquare = pieces.iterator().next();
 		Square opponentsKingSquare = findOpponentsKing(posn);
 
 		BitSet possibleMoves = (BitSet) MOVES[kingsSquare.bitIndex()].clone();
@@ -399,7 +366,7 @@ public class King extends AbstractPiece {
 		}
 		if (!isCheck) {
 			if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-				isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getTotalPieces().flip(), move.getRooksCastlingMove().to(), opponentsKing);
+				isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getEmptySquares(), move.getRooksCastlingMove().to(), opponentsKing);
 			}
 		}
 		return isCheck;
@@ -426,6 +393,7 @@ public class King extends AbstractPiece {
 	 */
 	public static Square findKing(Colour colour,
 			Position posn) {
+		//TODO must be a better way ...?
 		return posn.getPieces(colour)[PieceType.KING.ordinal()].getLocations()[0];
 	}
 
@@ -433,6 +401,6 @@ public class King extends AbstractPiece {
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSet emptySquares,
 			Square sq,
 			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
-		return MoveDistance.calculateDistance(kingsSquare, sq) == 1;
+		return MoveDistance.calculateDistance(pieces.iterator().next(), sq) == 1;
 	}
 }
