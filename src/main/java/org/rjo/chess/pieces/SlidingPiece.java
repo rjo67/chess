@@ -25,8 +25,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 
 	// lookup table for each square sq1, storing the DIAGONAL ray (or null) for every other square relative to sq1
 	private final static Ray[][] DIAGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
-	// lookup table for each square sq1, storing the HORIZONTAL/VERTICAL ray (or null) for every other square relative to
-	// sq1
+	// lookup table for each square sq1, storing the HORIZONTAL/VERTICAL ray (or null) for every other square relative to sq1
 	private final static Ray[][] ORTHOGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
 
 	static {
@@ -171,19 +170,23 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		 * <p>
 		 */
 
-		Ray fromDestinationToKing = DIAGONAL_RAYS_BETWEEN_SQUARES[move.to().bitIndex()][opponentsKing.bitIndex()];
-		if (fromDestinationToKing == null) {
+		Ray destSquareToKing = DIAGONAL_RAYS_BETWEEN_SQUARES[move.to().bitIndex()][opponentsKing.bitIndex()];
+		if (destSquareToKing == null) {
 			checkCache.setNotCheck(null, move.to());
 			return false;
 		}
-		Ray fromOriginToKing = DIAGONAL_RAYS_BETWEEN_SQUARES[move.from().bitIndex()][opponentsKing.bitIndex()];
+		// have we already processed this startSquare?
+		if (checkCache.isCheckStatusKnownForSquare(move.to(), destSquareToKing.getRayType())) {
+			return checkCache.squareHasCheckStatus(move.to(), destSquareToKing.getRayType());
+		}
+		Ray originSquareToKing = DIAGONAL_RAYS_BETWEEN_SQUARES[move.from().bitIndex()][opponentsKing.bitIndex()];
 		// case 1:
-		if (!((fromDestinationToKing == null) || (fromOriginToKing == null))) {
-			if (fromOriginToKing == fromDestinationToKing) {
+		if (!((destSquareToKing == null) || (originSquareToKing == null))) {
+			if (originSquareToKing == destSquareToKing) {
 				// move.from <-> king and move.to <-> king have the same ray
 				if (!emptySquares.get(move.to().bitIndex())) {
 					// if there are now just empty squares between move.to and the king, this is a CHECK_IF_CAPTURE. Otherwise NOT_CHECK
-					Iterator<Integer> iter = fromDestinationToKing.squaresFrom(move.to());
+					Iterator<Integer> iter = destSquareToKing.squaresFrom(move.to());
 					boolean foundPiece = false;
 					boolean foundKing = false;
 					while (iter.hasNext() && !foundPiece && !foundKing) {
@@ -195,18 +198,18 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 						}
 					}
 					if (foundPiece) {
-						checkCache.setNotCheck(fromDestinationToKing.getRayType(), move.to());
+						checkCache.setNotCheck(destSquareToKing.getRayType(), move.to());
 						return false;
 					} else if (foundKing) {
 						// no intervening pieces
-						checkCache.setCheckIfCapture(fromDestinationToKing.getRayType(), move.to());
+						checkCache.setCheckIfCapture(destSquareToKing.getRayType(), move.to());
 						return true;
 					} else {
 						throw new IllegalStateException("exited loop without finding the king");
 					}
 				} else {
 					// move.from <-> king and move.to <-> king has the same ray, so cannot be check since didn't capture a piece
-					checkCache.setNotCheck(fromDestinationToKing.getRayType(), move.to());
+					checkCache.setNotCheck(destSquareToKing.getRayType(), move.to());
 					return false;
 				}
 			}
@@ -214,8 +217,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			// case 2:
 			// TODO this is only correct in context of above 'if'
 			Ray fromDestinationToOrigin = RayUtils.getRay(move.to(), move.from());
-			if (fromDestinationToOrigin.oppositeOf(fromDestinationToKing)) {
-				checkCache.setNotCheck(fromDestinationToKing.getRayType(), move.to());
+			if (fromDestinationToOrigin.oppositeOf(destSquareToKing)) {
+				checkCache.setNotCheck(destSquareToKing.getRayType(), move.to());
 				return false;
 			}
 		}
@@ -236,7 +239,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param checkCache (optional -- but not null) will be updated with results from the search.
 	 * @return true if the target square is attacked (diagonally) from the start square.
 	 */
-	protected static boolean attacksSquareDiagonally(BitSet emptySquares,
+	public static boolean attacksSquareDiagonally(BitSet emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			PositionCheckState checkCache,
@@ -357,6 +360,10 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		if (ray == null) {
 			// do not set checkCache, since it may contain info for other types of pieces (e.g. not orthogonal but diagonal check)
 			return false;
+		}
+		// do we already know the status of the start square?
+		if (checkCache.isCheckStatusKnownForSquare(startSquare, ray.getRayType())) {
+			return checkCache.squareHasCheckStatus(startSquare, ray.getRayType());
 		}
 		Iterator<Integer> squaresFrom = ray.squaresFrom(startSquare);
 		List<Integer> squaresVisited = new ArrayList<>();

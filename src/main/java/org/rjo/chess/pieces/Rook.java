@@ -17,6 +17,7 @@ import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
+import org.rjo.chess.SystemFlags;
 import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.BitValueCalculator;
@@ -31,11 +32,6 @@ import org.rjo.chess.util.Stopwatch;
 public class Rook extends SlidingPiece {
 
 	private static final Logger LOG = LogManager.getLogger(Rook.class);
-	/*
-	 * if useMovemap is defined, we'll use the data structures moveMap, vertMoveMap. Otherwise the ray algorithm will be
-	 * used.
-	 */
-	private static final boolean USE_MOVE_MAP = Boolean.parseBoolean(System.getProperty("useMoveMap", "false"));
 
 	/** piece value in centipawns */
 	private static final int PIECE_VALUE = 500;
@@ -383,7 +379,7 @@ public class Rook extends SlidingPiece {
 		List<Move> moves = new ArrayList<>(30);
 
 		// search for moves
-		if (USE_MOVE_MAP) {
+		if (SystemFlags.USE_MOVE_MAP) {
 			moves = findMovesUsingMoveMap(posn);
 		} else {
 			for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {

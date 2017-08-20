@@ -23,6 +23,7 @@ public class BitBoard {
 	 * BitSets?
 	 */
 	public final static BitSet[] FILE = new BitSet[8];
+
 	/**
 	 * BitSets for every <code>file</code> of the board <b>except</b> the file of the array index. The opposite of FILE.
 	 * <p>

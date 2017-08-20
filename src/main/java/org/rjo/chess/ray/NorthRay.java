@@ -9,7 +9,7 @@ public class NorthRay extends BaseRay {
 	private static NorthRay instance = new NorthRay();
 
 	private NorthRay() {
-		super(RayType.NORTH, false, new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
+		super(RayType.NORTH, new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
 		final int offset = 8;
 		for (int i = 0; i < 64; i++) {
 			raySquares[i] = new ArrayList<>(8);

@@ -12,13 +12,9 @@ import org.apache.logging.log4j.Logger;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionScore;
+import org.rjo.chess.SystemFlags;
 
 public class AlphaBeta implements SearchStrategy {
-
-	/**
-	 * if TRUE, uses the Zobrist map. Otherwise not.
-	 */
-	private static final boolean USE_ZOBRIST = Boolean.parseBoolean(System.getProperty("useZobrist", "true"));
 
 	private static final int MIN_INT = -99999;
 	private static final int MAX_INT = -MIN_INT;
@@ -150,7 +146,7 @@ public class AlphaBeta implements SearchStrategy {
 	}
 
 	private Optional<PositionScore> checkZobrist(Position posnAfterMove) {
-		if (USE_ZOBRIST) {
+		if (SystemFlags.USE_ZOBRIST) {
 			Position previouslyProcessedPosition = zobristMap.get(posnAfterMove);
 			if (previouslyProcessedPosition != null) {
 				// use the score for this position
@@ -168,7 +164,7 @@ public class AlphaBeta implements SearchStrategy {
 
 	private void updateZobrist(Position posnAfterMove,
 			PositionScore positionScore) {
-		if (USE_ZOBRIST) {
+		if (SystemFlags.USE_ZOBRIST) {
 			posnAfterMove.setPositionScore(positionScore);
 			zobristMap.put(posnAfterMove, posnAfterMove);
 		}

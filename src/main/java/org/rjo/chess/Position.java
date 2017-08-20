@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.rjo.chess.PositionCheckState.CheckInfo;
 import org.rjo.chess.pieces.Bishop;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Knight;
@@ -24,6 +25,7 @@ import org.rjo.chess.pieces.PieceManager;
 import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
+import org.rjo.chess.pieces.SlidingPiece;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.ray.RayUtils;
@@ -44,11 +46,6 @@ public class Position {
 
 	// thread pool for findMove()
 	private static ExecutorService threadPool = Executors.newFixedThreadPool(PieceType.getPieceTypes().length);
-
-	/**
-	 * if TRUE, finds all moves (potentially non-legal) and removes illegal moves later. If FALSE, just finds legal moves.
-	 */
-	private static final boolean GENERATE_ILLEGAL_MOVES = Boolean.parseBoolean(System.getProperty("generateIllegalMoves", "false"));
 
 	/**
 	 * Controls access to the pieces in the game.
@@ -103,12 +100,6 @@ public class Position {
 
 	public static Position startPosition() {
 		return new Position(Colour.WHITE);
-	}
-
-	public static void debugLog(String str) {
-		if (System.getProperty("CHECK-DEBUG") != null) {
-			System.out.println(str);
-		}
 	}
 
 	/**
@@ -322,13 +313,13 @@ public class Position {
 		List<Move> moves = new ArrayList<>(100);
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece p = getPieces(colour)[type.ordinal()];
-			if (GENERATE_ILLEGAL_MOVES) {
+			if (SystemFlags.GENERATE_ILLEGAL_MOVES) {
 				moves.addAll(p.findPotentialMoves(this));
 			} else {
 				moves.addAll(p.findMoves(this, inCheck));
 			}
 		}
-		if (GENERATE_ILLEGAL_MOVES) {
+		if (SystemFlags.GENERATE_ILLEGAL_MOVES) {
 			// 'moves' must now be pruned to get rid of illegal moves,
 			// i.e. those leaving my king in check
 			checkMovesForLegality(moves, inCheck);
@@ -457,7 +448,7 @@ public class Position {
 			Writer debugWriter) {
 		Position newPosn = new Position(this);
 		newPosn.internalMove(move, debugWriter);
-		if (Zobrist.CHECK_HASH_UPDATE_AFTER_MOVE) {
+		if (SystemFlags.CHECK_HASH_UPDATE_AFTER_MOVE) {
 			long updatedHash = newPosn.zobristHash;
 			Position posnAfterMove = Fen.decode(Fen.encode(newPosn)).getPosition();
 			if (updatedHash != posnAfterMove.zobristHash) {
@@ -507,7 +498,8 @@ public class Position {
 			}
 		}
 		updateStructures(move);
-		updateCheckStateAfterMove(move, pieceMgr.getPiece(sideToMove, PieceType.KING).getLocations()[0]);
+		updateCheckStateAfterMove(move, pieceMgr.getPiece(sideToMove, PieceType.KING).getLocations()[0],
+				pieceMgr.getPiece(Colour.oppositeColour(sideToMove), PieceType.KING).getLocations()[0]);
 
 		updateCastlingRightsAfterMove(move, debugWriter);
 		if (move.isPawnMoveTwoSquaresForward()) {
@@ -647,24 +639,27 @@ public class Position {
 
 	/** update the check state after <code>move</code> */
 	private void updateCheckStateAfterMove(Move move,
-			Square myKing) {
+			Square myKing,
+			Square opponentsKing) {
 
 		/*
 		 * When black moves, we need to update the checkState of WHITE (since this tracks the squares which check the black
 		 * king). Ditto when white moves, need to update BLACK's checkState.
 		 */
 		PositionCheckState state = checkState[Colour.oppositeColour(move.getColour()).ordinal()];
+		Square relevantSquare;
+		Ray rayToKing;
 
 		// king move - reset state
 		if (move.getPiece() == PieceType.KING) {
-			state.clear();
+			state.reset();
 		} else {
 
 			//
 			// process ray between my king and move.to()
 			//
-			Square relevantSquare = move.to();
-			Ray rayToKing = RayUtils.getRay(relevantSquare, myKing);
+			relevantSquare = move.to();
+			rayToKing = RayUtils.getRay(relevantSquare, myKing);
 			if (rayToKing != null) {
 				RayType rayType = rayToKing.getRayType();
 				// update move.to() if was CHECK, to CHECK_CAPTURE
@@ -688,8 +683,97 @@ public class Position {
 				// squares further away from king set to UNKNOWN
 				rayToKing.getOpposite().streamSquaresFrom(relevantSquare).forEach(sq -> state.setToUnknownState(sq, rayType));
 			}
-
 		}
+		//
+		// ALSO need to update our own state. The square we've moved to should set other squares on the same ray
+		// (but further from the opponent's king) to NOT_CHECK.
+		PositionCheckState stateOfMovingSide = checkState[move.getColour().ordinal()];
+		relevantSquare = move.from();
+		rayToKing = RayUtils.getRay(relevantSquare, opponentsKing);
+		if (rayToKing != null) {
+			RayType rayType = rayToKing.getRayType();
+			// squares further away from king set to UNKNOWN
+			rayToKing.getOpposite().streamSquaresFrom(relevantSquare).forEach(sq -> stateOfMovingSide.setToUnknownState(sq, rayType));
+		}
+		relevantSquare = move.to();
+		rayToKing = RayUtils.getRay(relevantSquare, opponentsKing);
+		if (rayToKing != null) {
+			RayType rayType = rayToKing.getRayType();
+			// squares further away from king set to NO_CHECK
+			rayToKing.getOpposite().streamSquaresFrom(relevantSquare).forEach(sq -> stateOfMovingSide.setToNotCheck(sq, rayType));
+		}
+
+		if (SystemFlags.DEBUG_CHECK_STATE) {
+			examineCheckState(move);
+		}
+	}
+
+	/**
+	 * this is a debug method to make sure that all squares marked as 'check' in checkState do really check the opponent's
+	 * king.
+	 *
+	 * @param sideToMove which side is moving
+	 */
+	private void examineCheckState(Move move) {
+		Colour sideToMove = move.getColour();
+		// if white is moving, want to check the black's checkState against the position of the white king
+		Colour opponentsColour = Colour.oppositeColour(sideToMove);
+		Square opponentsKingsSquare = pieceMgr.getPiece(opponentsColour, PieceType.KING).getLocations()[0];
+		PositionCheckState state = checkState[sideToMove.ordinal()];
+		BitSet emptySquares = getTotalPieces().flip();
+		state.stream()
+				.filter(x -> x.getRight().getState() != CheckStates.UNKNOWN)
+				.forEach(x -> {
+					Square startSquare = Square.fromBitIndex(x.getLeft());
+					CheckInfo info = x.getRight();
+					boolean isCheck;
+					// special case: if ray is null, then state can only be NOT_CHECK. Need to check rook/bishop/queen
+					// TODO: queen checks diagonal and rank/file, which leads to problems...
+					if (info.getRayType() == null) {
+						if (info.getState() != CheckStates.NOT_CHECK) {
+							throw new IllegalStateException("null ray but checkstate != NOT_CHECK");
+						}
+						isCheck = Bishop.attacksSquare(emptySquares, startSquare, opponentsKingsSquare, new PositionCheckState(), false);
+						if (!isCheck) {
+							isCheck = Rook.attacksSquare(emptySquares, startSquare, opponentsKingsSquare, new PositionCheckState(), false);
+						}
+						if (!isCheck) {
+							isCheck = Queen.attacksSquare(emptySquares, startSquare, opponentsKingsSquare, new PositionCheckState(), false);
+						}
+
+						isCheck = false; //TODO    workaround
+
+					} else {
+						if (info.getRayType().isDiagonal()) {
+							// bishop/queen
+							isCheck = SlidingPiece.attacksSquareDiagonally(emptySquares, startSquare, opponentsKingsSquare,
+									new PositionCheckState(), false);
+						} else {
+							// rook/queen
+							isCheck = SlidingPiece.attacksSquareRankOrFile(emptySquares, startSquare, opponentsKingsSquare,
+									new PositionCheckState(), false);
+						}
+					}
+					switch (info.getState()) {
+					case NOT_CHECK:
+						if (isCheck) {
+							throw new IllegalStateException("move: " + move + ", square " + startSquare + " has wrong state: " + info + ", king: "
+									+ opponentsKingsSquare + "\n" + state.toString() + "posn:\n" + this);
+						}
+						break;
+					case CHECK:
+					case CHECK_IF_CAPTURE:
+						if (!isCheck) {
+							throw new IllegalStateException("move: " + move + ", square " + startSquare + " has wrong state: " + info + ", king: "
+									+ opponentsKingsSquare + "\n" + state.toString() + "posn:\n" + this);
+						}
+						break;
+					case UNKNOWN:
+						throw new IllegalStateException("cannot happen");
+					}
+
+				});
+
 	}
 
 	// displays the board (always from white POV, a1 in bottom LHS)

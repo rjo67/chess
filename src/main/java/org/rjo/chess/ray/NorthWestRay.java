@@ -9,7 +9,7 @@ public class NorthWestRay extends BaseRay {
 	private static NorthWestRay instance = new NorthWestRay();
 
 	private NorthWestRay() {
-		super(RayType.NORTHWEST, true, new PieceType[] { PieceType.QUEEN, PieceType.BISHOP });
+		super(RayType.NORTHWEST, new PieceType[] { PieceType.QUEEN, PieceType.BISHOP });
 		final int offset = 7;
 		for (int i = 0; i < 64; i++) {
 			raySquares[i] = new ArrayList<>(8);

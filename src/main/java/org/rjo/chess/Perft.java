@@ -29,7 +29,7 @@ public class Perft {
 		// see PerftTest::posn6ply5
 		// 5ply: 164.075.551 moves
 		Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-		System.out.println("PerftTest::posn6ply5 starting...");
+		System.out.println("Perft::posn6ply5 starting...");
 		long start = System.currentTimeMillis();
 		Map<String, Integer> moveMap = findMoves(game.getPosition(), Colour.WHITE, 5);
 		long time = System.currentTimeMillis() - start;

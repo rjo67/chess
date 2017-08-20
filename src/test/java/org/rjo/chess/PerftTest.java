@@ -107,7 +107,7 @@ public class PerftTest {
 				long time = System.currentTimeMillis() - start;
 				// no printout if took less than 500ms
 				if (printout) {
-					System.out.println(String.format(Locale.GERMANY, "%40s %2dply: %,12d moves (%,9d ms) (%7.1f moves/ms)", testname, depth + 1,
+					System.out.println(String.format(Locale.GERMANY, "%40s %2dply: %,12d moves (%,8d ms) (%6.1f moves/ms)", testname, depth + 1,
 							moves, time, ((moves * 1.0) / time)));
 				}
 				assertEquals("error in test '" + testname + "': wrong nbr of moves at depth " + (depth + 1) + "\nfen: " + fenString

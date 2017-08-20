@@ -1,26 +1,40 @@
 package org.rjo.chess.util;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import org.rjo.chess.Square;
 
 /**
- * A simple cache to map values to squares.
+ * A simple cache to map squares to values.
+ * 
+ * @param <T> the type of the information which is stored for each square
  */
 public class SquareCache<T> {
-	// can't create generic array
-	private T[] cache;
 
+	// the cache
+	private T[] cache;
+	// the default value for each entry (can be null)
+	private T defaultValue;
+
+	// can't create generic array
 	@SuppressWarnings("unchecked")
 	public SquareCache(T defaultValue) {
-		cache = (T[]) new Object[Square.values().length];
-		for (int i = 0; i < Square.values().length; i++) {
-			cache[i] = defaultValue;
-		}
+		this.cache = (T[]) new Object[Square.values().length];
+		this.defaultValue = defaultValue;
+		reset();
 	}
 
 	public SquareCache(SquareCache<T> copy) {
 		cache = Arrays.copyOf(copy.cache, copy.cache.length);
+		defaultValue = copy.defaultValue;
+	}
+
+	/**
+	 * Reset the cache to the default value.
+	 */
+	public void reset() {
+		Arrays.fill(cache, defaultValue);
 	}
 
 	final public T lookup(Square square) {
@@ -39,6 +53,10 @@ public class SquareCache<T> {
 	final public void store(int squareBitIndex,
 			T value) {
 		cache[squareBitIndex] = value;
+	}
+
+	final public Stream<T> stream() {
+		return Arrays.stream(cache);
 	}
 
 	@Override

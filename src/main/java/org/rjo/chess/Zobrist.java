@@ -22,13 +22,6 @@ import org.rjo.chess.pieces.PieceType;
  */
 public class Zobrist {
 
-	/**
-	 * if TRUE, re-calculate the zobrist hash in order to check that the update function works.
-	 * <p>
-	 * Is a good check for the Zobrist function, however it does slow things down dramatically.
-	 */
-	public static final boolean CHECK_HASH_UPDATE_AFTER_MOVE = Boolean.parseBoolean(System.getProperty("checkZobristHash", "false"));
-
 	public static final Zobrist INSTANCE = new Zobrist();
 
 	/** the random number generator for all the numbers required by this class */

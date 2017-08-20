@@ -37,7 +37,7 @@ public class PositionCheckStateTest {
 		state = posn2.getCheckState()[Colour.WHITE.ordinal()];
 
 		// are correct moves listed?
-		Arrays.stream(new Square[] { Square.f2, Square.f3, Square.f4, Square.f5, Square.f6, Square.f7 })
+		Arrays.stream(new Square[] { Square.f4, Square.f5, Square.f6, Square.f7 })
 				.forEach(sq -> assertSquareHasCorrectStatus(sq, RayType.NORTH, (square,
 						raytype) -> state.squareHasCheckStatus(square, raytype)));
 
