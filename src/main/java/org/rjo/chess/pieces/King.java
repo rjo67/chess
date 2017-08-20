@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.CastlingRights;
@@ -19,7 +20,6 @@ import org.rjo.chess.Square;
 import org.rjo.chess.util.BitSetFactory;
 import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.SquareCache;
-import org.rjo.chess.util.Stopwatch;
 
 /**
  * Stores information about the king in the game.
@@ -259,10 +259,10 @@ public class King extends AbstractSetPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
-		Stopwatch stopwatch = new Stopwatch();
+		StopWatch stopwatch = new StopWatch();
 		List<Move> moves = findPotentialMoves(posn);
 
-		long time1 = stopwatch.read();
+		long time1 = stopwatch.getTime();
 
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
 
@@ -289,7 +289,7 @@ public class King extends AbstractSetPiece {
 			}
 		}
 
-		long time3 = stopwatch.read();
+		long time3 = stopwatch.getTime();
 		if (time3 != 0) {
 			LOG.debug("found " + moves.size() + " moves in " + time1 + "," + time3 + ", fen: " + Fen.encode(posn));
 		}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.Colour;
@@ -16,7 +17,6 @@ import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.SquareCache;
-import org.rjo.chess.util.Stopwatch;
 
 /**
  * Stores information about the queens (still) in the game.
@@ -104,7 +104,7 @@ public class Queen extends SlidingPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
-		Stopwatch stopwatch = new Stopwatch();
+		StopWatch stopwatch = new StopWatch();
 
 		List<Move> moves = findPotentialMoves(posn);
 
@@ -118,7 +118,7 @@ public class Queen extends SlidingPiece {
 			}
 		}
 
-		long time = stopwatch.read();
+		long time = stopwatch.getTime();
 		if (time != 0) {
 			LOG.debug("found " + moves.size() + " moves in " + time);
 		}

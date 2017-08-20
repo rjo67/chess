@@ -6,13 +6,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.Square;
-import org.rjo.chess.util.Stopwatch;
 
 /**
  * @author rich
@@ -80,13 +80,13 @@ public class PieceManagerTest {
 		Position p = Fen.decode("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0").getPosition();
 		PieceManager pm = p.getPieceManager();
 
-		Stopwatch sw = new Stopwatch();
+		StopWatch sw = new StopWatch();
 		sw.start();
 		for (int i = 0; i < 1000000; i++) {
 			@SuppressWarnings("unused")
 			PieceManager pm2 = new PieceManager(pm);
 		}
-		System.out.println(sw.read());
+		System.out.println(sw.getTime());
 	}
 
 	/**

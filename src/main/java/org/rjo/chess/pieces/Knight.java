@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
@@ -16,7 +17,6 @@ import org.rjo.chess.Square;
 import org.rjo.chess.util.BitSetFactory;
 import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.SquareCache;
-import org.rjo.chess.util.Stopwatch;
 
 /**
  * Stores information about the knights (still) in the game.
@@ -169,7 +169,7 @@ public class Knight extends AbstractSetPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
-		Stopwatch stopwatch = new Stopwatch();
+		StopWatch stopwatch = new StopWatch();
 		final Square myKing = King.findKing(getColour(), posn);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
 
@@ -186,7 +186,7 @@ public class Knight extends AbstractSetPiece {
 			}
 		}
 
-		long time = stopwatch.read();
+		long time = stopwatch.getTime();
 		if (time != 0) {
 			LOG.debug("found " + moves.size() + " moves in " + time);
 		}

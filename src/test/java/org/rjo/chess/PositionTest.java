@@ -9,12 +9,12 @@ import static org.junit.Assert.fail;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.util.BitSetFactory;
 import org.rjo.chess.util.BitSetUnifier;
-import org.rjo.chess.util.Stopwatch;
 
 /**
  * Test Position.
@@ -27,14 +27,14 @@ public class PositionTest {
 	public void posnSpeedTest() throws InterruptedException {
 		Position p = Fen.decode("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0").getPosition();
 
-		Stopwatch sw = new Stopwatch();
+		StopWatch sw = new StopWatch();
 		sw.start();
 		int nbrIter = 10000000;
 		for (int i = 0; i < nbrIter; i++) {
 			@SuppressWarnings("unused")
 			Position p2 = new Position(p);
 		}
-		long duration = sw.read();
+		long duration = sw.getTime();
 		System.out
 				.println(nbrIter + " new Positions in " + duration + "ms " + String.format("%9.7f", ((1.0 * duration) / nbrIter)) + "/posn");
 	}

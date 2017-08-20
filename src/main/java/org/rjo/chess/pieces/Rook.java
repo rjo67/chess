@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
@@ -22,7 +23,6 @@ import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.BitValueCalculator;
 import org.rjo.chess.util.SquareCache;
-import org.rjo.chess.util.Stopwatch;
 
 /**
  * Stores information about the rooks in the game.
@@ -352,7 +352,7 @@ public class Rook extends SlidingPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
-		Stopwatch stopwatch = new Stopwatch();
+		StopWatch stopwatch = new StopWatch();
 
 		List<Move> moves = findPotentialMoves(posn);
 
@@ -367,7 +367,7 @@ public class Rook extends SlidingPiece {
 			}
 		}
 
-		long time = stopwatch.read();
+		long time = stopwatch.getTime();
 		if (time != 0) {
 			LOG.debug("found " + moves.size() + " moves in " + time);
 		}

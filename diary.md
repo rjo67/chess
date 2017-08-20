@@ -13,6 +13,13 @@ date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 03.04.15 | | | 1148,7 moves/ms
 
 
+## 20.08.17
+
+fixed bug in check-cache, where a pawn promotion on a north ray to the king would result in a square
+being incorrectly marked as 'check'.
+
+Merged checkcache work into master.
+
 ## 19.08.17
 
 Added 'BitSetUnifier' interface and two further bitset implementations (lucene and javolution (snapshot version)).

@@ -7,6 +7,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayUtils;
@@ -14,7 +15,6 @@ import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.JavaUtilBitSet;
 import org.rjo.chess.util.JavolutionBitSet;
 import org.rjo.chess.util.LuceneBitSet;
-import org.rjo.chess.util.Stopwatch;
 
 public class BitSetTest {
 
@@ -73,12 +73,12 @@ public class BitSetTest {
 			BitSetUnifier bs,
 			Consumer<BitSetUnifier> fn) {
 		long nbrIters = 10000000;
-		Stopwatch sw = new Stopwatch();
+		StopWatch sw = new StopWatch();
 		sw.start();
 		for (int i = 0; i < nbrIters; i++) {
 			fn.accept(bs);
 		}
-		long duration = sw.read();
+		long duration = sw.getTime();
 		System.out.println("operation: " + name + ", time: " + duration + String.format(", %9.8f", (1.0 * duration) / nbrIters));
 	}
 

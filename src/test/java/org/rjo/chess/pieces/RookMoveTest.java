@@ -3,7 +3,6 @@ package org.rjo.chess.pieces;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Test;
