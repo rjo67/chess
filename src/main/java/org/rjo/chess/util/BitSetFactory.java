@@ -12,13 +12,14 @@ public class BitSetFactory {
 		JAVA_UTIL, LUCENE, JAVOLUTION;
 	}
 
-	private static BitSetImplementation impl = BitSetImplementation.LUCENE;
+	/** the bitset implementation to use */
+	private final static BitSetImplementation BITSET_IMPL = BitSetImplementation.LUCENE;
 
 	private BitSetFactory() {
 	}
 
 	public static BitSetUnifier createBitSet(int nBits) {
-		switch (impl) {
+		switch (BITSET_IMPL) {
 		case JAVA_UTIL:
 			return new JavaUtilBitSet(nBits);
 		case LUCENE:
@@ -31,7 +32,7 @@ public class BitSetFactory {
 	}
 
 	public static BitSetUnifier createBitSet(long[] longarray) {
-		switch (impl) {
+		switch (BITSET_IMPL) {
 		case JAVA_UTIL:
 			return new JavaUtilBitSet(longarray);
 		case LUCENE:

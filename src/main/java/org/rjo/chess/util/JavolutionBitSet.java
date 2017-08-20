@@ -1,5 +1,7 @@
 package org.rjo.chess.util;
 
+import java.lang.reflect.Field;
+
 import org.javolution.util.BitSet;
 
 /**
@@ -10,6 +12,17 @@ import org.javolution.util.BitSet;
  */
 public class JavolutionBitSet implements BitSetUnifier {
 
+	private static Field bitsField;
+
+	/** need this in order to create a BitSet from a long[] */
+	static {
+		try {
+			bitsField = BitSet.class.getDeclaredField("bits");
+			bitsField.setAccessible(true);
+		} catch (NoSuchFieldException | SecurityException e) {
+			throw new IllegalStateException("Javolution BitSet has no field named 'bits'?", e);
+		}
+	}
 	private BitSet bs;
 
 	// just for cloning
@@ -22,8 +35,11 @@ public class JavolutionBitSet implements BitSetUnifier {
 
 	public JavolutionBitSet(long[] longarray) {
 		bs = new BitSet();
-		//TODO hack in the array using reflection?
-		throw new IllegalStateException("no such constructor for javolution yet");
+		try {
+			bitsField.set(bs, longarray);
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("could not set Javolution BitSet field 'bits' using reflection", e);
+		}
 	}
 
 	@Override
