@@ -12,7 +12,6 @@ import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
-import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.BitSetUnifier;

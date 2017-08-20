@@ -10,7 +10,6 @@ import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
-import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayInfo;
 import org.rjo.chess.ray.RayUtils;
@@ -208,7 +207,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		if (startSquare == targetSquare) {
 			return false;
 		}
-		Ray ray = DIAGONAL_RAYS_BETWEEN_SQUARES[startSquare.bitIndex()][targetSquare.bitIndex()];
+		Ray ray = RayUtils.getDiagonalRay(startSquare, targetSquare);
 		if (ray == null) {
 			// do not set checkCache -- not a diagonal check but could be orthogonal
 			return false;

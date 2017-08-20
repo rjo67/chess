@@ -409,7 +409,6 @@ public class Pawn extends AbstractBitBoardPiece {
 	private boolean checkIfCheckInternal(Position posn,
 			Move move,
 			Square opponentsKing,
-			BitSet opponentsKingBitset,
 			PositionCheckState checkCache,
 			MoveHelper helper) {
 		if (move.isPromotion()) {

@@ -274,7 +274,7 @@ public class Knight extends AbstractSetPiece {
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square targetSq,
 			@SuppressWarnings("unused") PositionCheckState checkCache) {
-		return Knight.attacksSquare(targetSq, pieces.getBitSet());
+		return Knight.attacksSquare(targetSq, createBitSetOfPieces());
 	}
 
 	/**

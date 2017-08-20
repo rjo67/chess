@@ -404,6 +404,6 @@ public class King extends AbstractSetPiece {
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square sq,
 			@SuppressWarnings("unused") PositionCheckState checkCache) {
-		return MoveDistance.calculateDistance(kingsSquare, sq) == 1;
+		return MoveDistance.calculateDistance(pieces.iterator().next(), sq) == 1;
 	}
 }
