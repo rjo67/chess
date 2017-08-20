@@ -7,14 +7,15 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
+import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
 import org.rjo.chess.util.BitSetFactory;
 import org.rjo.chess.util.BitSetUnifier;
+import org.rjo.chess.util.SquareCache;
 import org.rjo.chess.util.Stopwatch;
 
 /**
@@ -174,7 +175,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			Move move,
 			Square opponentsKing,
 			@SuppressWarnings("unused") BitSetUnifier emptySquares,
-			SquareCache<CheckStates> checkCache,
+			PositionCheckState checkCache,
 			@SuppressWarnings("unused") SquareCache<Boolean> discoveredCheckCache) {
 		// probably not worth caching discovered check results for pawns
 		boolean isCheck = checkIfCheckInternal(posn, move, opponentsKing, checkCache, helper[getColour().ordinal()]);
@@ -408,7 +409,8 @@ public class Pawn extends AbstractBitBoardPiece {
 	private boolean checkIfCheckInternal(Position posn,
 			Move move,
 			Square opponentsKing,
-			SquareCache<CheckStates> checkCache,
+			BitSet opponentsKingBitset,
+			PositionCheckState checkCache,
 			MoveHelper helper) {
 		if (move.isPromotion()) {
 			if (move.getPromotedPiece() == PieceType.KNIGHT) {
@@ -421,11 +423,11 @@ public class Pawn extends AbstractBitBoardPiece {
 				PieceType promotedPiece = move.getPromotedPiece();
 				switch (promotedPiece) {
 				case QUEEN:
-					return Queen.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache);
+					return Queen.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, false);
 				case ROOK:
-					return Rook.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache);
+					return Rook.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, false);
 				case BISHOP:
-					return Bishop.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache);
+					return Bishop.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, false);
 				default:
 					throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
 				}
@@ -438,7 +440,7 @@ public class Pawn extends AbstractBitBoardPiece {
 	@Override
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square targetSq,
-			@SuppressWarnings("unused") SquareCache<CheckStates> checkCache) {
+			@SuppressWarnings("unused") PositionCheckState checkCache) {
 		return helper[getColour().ordinal()].doPawnsAttackSquare(targetSq, pieces.getBitSet());
 	}
 

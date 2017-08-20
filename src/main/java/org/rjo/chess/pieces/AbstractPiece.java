@@ -6,6 +6,7 @@ import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
+import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
 import org.rjo.chess.util.BitSetUnifier;
 
@@ -88,44 +89,7 @@ public abstract class AbstractPiece implements Piece {
 	@Override
 	public final boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq) {
-		return attacksSquare(emptySquares, targetSq, new SquareCache<>());
+		return attacksSquare(emptySquares, targetSq, new PositionCheckState());
 	}
 
-	/**
-	 * A simple cache to map values to squares.
-	 */
-	public static class SquareCache<T> {
-		// can't create generic array
-		private Object[] cache = new Object[Square.values().length];
-
-		final public T lookup(Square square) {
-			return lookup(square.bitIndex());
-		}
-
-		@SuppressWarnings("unchecked")
-		public T lookup(int squareBitIndex) {
-			return (T) cache[squareBitIndex];
-		}
-
-		final public void store(Square square,
-				T value) {
-			store(square.bitIndex(), value);
-		}
-
-		public void store(int squareBitIndex,
-				T value) {
-			cache[squareBitIndex] = value;
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder sb = new StringBuilder(100);
-			for (Square sq : Square.values()) {
-				if (this.lookup(sq) != null) {
-					sb.append("(" + sq + ":" + this.lookup(sq) + ")");
-				}
-			}
-			return sb.toString();
-		}
-	}
 }

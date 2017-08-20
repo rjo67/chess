@@ -6,16 +6,17 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
+import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
 import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.BitSetUnifier;
+import org.rjo.chess.util.SquareCache;
 import org.rjo.chess.util.Stopwatch;
 
 /**
@@ -144,13 +145,13 @@ public class Queen extends SlidingPiece {
 			Move move,
 			Square opponentsKing,
 			BitSetUnifier emptySquares,
-			SquareCache<CheckStates> checkCache,
+			PositionCheckState checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
 		/*
 		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use
 		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
-		boolean isCheck = findRankOrFileCheck(posn, emptySquares, move, opponentsKing);
+		boolean isCheck = findRankOrFileCheck(posn, emptySquares, move, opponentsKing, checkCache);
 		if (!isCheck) {
 			isCheck = findDiagonalCheck(posn, emptySquares, move, opponentsKing, checkCache);
 		}
@@ -170,9 +171,10 @@ public class Queen extends SlidingPiece {
 	@Override
 	public boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq,
-			SquareCache<CheckStates> checkCache) {
+			PositionCheckState checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache)) {
+			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false/** TODO */
+			)) {
 				return true;
 			}
 		}
@@ -191,11 +193,12 @@ public class Queen extends SlidingPiece {
 	public static boolean attacksSquare(BitSetUnifier emptySquares,
 			Square startSquare,
 			Square targetSquare,
-			SquareCache<CheckStates> checkCache) {
-		if (attacksSquareRankOrFile(emptySquares, startSquare, targetSquare)) {
+			PositionCheckState checkCache,
+			boolean isCapture) {
+		if (attacksSquareRankOrFile(emptySquares, startSquare, targetSquare, checkCache, isCapture)) {
 			return true;
 		}
-		if (attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache)) {
+		if (attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture)) {
 			return true;
 		}
 		return false;

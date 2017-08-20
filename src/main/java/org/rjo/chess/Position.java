@@ -14,7 +14,6 @@ import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.rjo.chess.pieces.AbstractPiece.SquareCache;
 import org.rjo.chess.pieces.Bishop;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Knight;
@@ -24,8 +23,11 @@ import org.rjo.chess.pieces.PieceManager;
 import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
+import org.rjo.chess.ray.Ray;
+import org.rjo.chess.ray.RayType;
 import org.rjo.chess.ray.RayUtils;
 import org.rjo.chess.util.BitSetUnifier;
+import org.rjo.chess.util.SquareCache;
 
 /**
  * An immutable object which stores the board position after a particular move.<br>
@@ -94,6 +96,17 @@ public class Position {
 	/** the evaluated score for this position */
 	private PositionScore positionScore;
 
+	/**
+	 * Which squares lead to check on the opponent's king. One for White's POV, one for Black's.
+	 * <ul>
+	 * >
+	 * <li>checkState[0] stores white's POV, i.e. which squares lead to a check on the black king.</li>
+	 * <li>checkState[1] stores black's POV, i.e. which squares lead to a check on the white king.</li>
+	 * <p>
+	 * Incrementally updated after each move (in the new position).
+	 */
+	private PositionCheckState[] checkState;
+
 	public static Position startPosition() {
 		return new Position(Colour.WHITE);
 	}
@@ -141,7 +154,7 @@ public class Position {
 	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, Colour sideToMove, EnumSet<CastlingRights> whiteCastlingRights,
 			EnumSet<CastlingRights> blackCastlingRights, Square enpassantSquare) {
 		initBoard(whitePieces, blackPieces);
-		castling = new EnumSet[2];
+		castling = new EnumSet[Colour.values().length];
 		castling[Colour.WHITE.ordinal()] = whiteCastlingRights;
 		castling[Colour.BLACK.ordinal()] = blackCastlingRights;
 		this.sideToMove = sideToMove;
@@ -151,37 +164,37 @@ public class Position {
 
 		this.zobristHash = Zobrist.INSTANCE.hash(this);
 		this.fen = Fen.encode(this);
+		this.checkState = new PositionCheckState[Colour.values().length];
+		this.checkState[Colour.WHITE.ordinal()] = new PositionCheckState();
+		this.checkState[Colour.BLACK.ordinal()] = new PositionCheckState();
 	}
 
 	/**
 	 * copy constructor
 	 */
+	@SuppressWarnings("unchecked")
 	public Position(final Position posn) {
 		pieceMgr = new PieceManager(posn.getPieceManager());
 
-		// split into a new method for profiling
-		internInit(posn);
-
-		NBR_INSTANCES_CREATED++;
-		this.zobristHash = posn.zobristHash;
-		// fen is not set here, since will be making a move and then should create it
-	}
-
-	@SuppressWarnings("unchecked")
-	private void internInit(final Position posn) {
 		// need to clone here, since these structures are changed incrementally in updateStructures()
 
 		totalPieces = new BitBoard(posn.totalPieces);
 		emptySquares = null;
 
-		allEnemyPieces = new BitBoard[2];
-		castling = new EnumSet[2];
+		allEnemyPieces = new BitBoard[Colour.values().length];
+		castling = new EnumSet[Colour.values().length];
+		this.checkState = new PositionCheckState[Colour.values().length];
 		for (int i = 0; i < 2; i++) {
 			allEnemyPieces[i] = new BitBoard(posn.allEnemyPieces[i]);
 			castling[i] = posn.castling[i].clone();
+			checkState[i] = new PositionCheckState(posn.checkState[i]);
 		}
 		enpassantSquare = posn.enpassantSquare;
 		sideToMove = posn.sideToMove;
+
+		NBR_INSTANCES_CREATED++;
+		this.zobristHash = posn.zobristHash;
+		// fen is not set here, since will be making a move straight away and should create it then
 	}
 
 	/**
@@ -334,12 +347,12 @@ public class Position {
 		 * at this point have found all legal moves. Now need to establish which moves leave the opponent's king in check
 		 */
 		final Square opponentsKing = King.findOpponentsKing(getSideToMove(), this);
-		final SquareCache<CheckStates> checkCache = new SquareCache<>();
-		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>();
+		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>((Boolean) null);//TODO this cache should not be using null
 		final BitSetUnifier emptySquares = getEmptySquares();
 		for (Move move : moves) {
 			Piece p = getPieces(colour)[move.getPiece().ordinal()];
-			move.setCheck(p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares, checkCache, discoveredCheckCache));
+			move.setCheck(p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares, checkState[colour.ordinal()],
+					discoveredCheckCache));
 		}
 
 		return moves;
@@ -353,7 +366,6 @@ public class Position {
 	 */
 	private void checkMovesForLegality(List<Move> moves,
 			boolean inCheck) {
-		final SquareCache<CheckStates> checkCache = new SquareCache<>();
 		final Square myKing = King.findKing(getSideToMove(), this);
 
 		BitSetUnifier friendlyPieces = this.getAllPieces(sideToMove).getBitSet();
@@ -504,6 +516,7 @@ public class Position {
 			}
 		}
 		updateStructures(move);
+		updateCheckStateAfterMove(move, pieceMgr.getPiece(sideToMove, PieceType.KING).getLocations()[0]);
 
 		updateCastlingRightsAfterMove(move, debugWriter);
 		if (move.isPawnMoveTwoSquaresForward()) {
@@ -639,7 +652,53 @@ public class Position {
 				}
 			}
 		}
+	}
 
+	/** update the check state after <code>move</code> */
+	private void updateCheckStateAfterMove(Move move,
+			Square myKing) {
+
+		/*
+		 * When black moves, we need to update the checkState of WHITE (since this tracks the squares which check the black
+		 * king). Ditto when white moves, need to update BLACK's checkState.
+		 */
+		PositionCheckState state = checkState[Colour.oppositeColour(move.getColour()).ordinal()];
+
+		// king move - reset state
+		if (move.getPiece() == PieceType.KING) {
+			state.clear();
+		} else {
+
+			//
+			// process ray between my king and move.to()
+			//
+			Square relevantSquare = move.to();
+			Ray rayToKing = RayUtils.getRay(relevantSquare, myKing);
+			if (rayToKing != null) {
+				RayType rayType = rayToKing.getRayType();
+				// update move.to() if was CHECK, to CHECK_CAPTURE
+				if (state.squareHasCheckStatus(relevantSquare, rayType)) {
+					state.setCheckIfCapture(rayType, relevantSquare);
+				}
+				// squares further away from king set to NO_CHECK
+				rayToKing.getOpposite().streamSquaresFrom(relevantSquare).forEach(sq -> state.setToNotCheck(sq, rayType));
+			}
+			//
+			// process ray between my king and move.from()
+			//
+			relevantSquare = move.from();
+			rayToKing = RayUtils.getRay(relevantSquare, myKing);
+			if (rayToKing != null) {
+				RayType rayType = rayToKing.getRayType();
+				// update move.from() if was CHECK_CAPTURE, to CHECK (the pice has now moved away)
+				if (state.squareHasCheckIfCaptureStatus(relevantSquare, rayType)) {
+					state.setCheck(rayType, relevantSquare);
+				}
+				// squares further away from king set to UNKNOWN
+				rayToKing.getOpposite().streamSquaresFrom(relevantSquare).forEach(sq -> state.setToUnknownState(sq, rayType));
+			}
+
+		}
 	}
 
 	// displays the board (always from white POV, a1 in bottom LHS)
@@ -784,6 +843,15 @@ public class Position {
 	 */
 	public Square getEnpassantSquare() {
 		return enpassantSquare;
+	}
+
+	/**
+	 * Makes the PositionCheckState visible (for testing).
+	 *
+	 * @return the current check state
+	 */
+	public PositionCheckState[] getCheckState() {
+		return checkState;
 	}
 
 	/**
