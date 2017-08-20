@@ -13,6 +13,7 @@ import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayInfo;
+import org.rjo.chess.ray.RayType;
 import org.rjo.chess.ray.RayUtils;
 import org.rjo.chess.util.SquareCache;
 
@@ -328,7 +329,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		// abort if dest sq rank/file is not the same as the king's rank/file
 		if (move.to().file() == opponentsKing.file() || move.to().rank() == opponentsKing.rank()) {
 			return attacksSquareRankOrFile(emptySquares == null ? posn.getTotalPieces().flip() : emptySquares, move.to(), opponentsKing,
-					checkCache, move.isCapture());
+					checkCache, move.isCapture(), move.isPromotion());
 		} else {
 			checkCache.setNotCheck(null, move.to());
 			return false;
@@ -344,6 +345,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param targetSquare target square
 	 * @param checkCache check cache
 	 * @param isCapture true if the move was a capture
+	 * @param isPromotion true if the move was a promotion (important for the checkcache)
 	 * @return true if the target square is attacked (straight-line) from the start square.
 	 */
 	// public, since King need this too for castling
@@ -351,7 +353,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			Square startSquare,
 			Square targetSquare,
 			PositionCheckState checkCache,
-			boolean isCapture) {
+			boolean isCapture,
+			boolean isPromotion) {
 		// give up straight away if start and target are the same
 		if (startSquare == targetSquare) {
 			return false;
@@ -389,24 +392,39 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 				}
 			}
 		}
-		switch (overallCheckState) {
-		case CHECK_IF_CAPTURE:
-			// all squares visited are set to NOT_CHECK, since we didn't capture the piece
-			checkCache.setNotCheck(ray.getRayType(), squaresVisited);
-			break;
-		case CHECK:
-			checkCache.setCheck(ray.getRayType(), squaresVisited);
-			// special case: if we captured a piece on the start square, then record this as CHECK_WITH_CAPTURE
-			if (isCapture) {
-				checkCache.setCheckIfCapture(ray.getRayType(), startSquare);
+
+		//
+		// Update check-cache state.
+		//
+
+		if (isPromotion && ((ray.getRayType() == RayType.NORTH) || (ray.getRayType() == RayType.SOUTH))) {
+			// The update is ignored in case of a pawn promotion where the pawn --> king is the north ray (south for white)
+			// e.g. this position 8/3k4/8/8/8/5K2/3N1p1p/7r with black to move.
+			// f2-f1=R is check, however setting the cache then leads to Rh1-f1 also being check...
+			// Unfortunately don't know the move's colour here, so have to treat NORTH and SOUTH the same
+
+			// no-op
+
+		} else {
+			switch (overallCheckState) {
+			case CHECK_IF_CAPTURE:
+				// all squares visited are set to NOT_CHECK, since we didn't capture the piece
+				checkCache.setNotCheck(ray.getRayType(), squaresVisited);
+				break;
+			case CHECK:
+				checkCache.setCheck(ray.getRayType(), squaresVisited);
+				// special case: if we captured a piece on the start square, then record this as CHECK_WITH_CAPTURE
+				if (isCapture) {
+					checkCache.setCheckIfCapture(ray.getRayType(), startSquare);
+				}
+				break;
+			case NOT_CHECK:
+				checkCache.setNotCheck(ray.getRayType(), squaresVisited);
+				break;
+			case UNKNOWN:
+				throw new IllegalStateException("overall check state has not been determined, startSquare: " + startSquare + ", targetSquare: "
+						+ targetSquare + ", checkCache:\n" + checkCache);
 			}
-			break;
-		case NOT_CHECK:
-			checkCache.setNotCheck(ray.getRayType(), squaresVisited);
-			break;
-		case UNKNOWN:
-			throw new IllegalStateException("overall check state has not been determined, startSquare: " + startSquare + ", targetSquare: "
-					+ targetSquare + ", checkCache:\n" + checkCache);
 		}
 
 		return overallCheckState == CheckStates.CHECK;

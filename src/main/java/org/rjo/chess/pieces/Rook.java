@@ -420,7 +420,7 @@ public class Rook extends SlidingPiece {
 			PositionCheckState checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false /** TODO */
-			)) {
+					, false)) {
 				return true;
 			}
 		}
@@ -434,14 +434,17 @@ public class Rook extends SlidingPiece {
 	 * @param startSquare start square (i.e. where the rook is)
 	 * @param targetSquare square being attacked (i.e. where the king is)
 	 * @param checkCache cache of previously found results
+	 * @param isCapture if the move is a capture
+	 * @param isPromotion if the move is a promotion
 	 * @return true if targetSquare is attacked from startSquare, otherwise false.
 	 */
 	public static boolean attacksSquare(BitSet emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			PositionCheckState checkCache,
-			boolean isCapture) {
-		return attacksSquareRankOrFile(emptySquares, startSquare, targetSquare, checkCache, isCapture);
+			boolean isCapture,
+			boolean isPromotion) {
+		return attacksSquareRankOrFile(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion);
 	}
 }
 

@@ -333,8 +333,9 @@ public class Position {
 		final BitSet emptySquares = getTotalPieces().flip();
 		for (Move move : moves) {
 			Piece p = getPieces(colour)[move.getPiece().ordinal()];
-			move.setCheck(p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares, checkState[colour.ordinal()],
-					discoveredCheckCache));
+			boolean isCheck = p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares, checkState[colour.ordinal()],
+					discoveredCheckCache);
+			move.setCheck(isCheck);
 		}
 
 		return moves;
@@ -735,10 +736,10 @@ public class Position {
 						}
 						isCheck = Bishop.attacksSquare(emptySquares, startSquare, opponentsKingsSquare, new PositionCheckState(), false);
 						if (!isCheck) {
-							isCheck = Rook.attacksSquare(emptySquares, startSquare, opponentsKingsSquare, new PositionCheckState(), false);
+							isCheck = Rook.attacksSquare(emptySquares, startSquare, opponentsKingsSquare, new PositionCheckState(), false, false);
 						}
 						if (!isCheck) {
-							isCheck = Queen.attacksSquare(emptySquares, startSquare, opponentsKingsSquare, new PositionCheckState(), false);
+							isCheck = Queen.attacksSquare(emptySquares, startSquare, opponentsKingsSquare, new PositionCheckState(), false, false);
 						}
 
 						isCheck = false; //TODO    workaround
@@ -751,7 +752,7 @@ public class Position {
 						} else {
 							// rook/queen
 							isCheck = SlidingPiece.attacksSquareRankOrFile(emptySquares, startSquare, opponentsKingsSquare,
-									new PositionCheckState(), false);
+									new PositionCheckState(), false, false);
 						}
 					}
 					switch (info.getState()) {

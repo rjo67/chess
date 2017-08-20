@@ -99,7 +99,8 @@ public class Perft {
 		for (Move move : posn.findMoves(sideToMove)) {
 			logMove(depth, move, posn);
 			Position posnAfterMove = posn.move(move);
-			totalMoves += findMovesInternal(posnAfterMove, Colour.oppositeColour(sideToMove), depth - 1);
+			int nbrMoves = findMovesInternal(posnAfterMove, Colour.oppositeColour(sideToMove), depth - 1);
+			totalMoves += nbrMoves;
 		}
 		return totalMoves;
 	}
@@ -109,6 +110,7 @@ public class Perft {
 			Position posn) {
 		if (MOVE_LOGGER.isDebugEnabled()) {
 			MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn) + "\n" + posn.getCheckState()[0] + "\n" + posn.getCheckState()[1]);
+			//			MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn));
 		}
 	}
 
