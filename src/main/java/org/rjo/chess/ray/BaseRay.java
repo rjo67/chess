@@ -33,14 +33,12 @@ public abstract class BaseRay implements Ray {
 	}
 
 	private RayType rayType;
-	private boolean diagonal;
 	@SuppressWarnings("unchecked")
 	protected final List<Integer>[] raySquares = new List[64];
 	protected PieceType[] piecesThatCanGiveCheckOnThisRay;
 
-	protected BaseRay(RayType rayType, boolean diagonal, PieceType[] pieceTypes) {
+	protected BaseRay(RayType rayType, PieceType[] pieceTypes) {
 		this.rayType = rayType;
-		this.diagonal = diagonal;
 		this.piecesThatCanGiveCheckOnThisRay = pieceTypes;
 	}
 
@@ -51,7 +49,7 @@ public abstract class BaseRay implements Ray {
 
 	@Override
 	public final boolean isDiagonal() {
-		return diagonal;
+		return rayType.isDiagonal();
 	}
 
 	@Override

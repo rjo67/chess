@@ -1,8 +1,11 @@
 package org.rjo.chess;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.BiPredicate;
 
 import org.junit.Test;
@@ -37,7 +40,7 @@ public class PositionCheckStateTest {
 		state = posn2.getCheckState()[Colour.WHITE.ordinal()];
 
 		// are correct moves listed?
-		Arrays.stream(new Square[] { Square.f2, Square.f3, Square.f4, Square.f5, Square.f6, Square.f7 })
+		Arrays.stream(new Square[] { Square.f4, Square.f5, Square.f6, Square.f7 })
 				.forEach(sq -> assertSquareHasCorrectStatus(sq, RayType.NORTH, (square,
 						raytype) -> state.squareHasCheckStatus(square, raytype)));
 
@@ -66,6 +69,29 @@ public class PositionCheckStateTest {
 		Arrays.stream(new Square[] { Square.c8, Square.d8, Square.e8 }).forEach(sq -> assertSquareHasCorrectStatus(sq, RayType.EAST, (square,
 				raytype) -> state.squareHasCheckStatus(square, raytype)));
 		// now make black move and check if state is correctly updated
+	}
+
+	/**
+	 * pawn promotes (giving check) to king on same ray.
+	 */
+	@Test
+	public void promotionCheck() {
+		Position posn = Fen.decode("8/3k4/8/8/8/8/3NKp1p/7r w - - 2 4").getPosition();
+		posn.findMoves(Colour.WHITE);
+		Move move = new Move(PieceType.KING, Colour.WHITE, Square.e2, Square.f3);
+		Position posn2 = posn.move(move);
+
+		// now find black moves...
+		List<Move> moves = posn2.findMoves(Colour.BLACK);
+
+		// make sure Rh1-f1 is not a check!
+		Optional<Move> rookMove = moves.stream()
+				.filter(m -> m.getPiece() == PieceType.ROOK)
+				.filter(m -> m.from() == Square.h1)
+				.filter(m -> m.to() == Square.f1)
+				.findFirst();
+		assertTrue("rook move not found?!", rookMove.isPresent());
+		assertFalse("rook move should not be check", rookMove.get().isCheck());
 	}
 
 }

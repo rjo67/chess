@@ -9,7 +9,7 @@ public class EastRay extends BaseRay {
 	private static EastRay instance = new EastRay();
 
 	private EastRay() {
-		super(RayType.EAST, false, new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
+		super(RayType.EAST, new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
 		final int offset = 1;
 		for (int i = 0; i < 64; i++) {
 			raySquares[i] = new ArrayList<>(8);

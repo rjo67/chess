@@ -1,7 +1,10 @@
 package org.rjo.chess;
 
 import java.util.List;
+import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.SquareCache;
 
@@ -13,8 +16,8 @@ import org.rjo.chess.util.SquareCache;
  */
 public final class PositionCheckState {
 
-	private final static class CheckInfo {
-		private static CheckInfo DEFAULT = new CheckInfo(CheckStates.UNKNOWN, null);
+	final static class CheckInfo {
+		private static final CheckInfo DEFAULT = new CheckInfo(CheckStates.UNKNOWN, null);
 		private CheckStates state;
 		private RayType rayType;
 
@@ -34,6 +37,10 @@ public final class PositionCheckState {
 
 		public CheckStates getState() {
 			return state;
+		}
+
+		public RayType getRayType() {
+			return rayType;
 		}
 
 		@Override
@@ -59,7 +66,7 @@ public final class PositionCheckState {
 	 * default constructor.
 	 */
 	public PositionCheckState() {
-		clear();
+		this.checkCache = new SquareCache<>(CheckInfo.DEFAULT);
 	}
 
 	/**
@@ -74,8 +81,8 @@ public final class PositionCheckState {
 	/**
 	 * Reset the cache to the default.
 	 */
-	public void clear() {
-		checkCache = new SquareCache<>(CheckInfo.DEFAULT);
+	public void reset() {
+		checkCache.reset();
 	}
 
 	//
@@ -109,7 +116,7 @@ public final class PositionCheckState {
 	/**
 	 * Sets all the given squares to NOT_CHECK.
 	 *
-	 * @param rayType the required ray
+	 * @param rayType the required ray (can be null)
 	 * @param squares list of one or more squares
 	 */
 	public void setNotCheck(RayType rayType,
@@ -236,6 +243,15 @@ public final class PositionCheckState {
 		return lookup(square.bitIndex(), rayType).getState() == CheckStates.CHECK_IF_CAPTURE;
 	}
 
+	public Stream<Pair<Integer, CheckInfo>> stream() {
+		Builder<Pair<Integer, CheckInfo>> sb = Stream.builder();
+		for (int i = 0; i < 64; i++) {
+			sb.accept(Pair.of(i, lookup(i, null)));
+		}
+
+		return sb.build();
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(150);
@@ -258,7 +274,7 @@ public final class PositionCheckState {
 	 *
 	 * @param squareBitIndex the bit index
 	 * @param rayType the required ray type
-	 * @return the checkinfo if the ray matches, otherwise CheckInfo.DEFAULT
+	 * @return the checkinfo if the ray matches or is null, otherwise CheckInfo.DEFAULT
 	 */
 	private CheckInfo lookup(int squareBitIndex,
 			RayType rayType) {

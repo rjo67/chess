@@ -9,6 +9,7 @@ import org.rjo.chess.Game;
 public class AlphaBetaTest {
 
 	@Test
+	// TODO expected to fail at the moment
 	public void alphabetaWIP() {
 		Game game = Fen.decode("8/5n2/8/8/pk6/4K3/P3NP2/8 w - - 0 15");
 		SearchStrategy strat = new AlphaBeta(game.getZobristMap());

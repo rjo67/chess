@@ -173,7 +173,7 @@ public class Queen extends SlidingPiece {
 			PositionCheckState checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false/** TODO */
-			)) {
+					, false)) {
 				return true;
 			}
 		}
@@ -187,14 +187,17 @@ public class Queen extends SlidingPiece {
 	 * @param startSquare start square (i.e. where the queen is)
 	 * @param targetSquare square being attacked (i.e. where the king is)
 	 * @param checkCache cache of previously found results
+	 * @param isCapture if the move is a capture
+	 * @param isPromotion if the move is a pawn promotion
 	 * @return true if targetSquare is attacked from startSquare, otherwise false.
 	 */
 	public static boolean attacksSquare(BitSetUnifier emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			PositionCheckState checkCache,
-			boolean isCapture) {
-		if (attacksSquareRankOrFile(emptySquares, startSquare, targetSquare, checkCache, isCapture)) {
+			boolean isCapture,
+			boolean isPromotion) {
+		if (attacksSquareRankOrFile(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion)) {
 			return true;
 		}
 		if (attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture)) {

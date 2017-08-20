@@ -422,11 +422,11 @@ public class Pawn extends AbstractBitBoardPiece {
 				PieceType promotedPiece = move.getPromotedPiece();
 				switch (promotedPiece) {
 				case QUEEN:
-					return Queen.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, false);
+					return Queen.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, move.isCapture(), move.isPromotion());
 				case ROOK:
-					return Rook.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, false);
+					return Rook.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, move.isCapture(), move.isPromotion());
 				case BISHOP:
-					return Bishop.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, false);
+					return Bishop.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, move.isCapture());
 				default:
 					throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
 				}

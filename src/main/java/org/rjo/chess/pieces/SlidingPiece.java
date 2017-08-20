@@ -12,6 +12,7 @@ import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayInfo;
+import org.rjo.chess.ray.RayType;
 import org.rjo.chess.ray.RayUtils;
 import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.SquareCache;
@@ -133,19 +134,23 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		 * <p>
 		 */
 
-		Ray fromDestinationToKing = RayUtils.getDiagonalRay(move.to(), opponentsKing);
-		if (fromDestinationToKing == null) {
+		Ray destSquareToKing = RayUtils.getDiagonalRay(move.to(), opponentsKing);
+		if (destSquareToKing == null) {
 			checkCache.setNotCheck(null, move.to());
 			return false;
 		}
-		Ray fromOriginToKing = RayUtils.getDiagonalRay(move.from(), opponentsKing);
+		// have we already processed this startSquare?
+		if (checkCache.isCheckStatusKnownForSquare(move.to(), destSquareToKing.getRayType())) {
+			return checkCache.squareHasCheckStatus(move.to(), destSquareToKing.getRayType());
+		}
+		Ray originSquareToKing = RayUtils.getDiagonalRay(move.from(), opponentsKing);
 		// case 1:
-		if (!((fromDestinationToKing == null) || (fromOriginToKing == null))) {
-			if (fromOriginToKing == fromDestinationToKing) {
+		if (!((destSquareToKing == null) || (originSquareToKing == null))) {
+			if (originSquareToKing == destSquareToKing) {
 				// move.from <-> king and move.to <-> king have the same ray
 				if (!emptySquares.get(move.to().bitIndex())) {
 					// if there are now just empty squares between move.to and the king, this is a CHECK_IF_CAPTURE. Otherwise NOT_CHECK
-					Iterator<Integer> iter = fromDestinationToKing.squaresFrom(move.to());
+					Iterator<Integer> iter = destSquareToKing.squaresFrom(move.to());
 					boolean foundPiece = false;
 					boolean foundKing = false;
 					while (iter.hasNext() && !foundPiece && !foundKing) {
@@ -157,18 +162,18 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 						}
 					}
 					if (foundPiece) {
-						checkCache.setNotCheck(fromDestinationToKing.getRayType(), move.to());
+						checkCache.setNotCheck(destSquareToKing.getRayType(), move.to());
 						return false;
 					} else if (foundKing) {
 						// no intervening pieces
-						checkCache.setCheckIfCapture(fromDestinationToKing.getRayType(), move.to());
+						checkCache.setCheckIfCapture(destSquareToKing.getRayType(), move.to());
 						return true;
 					} else {
 						throw new IllegalStateException("exited loop without finding the king");
 					}
 				} else {
 					// move.from <-> king and move.to <-> king has the same ray, so cannot be check since didn't capture a piece
-					checkCache.setNotCheck(fromDestinationToKing.getRayType(), move.to());
+					checkCache.setNotCheck(destSquareToKing.getRayType(), move.to());
 					return false;
 				}
 			}
@@ -176,8 +181,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			// case 2:
 			// TODO this is only correct in context of above 'if'
 			Ray fromDestinationToOrigin = RayUtils.getRay(move.to(), move.from());
-			if (fromDestinationToOrigin.oppositeOf(fromDestinationToKing)) {
-				checkCache.setNotCheck(fromDestinationToKing.getRayType(), move.to());
+			if (fromDestinationToOrigin.oppositeOf(destSquareToKing)) {
+				checkCache.setNotCheck(destSquareToKing.getRayType(), move.to());
 				return false;
 			}
 		}
@@ -198,7 +203,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param checkCache (optional -- but not null) will be updated with results from the search.
 	 * @return true if the target square is attacked (diagonally) from the start square.
 	 */
-	protected static boolean attacksSquareDiagonally(BitSetUnifier emptySquares,
+	public static boolean attacksSquareDiagonally(BitSetUnifier emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			PositionCheckState checkCache,
@@ -286,7 +291,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		// abort if dest sq rank/file is not the same as the king's rank/file
 		if (move.to().file() == opponentsKing.file() || move.to().rank() == opponentsKing.rank()) {
 			return attacksSquareRankOrFile(emptySquares == null ? posn.getEmptySquares() : emptySquares, move.to(), opponentsKing,
-					checkCache, move.isCapture());
+					checkCache, move.isCapture(), move.isPromotion());
 		} else {
 			checkCache.setNotCheck(null, move.to());
 			return false;
@@ -302,6 +307,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param targetSquare target square
 	 * @param checkCache check cache
 	 * @param isCapture true if the move was a capture
+	 * @param isPromotion true if the move was a promotion (important for the checkcache)
 	 * @return true if the target square is attacked (straight-line) from the start square.
 	 */
 	// public, since King need this too for castling
@@ -309,7 +315,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			Square startSquare,
 			Square targetSquare,
 			PositionCheckState checkCache,
-			boolean isCapture) {
+			boolean isCapture,
+			boolean isPromotion) {
 		// give up straight away if start and target are the same
 		if (startSquare == targetSquare) {
 			return false;
@@ -318,6 +325,10 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		if (ray == null) {
 			// do not set checkCache, since it may contain info for other types of pieces (e.g. not orthogonal but diagonal check)
 			return false;
+		}
+		// do we already know the status of the start square?
+		if (checkCache.isCheckStatusKnownForSquare(startSquare, ray.getRayType())) {
+			return checkCache.squareHasCheckStatus(startSquare, ray.getRayType());
 		}
 		Iterator<Integer> squaresFrom = ray.squaresFrom(startSquare);
 		List<Integer> squaresVisited = new ArrayList<>();
@@ -343,24 +354,39 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 				}
 			}
 		}
-		switch (overallCheckState) {
-		case CHECK_IF_CAPTURE:
-			// all squares visited are set to NOT_CHECK, since we didn't capture the piece
-			checkCache.setNotCheck(ray.getRayType(), squaresVisited);
-			break;
-		case CHECK:
-			checkCache.setCheck(ray.getRayType(), squaresVisited);
-			// special case: if we captured a piece on the start square, then record this as CHECK_WITH_CAPTURE
-			if (isCapture) {
-				checkCache.setCheckIfCapture(ray.getRayType(), startSquare);
+
+		//
+		// Update check-cache state.
+		//
+
+		if (isPromotion && ((ray.getRayType() == RayType.NORTH) || (ray.getRayType() == RayType.SOUTH))) {
+			// The update is ignored in case of a pawn promotion where the pawn --> king is the north ray (south for white)
+			// e.g. this position 8/3k4/8/8/8/5K2/3N1p1p/7r with black to move.
+			// f2-f1=R is check, however setting the cache then leads to Rh1-f1 also being check...
+			// Unfortunately don't know the move's colour here, so have to treat NORTH and SOUTH the same
+
+			// no-op
+
+		} else {
+			switch (overallCheckState) {
+			case CHECK_IF_CAPTURE:
+				// all squares visited are set to NOT_CHECK, since we didn't capture the piece
+				checkCache.setNotCheck(ray.getRayType(), squaresVisited);
+				break;
+			case CHECK:
+				checkCache.setCheck(ray.getRayType(), squaresVisited);
+				// special case: if we captured a piece on the start square, then record this as CHECK_WITH_CAPTURE
+				if (isCapture) {
+					checkCache.setCheckIfCapture(ray.getRayType(), startSquare);
+				}
+				break;
+			case NOT_CHECK:
+				checkCache.setNotCheck(ray.getRayType(), squaresVisited);
+				break;
+			case UNKNOWN:
+				throw new IllegalStateException("overall check state has not been determined, startSquare: " + startSquare + ", targetSquare: "
+						+ targetSquare + ", checkCache:\n" + checkCache);
 			}
-			break;
-		case NOT_CHECK:
-			checkCache.setNotCheck(ray.getRayType(), squaresVisited);
-			break;
-		case UNKNOWN:
-			throw new IllegalStateException("overall check state has not been determined, startSquare: " + startSquare + ", targetSquare: "
-					+ targetSquare + ", checkCache:\n" + checkCache);
 		}
 
 		return overallCheckState == CheckStates.CHECK;

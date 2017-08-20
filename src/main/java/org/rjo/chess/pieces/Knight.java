@@ -156,8 +156,8 @@ public class Knight extends AbstractSetPiece {
 
 	@Override
 	public void initPosition() {
-		Square[] requiredSquares = null;
-		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.b1, Square.g1 } : new Square[] { Square.b8, Square.g8 };
+		Square[] requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.b1, Square.g1 }
+				: new Square[] { Square.b8, Square.g8 };
 		initPosition(requiredSquares);
 	}
 

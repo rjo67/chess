@@ -16,10 +16,6 @@ import org.rjo.chess.util.BitSetUnifier;
  * @author rich
  * @since 2016-10-20
  */
-/**
- * @author rich
- * @since 2016-10-21
- */
 public abstract class AbstractPiece implements Piece {
 
 	// type of this piece

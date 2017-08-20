@@ -369,7 +369,7 @@ public class King extends AbstractSetPiece {
 		if (!isCheck) {
 			if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
 				isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getEmptySquares(), move.getRooksCastlingMove().to(), opponentsKing,
-						checkCache, move.isCapture());
+						checkCache, move.isCapture(), move.isPromotion());
 			}
 		}
 		return isCheck;

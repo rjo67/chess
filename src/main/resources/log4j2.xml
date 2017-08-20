@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
 	<Appenders>
-		<File name="File" fileName="chess.out" append="false" immediateFlush="false">
+		<File name="File" fileName="target/chess.out" append="false" immediateFlush="false">
 			<PatternLayout>
 				<Pattern>%d %p %C{1.} %m%n</Pattern>
 			</PatternLayout>

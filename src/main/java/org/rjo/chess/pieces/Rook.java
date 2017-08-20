@@ -16,6 +16,7 @@ import org.rjo.chess.Move;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
+import org.rjo.chess.SystemFlags;
 import org.rjo.chess.ray.BaseRay;
 import org.rjo.chess.ray.RayType;
 import org.rjo.chess.util.BitSetUnifier;
@@ -31,11 +32,6 @@ import org.rjo.chess.util.Stopwatch;
 public class Rook extends SlidingPiece {
 
 	private static final Logger LOG = LogManager.getLogger(Rook.class);
-	/*
-	 * if useMovemap is defined, we'll use the data structures moveMap, vertMoveMap. Otherwise the ray algorithm will be
-	 * used.
-	 */
-	private static final boolean USE_MOVE_MAP = Boolean.parseBoolean(System.getProperty("useMoveMap", "false"));
 
 	/** piece value in centipawns */
 	private static final int PIECE_VALUE = 500;
@@ -383,7 +379,7 @@ public class Rook extends SlidingPiece {
 		List<Move> moves = new ArrayList<>(30);
 
 		// search for moves
-		if (USE_MOVE_MAP) {
+		if (SystemFlags.USE_MOVE_MAP) {
 			moves = findMovesUsingMoveMap(posn);
 		} else {
 			for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
@@ -424,7 +420,7 @@ public class Rook extends SlidingPiece {
 			PositionCheckState checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false /** TODO */
-			)) {
+					, false)) {
 				return true;
 			}
 		}
@@ -438,14 +434,17 @@ public class Rook extends SlidingPiece {
 	 * @param startSquare start square (i.e. where the rook is)
 	 * @param targetSquare square being attacked (i.e. where the king is)
 	 * @param checkCache cache of previously found results
+	 * @param isCapture if the move is a capture
+	 * @param isPromotion if the move is a promotion
 	 * @return true if targetSquare is attacked from startSquare, otherwise false.
 	 */
 	public static boolean attacksSquare(BitSetUnifier emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			PositionCheckState checkCache,
-			boolean isCapture) {
-		return attacksSquareRankOrFile(emptySquares, startSquare, targetSquare, checkCache, isCapture);
+			boolean isCapture,
+			boolean isPromotion) {
+		return attacksSquareRankOrFile(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion);
 	}
 }
 
