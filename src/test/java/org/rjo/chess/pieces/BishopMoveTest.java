@@ -34,7 +34,7 @@ public class BishopMoveTest {
 	// need this, since findMoves no longer checks for checks
 	private List<Move> findMoves(Position posn) {
 		List<Move> moves = whiteBishop.findMoves(posn);
-		final Square opponentsKing = King.findOpponentsKing(posn.getSideToMove(), posn);
+		final Square opponentsKing = posn.getKingPosition(Colour.oppositeColour(posn.getSideToMove()));
 		final BitSetUnifier emptySquares = posn.getTotalPieces().flip();
 		PositionCheckState checkCache = new PositionCheckState();
 		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>(Boolean.FALSE);

@@ -30,7 +30,7 @@ public class RookMoveTest {
 	// need this, since findMoves no longer checks for checks
 	private List<Move> findMoves(Position posn) {
 		List<Move> moves = whiteRook.findMoves(posn);
-		final Square opponentsKing = King.findOpponentsKing(posn.getSideToMove(), posn);
+		final Square opponentsKing = posn.getKingPosition(Colour.oppositeColour(posn.getSideToMove()));
 		final BitSetUnifier emptySquares = posn.getTotalPieces().flip();
 		final PositionCheckState checkCache = new PositionCheckState();
 		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>(Boolean.FALSE);

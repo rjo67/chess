@@ -301,12 +301,13 @@ public class King extends AbstractSetPiece {
 		List<Move> moves = new ArrayList<>();
 
 		Square kingsSquare = pieces.iterator().next();
-		Square opponentsKingSquare = findOpponentsKing(posn);
+		final Colour oppositeColour = Colour.oppositeColour(colour);
+		Square opponentsKingSquare = posn.getKingPosition(oppositeColour);
 
 		BitSetUnifier possibleMoves = (BitSetUnifier) MOVES[kingsSquare.bitIndex()].clone();
 
 		// move can't be to a square with a piece of the same colour on it
-		possibleMoves.andNot(posn.getAllPieces(getColour()).getBitSet());
+		possibleMoves.andNot(posn.getAllPieces(colour).getBitSet());
 
 		// can't move adjacent to opponent's king
 		possibleMoves.andNot(MOVES[opponentsKingSquare.bitIndex()]);
@@ -316,7 +317,6 @@ public class King extends AbstractSetPiece {
 		 * been checked yet.)
 		 */
 
-		final Colour oppositeColour = Colour.oppositeColour(getColour());
 		BitSetUnifier opponentsPieces = posn.getAllPieces(oppositeColour).getBitSet();
 		// check the possibleMoves and store them as moves / captures.
 		for (int i = possibleMoves.nextSetBit(0); i >= 0; i = possibleMoves.nextSetBit(i + 1)) {
@@ -340,10 +340,6 @@ public class King extends AbstractSetPiece {
 		}
 
 		return moves;
-	}
-
-	private Square findOpponentsKing(Position chessboard) {
-		return findOpponentsKing(getColour(), chessboard);
 	}
 
 	@Override
@@ -373,31 +369,6 @@ public class King extends AbstractSetPiece {
 			}
 		}
 		return isCheck;
-	}
-
-	/**
-	 * Locates the enemy's king. TODO store this value in <code>Game</code> after each move, to make this lookup quicker.
-	 *
-	 * @param myColour my colour
-	 * @param chessboard the board
-	 * @return location of the other colour's king.
-	 */
-	public static Square findOpponentsKing(Colour myColour,
-			Position chessboard) {
-		return findKing(Colour.oppositeColour(myColour), chessboard);
-	}
-
-	/**
-	 * Locates the king (mine or the opponents).
-	 *
-	 * @param colour which colour king we want
-	 * @param posn the board
-	 * @return location of this colour's king.
-	 */
-	public static Square findKing(Colour colour,
-			Position posn) {
-		//TODO must be a better way ...?
-		return posn.getPieces(colour)[PieceType.KING.ordinal()].getLocations()[0];
 	}
 
 	@Override

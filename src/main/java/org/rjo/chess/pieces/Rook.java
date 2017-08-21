@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
@@ -352,24 +351,18 @@ public class Rook extends SlidingPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
-		StopWatch stopwatch = new StopWatch();
 
 		List<Move> moves = findPotentialMoves(posn);
 
 		// make sure king is not/no longer in check
-		Square myKing = King.findKing(getColour(), posn);
-		Colour opponentsColour = Colour.oppositeColour(getColour());
+		Square myKing = posn.getKingPosition(colour);
+		Colour opponentsColour = Colour.oppositeColour(colour);
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
 			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck)) {
 				iter.remove();
 			}
-		}
-
-		long time = stopwatch.getTime();
-		if (time != 0) {
-			LOG.debug("found " + moves.size() + " moves in " + time);
 		}
 		return moves;
 	}
@@ -468,8 +461,7 @@ class MoveInfo {
 		return possibleCapturesOffset;
 	}
 
-	// replaces the move offsets by the given offsetMultiplier and returns a new
-	// MoveInfo
+	// replaces the move offsets by the given offsetMultiplier and returns a new MoveInfo
 	public static MoveInfo copyWithOffsetMultiplier(MoveInfo m1,
 			int offsetMultiplier) {
 		Integer[] newMoveOffsets = m1.getMoveOffsets().clone();

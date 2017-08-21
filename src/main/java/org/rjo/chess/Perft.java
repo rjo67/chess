@@ -1,10 +1,6 @@
 package org.rjo.chess;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -115,9 +111,9 @@ public class Perft {
 	}
 
 	/**
-	 * Like {@link #findMoves(Game, Colour, int)} but with the option of storing the moves in a file. Uses more memory than
-	 * the other method and is therefore not recommended. <b>This is mainly for PerftTests</b>. We return List of String
-	 * instead of List of Move to try to conserve memory.
+	 * Like {@link #findMoves(Game, Colour, int)} but with the option of storing the moves in a file. (Now uses MOVE_LOGGER
+	 * at level TRACE.) Uses more memory than the other method and is therefore not recommended. <b>This is mainly for
+	 * PerftTests</b>. We return List of String instead of List of Move to try to conserve memory.
 	 *
 	 * @param game the game
 	 * @param sideToMove the starting colour
@@ -128,12 +124,8 @@ public class Perft {
 	public static List<String> findMovesDebug(Game game,
 			Colour sideToMove,
 			int depth) throws IOException {
-		File file = File.createTempFile("perft", null);
-		System.out.println("writing to " + file);
-		try (Writer debugWriter = new BufferedWriter(new FileWriter(file))) {
-			return findMovesInternalDebug(game.getPosition(), sideToMove, depth, new ArrayDeque<String>(1000), new ArrayList<String>(500000),
-					debugWriter);
-		}
+		return findMovesInternalDebug(game.getPosition(), sideToMove, depth, new ArrayDeque<String>(1000), new ArrayList<String>(500000));
+
 	}
 
 	/**
@@ -144,31 +136,29 @@ public class Perft {
 	 * @param depth the required depth to search
 	 * @param movesSoFar for debugging purposes: the moves up to this point
 	 * @param totalMoves stores all moves found
-	 * @param debugWriter if not null, debug-info will be written to this file
 	 * @return the list of possible moves at the given depth. The string representation is stored in order to save memory.
 	 */
 	private static List<String> findMovesInternalDebug(Position posn,
 			Colour sideToMove,
 			int depth,
 			Deque<String> movesSoFar,
-			List<String> totalMoves,
-			Writer debugWriter) {
+			List<String> totalMoves) {
 		if (depth == 0) {
 			return new ArrayList<>();
 		}
 		// movesAtThisLevel and movesSoFar are only used for "logging"
 		List<String> movesAtThisLevel = new ArrayList<>(10000);
 		for (Move move : posn.findMoves(sideToMove)) {
-			if (debugWriter != null) {
+			if (MOVE_LOGGER.isTraceEnabled()) {
 				movesSoFar.add(move.toString());
 			}
-			Position posnAfterMove = posn.move(move, debugWriter);
+			Position posnAfterMove = posn.move(move);
 
 			List<String> movesFromThisPosn = findMovesInternalDebug(posnAfterMove, Colour.oppositeColour(sideToMove), depth - 1, movesSoFar,
-					totalMoves, debugWriter);
+					totalMoves);
 			if (movesFromThisPosn.isEmpty()) {
 				totalMoves.add(move.toString());
-				if (debugWriter != null) {
+				if (MOVE_LOGGER.isTraceEnabled()) {
 					movesAtThisLevel.add(move.toString());
 				}
 			}
@@ -177,12 +167,12 @@ public class Perft {
 				System.out.println(size);
 			}
 
-			if (debugWriter != null) {
+			if (MOVE_LOGGER.isTraceEnabled()) {
 				movesSoFar.removeLast();
 			}
 		}
 
-		if (debugWriter != null) {
+		if (MOVE_LOGGER.isTraceEnabled()) {
 			if (!movesAtThisLevel.isEmpty()) {
 				boolean check = false;
 				boolean capture = false;
@@ -192,12 +182,8 @@ public class Perft {
 				if (!movesSoFar.isEmpty()) {
 					capture = movesSoFar.peekLast().contains("x");
 				}
-				try {
-					debugWriter.write((check ? "CHECK" : "") + (capture ? "CAPTURE" : "") + " moves: " + movesSoFar + " -> "
-							+ movesAtThisLevel.size() + ":" + movesAtThisLevel + System.lineSeparator());
-				} catch (IOException e) {
-					throw new RuntimeException("could not write to file", e);
-				}
+				MOVE_LOGGER.trace((check ? "CHECK" : "") + (capture ? "CAPTURE" : "") + " moves: " + movesSoFar + " -> "
+						+ movesAtThisLevel.size() + ":" + movesAtThisLevel + System.lineSeparator());
 			}
 		}
 		return totalMoves;

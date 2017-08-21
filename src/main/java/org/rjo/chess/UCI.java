@@ -7,7 +7,6 @@ import java.util.Scanner;
 import org.rjo.chess.eval.AlphaBeta;
 import org.rjo.chess.eval.MoveInfo;
 import org.rjo.chess.eval.SearchStrategy;
-import org.rjo.chess.pieces.King;
 
 /**
  * Starts threads for a UCI-conform interface and the engine.
@@ -103,7 +102,7 @@ public class UCI {
 				// only worry about check for the last move
 				game.makeMove(m);
 				if (lastmove) {
-					Square kingsSquare = King.findKing(game.getPosition().getSideToMove(), game.getPosition());
+					Square kingsSquare = game.getPosition().getKingPosition(game.getPosition().getSideToMove());
 					boolean incheck = game.getPosition().squareIsAttacked(kingsSquare,
 							Colour.oppositeColour(game.getPosition().getSideToMove()));
 					m.setCheck(incheck);

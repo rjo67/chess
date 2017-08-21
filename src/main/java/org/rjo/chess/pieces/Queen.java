@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.Colour;
@@ -104,24 +103,20 @@ public class Queen extends SlidingPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
-		StopWatch stopwatch = new StopWatch();
 
 		List<Move> moves = findPotentialMoves(posn);
 
 		// make sure my king is not/no longer in check
-		Square myKing = King.findKing(getColour(), posn);
+		Square myKing = posn.getKingPosition(colour);
+		Colour opponentsColour = Colour.oppositeColour(colour);
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
-			if (KingCheck.isKingInCheck(posn, move, Colour.oppositeColour(getColour()), myKing, kingInCheck)) {
+			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck)) {
 				iter.remove();
 			}
 		}
 
-		long time = stopwatch.getTime();
-		if (time != 0) {
-			LOG.debug("found " + moves.size() + " moves in " + time);
-		}
 		return moves;
 	}
 

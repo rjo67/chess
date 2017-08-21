@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
@@ -125,13 +124,11 @@ public class Pawn extends AbstractBitBoardPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
-		StopWatch stopwatch = new StopWatch();
-
 		List<Move> moves = findPotentialMoves(posn);
 
 		// make sure king is not/no longer in check
-		final Square myKing = King.findKing(getColour(), posn);
-		final Colour opponentsColour = Colour.oppositeColour(getColour());
+		final Square myKing = posn.getKingPosition(colour);
+		final Colour opponentsColour = Colour.oppositeColour(colour);
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
@@ -139,11 +136,6 @@ public class Pawn extends AbstractBitBoardPiece {
 			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck)) {
 				iter.remove();
 			}
-		}
-
-		long time = stopwatch.getTime();
-		if (time != 0) {
-			LOG.debug("found " + moves.size() + " moves in " + time);
 		}
 		return moves;
 	}

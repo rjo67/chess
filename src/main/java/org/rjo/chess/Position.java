@@ -1,7 +1,5 @@
 package org.rjo.chess;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -33,7 +31,7 @@ import org.rjo.chess.util.SquareCache;
 
 /**
  * An immutable object which stores the board position after a particular move.<br>
- * Previously: Chessboard.java.
+ * <i>(Previously: Chessboard.java.)</i>
  *
  * @author rich
  * @since 2016-09-04
@@ -72,7 +70,7 @@ public class Position {
 	/** Indicates an enpassant square; can be null. */
 	private Square enpassantSquare;
 
-	/** which sides can still castle */
+	/** which sides can still castle. <B>must be cloned on write</B> */
 	private EnumSet<CastlingRights>[] castling;
 
 	/** which side is to move */
@@ -103,6 +101,9 @@ public class Position {
 	 * Incrementally updated after each move (in the new position).
 	 */
 	private PositionCheckState[] checkState;
+
+	/** squares where the kings are, stored here as optimization */
+	private Square[] kingPosition = new Square[Colour.ALL_COLOURS.length];
 
 	public static Position startPosition() {
 		return new Position(Colour.WHITE);
@@ -158,6 +159,9 @@ public class Position {
 		this.checkState = new PositionCheckState[Colour.values().length];
 		this.checkState[Colour.WHITE.ordinal()] = new PositionCheckState();
 		this.checkState[Colour.BLACK.ordinal()] = new PositionCheckState();
+
+		this.kingPosition[Colour.WHITE.ordinal()] = pieceMgr.getPiece(Colour.WHITE, PieceType.KING).getLocations()[0];
+		this.kingPosition[Colour.BLACK.ordinal()] = pieceMgr.getPiece(Colour.BLACK, PieceType.KING).getLocations()[0];
 	}
 
 	/**
@@ -165,20 +169,22 @@ public class Position {
 	 */
 	@SuppressWarnings("unchecked")
 	public Position(final Position posn) {
-		pieceMgr = new PieceManager(posn.getPieceManager());
+		pieceMgr = new PieceManager(posn.pieceMgr);
 
 		// need to clone here, since these structures are changed incrementally in updateStructures()
 
 		totalPieces = new BitBoard(posn.totalPieces);
 		emptySquares = null;
 
-		allEnemyPieces = new BitBoard[Colour.values().length];
-		castling = new EnumSet[Colour.values().length];
-		this.checkState = new PositionCheckState[Colour.values().length];
-		for (int i = 0; i < 2; i++) {
+		allEnemyPieces = new BitBoard[Colour.ALL_COLOURS.length];
+		castling = new EnumSet[Colour.ALL_COLOURS.length];
+		this.checkState = new PositionCheckState[Colour.ALL_COLOURS.length];
+		for (int i = 0; i < Colour.ALL_COLOURS.length; i++) {
 			allEnemyPieces[i] = new BitBoard(posn.allEnemyPieces[i]);
-			castling[i] = posn.castling[i].clone();
+			// castling rights are cloned on write
+			castling[i] = posn.castling[i];
 			checkState[i] = new PositionCheckState(posn.checkState[i]);
+			kingPosition[i] = posn.kingPosition[i];
 		}
 		enpassantSquare = posn.enpassantSquare;
 		sideToMove = posn.sideToMove;
@@ -218,6 +224,16 @@ public class Position {
 			fen = Fen.encode(this);
 		}
 		return fen;
+	}
+
+	/**
+	 * Returns the position of the king with the requested colour.
+	 *
+	 * @param colour the required colour
+	 * @return the king's position.
+	 */
+	public Square getKingPosition(Colour colour) {
+		return kingPosition[colour.ordinal()];
 	}
 
 	/**
@@ -337,7 +353,7 @@ public class Position {
 		/*
 		 * at this point have found all legal moves. Now need to establish which moves leave the opponent's king in check
 		 */
-		final Square opponentsKing = King.findOpponentsKing(getSideToMove(), this);
+		final Square opponentsKing = getKingPosition(Colour.oppositeColour(sideToMove));
 		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>((Boolean) null);//TODO this cache should not be using null
 		final BitSetUnifier emptySquares = getEmptySquares();
 		for (Move move : moves) {
@@ -358,7 +374,7 @@ public class Position {
 	 */
 	private void checkMovesForLegality(List<Move> moves,
 			boolean inCheck) {
-		final Square myKing = King.findKing(getSideToMove(), this);
+		final Square myKing = getKingPosition(sideToMove);
 
 		BitSetUnifier friendlyPieces = this.getAllPieces(sideToMove).getBitSet();
 		Colour opponentsColour = Colour.oppositeColour(sideToMove);
@@ -426,38 +442,21 @@ public class Position {
 	// return moves;
 	// }
 
-	private void writeDebug(Writer debugWriter,
-			String string) {
-		if (debugWriter != null) {
-			try {
-				debugWriter.write(string + System.lineSeparator());
-			} catch (IOException e) {
-				throw new RuntimeException("could not write debug info", e);
-			}
+	private void logDebug(String string) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(string);
 		}
-	}
-
-	/**
-	 * return the new position after the given move, without debug.
-	 *
-	 * @param move the move
-	 * @return a new Position object with the position after the given move
-	 */
-	public Position move(Move move) {
-		return move(move, null);
 	}
 
 	/**
 	 * returns the new position after the given move.
 	 *
 	 * @param move the move
-	 * @param debugWriter if not null, debug info will be written here
 	 * @return a new Position object with the position after the given move
 	 */
-	public Position move(Move move,
-			Writer debugWriter) {
+	public Position move(Move move) {
 		Position newPosn = new Position(this);
-		newPosn.internalMove(move, debugWriter);
+		newPosn.internalMove(move);
 		if (SystemFlags.CHECK_HASH_UPDATE_AFTER_MOVE) {
 			long updatedHash = newPosn.zobristHash;
 			Position posnAfterMove = Fen.decode(Fen.encode(newPosn)).getPosition();
@@ -472,10 +471,8 @@ public class Position {
 	 * Performs the given move, updating internal data structures.
 	 *
 	 * @param move the move
-	 * @param debugWriter if not null, debug info will be written here
 	 */
-	private void internalMove(Move move,
-			Writer debugWriter) {
+	private void internalMove(Move move) {
 		if (move.getColour() != sideToMove) {
 			throw new IllegalArgumentException("move is for '" + move.getColour() + "' but sideToMove=" + sideToMove);
 		}
@@ -508,14 +505,20 @@ public class Position {
 			}
 		}
 		updateStructures(move);
-		updateCheckStateAfterMove(move, pieceMgr.getPiece(sideToMove, PieceType.KING).getLocations()[0],
-				pieceMgr.getPiece(Colour.oppositeColour(sideToMove), PieceType.KING).getLocations()[0]);
+		// update the locally held position of the king
+		if (move.getPiece() == PieceType.KING) {
+			kingPosition[sideToMove.ordinal()] = move.to();
+		}
+		updateCheckStateAfterMove(move, getKingPosition(sideToMove), getKingPosition(Colour.oppositeColour(sideToMove)));
 
-		updateCastlingRightsAfterMove(move, debugWriter);
+		updateCastlingRightsAfterMove(move);
 		if (move.isPawnMoveTwoSquaresForward()) {
 			enpassantSquare = Square.findEnpassantSquareFromMove(move.to());
 		} else {
 			enpassantSquare = null;
+		}
+		if (move.getPiece() == PieceType.KING) {
+			kingPosition[sideToMove.ordinal()] = move.to();
 		}
 		sideToMove = Colour.oppositeColour(sideToMove);
 		inCheck = move.isCheck();
@@ -608,41 +611,50 @@ public class Position {
 
 	/**
 	 * If the king moved then remove all castling rights<br>
-	 * and if a rook moved, remove the appropriate castling right
+	 * and if a rook moved, remove the appropriate castling right.
+	 * <p>
+	 * The data structure must be cloned before being changed!
 	 */
-	private void updateCastlingRightsAfterMove(Move move,
-			Writer debugWriter) {
-		if (PieceType.KING == move.getPiece()) {
-			move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
-			castling[sideToMove.ordinal()].clear();
-			// writeDebug(debugWriter, "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
-		} else if (PieceType.ROOK == move.getPiece()) {
-			// remove castling rights if rook has moved
-			move.setPreviousCastlingRights(castling[sideToMove.ordinal()]);
-			if (CastlingRights.kingsSideCastlingRightsGoneAfterMove(castling[sideToMove.ordinal()], sideToMove, move)) {
-				castling[sideToMove.ordinal()].remove(CastlingRights.KINGS_SIDE);
+	private void updateCastlingRightsAfterMove(Move move) {
+		int mySide = sideToMove.ordinal();
+		if (castling[mySide] == CastlingRights.NO_RIGHTS) {
+			// no-op, couldn't castle before
+		} else {
+			EnumSet<CastlingRights> newRights = null;
+			if (PieceType.KING == move.getPiece()) {
+				newRights = CastlingRights.NO_RIGHTS;
+			} else if (PieceType.ROOK == move.getPiece()) {
+				// remove castling rights if rook has moved
+				if (CastlingRights.kingsSideCastlingRightsGoneAfterMove(castling[mySide], sideToMove, move)) {
+					newRights = castling[mySide].clone();
+					newRights.remove(CastlingRights.KINGS_SIDE);
+				}
+				if (CastlingRights.queensSideCastlingRightsGoneAfterMove(castling[mySide], sideToMove, move)) {
+					newRights = castling[mySide].clone();
+					newRights.remove(CastlingRights.QUEENS_SIDE);
+				}
 			}
-			if (CastlingRights.queensSideCastlingRightsGoneAfterMove(castling[sideToMove.ordinal()], sideToMove, move)) {
-				castling[sideToMove.ordinal()].remove(CastlingRights.QUEENS_SIDE);
+			if (newRights != null) {
+				move.setPreviousCastlingRights(castling[mySide]);
+				castling[mySide] = newRights;
+				// logDebug("move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[mySide]);
 			}
-			// writeDebug(debugWriter, "move: " + move + ", sideToMove: " + sideToMove + ", castling=" + castling[sideToMove.ordinal()]);
 		}
 		// update OPPONENT's castling rights if necessary
-		if (move.isCapture()) {
-			final Colour opponentsColour = Colour.oppositeColour(sideToMove);
-			boolean processed = false;
-			if (CastlingRights.opponentKingsSideCastlingRightsGoneAfterMove(castling[opponentsColour.ordinal()], sideToMove, move)) {
-				move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
-				castling[opponentsColour.ordinal()].remove(CastlingRights.KINGS_SIDE);
-				processed = true;
-				// writeDebug(debugWriter, "move: " + move + ", removed kings side castling for " + opponentsColour);
+		final int opponentsSide = Colour.oppositeColour(sideToMove).ordinal();
+		if (move.isCapture() && (castling[opponentsSide] != CastlingRights.NO_RIGHTS)) {
+			EnumSet<CastlingRights> newRights = null;
+			if (CastlingRights.opponentKingsSideCastlingRightsGoneAfterMove(castling[opponentsSide], sideToMove, move)) {
+				newRights = castling[opponentsSide].clone();
+				newRights.remove(CastlingRights.KINGS_SIDE);
+			} else if (CastlingRights.opponentQueensSideCastlingRightsGoneAfterMove(castling[opponentsSide], sideToMove, move)) {
+				newRights = castling[opponentsSide].clone();
+				newRights.remove(CastlingRights.QUEENS_SIDE);
 			}
-			if (!processed) {
-				if (CastlingRights.opponentQueensSideCastlingRightsGoneAfterMove(castling[opponentsColour.ordinal()], sideToMove, move)) {
-					move.setPreviousCastlingRightsOpponent(castling[opponentsColour.ordinal()]);
-					castling[opponentsColour.ordinal()].remove(CastlingRights.QUEENS_SIDE);
-					// writeDebug(debugWriter, "move: " + move + ", removed queens side castling for " + opponentsColour);
-				}
+			if (newRights != null) {
+				move.setPreviousCastlingRights(castling[opponentsSide]);
+				castling[opponentsSide] = newRights;
+				// logDebug("move: " + move + ", sideToMove: " + sideToMove + ", opponent's castling=" + castling[opponentsSide]);
 			}
 		}
 	}
@@ -728,7 +740,7 @@ public class Position {
 		Colour sideToMove = move.getColour();
 		// if white is moving, want to check the black's checkState against the position of the white king
 		Colour opponentsColour = Colour.oppositeColour(sideToMove);
-		Square opponentsKingsSquare = pieceMgr.getPiece(opponentsColour, PieceType.KING).getLocations()[0];
+		Square opponentsKingsSquare = getKingPosition(opponentsColour);
 		PositionCheckState state = checkState[sideToMove.ordinal()];
 		BitSetUnifier emptySquares = getEmptySquares();
 		state.stream()
@@ -988,7 +1000,7 @@ public class Position {
 		}
 
 		// set up the emptySquares and myPieces bitsets *after* this move
-		BitSetUnifier emptySquares = posn.getTotalPieces().flip();// need a clone, therefore not using getEmptySquares
+		BitSetUnifier emptySquares = (BitSetUnifier) posn.getEmptySquares().clone();// need a clone
 		BitSetUnifier myPieces = posn.getAllPieces(colour).cloneBitSet();
 
 		emptySquares.set(moveFromIndex);

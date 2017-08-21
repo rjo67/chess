@@ -22,7 +22,7 @@ public abstract class AbstractPiece implements Piece {
 	private PieceType type;
 
 	// stores the colour of the piece
-	private Colour colour;
+	protected Colour colour;
 
 	protected AbstractPiece(Colour colour, PieceType type) {
 		this.colour = colour;

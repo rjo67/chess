@@ -3,8 +3,8 @@ package org.rjo.chess.pieces;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
@@ -22,6 +22,15 @@ import org.rjo.chess.util.SquareCache;
  * Stores information about the knights (still) in the game.
  *
  * @author rich
+ */
+/**
+ * @author rich
+ *
+ * @since 2017-08-21
+ */
+/**
+ * @author rich
+ * @since 2017-08-21
  */
 public class Knight extends AbstractSetPiece {
 	private static final Logger LOG = LogManager.getLogger(Knight.class);
@@ -56,10 +65,10 @@ public class Knight extends AbstractSetPiece {
 		for (int i = 0; i < 64; i++) {
 			knightMoves[i] = BitSetFactory.createBitSet(64);
 			knightMoves[i].set(i);
-			/*
-			 * LHS: blank first file for -10 and +6 - blank first and 2nd file for -17 and +15 RHS: blank last file for +10 and -6 -
-			 * blank 7th and 8th file for +17 and -15 Don't need to blank ranks, these just 'drop off' during the bit shift.
-			 */
+
+			// LHS: blank first file for -10 and +6 - blank first and 2nd file for -17 and +15
+			// RHS: blank last file for +10 and -6 - blank 7th and 8th file for +17 and -15.
+			// Don't need to blank ranks, these just 'drop off' during the bit shift.
 
 			BitSetUnifier[] work = new BitSetUnifier[8];
 
@@ -169,9 +178,8 @@ public class Knight extends AbstractSetPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck) {
-		StopWatch stopwatch = new StopWatch();
-		final Square myKing = King.findKing(getColour(), posn);
-		final Colour oppositeColour = Colour.oppositeColour(getColour());
+		final Square myKing = posn.getKingPosition(colour);
+		final Colour oppositeColour = Colour.oppositeColour(colour);
 
 		List<Move> moves = findPotentialMoves(posn);
 
@@ -184,11 +192,6 @@ public class Knight extends AbstractSetPiece {
 			if (KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck)) {
 				iter.remove();
 			}
-		}
-
-		long time = stopwatch.getTime();
-		if (time != 0) {
-			LOG.debug("found " + moves.size() + " moves in " + time);
 		}
 		return moves;
 	}
@@ -274,7 +277,21 @@ public class Knight extends AbstractSetPiece {
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square targetSq,
 			@SuppressWarnings("unused") PositionCheckState checkCache) {
-		return Knight.attacksSquare(targetSq, createBitSetOfPieces());
+		Optional<Square> found = pieces.stream().filter(sq -> squareIsReachableFromSquare(sq, targetSq)).findAny();
+		return found.isPresent();
+	}
+
+	/**
+	 * returns true if a knight on <code>startSq</code> attacks <code>targetSq</code>.
+	 *
+	 * @param startSq start square
+	 * @param targetSq target square
+	 * @return true if target square is attaced
+	 */
+	private boolean squareIsReachableFromSquare(Square startSq,
+			Square targetSq) {
+		BitSetUnifier possibleMovesFromTargetSquare = knightMoves[targetSq.bitIndex()];
+		return possibleMovesFromTargetSquare.get(startSq.bitIndex());
 	}
 
 	/**

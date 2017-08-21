@@ -13,6 +13,8 @@ public enum CastlingRights {
 
 	QUEENS_SIDE, KINGS_SIDE;
 
+	public static final EnumSet<CastlingRights> NO_RIGHTS = EnumSet.noneOf(CastlingRights.class);
+
 	/**
 	 * Checks if, after <code>move</code>, <code>sideToMove</code> can (still) castle king's-side.
 	 * <p>
