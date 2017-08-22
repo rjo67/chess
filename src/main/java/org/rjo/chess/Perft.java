@@ -8,7 +8,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,20 +28,54 @@ public class Perft {
 
 	private static final Logger MOVE_LOGGER = LogManager.getLogger("MOVE-LOG");
 
+	private static final int NBR_THREADS = 6;
+
+	// see PerftTest::posn6ply5
+	// 5ply: 164.075.551 moves
+	private static int[] EXPECTED_MOVES = new int[] { 46, 2079, 89890, 3894594, 164075551 };
+	private static final int REQD_DEPTH = 5;
+
+	static class MoveResult {
+		Move move;
+		int nbrMoves;
+
+		public MoveResult(Move move, int nbrMoves) {
+			this.move = move;
+			this.nbrMoves = nbrMoves;
+		}
+	}
+
+	private Perft() {
+	}
+
 	public static void main(String[] args) {
-		// see PerftTest::posn6ply5
-		// 5ply: 164.075.551 moves
 		Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-		System.out.println("Perft::posn6ply5 starting...");
-		long start = System.currentTimeMillis();
-		Map<String, Integer> moveMap = findMoves(game.getPosition(), Colour.WHITE, 5);
-		long time = System.currentTimeMillis() - start;
-		int moves = Perft.countMoves(moveMap);
+		System.out.println(String.format("Perft::posn6ply%d starting (%d threads)...", REQD_DEPTH, NBR_THREADS));
+		StopWatch sw = new StopWatch();
+		sw.start();
+		int moves = Perft.findAndCountMoves(game.getPosition(), Colour.WHITE, REQD_DEPTH);
+		long time = sw.getTime();
 		System.out
-				.println(String.format(Locale.GERMANY, "5ply: %,12d moves (%,9d ms) (%7.1f moves/ms)", moves, time, ((moves * 1.0) / time)));
-		if (moves != 164075551) {
+				.println(String.format(Locale.GERMANY, "%dply: %,12d moves (%,9d ms) (%7.1f moves/ms)", REQD_DEPTH, moves, time,
+						((moves * 1.0) / time)));
+		if (moves != EXPECTED_MOVES[REQD_DEPTH - 1]) {
 			System.out.println("ERROR: wrong number of moves");
 		}
+	}
+
+	/**
+	 * Finds and counts the moves (combination of {@link #findMoves(Position, Colour, int)} and {@link #countMoves(Map)}).
+	 *
+	 * @param posn a game position
+	 * @param sideToMove the starting colour
+	 * @param depth the required depth to search
+	 * @return nbr of moves in the move map
+	 */
+	public static int findAndCountMoves(Position posn,
+			Colour sideToMove,
+			int depth) {
+		Map<String, Integer> moveMap = findMoves(posn, sideToMove, depth);
+		return countMoves(moveMap);
 	}
 
 	/**
@@ -54,25 +95,38 @@ public class Perft {
 		if (depth < 1) {
 			throw new IllegalArgumentException("depth must be >= 1");
 		}
+		ExecutorService threadPool = Executors.newFixedThreadPool(NBR_THREADS);
+		List<Future<MoveResult>> futures = new ArrayList<>(200);
+
 		Map<String, Integer> moveMap = new HashMap<>();
-		for (Move move : posn.findMoves(sideToMove)) {
+		for (final Move move : posn.findMoves(sideToMove)) {
 			logMove(depth, move, posn);
 			Position posnAfterMove = posn.move(move);
-			int nbrMoves = findMovesInternal(posnAfterMove, Colour.oppositeColour(sideToMove), depth - 1);
-			moveMap.put(move.toString(), nbrMoves);
+			Callable<MoveResult> callable = () -> {
+				return findMovesInternal(move, posnAfterMove, Colour.oppositeColour(sideToMove), depth - 1);
+			};
+			futures.add(threadPool.submit(callable));
 		}
+		threadPool.shutdown();
+		try {
+			threadPool.awaitTermination(2, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} finally {
+			if (!threadPool.isTerminated()) {
+				System.err.println("cancel non-finished tasks");
+			}
+			threadPool.shutdownNow();
+		}
+		futures.stream().forEach(fut -> {
+			try {
+				moveMap.put(fut.get().move.toString(), fut.get().nbrMoves);
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
 		return moveMap;
-	}
-
-	/**
-	 * Helper routine to return the total number of moves found, given a map as returned from findMoves.
-	 */
-	public static int countMoves(Map<String, Integer> moveMap) {
-		int nbrMoves = 0;
-		for (String move : moveMap.keySet()) {
-			nbrMoves += moveMap.get(move);
-		}
-		return nbrMoves;
 	}
 
 	/**
@@ -85,20 +139,32 @@ public class Perft {
 	 * @param depth the required depth to search
 	 * @return the total number of moves (leaf nodes) found from this position.
 	 */
-	private static int findMovesInternal(final Position posn,
+	private static MoveResult findMovesInternal(final Move move,
+			final Position posn,
 			Colour sideToMove,
 			int depth) {
 		if (depth == 0) {
-			return 1;
+			return new MoveResult(move, 1);
 		}
 		int totalMoves = 0;
-		for (Move move : posn.findMoves(sideToMove)) {
-			logMove(depth, move, posn);
-			Position posnAfterMove = posn.move(move);
-			int nbrMoves = findMovesInternal(posnAfterMove, Colour.oppositeColour(sideToMove), depth - 1);
-			totalMoves += nbrMoves;
+		for (Move newMove : posn.findMoves(sideToMove)) {
+			logMove(depth, newMove, posn);
+			Position posnAfterMove = posn.move(newMove);
+			MoveResult moveResult = findMovesInternal(newMove, posnAfterMove, Colour.oppositeColour(sideToMove), depth - 1);
+			totalMoves += moveResult.nbrMoves;
 		}
-		return totalMoves;
+		return new MoveResult(move, totalMoves);
+	}
+
+	/**
+	 * Helper routine to return the total number of moves found, given a map as returned from findMoves.
+	 */
+	public static int countMoves(Map<String, Integer> moveMap) {
+		int nbrMoves = 0;
+		for (String move : moveMap.keySet()) {
+			nbrMoves += moveMap.get(move);
+		}
+		return nbrMoves;
 	}
 
 	private static void logMove(int depth,
