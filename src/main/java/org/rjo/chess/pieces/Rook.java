@@ -7,12 +7,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
+import org.rjo.chess.Move.CheckInformation;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
@@ -29,8 +28,6 @@ import org.rjo.chess.util.SquareCache;
  * @author rich
  */
 public class Rook extends SlidingPiece {
-
-	private static final Logger LOG = LogManager.getLogger(Rook.class);
 
 	/** piece value in centipawns */
 	private static final int PIECE_VALUE = 500;
@@ -350,7 +347,7 @@ public class Rook extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			boolean kingInCheck) {
+			CheckInformation kingInCheck) {
 
 		List<Move> moves = findPotentialMoves(posn);
 
@@ -360,7 +357,7 @@ public class Rook extends SlidingPiece {
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
-			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck)) {
+			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck())) {
 				iter.remove();
 			}
 		}
@@ -383,28 +380,35 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn,
+	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
 			BitSetUnifier emptySquares,
 			PositionCheckState checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
+
+		if (findRankOrFileCheck(posn, emptySquares, move, opponentsKing, checkCache)) {
+			return new CheckInformation(move.getPiece(), move.to());
+		}
+		// if it's already check, don't need to calculate discovered check
+
 		/*
 		 * most moves have the same starting square. If we've already checked for discovered check for this square, then can use
 		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
-		boolean isCheck = findRankOrFileCheck(posn, emptySquares, move, opponentsKing, checkCache);
-		// if it's already check, don't need to calculate discovered check
-		if (!isCheck) {
-			Boolean lookup = discoveredCheckCache.lookup(move.from());
-			if (lookup != null) {
-				isCheck = lookup;
-			} else {
-				isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-				discoveredCheckCache.store(move.from(), isCheck);
-			}
+		boolean isCheck;
+		Boolean lookup = discoveredCheckCache.lookup(move.from());
+		if (lookup != null) {
+			isCheck = lookup;
+		} else {
+			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
+			discoveredCheckCache.store(move.from(), isCheck);
 		}
-		return isCheck;
+		if (isCheck) {
+			return new CheckInformation(true);
+		} else {
+			return CheckInformation.NOT_CHECK;
+		}
 	}
 
 	@Override

@@ -185,7 +185,6 @@ public class BishopMoveTest {
 	@Test
 	public void pinnedBishopsKingInCheck() {
 		setupGame("rnbqkbnr/ppppppp1/8/b4r2/P3r2b/1B6/2PBB3/2B1K3 w - - 0 4");
-		game.getPosition().setInCheck(true);
 		TestUtil.checkMoves(game.getPosition().findMoves(Colour.WHITE), "Ke1-d1");
 	}
 

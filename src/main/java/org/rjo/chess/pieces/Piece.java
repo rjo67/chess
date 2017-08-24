@@ -6,6 +6,7 @@ import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Game;
 import org.rjo.chess.Move;
+import org.rjo.chess.Move.CheckInformation;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
@@ -59,7 +60,7 @@ public interface Piece extends Cloneable {
 	 * @return a list of all possible moves.
 	 */
 	public List<Move> findMoves(Position position,
-			boolean kingInCheck);
+			CheckInformation kingInCheck);
 
 	/**
 	 * Finds all possible moves for this piece type in the given position.
@@ -86,9 +87,10 @@ public interface Piece extends Cloneable {
 	 * @param emptySquares bitset of empty squares (passed in as optimization)
 	 * @param checkCache cache for checks. This should only be used for bishop, queen or rook moves.
 	 * @param discoveredCheckCache cache for discovered checks
-	 * @return true when the move leaves the opponent's king in check
+	 * @return either null (when not check) or a checkInformation object, which stores which piece is checking / discovered
+	 *         check etc
 	 */
-	public boolean isOpponentsKingInCheckAfterMove(Position position,
+	public CheckInformation isOpponentsKingInCheckAfterMove(Position position,
 			Move move,
 			Square opponentsKing,
 			BitSetUnifier emptySquares,

@@ -47,8 +47,7 @@ public class KingCheck {
 	 */
 	public boolean isKingInCheck(Move move,
 			boolean kingIsAlreadyInCheck) {
-		// need to distinguish capture moves here, since the KingCheck method changes 'enemyPieces' for a
-		// capture
+		// need to distinguish capture moves here, since the KingCheck method changes 'enemyPieces' for a capture
 		if (move.isCapture()) {
 			return isKingInCheck(posn, move, opponentsColour, myKing, kingIsAlreadyInCheck);
 		} else {

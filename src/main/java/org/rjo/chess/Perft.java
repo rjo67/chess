@@ -28,7 +28,7 @@ public class Perft {
 
 	private static final Logger MOVE_LOGGER = LogManager.getLogger("MOVE-LOG");
 
-	private static final int NBR_THREADS = 6;
+	private static final int NBR_THREADS = 3;
 
 	// see PerftTest::posn6ply5
 	// 5ply: 164.075.551 moves

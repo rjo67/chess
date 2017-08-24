@@ -4,11 +4,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
+import org.rjo.chess.Move.CheckInformation;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
@@ -24,7 +23,6 @@ import org.rjo.chess.util.SquareCache;
  */
 public class Bishop extends SlidingPiece {
 
-	private static final Logger LOG = LogManager.getLogger(Bishop.class);
 	/** piece value in centipawns */
 	private static final int PIECE_VALUE = 330;
 
@@ -109,7 +107,7 @@ public class Bishop extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			boolean kingInCheck) {
+			CheckInformation kingInCheck) {
 		List<Move> moves = findPotentialMoves(posn);
 
 		// make sure king is not/no longer in check
@@ -118,7 +116,7 @@ public class Bishop extends SlidingPiece {
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
-			if (kingChecker.isKingInCheck(move, kingInCheck)) {
+			if (kingChecker.isKingInCheck(move, kingInCheck.isCheck())) {
 				iter.remove();
 			}
 		}
@@ -138,28 +136,35 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn,
+	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
 			BitSetUnifier emptySquares,
 			PositionCheckState checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
+
+		if (findDiagonalCheck(posn, emptySquares, move, opponentsKing, checkCache)) {
+			// if it's already check, don't need to calculate discovered check
+			return new CheckInformation(move.getPiece(), move.to());
+		}
+
 		/*
 		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use
 		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
-		boolean isCheck = findDiagonalCheck(posn, emptySquares, move, opponentsKing, checkCache);
-		// if it's already check, don't need to calculate discovered check
-		if (!isCheck) {
-			Boolean lookup = discoveredCheckCache.lookup(move.from());
-			if (lookup != null) {
-				isCheck = lookup;
-			} else {
-				isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-				discoveredCheckCache.store(move.from(), isCheck);
-			}
+		boolean isCheck;
+		Boolean lookup = discoveredCheckCache.lookup(move.from());
+		if (lookup != null) {
+			isCheck = lookup;
+		} else {
+			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
+			discoveredCheckCache.store(move.from(), isCheck);
 		}
-		return isCheck;
+		if (isCheck) {
+			return new CheckInformation(true);
+		} else {
+			return CheckInformation.NOT_CHECK;
+		}
 	}
 
 	@Override

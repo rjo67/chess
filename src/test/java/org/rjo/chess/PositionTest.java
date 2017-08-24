@@ -86,7 +86,6 @@ public class PositionTest {
 	@Test
 	public void blockCheck() {
 		Game game = Fen.decode("3r4/4k3/8/R7/4P3/3K4/1BN1P3/8 w - - 10 10");
-		game.getPosition().setInCheck(true);
 		List<Move> moves = game.getPosition().findMoves(Colour.WHITE);
 		assertEquals("found moves: " + moves, 6, moves.size());
 	}

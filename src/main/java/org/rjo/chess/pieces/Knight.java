@@ -5,12 +5,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
+import org.rjo.chess.Move.CheckInformation;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
@@ -23,17 +22,7 @@ import org.rjo.chess.util.SquareCache;
  *
  * @author rich
  */
-/**
- * @author rich
- *
- * @since 2017-08-21
- */
-/**
- * @author rich
- * @since 2017-08-21
- */
 public class Knight extends AbstractSetPiece {
-	private static final Logger LOG = LogManager.getLogger(Knight.class);
 
 	/** piece value in centipawns */
 	private static final int PIECE_VALUE = 320;
@@ -177,7 +166,7 @@ public class Knight extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			boolean kingInCheck) {
+			CheckInformation kingInCheck) {
 		final Square myKing = posn.getKingPosition(colour);
 		final Colour oppositeColour = Colour.oppositeColour(colour);
 
@@ -189,7 +178,7 @@ public class Knight extends AbstractSetPiece {
 		Iterator<Move> iter = moves.listIterator();
 		while (iter.hasNext()) {
 			Move move = iter.next();
-			if (KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck)) {
+			if (KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck())) {
 				iter.remove();
 			}
 		}
@@ -233,29 +222,34 @@ public class Knight extends AbstractSetPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn,
+	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
 			@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			@SuppressWarnings("unused") PositionCheckState checkCache,
 			SquareCache<Boolean> discoveredCheckCache) {
-		final int opponentsKingIndex = opponentsKing.bitIndex();
+
+		if (checkIfMoveAttacksSquare(move, opponentsKing.bitIndex())) {
+			// if it's already check, don't need to calculate discovered check
+			return new CheckInformation(move.getPiece(), move.to());
+		}
 		/*
 		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use
 		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
 		 */
-		boolean isCheck = checkIfMoveAttacksSquare(move, opponentsKingIndex);
-		// if it's already check, don't need to calculate discovered check
-		if (!isCheck) {
-			Boolean lookup = discoveredCheckCache.lookup(move.from());
-			if (lookup != null) {
-				isCheck = lookup;
-			} else {
-				isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-				discoveredCheckCache.store(move.from(), isCheck);
-			}
+		boolean isCheck;
+		Boolean lookup = discoveredCheckCache.lookup(move.from());
+		if (lookup != null) {
+			isCheck = lookup;
+		} else {
+			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
+			discoveredCheckCache.store(move.from(), isCheck);
 		}
-		return isCheck;
+		if (isCheck) {
+			return new CheckInformation(true);
+		} else {
+			return CheckInformation.NOT_CHECK;
+		}
 	}
 
 	/**

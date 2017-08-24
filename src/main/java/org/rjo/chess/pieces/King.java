@@ -13,6 +13,7 @@ import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
+import org.rjo.chess.Move.CheckInformation;
 import org.rjo.chess.MoveDistance;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionCheckState;
@@ -258,7 +259,7 @@ public class King extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			boolean kingInCheck) {
+			CheckInformation kingInCheck) {
 		StopWatch stopwatch = new StopWatch();
 		List<Move> moves = findPotentialMoves(posn);
 
@@ -272,7 +273,7 @@ public class King extends AbstractSetPiece {
 			Move move = iter.next();
 			// castling -- can't castle out of check or over a square in check
 			if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-				if (kingInCheck) {
+				if (kingInCheck.isCheck()) {
 					iter.remove();
 				} else {
 					if (move.isCastleKingsSide() && !isCastlingLegal(posn, getColour(), oppositeColour, CastlingRights.KINGS_SIDE)) {
@@ -283,7 +284,7 @@ public class King extends AbstractSetPiece {
 				}
 			} else {
 				Square myKing = move.to();
-				if (KingCheck.isKingInCheck(posn, move, Colour.oppositeColour(getColour()), myKing, kingInCheck)) {
+				if (KingCheck.isKingInCheck(posn, move, Colour.oppositeColour(getColour()), myKing, kingInCheck.isCheck())) {
 					iter.remove();
 				}
 			}
@@ -343,7 +344,7 @@ public class King extends AbstractSetPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn,
+	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
 			@SuppressWarnings("unused") BitSetUnifier emptySquares,
@@ -362,13 +363,18 @@ public class King extends AbstractSetPiece {
 			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
 			discoveredCheckCache.store(move.from(), isCheck);
 		}
-		if (!isCheck) {
+		if (isCheck) {
+			return new CheckInformation(true);
+		} else {
+			CheckInformation checkInfo = CheckInformation.NOT_CHECK;
 			if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-				isCheck = SlidingPiece.attacksSquareRankOrFile(posn.getEmptySquares(), move.getRooksCastlingMove().to(), opponentsKing,
-						checkCache, move.isCapture(), move.isPromotion());
+				if (SlidingPiece.attacksSquareRankOrFile(posn.getEmptySquares(), move.getRooksCastlingMove().to(), opponentsKing,
+						checkCache, move.isCapture(), move.isPromotion())) {
+					checkInfo = new CheckInformation(PieceType.ROOK, move.getRooksCastlingMove().to());
+				}
 			}
+			return checkInfo;
 		}
-		return isCheck;
 	}
 
 	@Override

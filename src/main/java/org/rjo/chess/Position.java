@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.rjo.chess.Move.CheckInformation;
 import org.rjo.chess.PositionCheckState.CheckInfo;
 import org.rjo.chess.pieces.Bishop;
 import org.rjo.chess.pieces.King;
@@ -77,10 +78,9 @@ public class Position {
 	private Colour sideToMove;
 
 	/**
-	 * if the king (of the sideToMove) is currently in check. Normally deduced from the last move but can be set
-	 * delibarately for tests.
+	 * check information of the previous move.
 	 */
-	private boolean inCheck;
+	private CheckInformation checkInformation;
 
 	/** zobrist value of this position */
 	private long zobristHash;
@@ -151,6 +151,7 @@ public class Position {
 		castling[Colour.BLACK.ordinal()] = blackCastlingRights;
 		this.sideToMove = sideToMove;
 		this.enpassantSquare = enpassantSquare;
+		this.checkInformation = CheckInformation.NOT_CHECK;
 
 		NBR_INSTANCES_CREATED++;
 
@@ -322,32 +323,31 @@ public class Position {
 	 * @return all moves for this colour.
 	 */
 	public List<Move> findMoves(Colour colour) {
-		// return findMovesParallel(colour);
-		return findMoves(colour, this.inCheck);
+		return findMoves(colour, this.checkInformation);
 	}
 
 	/**
 	 * Find all moves for the given colour from the current position, overriding the position's <code>inCheck</code> value.
 	 *
 	 * @param colour the required colour
-	 * @param inCheck whether the king is in check in this position
+	 * @param checkInformation stores whether the king is in check in this position
 	 * @return all moves for this colour.
 	 */
 	private List<Move> findMoves(Colour colour,
-			boolean inCheck) {
+			CheckInformation checkInformation) {
 		List<Move> moves = new ArrayList<>(100);
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece p = getPieces(colour)[type.ordinal()];
 			if (SystemFlags.GENERATE_ILLEGAL_MOVES) {
 				moves.addAll(p.findPotentialMoves(this));
 			} else {
-				moves.addAll(p.findMoves(this, inCheck));
+				moves.addAll(p.findMoves(this, checkInformation));
 			}
 		}
 		if (SystemFlags.GENERATE_ILLEGAL_MOVES) {
 			// 'moves' must now be pruned to get rid of illegal moves,
 			// i.e. those leaving my king in check
-			checkMovesForLegality(moves, inCheck);
+			checkMovesForLegality(moves, checkInformation.isCheck());
 		}
 
 		/*
@@ -358,9 +358,9 @@ public class Position {
 		final BitSetUnifier emptySquares = getEmptySquares();
 		for (Move move : moves) {
 			Piece p = getPieces(colour)[move.getPiece().ordinal()];
-			boolean isCheck = p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares, checkState[colour.ordinal()],
-					discoveredCheckCache);
-			move.setCheck(isCheck);
+			CheckInformation checkInfo = p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares,
+					checkState[colour.ordinal()], discoveredCheckCache);
+			move.setCheck(checkInfo);
 		}
 
 		return moves;
@@ -411,36 +411,6 @@ public class Position {
 		}
 
 	}
-
-	// public List<Move> findMovesParallel(Colour colour) {
-	// // set up tasks
-	// List<Callable<List<Move>>> tasks = new ArrayList<>();
-	// for (PieceType type : PieceType.getPieceTypes()) {
-	// tasks.add(new Callable<List<Move>>() {
-	//
-	// @Override
-	// public List<Move> call() throws Exception {
-	// Piece p = getPieces(colour)[type.ordinal()];
-	// return p.findMoves(Position.this, inCheck);
-	// }
-	//
-	// });
-	// }
-	//
-	// // and execute
-	// List<Move> moves = new ArrayList<>(60);
-	// try {
-	// List<Future<List<Move>>> results = threadPool.invokeAll(tasks);
-	//
-	// for (Future<List<Move>> f : results) {
-	// moves.addAll(f.get());
-	// }
-	// } catch (InterruptedException | ExecutionException e) {
-	// throw new RuntimeException("got InterruptedException from future (findMovesParallel)", e);
-	// }
-	//
-	// return moves;
-	// }
 
 	private void logDebug(String string) {
 		if (LOG.isDebugEnabled()) {
@@ -520,21 +490,21 @@ public class Position {
 		if (move.getPiece() == PieceType.KING) {
 			kingPosition[sideToMove.ordinal()] = move.to();
 		}
+		checkInformation = move.getCheckInformation();
 		sideToMove = Colour.oppositeColour(sideToMove);
-		inCheck = move.isCheck();
 	}
 
 	/**
-	 * Just for tests: indicate that in this position the king of the side to move is in check.
+	 * Just for Fen.decode(): indicate that in this position the king of the side to move is in check.
 	 *
 	 * @param inCheck true when the king is in check.
 	 */
 	public void setInCheck(boolean inCheck) {
-		this.inCheck = inCheck;
+		this.checkInformation = inCheck ? CheckInformation.CHECK : CheckInformation.NOT_CHECK;
 	}
 
 	public boolean isInCheck() {
-		return inCheck;
+		return checkInformation.isCheck();
 	}
 
 	public void setPositionScore(PositionScore positionScore) {
@@ -588,7 +558,7 @@ public class Position {
 			prevEnpassantSquare = getEnpassantSquare();
 			enpassantSquare = null;
 		}
-		List<Move> moves = findMoves(Colour.WHITE, getSideToMove() == Colour.WHITE ? true : false);
+		List<Move> moves = findMoves(Colour.WHITE, getSideToMove() == Colour.WHITE ? CheckInformation.CHECK : CheckInformation.NOT_CHECK);
 		if (getSideToMove() != Colour.WHITE) {
 			enpassantSquare = prevEnpassantSquare;
 		}
@@ -598,7 +568,7 @@ public class Position {
 			prevEnpassantSquare = getEnpassantSquare();
 			enpassantSquare = null;
 		}
-		moves = findMoves(Colour.BLACK, getSideToMove() == Colour.BLACK ? true : false);
+		moves = findMoves(Colour.BLACK, getSideToMove() == Colour.BLACK ? CheckInformation.CHECK : CheckInformation.NOT_CHECK);
 		if (getSideToMove() != Colour.BLACK) {
 			enpassantSquare = prevEnpassantSquare;
 		}

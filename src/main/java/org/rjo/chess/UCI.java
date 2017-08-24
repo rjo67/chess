@@ -106,7 +106,6 @@ public class UCI {
 					boolean incheck = game.getPosition().squareIsAttacked(kingsSquare,
 							Colour.oppositeColour(game.getPosition().getSideToMove()));
 					m.setCheck(incheck);
-					game.getPosition().setInCheck(incheck);
 					System.out.println("after move " + m + ", fen:" + Fen.encode(game));
 				}
 			}

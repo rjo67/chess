@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
+import org.rjo.chess.Move.CheckInformation;
 import org.rjo.chess.Position;
 import org.rjo.chess.PositionCheckState;
 import org.rjo.chess.Square;
@@ -23,7 +22,6 @@ import org.rjo.chess.util.SquareCache;
  * @author rich
  */
 public class Pawn extends AbstractBitBoardPiece {
-	private static final Logger LOG = LogManager.getLogger(Pawn.class);
 
 	/** piece value in centipawns */
 	private static final int PIECE_VALUE = 100;
@@ -123,7 +121,7 @@ public class Pawn extends AbstractBitBoardPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			boolean kingInCheck) {
+			CheckInformation kingInCheck) {
 		List<Move> moves = findPotentialMoves(posn);
 
 		// make sure king is not/no longer in check
@@ -133,7 +131,7 @@ public class Pawn extends AbstractBitBoardPiece {
 		while (iter.hasNext()) {
 			Move move = iter.next();
 			// make sure my king is not/no longer in check
-			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck)) {
+			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck())) {
 				iter.remove();
 			}
 		}
@@ -163,19 +161,24 @@ public class Pawn extends AbstractBitBoardPiece {
 	}
 
 	@Override
-	public boolean isOpponentsKingInCheckAfterMove(Position posn,
+	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
 			Move move,
 			Square opponentsKing,
 			@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			PositionCheckState checkCache,
 			@SuppressWarnings("unused") SquareCache<Boolean> discoveredCheckCache) {
-		// probably not worth caching discovered check results for pawns
-		boolean isCheck = checkIfCheckInternal(posn, move, opponentsKing, checkCache, helper[getColour().ordinal()]);
-		// if it's already check, don't need to calculate discovered check
-		if (!isCheck) {
-			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
+
+		if (checkIfCheckInternal(posn, move, opponentsKing, checkCache, helper[getColour().ordinal()])) {
+			return new CheckInformation(move.getPiece(), move.to());
 		}
-		return isCheck;
+		// if it's already check, don't need to calculate discovered check
+
+		// probably not worth caching discovered check results for pawns
+		if (Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing)) {
+			return new CheckInformation(true);
+		} else {
+			return CheckInformation.NOT_CHECK;
+		}
 	}
 
 	/**

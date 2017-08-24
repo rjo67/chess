@@ -25,6 +25,10 @@ The hope is to be able to optimize this procedure if it is performed centrally.
 Flag: Position::GENERATE_ILLEGAL_MOVES to switch this behaviour on (default: off)
 
 
+http://www.open-chess.org/viewtopic.php?f=5&t=2855#p22102
+Checking legality of each move in the move generator is indeed needlessly expensive,when not in check. In qperft I don't check any moves for legality. The reason it does not generate illegal non-King moves is not that they are somehow rejected after generation. It is because it first detects pinned pieces, and uses a special move-generation code for those, only allowing moves along the pin ray. This actually saves time, because you generate fewer moves.
+For in-check positions it uses a special move generator depending on the type of check: double (King moves only), contact (King moves + capture of the checker) or distant (King moves + checker capture + interposition).
+
 
 [Diary](diary.md)
 

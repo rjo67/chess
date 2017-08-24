@@ -7,18 +7,15 @@ import org.rjo.chess.Game;
 import org.rjo.chess.TestUtil;
 
 public class BlackPawnTest {
-	private Piece pawn;
 	private Game game;
 
 	private void setupGame(String fen) {
 		game = Fen.decode(fen);
-		pawn = game.getPosition().getPieces(Colour.BLACK)[PieceType.PAWN.ordinal()];
 	}
 
 	@Test
 	public void startPosition() {
 		Game game = new Game();
-		pawn = new Pawn(Colour.BLACK, true);
 		TestUtil.checkMoves(game.getPosition().findMoves(Colour.BLACK), TestUtil.KING_FILTER.or(TestUtil.KNIGHT_FILTER), "a7-a6", "a7-a5",
 				"b7-b6", "b7-b5", "c7-c6", "c7-c5", "d7-d6", "d7-d5", "e7-e6", "e7-e5", "f7-f6", "f7-f5", "g7-g6", "g7-g5", "h7-h6", "h7-h5");
 	}

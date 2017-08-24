@@ -120,6 +120,8 @@ public class Fen {
 	/**
 	 * Parses a FEN notation to create a game state. Either 6 fields or 4 if the halfmove clock and full move nbr fields are
 	 * left out.
+	 * <p>
+	 * Whether the king is in check will be stored.
 	 *
 	 * @param fen a FEN representation of a chess position
 	 * @return a Game object, containing a Position
@@ -133,6 +135,8 @@ public class Fen {
 
 		Position posn = parsePosition(fenTokenizer.nextToken(), parseActiveColour(fenTokenizer.nextToken()),
 				parseCastlingRights(fenTokenizer.nextToken()), parseEnpassantSquare(fenTokenizer.nextToken()));
+		boolean inCheck = posn.squareIsAttacked(posn.getKingPosition(posn.getSideToMove()), Colour.oppositeColour(posn.getSideToMove()));
+		posn.setInCheck(inCheck);
 
 		Game game = new Game(posn);
 		if (fenTokenizer.hasMoreTokens()) {
