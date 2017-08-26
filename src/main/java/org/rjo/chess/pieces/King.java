@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.rjo.chess.BitBoard;
 import org.rjo.chess.CastlingRights;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
@@ -259,9 +260,10 @@ public class King extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck) {
+			CheckInformation kingInCheck,
+			BitBoard squareRestriction) {
 		StopWatch stopwatch = new StopWatch();
-		List<Move> moves = findPotentialMoves(posn);
+		List<Move> moves = findPotentialMoves(posn, squareRestriction);
 
 		long time1 = stopwatch.getTime();
 
@@ -298,7 +300,8 @@ public class King extends AbstractSetPiece {
 	}
 
 	@Override
-	public List<Move> findPotentialMoves(Position posn) {
+	public List<Move> findPotentialMoves(Position posn,
+			BitBoard squareRestriction) {
 		List<Move> moves = new ArrayList<>();
 
 		Square kingsSquare = pieces.iterator().next();

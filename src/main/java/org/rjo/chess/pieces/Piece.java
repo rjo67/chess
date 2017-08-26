@@ -57,10 +57,13 @@ public interface Piece extends Cloneable {
 	 *
 	 * @param position current position.
 	 * @param kingInCheck indicates if the king is currently in check. This limits the available moves.
+	 * @param squareRestriction a bitboard of squares which come into consideration. Normally all are allowed. If the king
+	 *           is in check then this bitboard wll contain only the squares which will potentially get out of check.
 	 * @return a list of all possible moves.
 	 */
 	public List<Move> findMoves(Position position,
-			CheckInformation kingInCheck);
+			CheckInformation kingInCheck,
+			BitBoard squareRestriction);
 
 	/**
 	 * Finds all possible moves for this piece type in the given position.
@@ -70,9 +73,12 @@ public interface Piece extends Cloneable {
 	 * {@link Move#isCheck()} is not set).
 	 *
 	 * @param position current position.
+	 * @param squareRestriction a bitboard of squares which come into consideration. Normally all are allowed. If the king
+	 *           is in check then this bitboard wll contain only the squares which will potentially get out of check.
 	 * @return a list of all possible moves.
 	 */
-	public List<Move> findPotentialMoves(Position position);
+	public List<Move> findPotentialMoves(Position position,
+			BitBoard squareRestriction);
 
 	/**
 	 * Does the given move leave the opponent's king in check?

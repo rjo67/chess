@@ -19,9 +19,10 @@ import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
 
 /**
- * Implementation of the Forsyth�Edwards Notation to record a game's position.
- * https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation A FEN record contains six fields. The separator
- * between fields is a space. The fields are:
+ * Implementation of the Forsyth-Edwards Notation to record a game's position.
+ * https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation.
+ * <p>
+ * A FEN record contains six fields. The separator between fields is a space. The fields are:
  * <ul>
  * <li>Piece placement (from white's perspective). Each rank is described, starting with rank 8 and ending with rank 1;
  * within each rank, the contents of each square are described from file "a" through file "h". Each piece is identified

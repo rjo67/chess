@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
@@ -107,8 +108,9 @@ public class Bishop extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck) {
-		List<Move> moves = findPotentialMoves(posn);
+			CheckInformation kingInCheck,
+			BitBoard squareRestriction) {
+		List<Move> moves = findPotentialMoves(posn, squareRestriction);
 
 		// make sure king is not/no longer in check
 		Square myKing = posn.getKingPosition(colour);
@@ -124,12 +126,13 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public List<Move> findPotentialMoves(Position posn) {
+	public List<Move> findPotentialMoves(Position posn,
+			BitBoard squareRestriction) {
 		List<Move> moves = new ArrayList<>(30);
 
 		// search for moves
 		for (RayType rayType : RayType.RAY_TYPES_DIAGONAL) {
-			moves.addAll(search(posn, BaseRay.getRay(rayType)));
+			moves.addAll(search(posn, BaseRay.getRay(rayType), squareRestriction));
 		}
 
 		return moves;
@@ -173,7 +176,7 @@ public class Bishop extends SlidingPiece {
 			PositionCheckState checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
 			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false/** TODO */
-			)) {
+					, false)) {
 				return true;
 			}
 		}
@@ -187,14 +190,17 @@ public class Bishop extends SlidingPiece {
 	 * @param startSquare start square (i.e. where the bishop is)
 	 * @param targetSquare square being attacked (i.e. where the king is)
 	 * @param checkCache cache of previously found results
+	 * @param isCapture if the move is a capture
+	 * @param isPromotion if the move is a pawn promotion
 	 * @return true if targetSquare is attacked from startSquare, otherwise false.
 	 */
 	public static boolean attacksSquare(BitSetUnifier emptySquares,
 			Square startSquare,
 			Square targetSquare,
 			PositionCheckState checkCache,
-			boolean isCapture) {
-		return attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture);
+			boolean isCapture,
+			boolean isPromotion) {
+		return attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion);
 	}
 
 }

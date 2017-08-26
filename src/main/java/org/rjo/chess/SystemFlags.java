@@ -36,4 +36,8 @@ public class SystemFlags {
 
 	/** if TRUE, the 'checkState' will be examined after a move to make sure everything's correct */
 	public static final boolean DEBUG_CHECK_STATE = false;
+
+	/** whether to cache the check state (buggy) */
+	public static final boolean USE_CHECK_STATE = false;
+
 }

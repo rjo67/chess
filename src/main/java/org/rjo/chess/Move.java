@@ -406,6 +406,14 @@ public class Move {
 		public boolean isCheck() {
 			return check || discoveredCheck;
 		}
+
+		public PieceType getCheckingPiece() {
+			return checkingPiece;
+		}
+
+		public Square getCheckingSquare() {
+			return checkingSquare;
+		}
 	}
 
 	/**

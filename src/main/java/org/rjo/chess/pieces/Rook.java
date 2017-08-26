@@ -347,9 +347,10 @@ public class Rook extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck) {
+			CheckInformation kingInCheck,
+			BitBoard squareRestriction) {
 
-		List<Move> moves = findPotentialMoves(posn);
+		List<Move> moves = findPotentialMoves(posn, squareRestriction);
 
 		// make sure king is not/no longer in check
 		Square myKing = posn.getKingPosition(colour);
@@ -365,7 +366,8 @@ public class Rook extends SlidingPiece {
 	}
 
 	@Override
-	public List<Move> findPotentialMoves(Position posn) {
+	public List<Move> findPotentialMoves(Position posn,
+			BitBoard squareRestriction) {
 		List<Move> moves = new ArrayList<>(30);
 
 		// search for moves
@@ -373,7 +375,7 @@ public class Rook extends SlidingPiece {
 			moves = findMovesUsingMoveMap(posn);
 		} else {
 			for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
-				moves.addAll(search(posn, BaseRay.getRay(rayType)));
+				moves.addAll(search(posn, BaseRay.getRay(rayType), squareRestriction));
 			}
 		}
 		return moves;

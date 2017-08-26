@@ -17,6 +17,9 @@ import org.rjo.chess.util.BitSetUnifier;
  */
 public class BitBoard {
 
+	public final static BitBoard ALL_SET = new BitBoard(new BitBoard().flip());
+	public final static BitBoard EMPTY = new BitBoard();
+
 	/**
 	 * BitSets for each <code>file</code> of the board.
 	 * <p>
@@ -309,7 +312,18 @@ public class BitBoard {
 	 */
 	public void setBitsAt(Square... squares) {
 		for (Square coord : squares) {
-			this.bs.set(coord.bitIndex());
+			set(coord);
+		}
+	}
+
+	/**
+	 * Convenience method to set various bits of the bitboard.
+	 *
+	 * @param squares a number of squares
+	 */
+	public void setBitsAt(Integer... bitIndices) {
+		for (Integer coord : bitIndices) {
+			bs.set(coord);
 		}
 	}
 
@@ -381,6 +395,26 @@ public class BitBoard {
 	@Override
 	public String toString() {
 		return display();
+	}
+
+	/** delegate to underlying bitset */
+	public boolean get(Square sq) {
+		return get(sq.bitIndex());
+	}
+
+	/** delegate to underlying bitset */
+	public boolean get(int sq) {
+		return bs.get(sq);
+	}
+
+	/** delegate to underlying bitset */
+	public void set(Square sq) {
+		set(sq.bitIndex());
+	}
+
+	/** delegate to underlying bitset */
+	public void set(int sqIndex) {
+		bs.set(sqIndex);
 	}
 
 }

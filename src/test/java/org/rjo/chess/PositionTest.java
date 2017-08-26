@@ -105,7 +105,7 @@ public class PositionTest {
 	@Test
 	public void posn2ply2() {
 		Game game = Fen.decode("r3kr1Q/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQ-q - 0 1");
-		Map<String, Integer> moveMap = Perft.findMoves(game.getPosition(), Colour.BLACK, 1);
+		Map<String, Integer> moveMap = Perft.findMoves(game.getPosition(), Colour.BLACK, 1, 1);
 		int moves = Perft.countMoves(moveMap);
 		assertEquals("found moves" + moveMap, 35, moves);
 	}
@@ -393,7 +393,7 @@ public class PositionTest {
 	public void testCheck() {
 		Game game = Fen.decode("r3k2r/5p2/8/8/1Q6/BBBB4/8/R3K2R w KkQq - 0 1");
 		System.setProperty("CHECK-DEBUG", "true");
-		Map<String, Integer> moveMap = Perft.findMoves(game.getPosition(), Colour.WHITE, 1);
+		Map<String, Integer> moveMap = Perft.findMoves(game.getPosition(), Colour.WHITE, 1, 1);
 		System.out.println(moveMap);
 	}
 

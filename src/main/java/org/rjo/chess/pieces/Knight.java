@@ -166,11 +166,12 @@ public class Knight extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck) {
+			CheckInformation kingInCheck,
+			BitBoard squareRestriction) {
 		final Square myKing = posn.getKingPosition(colour);
 		final Colour oppositeColour = Colour.oppositeColour(colour);
 
-		List<Move> moves = findPotentialMoves(posn);
+		List<Move> moves = findPotentialMoves(posn, squareRestriction);
 
 		/*
 		 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
@@ -186,7 +187,8 @@ public class Knight extends AbstractSetPiece {
 	}
 
 	@Override
-	public List<Move> findPotentialMoves(Position posn) {
+	public List<Move> findPotentialMoves(Position posn,
+			BitBoard squareRestriction) {
 		List<Move> moves = new ArrayList<>(20);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
 		final BitSetUnifier allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
@@ -204,17 +206,20 @@ public class Knight extends AbstractSetPiece {
 			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
 				// move can't be to a square with a piece of the same colour on it
 				if (!allMyPiecesBitSet.get(k)) {
-					Square targetSquare = Square.fromBitIndex(k);
-					Move move;
-					// decide if capture or not
-					if (allOpponentsPiecesBitSet.get(k)) {
-						// capture
-						move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare,
-								posn.pieceAt(targetSquare, oppositeColour));
-					} else {
-						move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare);
+					// restrict squares i/c of check
+					if (squareRestriction.get(k)) {
+						Square targetSquare = Square.fromBitIndex(k);
+						Move move;
+						// decide if capture or not
+						if (allOpponentsPiecesBitSet.get(k)) {
+							// capture
+							move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare,
+									posn.pieceAt(targetSquare, oppositeColour));
+						} else {
+							move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare);
+						}
+						moves.add(move);
 					}
-					moves.add(move);
 				}
 			}
 		}

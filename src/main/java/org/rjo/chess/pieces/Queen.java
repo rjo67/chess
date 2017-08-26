@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
@@ -100,9 +101,10 @@ public class Queen extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck) {
+			CheckInformation kingInCheck,
+			BitBoard squareRestriction) {
 
-		List<Move> moves = findPotentialMoves(posn);
+		List<Move> moves = findPotentialMoves(posn, squareRestriction);
 
 		// make sure my king is not/no longer in check
 		Square myKing = posn.getKingPosition(colour);
@@ -119,7 +121,8 @@ public class Queen extends SlidingPiece {
 	}
 
 	@Override
-	public List<Move> findPotentialMoves(Position posn) {
+	public List<Move> findPotentialMoves(Position posn,
+			BitBoard squareRestriction) {
 
 		List<Move> moves = new ArrayList<>(30);
 
@@ -127,7 +130,7 @@ public class Queen extends SlidingPiece {
 		 * search for moves in all compass directions.
 		 */
 		for (RayType rayType : RayType.values()) {
-			moves.addAll(search(posn, BaseRay.getRay(rayType)));
+			moves.addAll(search(posn, BaseRay.getRay(rayType), squareRestriction));
 		}
 		return moves;
 	}
@@ -198,7 +201,7 @@ public class Queen extends SlidingPiece {
 		if (attacksSquareRankOrFile(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion)) {
 			return true;
 		}
-		if (attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture)) {
+		if (attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion)) {
 			return true;
 		}
 		return false;

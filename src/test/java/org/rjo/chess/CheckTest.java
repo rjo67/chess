@@ -1,6 +1,13 @@
 package org.rjo.chess;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
 import org.junit.Test;
+import org.rjo.chess.Move.CheckInformation;
+import org.rjo.chess.pieces.PieceType;
 
 /**
  * Move generation where the king is in check.
@@ -46,5 +53,29 @@ public class CheckTest {
 	public void saragossaOpening() {
 		Game game = Fen.decode("rnbqkbnr/ppp1pppp/3p4/8/Q7/2P5/PP1PPPPP/RNB1KBNR b - - 0 4");
 		TestUtil.checkMoves(game.getPosition().findMoves(Colour.BLACK), "b7-b5", "c7-c6", "Nb8-c6", "Nb8-d7", "Bc8-d7", "Qd8-d7");
+	}
+
+	@Test
+	public void checkAfterQueensideCastles() {
+		Game game = Fen.decode("3k4/p1p1p1p1/8/8/8/p3p2p/P3P2P/R3K2R w KQ - 0 4");
+		List<Move> moves = game.getPosition().findMoves(Colour.WHITE);
+		TestUtil.checkMoves(moves, "O-O", "O-O-O+", "Ra1-b1", "Ra1-c1", "Ra1-d1+", "Rh1-g1", "Rh1-f1", "Ke1-d1", "Ke1-f1");
+		Move castlingmove = moves.stream().filter(move -> move.toString().equals("O-O-O+")).findAny().orElseThrow(IllegalStateException::new);
+		CheckInformation ci = castlingmove.getCheckInformation();
+		assertTrue(ci.isCheck());
+		assertEquals(PieceType.ROOK, ci.getCheckingPiece());
+		assertEquals(Square.d1, ci.getCheckingSquare());
+	}
+
+	@Test
+	public void checkAfterKingsSideCastles() {
+		Game game = Fen.decode("5k2/p1p1p1p1/8/8/8/p3p2p/P3P2P/R3K2R w KQ - 0 4");
+		List<Move> moves = game.getPosition().findMoves(Colour.WHITE);
+		TestUtil.checkMoves(moves, "O-O+", "O-O-O", "Ra1-b1", "Ra1-c1", "Ra1-d1", "Rh1-g1", "Rh1-f1+", "Ke1-d1", "Ke1-f1");
+		Move castlingmove = moves.stream().filter(move -> move.toString().equals("O-O+")).findAny().orElseThrow(IllegalStateException::new);
+		CheckInformation ci = castlingmove.getCheckInformation();
+		assertTrue(ci.isCheck());
+		assertEquals(PieceType.ROOK, ci.getCheckingPiece());
+		assertEquals(Square.f1, ci.getCheckingSquare());
 	}
 }

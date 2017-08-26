@@ -14,7 +14,7 @@ import org.rjo.chess.util.SquareCache;
  * @author rich
  * @since 2017-07-23
  */
-public final class PositionCheckState {
+public class PositionCheckState {
 
 	final static class CheckInfo {
 		private static final CheckInfo DEFAULT = new CheckInfo(CheckStates.UNKNOWN, null);
@@ -59,6 +59,112 @@ public final class PositionCheckState {
 			}
 		}
 	}
+
+	/**
+	 * A dummy PositionCheckState where each operation has no effect on the state. Used when SystemFlags.USE_CHECK_STATE ==
+	 * false.
+	 */
+	static final class NoOpPositionCheckState extends PositionCheckState {
+		public NoOpPositionCheckState() {
+			super();
+		}
+
+		@Override
+		public void reset() {
+			// no-op
+		}
+
+		@Override
+		public void setNotCheck(@SuppressWarnings("unused") RayType rayType,
+				@SuppressWarnings("unused") Square square) {
+			// no-op
+			return;
+		}
+
+		@Override
+		public void setNotCheck(@SuppressWarnings("unused") RayType rayType,
+				@SuppressWarnings("unused") Integer squareBitIndex) {
+			// no-op
+			return;
+		}
+
+		@Override
+		public void setNotCheck(@SuppressWarnings("unused") RayType rayType,
+				@SuppressWarnings("unused") List<Integer> squares) {
+			// no-op
+			return;
+		}
+
+		@Override
+		public void setCheckIfCapture(@SuppressWarnings("unused") RayType rayType,
+				@SuppressWarnings("unused") Square square) {
+			// no-op
+			return;
+		}
+
+		@Override
+		public void setCheck(@SuppressWarnings("unused") RayType rayType,
+				@SuppressWarnings("unused") Square square) {
+			// no-op
+			return;
+		}
+
+		@Override
+		public void setCheck(@SuppressWarnings("unused") RayType rayType,
+				@SuppressWarnings("unused") List<Integer> squares) {
+			// no-op
+			return;
+		}
+
+		@Override
+		@SuppressWarnings("unused")
+		public void setToNotCheck(Integer squareBitIndex,
+				@SuppressWarnings("unused") RayType rayType) {
+			// no-op
+			return;
+		}
+
+		@Override
+		public void setToUnknownState(@SuppressWarnings("unused") Integer squareBitIndex,
+				@SuppressWarnings("unused") RayType rayType) {
+			// no-op
+			return;
+		}
+
+		@Override
+		public CheckStates getCheckState(@SuppressWarnings("unused") int squareBitIndex,
+				@SuppressWarnings("unused") RayType rayType) {
+			return CheckStates.UNKNOWN;
+		}
+
+		@Override
+		public boolean isCheckStatusKnownForSquare(@SuppressWarnings("unused") Square square,
+				@SuppressWarnings("unused") RayType rayType) {
+			return false;
+		}
+
+		@Override
+		public boolean isCheckStatusKnownForSquare(@SuppressWarnings("unused") int bitIndex,
+				@SuppressWarnings("unused") RayType rayType) {
+			return false;
+		}
+
+		@Override
+		public boolean squareHasCheckStatus(@SuppressWarnings("unused") Square square,
+				@SuppressWarnings("unused") RayType rayType) {
+			return false;
+		}
+
+		@Override
+		public boolean squareHasCheckIfCaptureStatus(@SuppressWarnings("unused") Square square,
+				@SuppressWarnings("unused") RayType rayType) {
+			return false;
+		}
+
+	}
+
+	/** if we're not using the checkstate Cache, then we pass this object around */
+	public final static PositionCheckState NOOP_STATE = new NoOpPositionCheckState();
 
 	private SquareCache<CheckInfo> checkCache;
 

@@ -102,7 +102,7 @@ public class PerftTest {
 			if (expectedNbrOfMoves[depth] != -1) {
 				Game game = Fen.decode(fenString);
 				long start = System.currentTimeMillis();
-				Map<String, Integer> moveMap = Perft.findMoves(game.getPosition(), sideToMove, depth + 1);
+				Map<String, Integer> moveMap = Perft.findMoves(game.getPosition(), sideToMove, depth + 1, 3);
 				int moves = Perft.countMoves(moveMap);
 				long time = System.currentTimeMillis() - start;
 				// no printout if took less than 500ms
@@ -184,7 +184,7 @@ public class PerftTest {
 			{ "selfStalemateCheckmate", "8/8/8/8/1k6/8/K1p5/8 b - - 0 1", Colour.BLACK,
 					new int[] { -1, -1, -1, -1, -1, -1, 567584 } },
 			{ "promotion www.rocechess.ch/perft.html", "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1", Colour.BLACK,
-					new int[] {24, 496, 9483, 182838 , 3605103 /* , 71179139 */ } },
+					new int[] {24, 496, 9483, 182838  , 3605103 /* , 71179139 */ } },
 			{ "promoteToGiveCheck", "4k3/1P6/8/8/8/8/K7/8 w - - 0 1", Colour.WHITE,
 					new int[] { -1, -1, -1, -1, -1, 217342 } },
 			{ "promoteToGiveCheck", "8/k7/8/8/8/8/1p6/4K3 b - - 0 1", Colour.BLACK,

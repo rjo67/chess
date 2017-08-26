@@ -28,7 +28,7 @@ public class Perft {
 
 	private static final Logger MOVE_LOGGER = LogManager.getLogger("MOVE-LOG");
 
-	private static final int NBR_THREADS = 3;
+	public static final int NBR_THREADS = 1;
 
 	// see PerftTest::posn6ply5
 	// 5ply: 164.075.551 moves
@@ -53,7 +53,7 @@ public class Perft {
 		System.out.println(String.format("Perft::posn6ply%d starting (%d threads)...", REQD_DEPTH, NBR_THREADS));
 		StopWatch sw = new StopWatch();
 		sw.start();
-		int moves = Perft.findAndCountMoves(game.getPosition(), Colour.WHITE, REQD_DEPTH);
+		int moves = Perft.findAndCountMoves(game.getPosition(), Colour.WHITE, REQD_DEPTH, NBR_THREADS);
 		long time = sw.getTime();
 		System.out
 				.println(String.format(Locale.GERMANY, "%dply: %,12d moves (%,9d ms) (%7.1f moves/ms)", REQD_DEPTH, moves, time,
@@ -69,12 +69,14 @@ public class Perft {
 	 * @param posn a game position
 	 * @param sideToMove the starting colour
 	 * @param depth the required depth to search
+	 * @param nbrThreads number of threads
 	 * @return nbr of moves in the move map
 	 */
 	public static int findAndCountMoves(Position posn,
 			Colour sideToMove,
-			int depth) {
-		Map<String, Integer> moveMap = findMoves(posn, sideToMove, depth);
+			int depth,
+			int nbrThreads) {
+		Map<String, Integer> moveMap = findMoves(posn, sideToMove, depth, nbrThreads);
 		return countMoves(moveMap);
 	}
 
@@ -91,11 +93,40 @@ public class Perft {
 	 */
 	public static Map<String, Integer> findMoves(Position posn,
 			Colour sideToMove,
+			int depth,
+			int nbrThreads) {
+		if (nbrThreads == 1) {
+			return findMovesSingleThreaded(posn, sideToMove, depth);
+		} else {
+			return findMovesMultiThreaded(posn, sideToMove, depth, nbrThreads);
+		}
+	}
+
+	// singlethreaded version. good for debugging, since the moves are generated in a well-defined order
+	public static Map<String, Integer> findMovesSingleThreaded(Position posn,
+			Colour sideToMove,
 			int depth) {
 		if (depth < 1) {
 			throw new IllegalArgumentException("depth must be >= 1");
 		}
-		ExecutorService threadPool = Executors.newFixedThreadPool(NBR_THREADS);
+
+		Map<String, Integer> moveMap = new HashMap<>();
+		for (final Move move : posn.findMoves(sideToMove)) {
+			logMove(depth, move, posn);
+			Position posnAfterMove = posn.move(move);
+			moveMap.put(move.toString(), findMovesInternal(move, posnAfterMove, Colour.oppositeColour(sideToMove), depth - 1).nbrMoves);
+		}
+		return moveMap;
+	}
+
+	public static Map<String, Integer> findMovesMultiThreaded(Position posn,
+			Colour sideToMove,
+			int depth,
+			int nbrThreads) {
+		if (depth < 1) {
+			throw new IllegalArgumentException("depth must be >= 1");
+		}
+		ExecutorService threadPool = Executors.newFixedThreadPool(nbrThreads);
 		List<Future<MoveResult>> futures = new ArrayList<>(200);
 
 		Map<String, Integer> moveMap = new HashMap<>();
@@ -171,8 +202,8 @@ public class Perft {
 			Move move,
 			Position posn) {
 		if (MOVE_LOGGER.isDebugEnabled()) {
-			MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn) + "\n" + posn.getCheckState()[0] + "\n" + posn.getCheckState()[1]);
-			//			MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn));
+			//			MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn) + "\n" + posn.getCheckState()[0] + "\n" + posn.getCheckState()[1]);
+			MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn));
 		}
 	}
 

@@ -2,6 +2,7 @@ package org.rjo.chess.pieces;
 
 import java.util.List;
 
+import org.rjo.chess.BitBoard;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Move.CheckInformation;
@@ -47,14 +48,14 @@ public abstract class AbstractPiece implements Piece {
 
 	/**
 	 * Finds all possible moves for this piece type in the given position. Delegates to
-	 * {@link #findMoves(Position, org.rjo.chess.Move.CheckInformation) with 2nd parameter FALSE.
+	 * {@link #findMoves(Position, CheckInformation, BitBoard) with 2nd parameter NOT_CHECK and 3rd paramter ALL_SET.
 	 *
 	 * @param position current game state.
 	 * @return a list of all possible moves.
 	 */
 	@Override
 	public final List<Move> findMoves(Position position) {
-		return findMoves(position, CheckInformation.NOT_CHECK);
+		return findMoves(position, CheckInformation.NOT_CHECK, BitBoard.ALL_SET);
 	}
 
 	@Override
