@@ -3,7 +3,7 @@
 ## Overview of commits and performance
 date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 ---- | ----------- | ------ | -----
-26.08.17 | check-cache deactivated. Many other changes, especially limiting move-generation if in-check. | ? | 2019,9 moves/ms
+26.08.17 | check-cache deactivated. Many other changes, especially limiting move-generation if in-check. | 9c688f9 | 2019,9 moves/ms
 17.07.16 | project subdirs removed. Added Rook::findMovesUsingMoveMap, introducing hashmaps. | ac7390a | 2069,0 moves/ms
 13.02.16 | rookmoves | eb33026 | 2117,8 moves/ms
 27.12.15 | added KingChecker | cb0c20c | 2135,1 moves/ms
