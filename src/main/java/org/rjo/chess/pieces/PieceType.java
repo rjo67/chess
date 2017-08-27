@@ -21,13 +21,7 @@ public enum PieceType {
 			return colour == Colour.WHITE ? "P" : "p";
 		}
 	},
-	ROOK("R"), KNIGHT("N"), BISHOP("B"), QUEEN("Q"), KING("K"),
-
-	/**
-	 * this is a dummy piece. Used only when working out if a square is attacked (a capture Move stores which piece is
-	 * captured). It is enough to know in this case that the square is attacked, we don't care which piece is attacked.
-	 */
-	DUMMY("?");
+	ROOK("R"), KNIGHT("N"), BISHOP("B"), QUEEN("Q"), KING("K");
 
 	/** All the pieces, from pawn to queen */
 	public final static PieceType[] ALL_PIECE_TYPES = new PieceType[] { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING };

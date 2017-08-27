@@ -159,8 +159,8 @@ public class Pawn extends AbstractBitBoardPiece {
 		//
 		moves.addAll(moveOneSquareForward(posn, helper[getColour().ordinal()], squareRestriction));
 		moves.addAll(moveTwoSquaresForward(posn, helper[getColour().ordinal()], squareRestriction));
-		moves.addAll(captureLeft(posn, helper[getColour().ordinal()], false, squareRestriction));
-		moves.addAll(captureRight(posn, helper[getColour().ordinal()], false, squareRestriction));
+		moves.addAll(captureLeft(posn, helper[getColour().ordinal()], squareRestriction));
+		moves.addAll(captureRight(posn, helper[getColour().ordinal()], squareRestriction));
 
 		return moves;
 	}
@@ -325,8 +325,6 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @param position state of the board
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @param captureLeft if true, check for captures 'left'. Otherwise, 'right'.
-	 * @param checkingForAttack if true, this routine returns all possible moves to the 'left'. The normal value of false
-	 *           returns only moves which are captures i.e. the opponent's pieces are taken into account.
 	 * @param squareRestriction a bitboard of squares which come into consideration (e.g. when in check). Normally all are
 	 *           allowed.
 	 * @return list of moves found by this method
@@ -334,7 +332,6 @@ public class Pawn extends AbstractBitBoardPiece {
 	private List<Move> capture(Position position,
 			MoveHelper helper,
 			boolean captureLeft,
-			boolean checkingForAttack,
 			BitBoard squareRestriction) {
 
 		BitSetUnifier captures;
@@ -345,23 +342,21 @@ public class Pawn extends AbstractBitBoardPiece {
 			captures = helper.pawnCaptureRight(pieces.cloneBitSet());
 		}
 
-		if (!checkingForAttack) {
-			BitBoard opponentsPieces = position.getAllPieces(Colour.oppositeColour(helper.getColour()));
-			// enpassant: add in enpassant square if necessary (cloning first)
-			BitBoard squareRestrictionCloned = squareRestriction;
-			if (position.getEnpassantSquare() != null) {
-				opponentsPieces = new BitBoard(opponentsPieces); // clone
-				opponentsPieces.set(position.getEnpassantSquare().bitIndex());
-				squareRestrictionCloned = new BitBoard(squareRestriction); // clone
-				squareRestrictionCloned.set(position.getEnpassantSquare());
-			}
-
-			// move must be a capture, therefore AND with opponent's pieces (plus enpassant square)
-			captures.and(opponentsPieces.getBitSet());
-
-			// remove square restrictions
-			captures.and(squareRestrictionCloned.getBitSet());
+		BitBoard opponentsPieces = position.getAllPieces(Colour.oppositeColour(helper.getColour()));
+		// enpassant: add in enpassant square if necessary (cloning first)
+		BitBoard squareRestrictionCloned = squareRestriction;
+		if (position.getEnpassantSquare() != null) {
+			opponentsPieces = new BitBoard(opponentsPieces); // clone
+			opponentsPieces.set(position.getEnpassantSquare().bitIndex());
+			squareRestrictionCloned = new BitBoard(squareRestriction); // clone
+			squareRestrictionCloned.set(position.getEnpassantSquare());
 		}
+
+		// move must be a capture, therefore AND with opponent's pieces (plus enpassant square)
+		captures.and(opponentsPieces.getBitSet());
+
+		// remove square restrictions
+		captures.and(squareRestrictionCloned.getBitSet());
 
 		int offset = (captureLeft) ? helper.captureLeftOffset() : helper.captureRightOffset();
 
@@ -372,7 +367,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			if (helper.onLastRank(i)) {
 				// capture with promotion
 				Square fromSquare = Square.fromBitIndex(i + offset);
-				PieceType capturedPiece = checkingForAttack ? PieceType.DUMMY : position.pieceAt(targetSquare, oppositeColour);
+				PieceType capturedPiece = position.pieceAt(targetSquare, oppositeColour);
 				for (PieceType type : PieceType.getPieceTypesForPromotion()) {
 					Move move = new Move(PieceType.PAWN, getColour(), fromSquare, targetSquare, capturedPiece);
 					move.setPromotionPiece(type);
@@ -381,16 +376,11 @@ public class Pawn extends AbstractBitBoardPiece {
 			} else {
 				PieceType capturedPiece;
 				boolean enpassant = false;
-				// no piece present on the attack square if 'checkingForAttack'
-				if (checkingForAttack) {
-					capturedPiece = PieceType.DUMMY;
+				if (targetSquare == position.getEnpassantSquare()) {
+					capturedPiece = PieceType.PAWN;
+					enpassant = true;
 				} else {
-					if (targetSquare == position.getEnpassantSquare()) {
-						capturedPiece = PieceType.PAWN;
-						enpassant = true;
-					} else {
-						capturedPiece = position.pieceAt(targetSquare, oppositeColour);
-					}
+					capturedPiece = position.pieceAt(targetSquare, oppositeColour);
 				}
 				Move move;
 				if (enpassant) {
@@ -409,17 +399,14 @@ public class Pawn extends AbstractBitBoardPiece {
 	 *
 	 * @param chessboard state of the board
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkingForAttack if true, this routine returns all possible moves to the 'left'. The normal value of false
-	 *           returns only moves which are captures i.e. the opponent's pieces are taken into account.
 	 * @param squareRestriction a bitboard of squares which come into consideration (e.g. when in check). Normally all are
 	 *           allowed.
 	 * @return list of moves found by this method
 	 */
 	private List<Move> captureLeft(Position chessboard,
 			MoveHelper helper,
-			boolean checkingForAttack,
 			BitBoard squareRestriction) {
-		return capture(chessboard, helper, true, checkingForAttack, squareRestriction);
+		return capture(chessboard, helper, true, squareRestriction);
 	}
 
 	/**
@@ -427,17 +414,14 @@ public class Pawn extends AbstractBitBoardPiece {
 	 *
 	 * @param chessboard state of the board
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkingForAttack if true, this routine returns all possible moves to the 'right'. The normal value of false
-	 *           returns only moves which are captures i.e. the opponent's pieces are taken into account.
 	 * @param squareRestriction a bitboard of squares which come into consideration (e.g. when in check). Normally all are
 	 *           allowed.
 	 * @return list of moves found by this method
 	 */
 	private List<Move> captureRight(Position chessboard,
 			MoveHelper helper,
-			boolean checkingForAttack,
 			BitBoard squareRestriction) {
-		return capture(chessboard, helper, false, checkingForAttack, squareRestriction);
+		return capture(chessboard, helper, false, squareRestriction);
 	}
 
 	/**
