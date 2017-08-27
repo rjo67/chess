@@ -301,7 +301,7 @@ public class King extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findPotentialMoves(Position posn,
-			BitBoard squareRestriction) {
+			@SuppressWarnings("unused") BitBoard squareRestriction) {
 		List<Move> moves = new ArrayList<>();
 
 		Square kingsSquare = pieces.iterator().next();

@@ -408,6 +408,16 @@ public class BitBoard {
 	}
 
 	/** delegate to underlying bitset */
+	public void clear(Square sq) {
+		clear(sq.bitIndex());
+	}
+
+	/** delegate to underlying bitset */
+	public void clear(int sq) {
+		bs.clear(sq);
+	}
+
+	/** delegate to underlying bitset */
 	public void set(Square sq) {
 		set(sq.bitIndex());
 	}
