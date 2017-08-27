@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.rjo.chess.BitBoard;
+import org.rjo.chess.CheckRestriction;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
@@ -102,9 +102,9 @@ public class Queen extends SlidingPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			CheckInformation kingInCheck,
-			BitBoard squareRestriction) {
+			CheckRestriction checkRestriction) {
 
-		List<Move> moves = findPotentialMoves(posn, squareRestriction);
+		List<Move> moves = findPotentialMoves(posn, checkRestriction);
 
 		// make sure my king is not/no longer in check
 		Square myKing = posn.getKingPosition(colour);
@@ -122,7 +122,7 @@ public class Queen extends SlidingPiece {
 
 	@Override
 	public List<Move> findPotentialMoves(Position posn,
-			BitBoard squareRestriction) {
+			CheckRestriction checkRestriction) {
 
 		List<Move> moves = new ArrayList<>(30);
 
@@ -130,7 +130,7 @@ public class Queen extends SlidingPiece {
 		 * search for moves in all compass directions.
 		 */
 		for (RayType rayType : RayType.values()) {
-			moves.addAll(search(posn, BaseRay.getRay(rayType), squareRestriction));
+			moves.addAll(search(posn, BaseRay.getRay(rayType), checkRestriction));
 		}
 		return moves;
 	}

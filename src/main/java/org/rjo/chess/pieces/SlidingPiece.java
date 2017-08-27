@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.rjo.chess.BitBoard;
+import org.rjo.chess.CheckRestriction;
 import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
@@ -75,13 +75,13 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 *
 	 * @param posn state of the board
 	 * @param ray the ray (direction) in which to search
-	 * @param squareRestriction a bitboard of squares which come into consideration. Normally all are allowed. If the king
-	 *           is in check then this bitboard wll contain only the squares which will potentially get out of check.
+	 * @param checkRestriction info about the squares which come into consideration. Normally all are allowed. If the king
+	 *           is in check then this object will contain only the squares which will potentially get out of check.
 	 * @return the moves found
 	 */
 	protected List<Move> search(Position posn,
 			Ray ray,
-			BitBoard squareRestriction) {
+			CheckRestriction checkRestriction) {
 		List<Move> moves = new ArrayList<>(30);
 
 		final Colour opponentsColour = Colour.oppositeColour(getColour());
@@ -95,13 +95,13 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			RayInfo info = RayUtils.findFirstPieceOnRay(getColour(), emptySquares, posn.getAllPieces(getColour()).getBitSet(), ray, i);
 			// add 'emptySquares' from result as normal moves
 			for (int emptySquareIndex : info.getEmptySquares()) {
-				if (squareRestriction.get(emptySquareIndex)) {
+				if (checkRestriction.getSquareRestriction().get(emptySquareIndex)) {
 					moves.add(new Move(this.getType(), getColour(), fromSquareIndex, Square.fromBitIndex(emptySquareIndex)));
 				}
 			}
 			// if an opponent's piece was also found, add this as capture
 			if (info.foundPiece() && (info.getColour() == opponentsColour)) {
-				if (squareRestriction.get(info.getIndexOfPiece())) {
+				if (checkRestriction.getSquareRestriction().get(info.getIndexOfPiece())) {
 					Square sqIndex = Square.fromBitIndex(info.getIndexOfPiece());
 					moves.add(new Move(this.getType(), getColour(), fromSquareIndex, sqIndex, posn.pieceAt(sqIndex, opponentsColour)));
 				}

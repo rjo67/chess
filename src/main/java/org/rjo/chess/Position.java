@@ -347,16 +347,15 @@ public class Position {
 	private List<Move> findMoves(Colour colour,
 			CheckInformation checkInformation) {
 
-		// 'squareRestriction' is a bitboard of the destination squares which come into consideration for moves from this position.
-		// Normally all squares are allowed. If the king is in check however, the available squares are greatly reduced.
-		// In this case either the checking piece must be captured, a piece interposed on the checking ray, or the king must move.
-		BitBoard squareRestriction = BitBoard.ALL_SET;
+		// set up 'squareRestrictions' if in check
+		CheckRestriction checkRestriction;
 		if (checkInformation.isCheck()) {
+			BitBoard squareRestriction = BitBoard.ALL_SET;
 			// if it is check, we restrict the possible move.to() squares
 			if (checkInformation.getCheckingSquare() != null) {
 				Square kingsPosn = getKingPosition(colour);
 				Ray ray = RayUtils.getRay(checkInformation.getCheckingSquare(), kingsPosn);
-				// could be null if discovered check (since not dealing with this properly as yet)
+				// TODO could be null if discovered check (since not dealing with this properly as yet)
 				if (ray != null) {
 					// set up bitset from checksquare to opponent's king
 					squareRestriction = new BitBoard();
@@ -371,14 +370,17 @@ public class Position {
 					}
 				}
 			}
+			checkRestriction = new CheckRestriction(squareRestriction);
+		} else {
+			checkRestriction = CheckRestriction.NO_RESTRICTION;
 		}
 		List<Move> moves = new ArrayList<>(100);
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece p = getPieces(colour)[type.ordinal()];
 			if (SystemFlags.GENERATE_ILLEGAL_MOVES) {
-				moves.addAll(p.findPotentialMoves(this, squareRestriction));
+				moves.addAll(p.findPotentialMoves(this, checkRestriction));
 			} else {
-				moves.addAll(p.findMoves(this, checkInformation, squareRestriction));
+				moves.addAll(p.findMoves(this, checkInformation, checkRestriction));
 			}
 		}
 		if (SystemFlags.GENERATE_ILLEGAL_MOVES) {

@@ -3,6 +3,7 @@ package org.rjo.chess.pieces;
 import java.util.List;
 
 import org.rjo.chess.BitBoard;
+import org.rjo.chess.CheckRestriction;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Move.CheckInformation;
@@ -55,7 +56,7 @@ public abstract class AbstractPiece implements Piece {
 	 */
 	@Override
 	public final List<Move> findMoves(Position position) {
-		return findMoves(position, CheckInformation.NOT_CHECK, BitBoard.ALL_SET);
+		return findMoves(position, CheckInformation.NOT_CHECK, CheckRestriction.NO_RESTRICTION);
 	}
 
 	@Override

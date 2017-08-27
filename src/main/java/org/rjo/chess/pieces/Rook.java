@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.rjo.chess.BitBoard;
+import org.rjo.chess.CheckRestriction;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
@@ -348,9 +349,9 @@ public class Rook extends SlidingPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			CheckInformation kingInCheck,
-			BitBoard squareRestriction) {
+			CheckRestriction checkRestriction) {
 
-		List<Move> moves = findPotentialMoves(posn, squareRestriction);
+		List<Move> moves = findPotentialMoves(posn, checkRestriction);
 
 		// make sure king is not/no longer in check
 		Square myKing = posn.getKingPosition(colour);
@@ -367,7 +368,7 @@ public class Rook extends SlidingPiece {
 
 	@Override
 	public List<Move> findPotentialMoves(Position posn,
-			BitBoard squareRestriction) {
+			CheckRestriction checkRestriction) {
 		List<Move> moves = new ArrayList<>(30);
 
 		// search for moves
@@ -375,7 +376,7 @@ public class Rook extends SlidingPiece {
 			moves = findMovesUsingMoveMap(posn);
 		} else {
 			for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
-				moves.addAll(search(posn, BaseRay.getRay(rayType), squareRestriction));
+				moves.addAll(search(posn, BaseRay.getRay(rayType), checkRestriction));
 			}
 		}
 		return moves;

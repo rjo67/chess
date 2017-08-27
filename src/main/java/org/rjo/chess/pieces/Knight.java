@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.rjo.chess.BitBoard;
+import org.rjo.chess.CheckRestriction;
 import org.rjo.chess.Colour;
 import org.rjo.chess.KingCheck;
 import org.rjo.chess.Move;
@@ -167,11 +168,11 @@ public class Knight extends AbstractSetPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			CheckInformation kingInCheck,
-			BitBoard squareRestriction) {
+			CheckRestriction checkRestriction) {
 		final Square myKing = posn.getKingPosition(colour);
 		final Colour oppositeColour = Colour.oppositeColour(colour);
 
-		List<Move> moves = findPotentialMoves(posn, squareRestriction);
+		List<Move> moves = findPotentialMoves(posn, checkRestriction);
 
 		/*
 		 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
@@ -188,7 +189,7 @@ public class Knight extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findPotentialMoves(Position posn,
-			BitBoard squareRestriction) {
+			CheckRestriction checkRestriction) {
 		List<Move> moves = new ArrayList<>(20);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
 		final BitSetUnifier allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
@@ -207,7 +208,7 @@ public class Knight extends AbstractSetPiece {
 				// move can't be to a square with a piece of the same colour on it
 				if (!allMyPiecesBitSet.get(k)) {
 					// restrict squares i/c of check
-					if (squareRestriction.get(k)) {
+					if (checkRestriction.getSquareRestriction().get(k)) {
 						Square targetSquare = Square.fromBitIndex(k);
 						Move move;
 						// decide if capture or not
