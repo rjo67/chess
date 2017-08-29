@@ -28,7 +28,7 @@ public class Perft {
 
 	private static final Logger MOVE_LOGGER = LogManager.getLogger("MOVE-LOG");
 
-	public static final int NBR_THREADS = 3;
+	public static final int DEFAULT_NBR_THREADS = 3;
 
 	// see PerftTest::posn6ply5
 	// 5ply: 164.075.551 moves
@@ -50,10 +50,14 @@ public class Perft {
 
 	public static void main(String[] args) {
 		Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-		System.out.println(String.format("Perft::posn6ply%d starting (%d threads)...", REQD_DEPTH, NBR_THREADS));
+		int nbrThreads = DEFAULT_NBR_THREADS;
+		if (args.length == 1) {
+			nbrThreads = Integer.parseInt(args[0]);
+		}
+		System.out.println(String.format("Perft::posn6ply%d starting (%d threads)...", REQD_DEPTH, nbrThreads));
 		StopWatch sw = new StopWatch();
 		sw.start();
-		int moves = Perft.findAndCountMoves(game.getPosition(), Colour.WHITE, REQD_DEPTH, NBR_THREADS);
+		int moves = Perft.findAndCountMoves(game.getPosition(), Colour.WHITE, REQD_DEPTH, nbrThreads);
 		long time = sw.getTime();
 		System.out
 				.println(String.format(Locale.GERMANY, "%dply: %,12d moves (%,9d ms) (%7.1f moves/ms)", REQD_DEPTH, moves, time,
