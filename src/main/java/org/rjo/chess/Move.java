@@ -1,7 +1,6 @@
 package org.rjo.chess;
 
-import java.util.EnumSet;
-
+import org.rjo.chess.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.pieces.PieceType;
 
 /**
@@ -295,11 +294,11 @@ public class Move {
 	 *
 	 * @param previousCastlingRights
 	 */
-	public void setPreviousCastlingRights(EnumSet<CastlingRights> previousCastlingRights) {
-		this.castlingRightsInfo.setPreviousCastlingRights(previousCastlingRights.clone());
+	public void setPreviousCastlingRights(CastlingRightsSummary previousCastlingRights) {
+		this.castlingRightsInfo.setPreviousCastlingRights(previousCastlingRights);
 	}
 
-	public EnumSet<CastlingRights> getPreviousCastlingRights() {
+	public CastlingRightsSummary getPreviousCastlingRights() {
 		return castlingRightsInfo.getPreviousCastlingRights();
 	}
 
@@ -318,11 +317,11 @@ public class Move {
 	 *
 	 * @param previousCastlingRights
 	 */
-	public void setPreviousCastlingRightsOpponent(EnumSet<CastlingRights> previousCastlingRights) {
-		this.castlingRightsInfo.setPreviousCastlingRightsOpponent(previousCastlingRights.clone());
+	public void setPreviousCastlingRightsOpponent(CastlingRightsSummary previousCastlingRights) {
+		this.castlingRightsInfo.setPreviousCastlingRightsOpponent(previousCastlingRights);
 	}
 
-	public EnumSet<CastlingRights> getPreviousCastlingRightsOpponent() {
+	public CastlingRightsSummary getPreviousCastlingRightsOpponent() {
 		return castlingRightsInfo.getPreviousCastlingRightsOpponent();
 	}
 
@@ -424,32 +423,32 @@ public class Move {
 		 * Stores castling rights BEFORE this move. To enable unmove. Value gets set for each king and rook move. and for each
 		 * (opponent's) move which has target square a1, a8, h1, or h8.
 		 */
-		private EnumSet<CastlingRights> previousCastlingRights;
+		private CastlingRightsSummary previousCastlingRights;
 
 		/**
 		 * Stores castling rights of the OPPONENT BEFORE this move. To enable unmove. Value gets set for moves such as Nb6xa8
 		 * (target squares a1, a8, h1, or h8), when the opponent can no longer castle on this side.
 		 */
-		private EnumSet<CastlingRights> previousCastlingRightsOpponent;
+		private CastlingRightsSummary previousCastlingRightsOpponent;
 
 		public CastlingRightsInfo() {
 			this.previousCastlingRights = null;
 			this.previousCastlingRightsOpponent = null;
 		}
 
-		public void setPreviousCastlingRights(EnumSet<CastlingRights> previousCastlingRights) {
-			this.previousCastlingRights = previousCastlingRights.clone();
+		public void setPreviousCastlingRights(CastlingRightsSummary previousCastlingRights) {
+			this.previousCastlingRights = new CastlingRightsSummary(previousCastlingRights);
 		}
 
-		public EnumSet<CastlingRights> getPreviousCastlingRights() {
+		public CastlingRightsSummary getPreviousCastlingRights() {
 			return previousCastlingRights;
 		}
 
-		public void setPreviousCastlingRightsOpponent(EnumSet<CastlingRights> previousCastlingRights) {
-			this.previousCastlingRightsOpponent = previousCastlingRights.clone();
+		public void setPreviousCastlingRightsOpponent(CastlingRightsSummary previousCastlingRights) {
+			this.previousCastlingRightsOpponent = new CastlingRightsSummary(previousCastlingRights);
 		}
 
-		public EnumSet<CastlingRights> getPreviousCastlingRightsOpponent() {
+		public CastlingRightsSummary getPreviousCastlingRightsOpponent() {
 			return previousCastlingRightsOpponent;
 		}
 

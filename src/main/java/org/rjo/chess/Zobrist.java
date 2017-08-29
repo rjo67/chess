@@ -1,8 +1,8 @@
 package org.rjo.chess;
 
-import java.util.EnumSet;
 import java.util.Random;
 
+import org.rjo.chess.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.pieces.PieceType;
 
@@ -140,13 +140,13 @@ public class Zobrist {
 	 *
 	 * @param hash the zobrist hash
 	 * @param move the move
-	 * @param castlingRightsBeforeMove castling rights before <code>move</code>
+	 * @param castling castling rights before <code>move</code>
 	 * @param enpassantSquare enpassant square before <code>move</code>
 	 * @return the updated hash
 	 */
 	public long update(long hash,
 			Move move,
-			EnumSet<CastlingRights>[] castlingRightsBeforeMove,
+			CastlingRightsSummary[] castling,
 			Square enpassantSquare) {
 
 		// remove piece at move.from()
@@ -172,13 +172,13 @@ public class Zobrist {
 
 			// update OPPONENT's castling rights if necessary
 			boolean processed = false;
-			if (CastlingRights.opponentKingsSideCastlingRightsGoneAfterMove(castlingRightsBeforeMove[opponentsColour.ordinal()], sideToMove,
+			if (CastlingRightsSummary.opponentKingsSideCastlingRightsGoneAfterMove(castling[opponentsColour.ordinal()], sideToMove,
 					move)) {
 				hash ^= castlingValues[opponentsColour.ordinal()][CastlingRights.KINGS_SIDE.ordinal()];
 				processed = true;
 			}
 			if (!processed) {
-				if (CastlingRights.opponentQueensSideCastlingRightsGoneAfterMove(castlingRightsBeforeMove[opponentsColour.ordinal()],
+				if (CastlingRightsSummary.opponentQueensSideCastlingRightsGoneAfterMove(castling[opponentsColour.ordinal()],
 						sideToMove, move)) {
 					hash ^= castlingValues[opponentsColour.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()];
 				}
@@ -201,8 +201,8 @@ public class Zobrist {
 			hash ^= squareValues[sideToMove.ordinal()][PieceType.ROOK.ordinal()][rooksMove.to().bitIndex()];
 
 			// both king's and queen's side castling rights have now gone (if they were present)
-			hash = rehashIfKingsSideCastlingPresent(hash, sideToMove, castlingRightsBeforeMove[sideToMove.ordinal()]);
-			hash = rehashIfQueensSideCastlingPresent(hash, sideToMove, castlingRightsBeforeMove[sideToMove.ordinal()]);
+			hash = rehashIfKingsSideCastlingPresent(hash, sideToMove, castling[sideToMove.ordinal()]);
+			hash = rehashIfQueensSideCastlingPresent(hash, sideToMove, castling[sideToMove.ordinal()]);
 		} else {
 			// enpassant if pawn move to 4th rank from 2nd rank
 			if (move.isPawnMoveTwoSquaresForward()) {
@@ -210,15 +210,15 @@ public class Zobrist {
 			}
 			// remove castling rights (if set) on king move
 			else if (move.getPiece() == PieceType.KING) {
-				hash = rehashIfKingsSideCastlingPresent(hash, sideToMove, castlingRightsBeforeMove[sideToMove.ordinal()]);
-				hash = rehashIfQueensSideCastlingPresent(hash, sideToMove, castlingRightsBeforeMove[sideToMove.ordinal()]);
+				hash = rehashIfKingsSideCastlingPresent(hash, sideToMove, castling[sideToMove.ordinal()]);
+				hash = rehashIfQueensSideCastlingPresent(hash, sideToMove, castling[sideToMove.ordinal()]);
 			}
 			// remove castling rights (if set) on rook move
 			else if (move.getPiece() == PieceType.ROOK) {
-				if (CastlingRights.kingsSideCastlingRightsGoneAfterMove(castlingRightsBeforeMove[sideToMove.ordinal()], sideToMove, move)) {
+				if (CastlingRightsSummary.kingsSideCastlingRightsGoneAfterMove(castling[sideToMove.ordinal()], sideToMove, move)) {
 					hash ^= castlingValues[sideToMove.ordinal()][CastlingRights.KINGS_SIDE.ordinal()];
 				}
-				if (CastlingRights.queensSideCastlingRightsGoneAfterMove(castlingRightsBeforeMove[sideToMove.ordinal()], sideToMove, move)) {
+				if (CastlingRightsSummary.queensSideCastlingRightsGoneAfterMove(castling[sideToMove.ordinal()], sideToMove, move)) {
 					hash ^= castlingValues[sideToMove.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()];
 				}
 			}
@@ -237,8 +237,8 @@ public class Zobrist {
 
 	private long rehashIfKingsSideCastlingPresent(long hash,
 			Colour sideToMove,
-			EnumSet<CastlingRights> castlingRightsBeforeMove) {
-		if (castlingRightsBeforeMove.contains(CastlingRights.KINGS_SIDE)) {
+			CastlingRightsSummary castling) {
+		if (castling.canCastleKingsSide()) {
 			hash ^= castlingValues[sideToMove.ordinal()][CastlingRights.KINGS_SIDE.ordinal()];
 		}
 		return hash;
@@ -246,8 +246,8 @@ public class Zobrist {
 
 	private long rehashIfQueensSideCastlingPresent(long hash,
 			Colour sideToMove,
-			EnumSet<CastlingRights> castlingRightsBeforeMove) {
-		if (castlingRightsBeforeMove.contains(CastlingRights.QUEENS_SIDE)) {
+			CastlingRightsSummary castling) {
+		if (castling.canCastleQueensSide()) {
 			hash ^= castlingValues[sideToMove.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()];
 		}
 		return hash;

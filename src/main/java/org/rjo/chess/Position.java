@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.rjo.chess.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.Move.CheckInformation;
 import org.rjo.chess.PositionCheckState.CheckInfo;
 import org.rjo.chess.pieces.Bishop;
@@ -73,7 +74,7 @@ public class Position {
 	private Square enpassantSquare;
 
 	/** which sides can still castle. <B>must be cloned on write</B> */
-	private EnumSet<CastlingRights>[] castling;
+	private CastlingRightsSummary[] castling;
 
 	/** which side is to move */
 	private Colour sideToMove;
@@ -145,13 +146,12 @@ public class Position {
 	 * @param blackCastlingRights black's castling rights
 	 * @param enpassantSquare enpassant square (or null)
 	 */
-	@SuppressWarnings("unchecked")
 	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, Colour sideToMove, EnumSet<CastlingRights> whiteCastlingRights,
 			EnumSet<CastlingRights> blackCastlingRights, Square enpassantSquare) {
 		initBoard(whitePieces, blackPieces);
-		castling = new EnumSet[Colour.values().length];
-		castling[Colour.WHITE.ordinal()] = whiteCastlingRights;
-		castling[Colour.BLACK.ordinal()] = blackCastlingRights;
+		castling = new CastlingRightsSummary[2];
+		castling[Colour.WHITE.ordinal()] = new CastlingRightsSummary(whiteCastlingRights);
+		castling[Colour.BLACK.ordinal()] = new CastlingRightsSummary(blackCastlingRights);
 		this.sideToMove = sideToMove;
 		this.enpassantSquare = enpassantSquare;
 		this.checkInformation = CheckInformation.NOT_CHECK;
@@ -175,7 +175,6 @@ public class Position {
 	/**
 	 * copy constructor
 	 */
-	@SuppressWarnings("unchecked")
 	public Position(final Position posn) {
 		pieceMgr = new PieceManager(posn.pieceMgr);
 
@@ -184,10 +183,10 @@ public class Position {
 		totalPieces = new BitBoard(posn.totalPieces);
 		emptySquares = null;
 
-		allEnemyPieces = new BitBoard[Colour.ALL_COLOURS.length];
-		castling = new EnumSet[Colour.ALL_COLOURS.length];
-		this.checkState = new PositionCheckState[Colour.ALL_COLOURS.length];
-		for (int i = 0; i < Colour.ALL_COLOURS.length; i++) {
+		allEnemyPieces = new BitBoard[2];
+		castling = new CastlingRightsSummary[2];
+		this.checkState = new PositionCheckState[2];
+		for (int i = 0; i < 2; i++) {
 			allEnemyPieces[i] = new BitBoard(posn.allEnemyPieces[i]);
 			// castling rights are cloned on write
 			castling[i] = posn.castling[i];
@@ -215,7 +214,7 @@ public class Position {
 	 */
 	public boolean canCastle(Colour colour,
 			CastlingRights rights) {
-		return castling[colour.ordinal()].contains(rights);
+		return castling[colour.ordinal()].canCastle(rights);
 	}
 
 	/**
@@ -223,7 +222,7 @@ public class Position {
 	 *
 	 * @return
 	 */
-	public EnumSet<CastlingRights>[] getCastlingRights() {
+	public CastlingRightsSummary[] getCastlingRights() {
 		return castling;
 	}
 
@@ -634,21 +633,21 @@ public class Position {
 	 */
 	private void updateCastlingRightsAfterMove(Move move) {
 		int mySide = sideToMove.ordinal();
-		if (castling[mySide] == CastlingRights.NO_RIGHTS) {
+		if (castling[mySide].cannotCastle()) {
 			// no-op, couldn't castle before
 		} else {
-			EnumSet<CastlingRights> newRights = null;
+			CastlingRightsSummary newRights = null;
 			if (PieceType.KING == move.getPiece()) {
-				newRights = CastlingRights.NO_RIGHTS;
+				newRights = CastlingRightsSummary.NO_RIGHTS;
 			} else if (PieceType.ROOK == move.getPiece()) {
 				// remove castling rights if rook has moved
-				if (CastlingRights.kingsSideCastlingRightsGoneAfterMove(castling[mySide], sideToMove, move)) {
-					newRights = castling[mySide].clone();
-					newRights.remove(CastlingRights.KINGS_SIDE);
+				if (CastlingRightsSummary.kingsSideCastlingRightsGoneAfterMove(castling[mySide], sideToMove, move)) {
+					newRights = new CastlingRightsSummary(castling[mySide]);
+					newRights.removeKingsSideCastlingRight();
 				}
-				if (CastlingRights.queensSideCastlingRightsGoneAfterMove(castling[mySide], sideToMove, move)) {
-					newRights = castling[mySide].clone();
-					newRights.remove(CastlingRights.QUEENS_SIDE);
+				if (CastlingRightsSummary.queensSideCastlingRightsGoneAfterMove(castling[mySide], sideToMove, move)) {
+					newRights = new CastlingRightsSummary(castling[mySide]);
+					newRights.removeQueensSideCastlingRight();
 				}
 			}
 			if (newRights != null) {
@@ -659,14 +658,14 @@ public class Position {
 		}
 		// update OPPONENT's castling rights if necessary
 		final int opponentsSide = Colour.oppositeColour(sideToMove).ordinal();
-		if (move.isCapture() && (castling[opponentsSide] != CastlingRights.NO_RIGHTS)) {
-			EnumSet<CastlingRights> newRights = null;
-			if (CastlingRights.opponentKingsSideCastlingRightsGoneAfterMove(castling[opponentsSide], sideToMove, move)) {
-				newRights = castling[opponentsSide].clone();
-				newRights.remove(CastlingRights.KINGS_SIDE);
-			} else if (CastlingRights.opponentQueensSideCastlingRightsGoneAfterMove(castling[opponentsSide], sideToMove, move)) {
-				newRights = castling[opponentsSide].clone();
-				newRights.remove(CastlingRights.QUEENS_SIDE);
+		if (move.isCapture() && (castling[opponentsSide].canCastle())) {
+			CastlingRightsSummary newRights = null;
+			if (CastlingRightsSummary.opponentKingsSideCastlingRightsGoneAfterMove(castling[opponentsSide], sideToMove, move)) {
+				newRights = new CastlingRightsSummary(castling[opponentsSide]);
+				newRights.removeKingsSideCastlingRight();
+			} else if (CastlingRightsSummary.opponentQueensSideCastlingRightsGoneAfterMove(castling[opponentsSide], sideToMove, move)) {
+				newRights = new CastlingRightsSummary(castling[opponentsSide]);
+				newRights.removeQueensSideCastlingRight();
 			}
 			if (newRights != null) {
 				move.setPreviousCastlingRights(castling[opponentsSide]);

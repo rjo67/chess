@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.rjo.chess.CastlingRights;
+import org.rjo.chess.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.CheckRestriction;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;

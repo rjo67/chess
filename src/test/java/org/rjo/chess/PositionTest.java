@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.rjo.chess.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.util.BitSetFactory;
 import org.rjo.chess.util.BitSetUnifier;
