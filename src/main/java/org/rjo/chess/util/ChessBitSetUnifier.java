@@ -1,38 +1,36 @@
 package org.rjo.chess.util;
 
-import java.util.BitSet;
-
 /**
- * BitSetUnifier-Implementation using java.util.BitSet.
+ * BitSetUnifier-Implementation using ChessBitSet.
  *
  * @author rich
- * @since 2017-08-18
+ * @since 2017-09-06
  */
-public class JavaUtilBitSet implements BitSetUnifier {
+public class ChessBitSetUnifier implements BitSetUnifier {
 
-	private BitSet bs;
+	private ChessBitSet bs;
 
 	// just for cloning
-	private JavaUtilBitSet() {
+	private ChessBitSetUnifier() {
 	}
 
-	public JavaUtilBitSet(int nbits) {
-		bs = new BitSet(nbits);
+	public ChessBitSetUnifier(int nbits) {
+		bs = new ChessBitSet();
 	}
 
-	public JavaUtilBitSet(long[] longarray) {
-		bs = BitSet.valueOf(longarray);
+	public ChessBitSetUnifier(long[] longarray) {
+		bs = new ChessBitSet(longarray[0]);
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return bs.equals(((JavaUtilBitSet) obj).bs);
+		return bs.equals(((ChessBitSetUnifier) obj).bs);
 	}
 
 	@Override
 	public Object clone() {
-		JavaUtilBitSet newBs = new JavaUtilBitSet();
-		newBs.bs = (BitSet) this.bs.clone();
+		ChessBitSetUnifier newBs = new ChessBitSetUnifier();
+		newBs.bs = this.bs.clone();
 		return newBs;
 	}
 
@@ -64,38 +62,38 @@ public class JavaUtilBitSet implements BitSetUnifier {
 
 	@Override
 	public void and(BitSetUnifier set) {
-		JavaUtilBitSet set2 = (JavaUtilBitSet) set;
+		ChessBitSetUnifier set2 = (ChessBitSetUnifier) set;
 		bs.and(set2.bs);
 	}
 
 	@Override
 	public void andNot(BitSetUnifier set) {
-		JavaUtilBitSet set2 = (JavaUtilBitSet) set;
+		ChessBitSetUnifier set2 = (ChessBitSetUnifier) set;
 		bs.andNot(set2.bs);
 
 	}
 
 	@Override
 	public void or(BitSetUnifier set) {
-		JavaUtilBitSet set2 = (JavaUtilBitSet) set;
+		ChessBitSetUnifier set2 = (ChessBitSetUnifier) set;
 		bs.or(set2.bs);
 	}
 
 	@Override
 	public void xor(BitSetUnifier set) {
-		JavaUtilBitSet set2 = (JavaUtilBitSet) set;
+		ChessBitSetUnifier set2 = (ChessBitSetUnifier) set;
 		bs.xor(set2.bs);
 	}
 
 	@Override
 	public boolean intersects(BitSetUnifier set) {
-		JavaUtilBitSet set2 = (JavaUtilBitSet) set;
+		ChessBitSetUnifier set2 = (ChessBitSetUnifier) set;
 		return bs.intersects(set2.bs);
 	}
 
 	@Override
 	public int size() {
-		return bs.size();
+		return bs.length();
 	}
 
 	@Override
@@ -105,7 +103,7 @@ public class JavaUtilBitSet implements BitSetUnifier {
 
 	@Override
 	public long[] toLongArray() {
-		return bs.toLongArray();
+		return new long[] { bs.getBits() };
 	}
 
 	@Override
@@ -116,12 +114,18 @@ public class JavaUtilBitSet implements BitSetUnifier {
 
 	@Override
 	public int nextSetBit(int fromIndex) {
+		if (fromIndex == 64) {
+			return -1;
+		}
 		return bs.nextSetBit(fromIndex);
 	}
 
 	@Override
 	public int previousSetBit(int fromIndex) {
-		return bs.previousSetBit(fromIndex);
+		if (fromIndex == -1) {
+			return -1;
+		}
+		return bs.prevSetBit(fromIndex);
 	}
 
 }

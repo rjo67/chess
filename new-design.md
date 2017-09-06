@@ -1,7 +1,7 @@
 # new design thoughts
 
-https://cis.uab.edu/hyatt/boardrep.html
-https://cis.uab.edu/hyatt/bitmaps.html
+http://www.craftychess.com/hyatt/boardrep.html
+http://www.craftychess.com/hyatt/bitmaps.html
 
 # mailbox
 See http://chessprogramming.wikispaces.com/Mailbox.

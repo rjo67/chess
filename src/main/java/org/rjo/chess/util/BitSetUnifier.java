@@ -41,4 +41,6 @@ public interface BitSetUnifier {
 
 	public int nextSetBit(int fromIndex);
 
+	public int previousSetBit(int fromIndex);
+
 }

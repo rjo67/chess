@@ -58,10 +58,12 @@ public class Perft {
 		StopWatch sw = new StopWatch();
 		sw.start();
 		int moves = Perft.findAndCountMoves(game.getPosition(), Colour.WHITE, REQD_DEPTH, nbrThreads);
+		sw.stop();
 		long time = sw.getTime();
 		System.out
-				.println(String.format(Locale.GERMANY, "%dply: %,12d moves (%,9d ms) (%7.1f moves/ms)", REQD_DEPTH, moves, time,
-						((moves * 1.0) / time)));
+				.println(
+						String.format(Locale.GERMANY, "%dply: %,12d moves (%,9d ms) (%7.1f moves/ms) (%7.1f nanos/move)", REQD_DEPTH, moves, time,
+								((moves * 1.0) / time), ((sw.getNanoTime() * 1.0) / moves)));
 		if (moves != EXPECTED_MOVES[REQD_DEPTH - 1]) {
 			System.out.println("ERROR: wrong number of moves");
 		}

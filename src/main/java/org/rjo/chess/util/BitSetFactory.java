@@ -9,17 +9,19 @@ package org.rjo.chess.util;
 public class BitSetFactory {
 
 	enum BitSetImplementation {
-		JAVA_UTIL, LUCENE, JAVOLUTION;
+		CHESS_BITSET, JAVA_UTIL, LUCENE, JAVOLUTION;
 	}
 
 	/** the bitset implementation to use */
-	private final static BitSetImplementation BITSET_IMPL = BitSetImplementation.LUCENE;
+	private final static BitSetImplementation BITSET_IMPL = BitSetImplementation.CHESS_BITSET;
 
 	private BitSetFactory() {
 	}
 
 	public static BitSetUnifier createBitSet(int nBits) {
 		switch (BITSET_IMPL) {
+		case CHESS_BITSET:
+			return new ChessBitSetUnifier(nBits);
 		case JAVA_UTIL:
 			return new JavaUtilBitSet(nBits);
 		case LUCENE:
@@ -33,6 +35,8 @@ public class BitSetFactory {
 
 	public static BitSetUnifier createBitSet(long[] longarray) {
 		switch (BITSET_IMPL) {
+		case CHESS_BITSET:
+			return new ChessBitSetUnifier(longarray);
 		case JAVA_UTIL:
 			return new JavaUtilBitSet(longarray);
 		case LUCENE:

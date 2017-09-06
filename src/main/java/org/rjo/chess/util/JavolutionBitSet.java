@@ -134,4 +134,9 @@ public class JavolutionBitSet implements BitSetUnifier {
 	public int nextSetBit(int fromIndex) {
 		return bs.nextSetBit(fromIndex);
 	}
+
+	@Override
+	public int previousSetBit(int fromIndex) {
+		return bs.previousSetBit(fromIndex);
+	}
 }

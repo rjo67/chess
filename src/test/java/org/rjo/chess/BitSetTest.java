@@ -12,11 +12,30 @@ import org.junit.Test;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayUtils;
 import org.rjo.chess.util.BitSetUnifier;
+import org.rjo.chess.util.ChessBitSetUnifier;
 import org.rjo.chess.util.JavaUtilBitSet;
 import org.rjo.chess.util.JavolutionBitSet;
 import org.rjo.chess.util.LuceneBitSet;
 
 public class BitSetTest {
+
+	@Test
+	public void speedOfChessBitset() {
+		BitSetUnifier bs = new ChessBitSetUnifier(64);
+		BitSetUnifier bs2 = new ChessBitSetUnifier(64);
+
+		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(i -> bs.set(i));
+		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(i -> bs2.set(i));
+
+		System.out.println("ChessBitSet");
+		repeat("flip", bs, (a) -> a.flip(0, 63));
+		repeat("get", bs, (a) -> a.get(18));
+		repeat("set", bs, (a) -> a.set(42));
+		repeat("and", bs, (a) -> a.and(bs2));
+		repeat("or", bs, (a) -> a.or(bs2));
+		repeat("xor", bs, (a) -> a.xor(bs2));
+		repeat("cardinality", bs, (a) -> a.cardinality());
+	}
 
 	@Test
 	public void speedOfJavaUtilBitset() {
@@ -28,6 +47,7 @@ public class BitSetTest {
 
 		System.out.println("javautil");
 		repeat("flip", bs, (a) -> a.flip(0, 63));
+		repeat("get", bs, (a) -> a.get(18));
 		repeat("set", bs, (a) -> a.set(42));
 		repeat("and", bs, (a) -> a.and(bs2));
 		repeat("or", bs, (a) -> a.or(bs2));
@@ -45,6 +65,7 @@ public class BitSetTest {
 
 		System.out.println("lucene");
 		repeat("flip", bs, (a) -> a.flip(0, 63));
+		repeat("get", bs, (a) -> a.get(18));
 		repeat("set", bs, (a) -> a.set(42));
 		repeat("and", bs, (a) -> a.and(bs2));
 		repeat("or", bs, (a) -> a.or(bs2));
@@ -62,6 +83,7 @@ public class BitSetTest {
 
 		System.out.println("javolution");
 		repeat("flip", bs, (a) -> a.flip(0, 63));
+		repeat("get", bs, (a) -> a.get(18));
 		repeat("set", bs, (a) -> a.set(42));
 		repeat("and", bs, (a) -> a.and(bs2));
 		repeat("or", bs, (a) -> a.or(bs2));
@@ -79,7 +101,7 @@ public class BitSetTest {
 			fn.accept(bs);
 		}
 		long duration = sw.getTime();
-		System.out.println("operation: " + name + ", time: " + duration + String.format(", %9.8f", (1.0 * duration) / nbrIters));
+		System.out.println("operation: " + name + ", time: " + duration);
 	}
 
 	@Test

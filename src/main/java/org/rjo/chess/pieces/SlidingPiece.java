@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.rjo.chess.BitBoard;
 import org.rjo.chess.CheckRestriction;
 import org.rjo.chess.CheckStates;
 import org.rjo.chess.Colour;
@@ -14,6 +15,7 @@ import org.rjo.chess.Square;
 import org.rjo.chess.SystemFlags;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayInfo;
+import org.rjo.chess.ray.RayType;
 import org.rjo.chess.ray.RayUtils;
 import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.SquareCache;
@@ -70,6 +72,157 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	//	}
 
 	/**
+	 * New implementation, using bitsets.
+	 * <p>
+	 * Searches for moves in the direction specified by the {@link Ray} implementation. This is for rooks, bishops, and
+	 * queens.
+	 * <p>
+	 * See http://www.craftychess.com/hyatt/bitmaps.html.
+	 * <p>
+	 * For a bishop on f5, and NW ray: <code>
+	 * <pre>
+	 *  diag_attacks = northWestRay[f5];
+	 *  blockers=diag_attacks & occupied_squares;
+	 *  blocking_square = FirstOne(blockers);
+	 *  diag_attacks ^= northWestRay[blocking_square];
+	 * </pre>
+	 *  </code>
+	 *
+	 * @param posn state of the board
+	 * @param ray the ray (direction) in which to search
+	 * @param checkRestriction info about the squares which come into consideration. Normally all are allowed. If the king
+	 *           is in check then this object will contain only the squares which will potentially get out of check.
+	 * @return the moves found
+	 */
+	protected List<Move> searchNew(Position posn,
+			Ray ray,
+			CheckRestriction checkRestriction) {
+		List<Move> moves = new ArrayList<>(30);
+		for (int indexOfPiece = pieces.getBitSet().nextSetBit(0); indexOfPiece >= 0; indexOfPiece = pieces.getBitSet()
+				.nextSetBit(indexOfPiece + 1)) {
+
+			final Colour opponentsColour = Colour.oppositeColour(getColour());
+			boolean blockingSquareContainsEnemyPiece = false;
+
+			// from http://www.craftychess.com/hyatt/bitmaps.html:
+			//
+			// diagonalAttack is the bitmap for the attacks in NW direction from the square 'i'.
+			// blockers becomes a bitmap of any pieces sitting on this particular diagonal in the direction in question.
+			// We find the first blocking piece, and then exclusive-OR attackBitBoard[blocking_square]
+			// with the original diagonalAttack which effectively 'cuts off' the attacks beyond that point.
+
+			BitBoard diagonalAttack = new BitBoard(ray.getAttackBitBoard(indexOfPiece)); // clone
+
+			// remove occupied squares along the ray
+			BitBoard blockers = new BitBoard(ray.getAttackBitBoard(indexOfPiece)); // clone
+			blockers.getBitSet().and(posn.getTotalPieces().getBitSet());
+
+			// find blocking square, i.e. first square on this ray which contains a piece
+			int blockingSquare;
+			if ((ray.getRayType() == RayType.NORTHWEST) || (ray.getRayType() == RayType.NORTHEAST)) {
+				blockingSquare = blockers.getBitSet().nextSetBit(indexOfPiece);
+			} else {
+				blockingSquare = blockers.getBitSet().previousSetBit(indexOfPiece);
+			}
+			if (blockingSquare == -1) {
+				// no blocking square -- all squares on diagonalAttack are potential moves
+			} else {
+				// truncate the attacks beyond the blocking piece
+				diagonalAttack.getBitSet().xor(ray.getAttackBitBoard(blockingSquare).getBitSet());
+				blockingSquareContainsEnemyPiece = posn.getAllPieces(opponentsColour).get(blockingSquare);
+			}
+
+			// remove squares in checkRestriction
+			if (checkRestriction.isInCheck()) {
+				diagonalAttack.getBitSet().and(checkRestriction.getSquareRestriction().getBitSet());
+			}
+
+			// add moves.
+			// Possible implementations:
+			//
+			// (1) start at 'fromSquare'. Then however need to iterate in the correct direction, e.g.:
+			//			if ((ray.getRayType() == RayType.NORTHWEST) || (ray.getRayType() == RayType.NORTHEAST)) {
+			//				for (int sqIndex = diagonalAttack.getBitSet().nextSetBit(indexOfPiece); sqIndex >= 0; sqIndex = diagonalAttack.getBitSet()
+			//							.nextSetBit(sqIndex + 1)) {
+			//					addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn);
+			// 			}
+			//			} else {
+			//				for (int sqIndex = indexOfPiece; (sqIndex = diagonalAttack.getBitSet().previousSetBit(sqIndex - 1)) >= 0;) {
+			//					addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn);
+			//				}
+			//			}
+			// or (2) only look at the squares along the ray in question (then need to query the bitset)
+			//			int sqIndex = -99;
+			//			Iterator<Integer> iter = ray.squaresFrom(indexOfPiece);
+			//			while (iter.hasNext() && (sqIndex != blockingSquare)) /* abort as soon as we've processed the blocking square */ {
+			//				sqIndex = iter.next();
+			//				if (diagonalAttack.get(sqIndex)) {
+			//					addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn);
+			//				}
+			//			}
+			//
+			// or (3) 'iterate' over the squares array.
+			//			Square fromSquare = Square.fromBitIndex(indexOfPiece);
+			//			for (int sqIndex2 : ray.squaresFromAsArray(indexOfPiece)) {
+			//				if (diagonalAttack.get(sqIndex2)) {
+			//					addMove(moves, fromSquare, sqIndex2, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn);
+			//				} else if (sqIndex2 == blockingSquare) {
+			//					break;
+			//				}
+			//			}
+			Square fromSquare = Square.fromBitIndex(indexOfPiece);
+			if ((ray.getRayType() == RayType.NORTHWEST) || (ray.getRayType() == RayType.NORTHEAST)) {
+				for (int sqIndex = diagonalAttack.getBitSet().nextSetBit(indexOfPiece); sqIndex >= 0; //
+						sqIndex = diagonalAttack.getBitSet().nextSetBit(sqIndex + 1)) {
+					if (addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn)) {
+						break;
+					}
+				}
+			} else {
+				for (int sqIndex = indexOfPiece; (sqIndex = diagonalAttack.getBitSet().previousSetBit(sqIndex - 1)) >= 0;) {
+					if (addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn)) {
+						break;
+					}
+				}
+			}
+		}
+		return moves;
+	}
+
+	/**
+	 * Add a move to <code>moves</code>.
+	 *
+	 * @param moves
+	 * @param fromSquare
+	 * @param sqIndex
+	 * @param blockingSquare
+	 * @param blockingSquareContainsEnemyPieceFinal
+	 * @param opponentsColour
+	 * @param posn
+	 * @return true if blocking square reached, otherwise false.
+	 */
+	private boolean addMove(List<Move> moves,
+			Square fromSquare,
+			int sqIndex,
+			int blockingSquare,
+			boolean blockingSquareContainsEnemyPieceFinal,
+			Colour opponentsColour,
+			Position posn) {
+		if (sqIndex == blockingSquare) {
+			// if opponent's piece, add as capture
+			if (blockingSquareContainsEnemyPieceFinal) {
+				moves.add(new Move(type, colour, fromSquare, Square.fromBitIndex(sqIndex),
+						posn.pieceAt(Square.fromBitIndex(sqIndex), opponentsColour)));
+			}
+			return true;
+		} else {
+			moves.add(new Move(type, colour, fromSquare, Square.fromBitIndex(sqIndex)));
+			return false;
+		}
+
+	}
+
+	/**
 	 * Searches for moves in the direction specified by the {@link Ray} implementation. This is for rooks, bishops, and
 	 * queens.
 	 *
@@ -82,6 +235,11 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	protected List<Move> search(Position posn,
 			Ray ray,
 			CheckRestriction checkRestriction) {
+
+		if (ray.isDiagonal()) {
+			return searchNew(posn, ray, checkRestriction);
+		}
+
 		List<Move> moves = new ArrayList<>(30);
 
 		final Colour opponentsColour = Colour.oppositeColour(getColour());

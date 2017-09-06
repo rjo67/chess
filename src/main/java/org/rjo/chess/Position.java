@@ -175,33 +175,33 @@ public class Position {
 	/**
 	 * copy constructor
 	 */
-	public Position(final Position posn) {
-		pieceMgr = new PieceManager(posn.pieceMgr);
+	public Position(final Position otherPosn) {
+		pieceMgr = new PieceManager(otherPosn.pieceMgr);
 
 		// need to clone here, since these structures are changed incrementally in updateStructures()
 
-		totalPieces = new BitBoard(posn.totalPieces);
+		totalPieces = new BitBoard(otherPosn.totalPieces);
 		emptySquares = null;
 
 		allEnemyPieces = new BitBoard[2];
 		castling = new CastlingRightsSummary[2];
 		this.checkState = new PositionCheckState[2];
 		for (int i = 0; i < 2; i++) {
-			allEnemyPieces[i] = new BitBoard(posn.allEnemyPieces[i]);
+			allEnemyPieces[i] = otherPosn.allEnemyPieces[i]; // cloned on move (updateStructures)
 			// castling rights are cloned on write
-			castling[i] = posn.castling[i];
+			castling[i] = otherPosn.castling[i];
 			if (SystemFlags.USE_CHECK_STATE) {
-				checkState[i] = new PositionCheckState(posn.checkState[i]);
+				checkState[i] = new PositionCheckState(otherPosn.checkState[i]);
 			} else {
 				//				checkState[i] = new PositionCheckState.NoOpPositionCheckState();
 			}
-			kingPosition[i] = posn.kingPosition[i];
+			kingPosition[i] = otherPosn.kingPosition[i];
 		}
-		enpassantSquare = posn.enpassantSquare;
-		sideToMove = posn.sideToMove;
+		enpassantSquare = otherPosn.enpassantSquare;
+		sideToMove = otherPosn.sideToMove;
 
 		NBR_INSTANCES_CREATED++;
-		this.zobristHash = posn.zobristHash;
+		this.zobristHash = otherPosn.zobristHash;
 		// fen is not set here, since will be making a move straight away and should create it then
 	}
 
@@ -275,7 +275,7 @@ public class Position {
 	}
 
 	/**
-	 * update the internal structures (after a move). Incremental update for non-capture moves.
+	 * update the internal structures (after a move).
 	 *
 	 * @param move the move
 	 */
@@ -300,6 +300,9 @@ public class Position {
 		final int oppositeColourOrdinal = Colour.oppositeColour(move.getColour()).ordinal();
 		final int moveFromBitIndex = move.from().bitIndex();
 		final int moveToBitIndex = move.to().bitIndex();
+
+		allEnemyPieces[colourOrdinal] = new BitBoard(allEnemyPieces[colourOrdinal]); // clone
+		allEnemyPieces[oppositeColourOrdinal] = new BitBoard(allEnemyPieces[oppositeColourOrdinal]); // clone
 
 		// update incrementally
 		if (!move.isCapture()) {

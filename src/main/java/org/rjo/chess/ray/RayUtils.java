@@ -21,9 +21,10 @@ public class RayUtils {
 	private final static Ray[][] ORTHOGONAL_RAYS_BETWEEN_SQUARES = new Ray[64][64];
 
 	@SuppressWarnings("unchecked")
-	// stores for each starting square, a list of the squares in between to get to sq2 (sq1, sq2 not included)
+	// stores for each starting square sq1, a list of the squares in between to get to sq2 (sq1, sq2 not included)
+	//TODO sq2 should be included?
 	// can be null: no ray between the two squares, or empty list.
-	// SQUARES_ON_RAY[a1][c3] delivers the squares between a1 and c3 -- b2 in this case.
+	// SQUARES_ON_RAY[a1][c3] delivers the squares between a1 and c3 -- b2 and c3 in this case.
 	private final static List<Integer>[][] SQUARES_ON_RAY = new List[64][64];
 
 	// this is the same info as SQUARES_ON_RAY, but stored as a bitset

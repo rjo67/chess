@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.rjo.chess.BitBoard;
 import org.rjo.chess.Square;
 import org.rjo.chess.pieces.PieceType;
 
@@ -32,14 +33,33 @@ public abstract class BaseRay implements Ray {
 		return rays[type.getIndex()];
 	}
 
-	private RayType rayType;
+	private final RayType rayType;
+
+	/**
+	 * For each start square sq1, a list of bitset indices indicating the squares on this ray starting at sq1 (not including
+	 * sq1).
+	 */
 	@SuppressWarnings("unchecked")
 	protected final List<Integer>[] raySquares = new List[64];
-	protected PieceType[] piecesThatCanGiveCheckOnThisRay;
 
-	protected BaseRay(RayType rayType, PieceType[] pieceTypes) {
+	/**
+	 * Contains a bitboard for each square sq1, which represents the squares attacked from sq1 along this ray (not including
+	 * sq1).
+	 */
+	protected final BitBoard[] attackBitBoard = new BitBoard[64];
+
+	/** which pieces can give a check along this ray */
+	protected final PieceType[] piecesThatCanGiveCheckOnThisRay;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param rayType type of ray
+	 * @param piecesThatCanGiveCheckOnThisRay which pieces can check on this ray
+	 */
+	protected BaseRay(RayType rayType, PieceType[] piecesThatCanGiveCheckOnThisRay) {
 		this.rayType = rayType;
-		this.piecesThatCanGiveCheckOnThisRay = pieceTypes;
+		this.piecesThatCanGiveCheckOnThisRay = piecesThatCanGiveCheckOnThisRay;
 	}
 
 	@Override
@@ -80,6 +100,11 @@ public abstract class BaseRay implements Ray {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public BitBoard getAttackBitBoard(int sqIndex) {
+		return attackBitBoard[sqIndex];
 	}
 
 	@Override

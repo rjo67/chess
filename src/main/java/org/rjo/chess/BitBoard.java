@@ -1,5 +1,8 @@
 package org.rjo.chess;
 
+import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
+
 import org.rjo.chess.util.BitSetFactory;
 import org.rjo.chess.util.BitSetUnifier;
 
@@ -426,5 +429,33 @@ public class BitBoard {
 	public void set(int sqIndex) {
 		bs.set(sqIndex);
 	}
+
+	/**
+	 * Streams all the set-bits in the underlying bitset.
+	 *
+	 * @return a stream of set-bits.
+	 */
+	public Stream<Integer> stream() {
+		Builder<Integer> builder = Stream.builder();
+		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+			builder.accept(i);
+		}
+
+		return builder.build();
+	}
+
+	//	/**
+	//	 * Streams all the set-bits in the underlying bitset.
+	//	 * 
+	//	 * @return a stream of set-bits.
+	//	 */
+	//	public Stream<Integer> streamBackwards() {
+	//		Builder<Integer> builder = Stream.builder();
+	//		for (int i = 64; (i = bs.previousSetBit(i - 1)) >= 0;) {
+	//			builder.accept(i);
+	//		}
+	//
+	//		return builder.build();
+	//	}
 
 }

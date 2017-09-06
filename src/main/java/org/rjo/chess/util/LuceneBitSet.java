@@ -117,7 +117,6 @@ public class LuceneBitSet
 	@Override
 	public int nextSetBit(int fromIndex) {
 		// lucene does not allow calling with fromIndex==size of bitset, unlike java.util.BitSet
-		// therefore following hack...
 		if (fromIndex == 64) {
 			return -1;
 		}
@@ -126,5 +125,14 @@ public class LuceneBitSet
 			return -1;
 		}
 		return nextBit;
+	}
+
+	@Override
+	public int previousSetBit(int fromIndex) {
+		// lucene does not allow calling with fromIndex==-1, unlike java.util.BitSet
+		if (fromIndex == -1) {
+			return -1;
+		}
+		return bs.prevSetBit(fromIndex);
 	}
 }

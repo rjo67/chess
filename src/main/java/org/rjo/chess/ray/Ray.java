@@ -3,6 +3,7 @@ package org.rjo.chess.ray;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
+import org.rjo.chess.BitBoard;
 import org.rjo.chess.Square;
 import org.rjo.chess.pieces.PieceType;
 
@@ -73,4 +74,13 @@ public interface Ray {
 	 * Return the 'opposite' ray, e.g. given NW, returns SE. For this ray oppositeOf is true.
 	 */
 	public Ray getOpposite();
+
+	/**
+	 * returns the 'attack' bitboard for the given square.
+	 *
+	 * @param sqIndex the square index
+	 * @return the 'attack' bitboard for the given square
+	 */
+	public BitBoard getAttackBitBoard(int sqIndex);
+
 }

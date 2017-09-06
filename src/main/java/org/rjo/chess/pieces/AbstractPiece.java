@@ -21,7 +21,7 @@ import org.rjo.chess.util.BitSetUnifier;
 public abstract class AbstractPiece implements Piece {
 
 	// type of this piece
-	private PieceType type;
+	protected PieceType type;
 
 	// stores the colour of the piece
 	protected Colour colour;
