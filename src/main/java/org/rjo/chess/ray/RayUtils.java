@@ -50,7 +50,7 @@ public class RayUtils {
 							found = true;
 							Ray ray = BaseRay.getRay(rayType);
 							RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;
-							if (ray.isDiagonal()) {
+							if (ray.getRayType().isDiagonal()) {
 								DIAGONAL_RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;
 							} else {
 								ORTHOGONAL_RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;

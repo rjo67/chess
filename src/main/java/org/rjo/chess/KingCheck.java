@@ -176,9 +176,9 @@ public class KingCheck {
 				// an enemy piece is relevant for diagonal (queen/bishop) or file (queen/rook)
 				if (allEnemyPieces.getBitSet().get(bitIndex)) {
 					boolean queenPresentAtBitIndex = enemyPieces[PieceType.QUEEN.ordinal()].get(bitIndex);
-					if (ray.isDiagonal() && (queenPresentAtBitIndex || enemyPieces[PieceType.BISHOP.ordinal()].get(bitIndex))) {
+					if (rayType.isDiagonal() && (queenPresentAtBitIndex || enemyPieces[PieceType.BISHOP.ordinal()].get(bitIndex))) {
 						return true;
-					} else if (!ray.isDiagonal() && (queenPresentAtBitIndex || enemyPieces[PieceType.ROOK.ordinal()].get(bitIndex))) {
+					} else if (!rayType.isDiagonal() && (queenPresentAtBitIndex || enemyPieces[PieceType.ROOK.ordinal()].get(bitIndex))) {
 						return true;
 					} else {
 						break;

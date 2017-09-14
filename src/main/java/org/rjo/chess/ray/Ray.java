@@ -56,13 +56,6 @@ public interface Ray {
 	public RayType getRayType();
 
 	/**
-	 * True if this ray is a diagonal ray.
-	 *
-	 * @return True if this ray is a diagonal ray.
-	 */
-	public boolean isDiagonal();
-
-	/**
 	 * True if this ray is the 'opposite' of the given ray, e.g. NW and SE, or N and S.
 	 *
 	 * @param ray the ray to check.
@@ -71,7 +64,7 @@ public interface Ray {
 	public boolean oppositeOf(Ray ray);
 
 	/**
-	 * Return the 'opposite' ray, e.g. given NW, returns SE. For this ray oppositeOf is true.
+	 * Return the 'opposite' ray to 'this', e.g. this==NW, will return SE. For this ray oppositeOf is true.
 	 */
 	public Ray getOpposite();
 

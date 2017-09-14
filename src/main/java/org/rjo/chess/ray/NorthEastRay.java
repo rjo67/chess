@@ -31,13 +31,4 @@ public class NorthEastRay extends BaseRay {
 		return instance;
 	}
 
-	@Override
-	public final boolean oppositeOf(Ray ray) {
-		return ray.getRayType() == RayType.SOUTHWEST;
-	}
-
-	@Override
-	public Ray getOpposite() {
-		return SouthWestRay.instance();
-	}
 }

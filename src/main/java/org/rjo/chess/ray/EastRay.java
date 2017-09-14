@@ -30,15 +30,4 @@ public class EastRay extends BaseRay {
 	public static EastRay instance() {
 		return instance;
 	}
-
-	@Override
-	public final boolean oppositeOf(Ray ray) {
-		return ray.getRayType() == RayType.WEST;
-	}
-
-	@Override
-	public Ray getOpposite() {
-		return WestRay.instance();
-	}
-
 }

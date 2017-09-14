@@ -30,46 +30,6 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * This checks all pieces in the given bitset to see if they can attack the given <code>targetSquare</code> along rank
-	 * or file, taking into account any intervening pieces.
-	 *
-	 * @param pieces which pieces are available. This should represent the rooks and queens in the game.
-	 * @param emptySquares which squares are currently empty.
-	 * @param targetSquare which square should be attacked
-	 * @return true if at least one of the given pieces can attack the target square along a rank or file.
-	 */
-	// public static boolean attacksSquareOnRankOrFile(BitSetUnifier pieces,
-	// 		BitSetUnifier emptySquares,
-	// 		Square targetSquare) {
-	// 	for (int i = pieces.nextSetBit(0); i >= 0; i = pieces.nextSetBit(i + 1)) {
-	// 		if (attacksSquareRankOrFile(emptySquares, Square.fromBitIndex(i), targetSquare)) {
-	// 			return true;
-	// 		}
-	// 	}
-	// 	return false;
-	// }
-
-	/**
-	 * This checks all pieces in the given bitset to see if they can attack the given <code>targetSquare</code> along a
-	 * diagonal, taking into account any intervening pieces.
-	 *
-	 * @param bishopsAndQueens which pieces are available. This should represent the bishops and queens in the game.
-	 * @param emptySquares which squares are currently empty.
-	 * @param targetSquare which square should be attacked
-	 * @return true if at least one of the given pieces can attack the target square along a diagonal.
-	 */
-	//	public static boolean attacksSquareOnDiagonal(BitSet bishopsAndQueens,
-	//			BitSet emptySquares,
-	//			Square targetSquare) {
-	//		for (int i = bishopsAndQueens.nextSetBit(0); i >= 0; i = bishopsAndQueens.nextSetBit(i + 1)) {
-	//			if (attacksSquareDiagonally(emptySquares, Square.fromBitIndex(i), targetSquare, null /* TODO checkCache */)) {
-	//				return true;
-	//			}
-	//		}
-	//		return false;
-	//	}
-
-	/**
 	 * Searches for moves in the direction specified by the {@link Ray} implementation. This is for rooks, bishops, and
 	 * queens.
 	 * <p>
@@ -105,12 +65,12 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 
 			// from http://www.craftychess.com/hyatt/bitmaps.html:
 			//
-			// 'attack' is the bitmap for the attacks in the ray's direction from the square 'indexOfPiece'.
+			// 'rayAttack' is the bitmap for the attacks in the ray's direction from the square 'indexOfPiece'.
 			// blockers becomes a bitmap of any pieces sitting on this ray.
 			// We find the first blocking piece, and then exclusive-OR attackBitBoard[blocking_square]
-			// with the original 'attack' which effectively 'cuts off' the attacks beyond that point.
+			// with the original 'rayAttack' which effectively 'cuts off' the attacks beyond that point.
 
-			BitBoard attack = new BitBoard(ray.getAttackBitBoard(indexOfPiece)); // clone
+			BitBoard rayAttack = new BitBoard(ray.getAttackBitBoard(indexOfPiece)); // clone
 
 			// remove occupied squares along the ray
 			BitBoard blockers = new BitBoard(ray.getAttackBitBoard(indexOfPiece)); // clone
@@ -123,17 +83,15 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			} else {
 				blockingSquare = blockers.getBitSet().previousSetBit(indexOfPiece);
 			}
-			if (blockingSquare == -1) {
-				// no blocking square -- all squares on diagonalAttack are potential moves
-			} else {
+			if (blockingSquare != -1) {
 				// truncate the attacks beyond the blocking piece
-				attack.getBitSet().xor(ray.getAttackBitBoard(blockingSquare).getBitSet());
+				rayAttack.getBitSet().xor(ray.getAttackBitBoard(blockingSquare).getBitSet());
 				blockingSquareContainsEnemyPiece = posn.getAllPieces(opponentsColour).get(blockingSquare);
 			}
 
 			// remove squares in checkRestriction
 			if (checkRestriction.isInCheck()) {
-				attack.getBitSet().and(checkRestriction.getSquareRestriction().getBitSet());
+				rayAttack.getBitSet().and(checkRestriction.getSquareRestriction().getBitSet());
 			}
 
 			// add moves.
@@ -141,12 +99,12 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			//
 			// (1) start at 'fromSquare'. Then however need to iterate in the correct direction, e.g.:
 			//			if ((ray.getRayType() == RayType.NORTHWEST) || (ray.getRayType() == RayType.NORTHEAST)) {
-			//				for (int sqIndex = diagonalAttack.getBitSet().nextSetBit(indexOfPiece); sqIndex >= 0; sqIndex = diagonalAttack.getBitSet()
+			//				for (int sqIndex = rayAttack.getBitSet().nextSetBit(indexOfPiece); sqIndex >= 0; sqIndex = rayAttack.getBitSet()
 			//							.nextSetBit(sqIndex + 1)) {
 			//					addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn);
 			// 			}
 			//			} else {
-			//				for (int sqIndex = indexOfPiece; (sqIndex = diagonalAttack.getBitSet().previousSetBit(sqIndex - 1)) >= 0;) {
+			//				for (int sqIndex = indexOfPiece; (sqIndex = rayAttack.getBitSet().previousSetBit(sqIndex - 1)) >= 0;) {
 			//					addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn);
 			//				}
 			//			}
@@ -155,7 +113,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			//			Iterator<Integer> iter = ray.squaresFrom(indexOfPiece);
 			//			while (iter.hasNext() && (sqIndex != blockingSquare)) /* abort as soon as we've processed the blocking square */ {
 			//				sqIndex = iter.next();
-			//				if (diagonalAttack.get(sqIndex)) {
+			//				if (rayAttack.get(sqIndex)) {
 			//					addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn);
 			//				}
 			//			}
@@ -163,7 +121,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			// or (3) 'iterate' over the squares array.
 			//			Square fromSquare = Square.fromBitIndex(indexOfPiece);
 			//			for (int sqIndex2 : ray.squaresFromAsArray(indexOfPiece)) {
-			//				if (diagonalAttack.get(sqIndex2)) {
+			//				if (rayAttack.get(sqIndex2)) {
 			//					addMove(moves, fromSquare, sqIndex2, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn);
 			//				} else if (sqIndex2 == blockingSquare) {
 			//					break;
@@ -171,14 +129,14 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			//			}
 			Square fromSquare = Square.fromBitIndex(indexOfPiece);
 			if (ray.getRayType().isBitIndicesIncrease()) {
-				for (int sqIndex = attack.getBitSet().nextSetBit(indexOfPiece); sqIndex >= 0; //
-						sqIndex = attack.getBitSet().nextSetBit(sqIndex + 1)) {
+				for (int sqIndex = rayAttack.getBitSet().nextSetBit(indexOfPiece); sqIndex >= 0; //
+						sqIndex = rayAttack.getBitSet().nextSetBit(sqIndex + 1)) {
 					if (addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn)) {
 						break;
 					}
 				}
 			} else {
-				for (int sqIndex = indexOfPiece; (sqIndex = attack.getBitSet().previousSetBit(sqIndex - 1)) >= 0;) {
+				for (int sqIndex = indexOfPiece; (sqIndex = rayAttack.getBitSet().previousSetBit(sqIndex - 1)) >= 0;) {
 					if (addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn)) {
 						break;
 					}

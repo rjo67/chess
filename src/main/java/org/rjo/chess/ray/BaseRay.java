@@ -68,11 +68,6 @@ public abstract class BaseRay implements Ray {
 	}
 
 	@Override
-	public final boolean isDiagonal() {
-		return rayType.isDiagonal();
-	}
-
-	@Override
 	public final Iterator<Integer> squaresFrom(Square startSquare) {
 		return squaresFrom(startSquare.bitIndex());
 	}
@@ -112,4 +107,13 @@ public abstract class BaseRay implements Ray {
 		return rayType.getAbbreviation();
 	}
 
+	@Override
+	public final boolean oppositeOf(Ray ray) {
+		return this.getRayType().getOpposite() == ray.getRayType();
+	}
+
+	@Override
+	public final Ray getOpposite() {
+		return rays[this.getRayType().getOpposite().getIndex()];
+	}
 }
