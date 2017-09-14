@@ -23,7 +23,7 @@ public final class ChessBitSet {
 	}
 
 	public int length() {
-		return 64;
+		return numBits;
 	}
 
 	/** Expert. */

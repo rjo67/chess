@@ -3,6 +3,7 @@
 ## Overview of commits and performance
 date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 ---- | ----------- | ------ | -----
+14.09.17 | SlidingPiece::searchNew uses bitmaps for all ray directions. | ?? | 2503,0 moves/ms; 399,5 nanos/move
 06.09.17 | SlidingPiece::searchNew uses bitmaps for sliding-pieces. Added ChessBitSet (bitset optimized for 64 bits | ?? | 2302,3 moves/ms, 434,4 nanos/move
 26.08.17 | check-cache deactivated. Many other changes, especially limiting move-generation if in-check. | 9c688f9 | 2019,9 moves/ms
 17.07.16 | project subdirs removed. Added Rook::findMovesUsingMoveMap, introducing hashmaps. | ac7390a | 2069,0 moves/ms
