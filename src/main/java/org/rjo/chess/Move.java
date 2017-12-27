@@ -163,7 +163,7 @@ public class Move {
 	/**
 	 * converts from uci style move to a move object
 	 *
-	 * @param moveStr uci move e.g. b7d5
+	 * @param moveStr uci move e.g. b7d5, c2c1q
 	 * @return move object. Whether 'Check' is not examined!
 	 */
 	public static Move fromUCIString(String moveStr,
@@ -195,9 +195,15 @@ public class Move {
 					m = new Move(piece, game.getPosition().getSideToMove(), from, to);
 				}
 			}
-			if (piece == PieceType.PAWN && to.rank() == 7) {
+			// check for promotion
+			if (moveStr.length() == 5) {
 				PieceType promotedPiece = PieceType.getPieceTypeFromSymbol(moveStr.substring(4, 5));
 				m.setPromotionPiece(promotedPiece);
+				// check move is valid
+				int validRank = (game.getPosition().getSideToMove() == Colour.WHITE) ? 7 : 0;
+				if ((piece != PieceType.PAWN) || (to.rank() != validRank)) {
+					throw new IllegalArgumentException("UCI string " + moveStr + " indicates pawn promotion, but incorrect piece/rank");
+				}
 			}
 		}
 		return m;
