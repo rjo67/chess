@@ -13,6 +13,16 @@ public class SimpleStrategy implements SearchStrategy {
 	private static Random rand = new Random();
 
 	@Override
+	public int getCurrentDepth() {
+		return 0;
+	}
+
+	@Override
+	public void incrementDepth(int increment) {
+		// no-op
+	}
+
+	@Override
 	public MoveInfo findMove(Position posn) {
 		MoveInfo moveInfo = new MoveInfo();
 		List<Move> computerMoves = posn.findMoves(posn.getSideToMove());

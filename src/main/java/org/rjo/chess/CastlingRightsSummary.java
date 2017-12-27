@@ -171,4 +171,9 @@ public class CastlingRightsSummary {
 		queensSideCastling = false;
 	}
 
+	@Override
+	public String toString() {
+		return (kingsSideCastling ? "K" : "-") + (queensSideCastling ? "Q" : "-");
+	}
+
 }

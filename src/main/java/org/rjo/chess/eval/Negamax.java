@@ -10,9 +10,20 @@ public class Negamax implements SearchStrategy {
 
 	private int nbrNodesEvaluated;
 
+	int depth = 4;
+
+	@Override
+	public int getCurrentDepth() {
+		return depth;
+	}
+
+	@Override
+	public void incrementDepth(int increment) {
+		depth += increment;
+	}
+
 	@Override
 	public MoveInfo findMove(Position posn) {
-		final int depth = 4;
 		nbrNodesEvaluated = 0;
 		int max = MIN_INT;
 		MoveInfo moveInfo = new MoveInfo();

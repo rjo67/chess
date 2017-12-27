@@ -41,4 +41,9 @@ public class MoveInfo {
 		this.line = line;
 	}
 
+	@Override
+	public String toString() {
+		return move + "(" + line + ")";
+	}
+
 }

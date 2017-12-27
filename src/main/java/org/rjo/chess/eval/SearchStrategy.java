@@ -6,4 +6,8 @@ public interface SearchStrategy {
 
 	MoveInfo findMove(Position posn);
 
+	int getCurrentDepth();
+
+	void incrementDepth(int increment);
+
 }

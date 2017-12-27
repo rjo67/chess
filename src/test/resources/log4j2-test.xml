@@ -3,6 +3,7 @@
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+            <ThresholdFilter level="info"/>
 		</Console>
        <File name="File" fileName="target/movelog.txt" append="false" immediateFlush="false">
                        <PatternLayout>
@@ -19,8 +20,9 @@
             <AppenderRef ref="File" />
        </Logger>
       
-		<Root level="info">
+		<Root level="debug">
 			<AppenderRef ref="Console" />
+			<AppenderRef ref="File" />
 		</Root>
 	</Loggers>
 </Configuration>
