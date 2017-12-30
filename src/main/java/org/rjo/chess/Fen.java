@@ -305,8 +305,7 @@ public class Fen {
 		Piece[] allPieces = new Piece[] { new Pawn(Colour.WHITE), new Pawn(Colour.BLACK), new Rook(Colour.WHITE), new Rook(Colour.BLACK),
 				new Knight(Colour.WHITE), new Knight(Colour.BLACK), new Bishop(Colour.WHITE), new Bishop(Colour.BLACK), new Queen(Colour.WHITE),
 				new Queen(Colour.BLACK), new King(Colour.WHITE), new King(Colour.BLACK) };
-		// this map stores the piece locations that get parsed from the FEN
-		// string
+		// this map stores the piece locations that get parsed from the FEN string
 		Map<Piece, List<Square>> pieceMap = new HashMap<>();
 		for (Piece piece : allPieces) {
 			pieceMap.put(piece, new ArrayList<>());
@@ -359,10 +358,8 @@ public class Fen {
 			}
 		}
 
-		// now init the pieces with the squares that have been parsed (from the
-		// map pieceMap)
-		// contains all piece types -- even if no pieces of this type exist on
-		// the board
+		// now init the pieces with the squares that have been parsed (from the map pieceMap)
+		// contains all piece types -- even if no pieces of this type exist on the board
 		@SuppressWarnings("unchecked")
 		Set<Piece>[] pieces = new HashSet[Colour.ALL_COLOURS.length];
 		for (Colour colour : Colour.ALL_COLOURS) {

@@ -21,20 +21,27 @@ public class AlphaBetaTest {
 	}
 
 	@Test
-	// in this position, the engine decides on the move Ke8-f8 !??
+	// in this position, the AlphaBeta engine decides on the move Ke8-f8 !??
 	public void badMove() {
 		Game game = Fen.decode("rnbqk1nr/pppp1ppp/8/3P4/8/2N5/PP1QPPPP/R3KBNR b KQkq - 2 7");
-		SearchStrategy strat = new AlphaBeta(game.getZobristMap());
+		SearchStrategy strat = new AlphaBeta3(System.out);
+		strat.incrementDepth(1);
+		//		AlphaBeta3.ORDER_MOVES = false;
 		MoveInfo m = strat.findMove(game.getPosition());
-		assertEquals("Qg1xg7+", m.getMove().toString());
+		System.out.println(m.getMove());
 	}
 
+	// mate in 1 Qc1-h6  posns evaluated:25191
+	// with move ordering: posns evaluated 8821
+	// depth 5: posns evaluated 83751
 	@Test
-	public void badMove2() {
-		Game game = Fen.decode("4r1k1/3R2pp/2N3p1/2p5/6PK/r7/6P1/2p5 b - - 67 34");
+	public void mateInOne() {
+		Game game = Fen.decode("4r1k1/3R2pp/2N3p1/2p5/6PK/r7/6P1/2q5 b - - 67 34");
 		System.out.println(game.getPosition().isInCheck());
-		SearchStrategy strat = new AlphaBeta2(System.out);
+		SearchStrategy strat = new AlphaBeta3(System.out);
+		strat.incrementDepth(1);
 		MoveInfo m = strat.findMove(game.getPosition());
+		System.out.println(m.getMove());
 	}
 
 	//TODO
@@ -76,6 +83,115 @@ public class AlphaBetaTest {
 		strat.incrementDepth(1);
 		MoveInfo m = strat.findMove(uci.getGame().getPosition());
 	}
+
+	/*
+	 * bad move
+	 * {@formatter:off}
+	2017-12-30 15:14:39.346-->1:position startpos moves e2e4 b8c6 d2d4 e7e6 d4d5 e6d5 e4d5 f8b4 c2c3 g8f6 d5c6 d8e7 f1e2 d7c6 c3b4 e7b4 d1d2 b4d2 c1d2 c8f5 b1c3 e8g8 g1f3 f6e4 c3e4 f5e4 e1g1 f8d8 d2c3 c6c5 a1d1 d8d1 f1d1 f7f6 e2c4
+	2017-12-30 15:14:39.346-->1:go wtime 456502 btime 481414 winc 20000 binc 20000
+	2017-12-30 15:14:39.347<--1:after move Be2-c4+, fen:r5k1/ppp3pp/5p2/2p5/2B1b3/2B2N2/PP3PPP/3R2K1 b - - 35 18
+	2017-12-30 15:14:39.347<--1:set strategy depth to 5
+	2017-12-30 15:14:55.022<--1:15:14:55.022 [main] INFO  org.rjo.chess.eval.AlphaBeta3 - got result: 487:Optional[[Be4-d5, Nf3-e1, Kg8-f8, Bc4-f1, Bd5-g8]], posns evaluated: 104575
+	2017-12-30 15:14:55.022<--1:bestmove e4d5
+	 * {@formatter:on}
+	 */
+	@Test
+	public void blockCheck() {
+		UCI uci = UCI.testInterface(
+				"position startpos moves e2e4 b8c6 d2d4 e7e6 d4d5 e6d5 e4d5 f8b4 c2c3 g8f6 d5c6 d8e7 f1e2 d7c6 "
+						+ "c3b4 e7b4 d1d2 b4d2 c1d2 c8f5 b1c3 e8g8 g1f3 f6e4 c3e4 f5e4 e1g1 f8d8 d2c3 c6c5 a1d1 d8d1 f1d1 f7f6 e2c4");
+		SearchStrategy strat = new AlphaBeta3(System.out);
+		MoveInfo m = strat.findMove(uci.getGame().getPosition());
+		System.out.println(m);
+	}
+
+	/*
+	 * bad queen move
+	 * {@formatter:off}
+	2017-12-30 15:41:10.464-->1:position startpos moves f2f4 g8f6 d2d4 e7e6 g1f3 f6e4 d1d3 d7d5 b1c3 b8c6 c3e4 d5e4 d3e4 f7f5 e4d3 f8b4 c1d2 d8e7 e1c1 e8g8 f3e5 b4d2 d1d2 c8d7 g2g3 f8f6 f1g2 d7e8 d3c4 c6e5 d4e5 f6f7 g2b7 a8d8 h1d1 d8d2 d1d2 g7g5 b7c8 f7f8 c8e6 g8h8 e6d5 e8h5 e5e6 g5f4 c4f4
+	2017-12-30 15:41:10.464-->1:go wtime 651575 btime 720728 winc 20000 binc 20000
+	2017-12-30 15:41:10.465<--1:after move Qc4xf4, fen:5r1k/p1p1q2p/4P3/3B1p1b/5Q2/6P1/PPPRP2P/2K5 b - - 47 24
+	2017-12-30 15:41:10.465<--1:set strategy depth to 5
+	2017-12-30 15:45:42.250<--1:15:45:42.250 [main] INFO  org.rjo.chess.eval.AlphaBeta3 - got result: 329:Optional[[Qe7-g5, Bd5-a8, c7-c6, Qf4-f1, Qg5-g8]], posns evaluated: 1889669
+	2017-12-30 15:45:42.250<--1:bestmove e7g5
+	2017-12-30 15:45:42.250*1*Found move:Qe7-g5
+	 * {@formatter:on}
+	 */
+	@Test
+	public void badQueenMove() {
+		UCI uci = UCI.testInterface(
+				"position startpos moves f2f4 g8f6 d2d4 e7e6 g1f3 f6e4 d1d3 d7d5 b1c3 b8c6 c3e4 d5e4 d3e4 "
+						+ "f7f5 e4d3 f8b4 c1d2 d8e7 e1c1 e8g8 f3e5 b4d2 d1d2 c8d7 g2g3 f8f6 f1g2 d7e8 d3c4 c6e5 d4e5 f6f7 "
+						+ "g2b7 a8d8 h1d1 d8d2 d1d2 g7g5 b7c8 f7f8 c8e6 g8h8 e6d5 e8h5 e5e6 g5f4 c4f4");
+		//after move Qc4xf4, fen:5r1k/p1p1q2p/4P3/3B1p1b/5Q2/6P1/PPPRP2P/2K5 b - - 47 24
+		SearchStrategy strat = new AlphaBeta3(System.out);
+		System.out.println(strat.getCurrentDepth());
+		MoveInfo mi = strat.findMove(uci.getGame().getPosition());
+		System.out.println(mi);
+
+		Game game = Fen.decode("5r1k/p1p1q2p/4P3/3B1p1b/5Q2/6P1/PPPRP2P/2K5 w - - 47 24");
+		System.out.println(strat.getCurrentDepth());
+		mi = strat.findMove(game.getPosition());
+		System.out.println(mi);
+	}
+
+	/*
+	 * bad knight move
+	 * {@formatter:off}
+2017-12-30 16:38:38.890-->1:position startpos moves d2d4 e7e6 c2c4 b8c6 g1f3 f8b4 b1c3 g8f6 c1g5 e8g8 e2e4 d7d6 e4e5 d6e5 d4e5 b4c3 b2c3 d8d1 a1d1 f6e4 f1d3 e4c3 d1d2
+2017-12-30 16:38:38.890-->1:go wtime 479186 btime 495679 winc 20000 binc 20000
+2017-12-30 16:38:38.891<--1:after move Rd1-d2, fen:r1b2rk1/ppp2ppp/2n1p3/4P1B1/2P5/2nB1N2/P2R1PPP/4K2R b K - 23 12
+2017-12-30 16:38:38.891<--1:set strategy depth to 4
+2017-12-30 16:38:39.035<--1:info pv c3a2 d2a2 h7h6 a2a7 score cp 275
+2017-12-30 16:38:39.175<--1:info pv c6e5 f3e5 h7h6 e5f7 score cp 231
+ 	 * {@formatter:on}
+	 */
+
+	/*
+	 * no mate in one, finds mate in 3
+	 * {@formatter:off}
+2017-12-30 16:47:13.236-->1:position startpos moves d2d4 e7e6 c2c4 b8c6 g1f3 f8b4 b1c3 g8f6 c1g5 e8g8 e2e4 d7d6 e4e5 d6e5 d4e5 b4c3 b2c3 d8d1 a1d1 f6e4 f1d3 e4c3 d1d2 c6b4 g5e7 b4c6 e7f8 g8f8 d3h7 b7b6 e1g1 c8b7 f1c1 c3a4 f3d4 a4c5 d4c6 b7c6 f2f3 g7g6 g1f2 f8g7 h7g6 f7g6 c1d1 a8h8 h2h3 h8h5 d2e2 h5h4 d1c1 c5d3 f2e3 d3c1 e2c2 h4h5 f3f4 c6g2 c2g2 h5h3 e3d4 c1d3 f4f5 c7c5 d4e4 e6f5 e4d5 d3f4 d5d6 f4g2 e5e6 h3e3 d6d7 g2f4 e6e7 g7f7 a2a4 e3e7 d7d6 e7e4 d6c6 e4c4 c6b5 c4b4 b5c6 b4a4 c6b5 a4a3 b5c4 g6g5 c4b5 g5g4 b5c6 g4g3 c6b5 g3g2 b5c6 g2g1q c6b5 g1h1 b5c4 h1d5 c4b5
+2017-12-30 16:47:13.236-->1:go wtime 992110 btime 1086412 winc 20000 binc 20000
+2017-12-30 16:47:13.238<--1:after move Kc4-b5, fen:8/p4k2/1p6/1Kpq1p2/5n2/r7/8/8 b - - 103 52
+2017-12-30 16:47:13.446<--1:info pv c5c4 b5b4 d5c5 score cp -2306
+2017-12-30 16:47:14.034<--1:info pv a3a5 score cp -2312
+2017-12-30 16:47:17.083<--1:info pv d5d6 b5c4 d6d3 score cp -2320
+2017-12-30 16:47:17.177<--1:info pv d5d7 b5c4 d7a4 score cp -2336
+2017-12-30 16:47:18.242<--1:info pv d5f3 b5c4 f3b3 score cp -2368
+2017-12-30 16:47:18.470<--1:info pv d5g2 b5c4 g2e2 score cp -2384
+2017-12-30 16:47:18.701<--1:info pv d5h1 b5c4 h1f1 score cp -2392
+2017-12-30 16:47:20.766<--1:info pv d5b7 b5c4 b7a6 score cp -2400
+2017-12-30 16:47:21.318<--1:16:47:21.318 [main] INFO  org.rjo.chess.eval.AlphaBeta3 - got result: -2400:Optional[[Qd5-b7, Kb5-c4, Qb7-a6+]], posns evaluated: 77133
+2017-12-30 16:47:21.318<--1:bestmove d5b7
+2017-12-30 16:47:21.318*1*Found move:Qd5-b7
+ 	 * {@formatter:on}
+	 */
+	@Test
+	// this now works after fixing the value of a mate in AlphaBeta3
+	public void anotherMateInOne() {
+		UCI uci = UCI.testInterface(
+				"position startpos moves d2d4 e7e6 c2c4 b8c6 g1f3 f8b4 b1c3 g8f6 c1g5 e8g8 e2e4 "
+						+ "d7d6 e4e5 d6e5 d4e5 b4c3 b2c3 d8d1 a1d1 f6e4 f1d3 e4c3 d1d2 c6b4 g5e7 b4c6 "
+						+ "e7f8 g8f8 d3h7 b7b6 e1g1 c8b7 f1c1 c3a4 f3d4 a4c5 d4c6 b7c6 f2f3 g7g6 g1f2 "
+						+ "f8g7 h7g6 f7g6 c1d1 a8h8 h2h3 h8h5 d2e2 h5h4 d1c1 c5d3 f2e3 d3c1 e2c2 h4h5 "
+						+ "f3f4 c6g2 c2g2 h5h3 e3d4 c1d3 f4f5 c7c5 d4e4 e6f5 e4d5 d3f4 d5d6 f4g2 e5e6 "
+						+ "h3e3 d6d7 g2f4 e6e7 g7f7 a2a4 e3e7 d7d6 e7e4 d6c6 e4c4 c6b5 c4b4 b5c6 b4a4 c6b5 a4a3 b5c4 "
+						+ "g6g5 c4b5 g5g4 b5c6 g4g3 c6b5 g3g2 b5c6 g2g1q c6b5 g1h1 b5c4 h1d5 c4b5");
+		//after move Kc4-b5, fen:8/p4k2/1p6/1Kpq1p2/5n2/r7/8/8 b - - 103 52
+		MoveInfo mi;
+		SearchStrategy strat = new AlphaBeta3(System.out);
+
+		//		System.out.println(strat.getCurrentDepth());
+		//		mi = strat.findMove(uci.getGame().getPosition());
+		//		System.out.println(mi);
+
+		// simplified -- finds a different mate in 3
+		Game game = Fen.decode("8/p4k2/1p6/1Kpq13/8/r7/8/8 b - - 103 52");
+		System.out.println(strat.getCurrentDepth());
+		mi = strat.findMove(game.getPosition());
+		System.out.println(mi);
+	}
+
 	/*
 	 * self-mate
 	 * {@formatter:off}
