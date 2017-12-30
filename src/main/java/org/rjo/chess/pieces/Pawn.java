@@ -108,6 +108,18 @@ public class Pawn extends AbstractBitBoardPiece {
 	}
 
 	@Override
+	public void initPosition(Square... requiredSquares) {
+		if (requiredSquares != null) {
+			for (Square square : requiredSquares) {
+				if ((square.rank() == 0) || (square.rank() == 7)) {
+					throw new RuntimeException("cannot init Pawn on square: " + square);
+				}
+			}
+		}
+		super.initPosition(requiredSquares);
+	}
+
+	@Override
 	public void initPosition() {
 		Square[] requiredSquares = null;
 		// @formatter:off
