@@ -572,8 +572,10 @@ public class Position {
 	}
 
 	/**
-	 * Calculates a static value for the current position. In order for NegaMax to work, it is important to return the score
-	 * relative to the side being evaluated.
+	 * Calculates a static value for the current position.
+	 * <p>
+	 * <B>algorithm has been changed, this does not currently apply:</B>In order for NegaMax to work, it is important to
+	 * return the score relative to the side being evaluated.
 	 *
 	 * @return a value in centipawns
 	 */
@@ -625,7 +627,8 @@ public class Position {
 
 		final int MOBILITY_WEIGHTING = 2;
 		int mobilityScore = MOBILITY_WEIGHTING * (whiteMobility - blackMobility);
-		return (mobilityScore + materialScore) * (getSideToMove() == Colour.WHITE ? 1 : -1);
+		//return (mobilityScore + materialScore) * (getSideToMove() == Colour.WHITE ? 1 : -1);
+		return (mobilityScore + materialScore);
 	}
 
 	/**
