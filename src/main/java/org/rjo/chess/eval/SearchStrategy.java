@@ -10,4 +10,11 @@ public interface SearchStrategy {
 
 	void incrementDepth(int increment);
 
+	/**
+	 * @return current number of nodes that have been searched
+	 */
+	default int getCurrentNbrNodesSearched() {
+		return 0;
+	}
+
 }

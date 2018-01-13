@@ -111,8 +111,7 @@ public class PositionCheckState {
 		}
 
 		@Override
-		@SuppressWarnings("unused")
-		public void setToNotCheck(Integer squareBitIndex,
+		public void setToNotCheck(@SuppressWarnings("unused") Integer squareBitIndex,
 				@SuppressWarnings("unused") RayType rayType) {
 			// no-op
 		}

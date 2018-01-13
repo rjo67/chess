@@ -2,33 +2,30 @@ package org.rjo.chess.eval;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
-import org.rjo.chess.UCI;
+import org.rjo.chess.uci.UCI;
 
 public class AlphaBetaTest {
 
 	@Test
-	@Ignore
-	// TODO expected to fail at the moment
 	public void alphabetaWIP() {
 		Game game = Fen.decode("8/5n2/8/8/pk6/4K3/P3NP2/8 w - - 0 15");
-		SearchStrategy strat = new AlphaBeta(game.getZobristMap());
+		SearchStrategy strat = new AlphaBeta3(System.out);
+		strat.incrementDepth(2);
 		MoveInfo m = strat.findMove(game.getPosition());
-		assertEquals("Qg1xg7+", m.getMove().toString());
+		assertEquals("Ke3-d2", m.getMove().toString());
 	}
 
 	@Test
-	// in this position, the AlphaBeta engine decides on the move Ke8-f8 !??
 	public void badMove() {
 		Game game = Fen.decode("rnbqk1nr/pppp1ppp/8/3P4/8/2N5/PP1QPPPP/R3KBNR b KQkq - 2 7");
 		SearchStrategy strat = new AlphaBeta3(System.out);
 		strat.incrementDepth(1);
 		//		AlphaBeta3.ORDER_MOVES = false;
 		MoveInfo m = strat.findMove(game.getPosition());
-		System.out.println(m.getMove());
+		assertEquals("Qd8-f6", m.getMove().toString());
 	}
 
 	// mate in 1 Qc1-h6  posns evaluated:25191
@@ -37,11 +34,10 @@ public class AlphaBetaTest {
 	@Test
 	public void mateInOne() {
 		Game game = Fen.decode("4r1k1/3R2pp/2N3p1/2p5/6PK/r7/6P1/2q5 b - - 67 34");
-		System.out.println(game.getPosition().isInCheck());
 		SearchStrategy strat = new AlphaBeta3(System.out);
 		strat.incrementDepth(1);
 		MoveInfo m = strat.findMove(game.getPosition());
-		System.out.println(m.getMove());
+		assertEquals("Qc1-h6+", m.getMove().toString());
 	}
 
 	//TODO

@@ -1,9 +1,9 @@
 package org.rjo.chess;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import org.rjo.chess.eval.ZobristMap;
 
 /**
  * Encapsulates the board, the moves, castling rights, etc (clocks?).
@@ -27,7 +27,7 @@ public class Game {
 	// this points to the last position stored in 'gameProgress'.
 	private int currentMoveOffset;
 
-	private Map<Position, Position> zobristMap;
+	private ZobristMap zobristMap;
 
 	/**
 	 * Constructs a game with the default start position.
@@ -46,7 +46,7 @@ public class Game {
 		gameProgress.add(new MovePosition(null, position));
 		moveNbr = 1;
 		currentMoveOffset = 0;
-		zobristMap = new HashMap<>();
+		zobristMap = new ZobristMap();
 	}
 
 	public void makeMove(Move move) {
@@ -59,7 +59,7 @@ public class Game {
 		}
 	}
 
-	public Map<Position, Position> getZobristMap() {
+	public ZobristMap getZobristMap() {
 		return zobristMap;
 	}
 

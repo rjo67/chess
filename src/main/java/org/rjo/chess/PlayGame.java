@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.rjo.chess.eval.AlphaBeta;
+import org.rjo.chess.eval.AlphaBeta3;
 import org.rjo.chess.eval.MoveInfo;
 import org.rjo.chess.eval.SearchStrategy;
 import org.rjo.chess.pieces.PieceType;
@@ -18,7 +18,7 @@ public class PlayGame {
 
 	private void run() throws IOException {
 		Game game = new Game();
-		SearchStrategy strategy = new AlphaBeta(game.getZobristMap());
+		SearchStrategy strategy = new AlphaBeta3(System.out);
 		System.out.println("Starting new game with strategy: " + strategy.toString());
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
 			boolean finished = false;

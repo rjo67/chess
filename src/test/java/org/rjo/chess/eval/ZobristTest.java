@@ -1,9 +1,14 @@
-package org.rjo.chess;
+package org.rjo.chess.eval;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 import org.junit.Test;
+import org.rjo.chess.Colour;
+import org.rjo.chess.Fen;
+import org.rjo.chess.Move;
+import org.rjo.chess.Position;
+import org.rjo.chess.Square;
 import org.rjo.chess.pieces.PieceType;
 
 public class ZobristTest {

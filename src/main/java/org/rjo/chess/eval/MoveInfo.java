@@ -1,7 +1,7 @@
 package org.rjo.chess.eval;
 
 import org.rjo.chess.Move;
-import org.rjo.chess.eval.AlphaBeta.Line;
+import org.rjo.chess.eval.AlphaBeta3.Line;
 
 public class MoveInfo {
 	private Move move;

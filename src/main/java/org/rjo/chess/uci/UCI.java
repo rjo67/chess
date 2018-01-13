@@ -1,9 +1,14 @@
-package org.rjo.chess;
+package org.rjo.chess.uci;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Scanner;
 
+import org.rjo.chess.Colour;
+import org.rjo.chess.Fen;
+import org.rjo.chess.Game;
+import org.rjo.chess.Move;
+import org.rjo.chess.Square;
 import org.rjo.chess.eval.AlphaBeta3;
 import org.rjo.chess.eval.MoveInfo;
 import org.rjo.chess.eval.SearchStrategy;
@@ -64,7 +69,8 @@ public class UCI {
 	boolean processLine(Scanner lineScanner) {
 		boolean finished = false;
 		if (lineScanner.hasNext()) {
-			switch (lineScanner.next()) {
+			String nextCmd = lineScanner.next();
+			switch (nextCmd) {
 			case "uci":
 				processCommandUci();
 				break;
@@ -83,6 +89,8 @@ public class UCI {
 			case "quit":
 				finished = true;
 				break;
+			default:
+				System.out.println("unrecognised: " + nextCmd);
 			}
 		} else {
 			finished = true;
@@ -96,7 +104,13 @@ public class UCI {
 
 	private void processCommandGo(Scanner lineScanner) {
 		boolean infinite = lineScanner.hasNext() && "infinite".equals(lineScanner.next());
+
+		// UCI reporter thread
+		UciReporter uciReporter = new UciReporter(strategy, System.out);
+		new Thread(uciReporter).start();
+
 		moveinfo = strategy.findMove(game.getPosition());
+		uciReporter.setStop(true);
 		if (!infinite) {
 			System.out.println("bestmove " + moveinfo.getMove().toUCIString());
 		}
@@ -121,9 +135,8 @@ public class UCI {
 				throw new RuntimeException("invalid value after 'position': expected fen or startpos, got '" + subcmd + "'");
 			}
 			game = Fen.decode(fen);
-			//	strategy = new AlphaBeta(/* new PrintStream(new NullOutputStream()), */ game.getZobristMap());
-			//	strategy = new AlphaBeta2(System.out);
-			strategy = new AlphaBeta3(System.out);
+			// create strategy here in order to be able to autoincrement the depth
+			strategy = new AlphaBeta3(System.out, game.getZobristMap());
 			// move on to "moves"
 			if (lineScanner.hasNext()) {
 				subcmd = lineScanner.next();
@@ -162,7 +175,7 @@ public class UCI {
 		System.out.println("uciok");
 	}
 
-	class NullOutputStream extends OutputStream {
+	static class NullOutputStream extends OutputStream {
 		@Override
 		public void write(@SuppressWarnings("unused") int arg0) throws IOException {
 		}

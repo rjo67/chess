@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.rjo.chess.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.Move.CheckInformation;
 import org.rjo.chess.PositionCheckState.CheckInfo;
+import org.rjo.chess.eval.Zobrist;
 import org.rjo.chess.pieces.Bishop;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Knight;
@@ -235,6 +236,10 @@ public class Position {
 			fen = Fen.encode(this);
 		}
 		return fen;
+	}
+
+	public long getZobristHash() {
+		return zobristHash;
 	}
 
 	/**

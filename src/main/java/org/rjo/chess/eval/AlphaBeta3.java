@@ -14,12 +14,15 @@ import org.apache.logging.log4j.Logger;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Position;
+import org.rjo.chess.eval.ZobristMap.ZobristInfo;
 
 public class AlphaBeta3 implements SearchStrategy {
 	private static final Logger LOG = LogManager.getLogger(AlphaBeta3.class);
 
 	private static final int MIN_VAL = -99999;
 	private static final int MAX_VAL = -MIN_VAL;
+
+	private static int count = 0;
 
 	/** whether to order the moves or not -- mainly for tests */
 	public static boolean ORDER_MOVES = true;
@@ -28,34 +31,39 @@ public class AlphaBeta3 implements SearchStrategy {
 
 	private PrintStream outputStream;
 
+	private ZobristMap zobristMap;
+
+	// how many times moves were made, i.e. new positions created
+	private static int NBR_NODES_SEARCHED;
+	// how many times 'evaluate' was called
 	private static int NBR_POSNS_EVALUATED;
 
+	/** constructor for tests that don't want the zobrist map */
 	public AlphaBeta3(PrintStream out) {
+		this(out, new ZobristMap());
+	}
+
+	public AlphaBeta3(PrintStream out, ZobristMap zobristMap) {
 		this.outputStream = out;
+		this.zobristMap = zobristMap;
 	}
 
 	@Override
 	public MoveInfo findMove(Position posn) {
+		NBR_NODES_SEARCHED = 0;
 		NBR_POSNS_EVALUATED = 0;
 		MoveTree moveTree = new MoveTree(null, null, startDepth, 0, 0);
 		// if white currently to move, want to maximize. Otherwise minimize.
 		MiniMax type = (posn.getSideToMove() == Colour.WHITE) ? MiniMax.MAX : MiniMax.MIN;
+
+		long start = System.currentTimeMillis();
 		SearchResult result = alphabeta(posn, startDepth, MIN_VAL, MAX_VAL, new Line(), moveTree, type);
+		long duration = System.currentTimeMillis() - start;
 		LOG.debug(moveTree.toString());
-		LOG.info("got result: {}, posns evaluated: {}", result, NBR_POSNS_EVALUATED);
+		LOG.info("evaluated {} nodes, {} posns, time: {}, result: {}", NBR_NODES_SEARCHED, NBR_POSNS_EVALUATED, timeTaken(duration), result);
 		MoveInfo moveInfo = new MoveInfo();
 		moveInfo.setMove(result.getLine().get().getMoves().pop());
 		return moveInfo;
-	}
-
-	@Override
-	public int getCurrentDepth() {
-		return startDepth;
-	}
-
-	@Override
-	public void incrementDepth(int increment) {
-		startDepth += increment;
 	}
 
 	/**
@@ -100,9 +108,23 @@ public class AlphaBeta3 implements SearchStrategy {
 				moveTree.addEntry(moveEntry);
 				Position newPosn = posn.move(move);
 				line.addMove(move);
+				NBR_NODES_SEARCHED++;
 				LOG.debug("max(): depth {}, checking move {}, currentLine: {}, min {}, max {}", depth, move, line, min, max);
-				SearchResult result = alphabeta(newPosn, depth - 1, min, max, line, moveEntry, MiniMax.MIN);
+				Optional<ZobristInfo> previouslyProcessedPosition = zobristMap.checkZobrist(newPosn);
+				SearchResult result = null;
+				boolean foundZobrist = false;
+				if (previouslyProcessedPosition.isPresent() && previouslyProcessedPosition.get().getDepth() >= depth) {
+					// TODO need to check for sideToMove?
+					LOG.debug("max(): depth {}, zobrist hit {}", newPosn.getZobristHash());
+					result = previouslyProcessedPosition.get().getSearchResult();
+					foundZobrist = true;
+				} else {
+					result = alphabeta(newPosn, depth - 1, min, max, line, moveEntry, MiniMax.MIN);
+				}
 				moveEntry.setScore(result.getScore());
+				if (!foundZobrist) {
+					zobristMap.updateZobristMap(newPosn, depth, result);
+				}
 				if (result.getScore() > min) {
 					min = result.getScore();
 					moveEntry.addEvaluation(EvalType.BESTSOFAR);
@@ -125,7 +147,7 @@ public class AlphaBeta3 implements SearchStrategy {
 				if (posn.isInCheck()) {
 					LOG.debug("max(): found mate at depth {}, currentLine: {}", depth, line);
 					// favour a mate in 5 rather than mate in 3
-					return new SearchResult(MIN_VAL + (10 - depth), line);// need to remain above MIN_VAL (??)
+					return new SearchResult(MIN_VAL + (10 - depth), line, line.getMoves().size());// need to remain above MIN_VAL (??)
 				} else {
 					// statemate: evaluate as 0
 					return new SearchResult(0, line);
@@ -141,6 +163,7 @@ public class AlphaBeta3 implements SearchStrategy {
 				moveTree.addEntry(moveEntry);
 				Position newPosn = posn.move(move);
 				line.addMove(move);
+				NBR_NODES_SEARCHED++;
 				LOG.debug("min(): depth {}, checking move {}, currentLine: {}, min {}, max {}", depth, move, line, min, max);
 				SearchResult result = alphabeta(newPosn, depth - 1, min, max, line, moveTree, MiniMax.MAX);
 				moveEntry.setScore(result.getScore());
@@ -167,8 +190,8 @@ public class AlphaBeta3 implements SearchStrategy {
 				// test for checkmate or stalemate
 				if (posn.isInCheck()) {
 					LOG.debug("min(): found mate at depth {}, currentLine: {}", depth, line);
-					// favour a mate in 5 rather than mate in 3
-					return new SearchResult(MAX_VAL - (10 - depth), line); // need to remain below MAX_VAL
+					// return a higher score for a mate in 3 compared to a mate in 5
+					return new SearchResult(MAX_VAL - (10 - depth), line, line.getMoves().size()); // need to remain below MAX_VAL
 				} else {
 					// statemate: evaluate as 0
 					return new SearchResult(0, line);
@@ -279,6 +302,25 @@ public class AlphaBeta3 implements SearchStrategy {
 	//		return new SearchResult(currentBestScore, currentBestLine);
 	//	}
 
+	private String timeTaken(long durationInMs) {
+		return String.format("%02d.%02d", durationInMs / 1000, durationInMs % 1000);
+	}
+
+	@Override
+	public int getCurrentNbrNodesSearched() {
+		return NBR_NODES_SEARCHED;
+	}
+
+	@Override
+	public int getCurrentDepth() {
+		return startDepth;
+	}
+
+	@Override
+	public void incrementDepth(int increment) {
+		startDepth += increment;
+	}
+
 	enum MiniMax {
 		MAX, MIN;
 	}
@@ -297,7 +339,7 @@ public class AlphaBeta3 implements SearchStrategy {
 		}
 	}
 
-	class MoveTree {
+	static class MoveTree {
 		private MiniMax type;
 		private Set<EvalType> evaluations;
 		private Move move;
@@ -338,7 +380,7 @@ public class AlphaBeta3 implements SearchStrategy {
 				sb.append("\n");
 			} else {
 				sb.append(
-						String.format("%s %s %d %s (min:%d max:%d) %d %s\n", type, "        ".substring(0, 9 - depth), depth, move, min, max,
+						String.format("%s %s %d %s (min:%d max:%d) %d %s%n", type, "        ".substring(0, 9 - depth), depth, move, min, max,
 								score, EvalType.print(evaluations)));
 			}
 			for (MoveTree entry : followingMoves) {
@@ -349,15 +391,27 @@ public class AlphaBeta3 implements SearchStrategy {
 	}
 
 	class SearchResult {
+
 		private int score;
 		private Optional<Line> line;
+		// if set, have found a mate in x ply
+		private int mateIn;
 
 		public SearchResult(int score) {
 			this(score, null);
 		}
 
 		public SearchResult(int score, Line line) {
+			this(score, line, -1);
+		}
+
+		public SearchResult(int score, Line line, int mateIn) {
+			count++;
 			this.score = score;
+			this.mateIn = mateIn;
+			if (this.mateIn != -1) {
+				System.out.println(count + ", mateIn " + mateIn + ", " + line);
+			}
 			if (line == null) {
 				this.line = Optional.empty();
 			} else {
@@ -373,6 +427,10 @@ public class AlphaBeta3 implements SearchStrategy {
 			return score;
 		}
 
+		public int getMateIn() {
+			return mateIn;
+		}
+
 		public Optional<Line> getLine() {
 			return line;
 		}
@@ -384,11 +442,21 @@ public class AlphaBeta3 implements SearchStrategy {
 
 		// create output for UCI
 		public void printUCI(PrintStream outputStream) {
-			outputStream.print("info pv ");
+			StringBuilder sb = new StringBuilder(100);
+			sb.append(count).append(" ");
+			sb.append("info pv ");
 			for (Move m : line.get().getMoves()) {
-				outputStream.print(m.toUCIString() + " ");
+				sb.append(m.toUCIString()).append(" ");
 			}
-			outputStream.println("score cp " + score);
+
+			sb.append("score ");
+			if (mateIn != -1) {
+				sb.append("mate ").append((mateIn + 1) / 2); // mate in x moves, not plies
+			} else {
+				sb.append("cp " + score);
+			}
+
+			outputStream.println(sb.toString());
 		}
 	}
 
@@ -430,4 +498,5 @@ public class AlphaBeta3 implements SearchStrategy {
 			return moves.toString();
 		}
 	}
+
 }

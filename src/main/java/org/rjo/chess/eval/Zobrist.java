@@ -1,8 +1,13 @@
-package org.rjo.chess;
+package org.rjo.chess.eval;
 
 import java.util.Random;
 
+import org.rjo.chess.CastlingRightsSummary;
 import org.rjo.chess.CastlingRightsSummary.CastlingRights;
+import org.rjo.chess.Colour;
+import org.rjo.chess.Move;
+import org.rjo.chess.Position;
+import org.rjo.chess.Square;
 import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.pieces.PieceType;
 
