@@ -275,19 +275,17 @@ public class Perft {
 			}
 		}
 
-		if (MOVE_LOGGER.isTraceEnabled()) {
-			if (!movesAtThisLevel.isEmpty()) {
-				boolean check = false;
-				boolean capture = false;
-				if (!movesSoFar.isEmpty()) {
-					check = movesSoFar.peekLast().contains("+");
-				}
-				if (!movesSoFar.isEmpty()) {
-					capture = movesSoFar.peekLast().contains("x");
-				}
-				MOVE_LOGGER.trace((check ? "CHECK" : "") + (capture ? "CAPTURE" : "") + " moves: " + movesSoFar + " -> "
-						+ movesAtThisLevel.size() + ":" + movesAtThisLevel + System.lineSeparator());
+		if (MOVE_LOGGER.isTraceEnabled() && !movesAtThisLevel.isEmpty()) {
+			boolean check = false;
+			boolean capture = false;
+			if (!movesSoFar.isEmpty()) {
+				check = movesSoFar.peekLast().contains("+");
 			}
+			if (!movesSoFar.isEmpty()) {
+				capture = movesSoFar.peekLast().contains("x");
+			}
+			MOVE_LOGGER.trace((check ? "CHECK" : "") + (capture ? "CAPTURE" : "") + " moves: " + movesSoFar + " -> "
+					+ movesAtThisLevel.size() + ":" + movesAtThisLevel + System.lineSeparator());
 		}
 		return totalMoves;
 	}

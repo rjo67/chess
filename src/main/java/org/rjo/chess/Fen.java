@@ -323,7 +323,7 @@ public class Fen {
 			for (int i = 0; i < rank.length(); i++) {
 				char ch = rank.charAt(i);
 				// handle spaces
-				if ((ch > '0') && (ch <= '8')) {
+				if (ch > '0' && ch <= '8') {
 					bitPosn += (ch - '0');
 				} else {
 					// find appropriate piece
@@ -345,14 +345,14 @@ public class Fen {
 					bitPosn++;
 				}
 				// safety check
-				if (bitPosn > ((8 * rankNr) + 8)) {
+				if (bitPosn > (8 * rankNr) + 8) {
 					throw new RuntimeException(
 							"parse exception, fen: '" + fen + "', bitPosn: " + bitPosn + ", rankNr: " + rankNr + ", current rank: " + rank);
 				}
 			}
 			// at the end of the rank, the bitPosn must be correct (+8 since one
 			// is always added)
-			if (bitPosn != ((8 * rankNr) + 8)) {
+			if (bitPosn != (8 * rankNr) + 8) {
 				throw new IllegalArgumentException("invalid FEN string: rank '" + (rankNr + 1) + "' not completely specified: '" + rank
 						+ "'. Bitposn: " + bitPosn + ". Full string: '" + fen + "'");
 			}

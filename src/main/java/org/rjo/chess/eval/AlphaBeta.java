@@ -181,7 +181,7 @@ public class AlphaBeta implements SearchStrategy {
 		}
 	}
 
-	class Line {
+	static class Line {
 		private Deque<Move> moves;
 
 		public Line() {

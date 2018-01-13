@@ -58,9 +58,9 @@ public class CastlingRightsSummary {
 	public static boolean kingsSideCastlingRightsGoneAfterMove(CastlingRightsSummary castlingRights,
 			Colour sideToMove,
 			Move move) {
-		if (castlingRights.canCastleKingsSide() && (PieceType.ROOK == move.getPiece())) {
+		if (castlingRights.canCastleKingsSide() && PieceType.ROOK == move.getPiece()) {
 			Square targetSquare = (sideToMove == Colour.WHITE) ? Square.h1 : Square.h8;
-			return (move.from() == targetSquare);
+			return move.from() == targetSquare;
 		} else {
 			return false;
 		}
@@ -81,9 +81,9 @@ public class CastlingRightsSummary {
 	public static boolean queensSideCastlingRightsGoneAfterMove(CastlingRightsSummary castlingRights,
 			Colour sideToMove,
 			Move move) {
-		if (castlingRights.canCastleQueensSide() && (PieceType.ROOK == move.getPiece())) {
+		if (castlingRights.canCastleQueensSide() && PieceType.ROOK == move.getPiece()) {
 			Square targetSquare = (sideToMove == Colour.WHITE) ? Square.a1 : Square.a8;
-			return (move.from() == targetSquare);
+			return move.from() == targetSquare;
 		} else {
 			return false;
 		}
@@ -104,7 +104,7 @@ public class CastlingRightsSummary {
 			Move move) {
 		if (move.isCapture() && opponentsCastlingRights.canCastleKingsSide()) {
 			Square targetSquare = (sideToMove == Colour.WHITE) ? Square.h8 : Square.h1;
-			return (move.to() == targetSquare);
+			return move.to() == targetSquare;
 		} else {
 			return false;
 		}
@@ -125,7 +125,7 @@ public class CastlingRightsSummary {
 			Move move) {
 		if (move.isCapture() && opponentsCastlingRights.canCastleQueensSide()) {
 			Square targetSquare = (sideToMove == Colour.WHITE) ? Square.a8 : Square.a1;
-			return (move.to() == targetSquare);
+			return move.to() == targetSquare;
 		} else {
 			return false;
 		}

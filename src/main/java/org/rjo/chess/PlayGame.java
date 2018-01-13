@@ -94,7 +94,7 @@ public class PlayGame {
 					throw new IllegalArgumentException("invalid input. Must be >=6 chars");
 				}
 			}
-			if (!((moveStr.charAt(startOfFromSquare + 2) == 'x') || (moveStr.charAt(startOfFromSquare + 2) == '-'))) {
+			if (!(moveStr.charAt(startOfFromSquare + 2) == 'x' || moveStr.charAt(startOfFromSquare + 2) == '-')) {
 				throw new IllegalArgumentException("invalid input. Expected 'x' or '-' at position " + (startOfFromSquare + 3));
 			}
 			Square from = Square.fromString(moveStr.substring(startOfFromSquare, startOfFromSquare + 2));
@@ -109,14 +109,14 @@ public class PlayGame {
 			} else {
 				m = new Move(pt, game.getPosition().getSideToMove(), from, to);
 			}
-			if ((pt == PieceType.PAWN) && (to.rank() == 7)) {
+			if (pt == PieceType.PAWN && to.rank() == 7) {
 				System.out.println("promote to? ");
 				String promote = in.readLine();
 				if (promote.length() != 1) {
 					throw new IllegalArgumentException("promote piece must be 1 char");
 				}
 				PieceType promotedPiece = convertStringToPieceType(promote.charAt(0));
-				if ((promotedPiece == PieceType.PAWN) || (promotedPiece == PieceType.KING)) {
+				if (promotedPiece == PieceType.PAWN || promotedPiece == PieceType.KING) {
 					throw new IllegalArgumentException("cannot promote to a pawn or a king");
 				}
 				m.setPromotionPiece(promotedPiece);

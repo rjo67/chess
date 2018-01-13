@@ -29,7 +29,7 @@ public class PositionCheckState {
 		 */
 		CheckInfo(CheckStates state, RayType rayType) {
 			this.state = state;
-			if ((rayType == null) && ((state == CheckStates.CHECK) || (state == CheckStates.CHECK_IF_CAPTURE))) {
+			if (rayType == null && (state == CheckStates.CHECK || state == CheckStates.CHECK_IF_CAPTURE)) {
 				throw new IllegalArgumentException("ray cannot be null for state: " + state);
 			}
 			this.rayType = rayType;
@@ -78,42 +78,36 @@ public class PositionCheckState {
 		public void setNotCheck(@SuppressWarnings("unused") RayType rayType,
 				@SuppressWarnings("unused") Square square) {
 			// no-op
-			return;
 		}
 
 		@Override
 		public void setNotCheck(@SuppressWarnings("unused") RayType rayType,
 				@SuppressWarnings("unused") Integer squareBitIndex) {
 			// no-op
-			return;
 		}
 
 		@Override
 		public void setNotCheck(@SuppressWarnings("unused") RayType rayType,
 				@SuppressWarnings("unused") List<Integer> squares) {
 			// no-op
-			return;
 		}
 
 		@Override
 		public void setCheckIfCapture(@SuppressWarnings("unused") RayType rayType,
 				@SuppressWarnings("unused") Square square) {
 			// no-op
-			return;
 		}
 
 		@Override
 		public void setCheck(@SuppressWarnings("unused") RayType rayType,
 				@SuppressWarnings("unused") Square square) {
 			// no-op
-			return;
 		}
 
 		@Override
 		public void setCheck(@SuppressWarnings("unused") RayType rayType,
 				@SuppressWarnings("unused") List<Integer> squares) {
 			// no-op
-			return;
 		}
 
 		@Override
@@ -121,14 +115,12 @@ public class PositionCheckState {
 		public void setToNotCheck(Integer squareBitIndex,
 				@SuppressWarnings("unused") RayType rayType) {
 			// no-op
-			return;
 		}
 
 		@Override
 		public void setToUnknownState(@SuppressWarnings("unused") Integer squareBitIndex,
 				@SuppressWarnings("unused") RayType rayType) {
 			// no-op
-			return;
 		}
 
 		@Override
@@ -333,8 +325,8 @@ public class PositionCheckState {
 	 */
 	public boolean squareHasCheckStatus(Square square,
 			RayType rayType) {
-		return (lookup(square.bitIndex(), rayType).getState() == CheckStates.CHECK)
-				|| (lookup(square.bitIndex(), rayType).getState() == CheckStates.CHECK_IF_CAPTURE);
+		return lookup(square.bitIndex(), rayType).getState() == CheckStates.CHECK
+				|| lookup(square.bitIndex(), rayType).getState() == CheckStates.CHECK_IF_CAPTURE;
 	}
 
 	/**
@@ -385,7 +377,7 @@ public class PositionCheckState {
 	private CheckInfo lookup(int squareBitIndex,
 			RayType rayType) {
 		CheckInfo info = checkCache.lookup(squareBitIndex);
-		if ((rayType == null) || (info.rayType == rayType)) {
+		if (rayType == null || info.rayType == rayType) {
 			return info;
 		} else {
 			return CheckInfo.DEFAULT;

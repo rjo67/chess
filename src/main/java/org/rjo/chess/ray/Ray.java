@@ -20,7 +20,7 @@ public interface Ray {
 	 * @param startSquare start square
 	 * @return An iterator returning all squares from startSquare (exclusive) to the end of the ray.
 	 */
-	public Iterator<Integer> squaresFrom(Square startSquare);
+	Iterator<Integer> squaresFrom(Square startSquare);
 
 	/**
 	 * Returns an iterator returning all squares from startSquare (exclusive) to the end of the ray.
@@ -28,7 +28,7 @@ public interface Ray {
 	 * @param startSquareIndex bit index of start square
 	 * @return An iterator returning all squares from startSquare (exclusive) to the end of the ray.
 	 */
-	public Iterator<Integer> squaresFrom(int startSquareIndex);
+	Iterator<Integer> squaresFrom(int startSquareIndex);
 
 	/**
 	 * Returns a stream of the squares from startSquare (exclusive) to the end of the ray.
@@ -36,7 +36,7 @@ public interface Ray {
 	 * @param startSquare start square
 	 * @return A stream returning all squares from startSquare (exclusive) to the end of the ray.
 	 */
-	public Stream<Integer> streamSquaresFrom(Square startSquare);
+	Stream<Integer> streamSquaresFrom(Square startSquare);
 
 	/**
 	 * Returns a stream of the squares from startSquare (exclusive) to the end of the ray.
@@ -44,16 +44,16 @@ public interface Ray {
 	 * @param startSquare bit index of start square
 	 * @return A stream returning all squares from startSquare (exclusive) to the end of the ray.
 	 */
-	public Stream<Integer> streamSquaresFrom(int startSquareIndex);
+	Stream<Integer> streamSquaresFrom(int startSquareIndex);
 
-	public boolean isRelevantPieceForDiscoveredCheck(PieceType piece);
+	boolean isRelevantPieceForDiscoveredCheck(PieceType piece);
 
 	/**
 	 * returns the type of the ray
 	 *
 	 * @return the type of the ray
 	 */
-	public RayType getRayType();
+	RayType getRayType();
 
 	/**
 	 * True if this ray is the 'opposite' of the given ray, e.g. NW and SE, or N and S.
@@ -61,12 +61,12 @@ public interface Ray {
 	 * @param ray the ray to check.
 	 * @return True if this ray is the 'opposite' of the given ray
 	 */
-	public boolean oppositeOf(Ray ray);
+	boolean oppositeOf(Ray ray);
 
 	/**
 	 * Return the 'opposite' ray to 'this', e.g. this==NW, will return SE. For this ray oppositeOf is true.
 	 */
-	public Ray getOpposite();
+	Ray getOpposite();
 
 	/**
 	 * returns the 'attack' bitboard for the given square.
@@ -74,6 +74,6 @@ public interface Ray {
 	 * @param sqIndex the square index
 	 * @return the 'attack' bitboard for the given square
 	 */
-	public BitBoard getAttackBitBoard(int sqIndex);
+	BitBoard getAttackBitBoard(int sqIndex);
 
 }

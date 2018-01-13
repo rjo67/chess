@@ -154,7 +154,7 @@ public class AlphaBeta2 implements SearchStrategy {
 		return new SearchResult(currentBestScore, currentBestLine);
 	}
 
-	class SearchResult {
+	static class SearchResult {
 		private int score;
 		private Optional<Line> line;
 
@@ -198,7 +198,7 @@ public class AlphaBeta2 implements SearchStrategy {
 		}
 	}
 
-	class Line {
+	static class Line {
 		private Deque<Move> moves;
 
 		public Line() {

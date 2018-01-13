@@ -52,14 +52,14 @@ public class BitValueCalculator {
 			int lonibble = val & MASKS[piecePosn]; // blank highest x bits
 			if (piecePosn != 7) {
 				if (!cacheHI.contains(hinibble)) {
-					sbHI.append(String.format("%3d %s  HI: %s x%s\n", ++countHI, display(val), toBinary(hinibble),
+					sbHI.append(String.format("%3d %s  HI: %s x%s%n", ++countHI, display(val), toBinary(hinibble),
 							Integer.toHexString(hinibble).toUpperCase()));
 					cacheHI.add(hinibble);
 				}
 			}
 			if (piecePosn != 0) {
 				if (!cacheLO.contains(lonibble)) {
-					sbLO.append(String.format("%3d %s  LO: %s x%s\n", ++countLO, display(val), toBinary(lonibble),
+					sbLO.append(String.format("%3d %s  LO: %s x%s%n", ++countLO, display(val), toBinary(lonibble),
 							Integer.toHexString(lonibble).toUpperCase()));
 					cacheLO.add(lonibble);
 				}

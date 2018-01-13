@@ -111,7 +111,7 @@ public class Pawn extends AbstractBitBoardPiece {
 	public void initPosition(Square... requiredSquares) {
 		if (requiredSquares != null) {
 			for (Square square : requiredSquares) {
-				if ((square.rank() == 0) || (square.rank() == 7)) {
+				if (square.rank() == 0 || square.rank() == 7) {
 					throw new RuntimeException("cannot init Pawn on square: " + square);
 				}
 			}
@@ -378,7 +378,7 @@ public class Pawn extends AbstractBitBoardPiece {
 
 		}
 
-		int offset = (captureLeft) ? helper.captureLeftOffset() : helper.captureRightOffset();
+		int offset = captureLeft ? helper.captureLeftOffset() : helper.captureRightOffset();
 
 		List<Move> moves = new ArrayList<>();
 		Colour oppositeColour = Colour.oppositeColour(getColour());
@@ -657,7 +657,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			if (longArray.length == 0) {
 				return BitSetFactory.createBitSet(64);
 			}
-			return BitSetFactory.createBitSet(new long[] { (longArray[0] << 7) });
+			return BitSetFactory.createBitSet(new long[] { longArray[0] << 7 });
 		}
 
 		@Override
@@ -670,7 +670,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			if (longArray.length == 0) {
 				return BitSetFactory.createBitSet(64);
 			}
-			return BitSetFactory.createBitSet(new long[] { (longArray[0] << 9) });
+			return BitSetFactory.createBitSet(new long[] { longArray[0] << 9 });
 		}
 
 		@Override
@@ -686,11 +686,11 @@ public class Pawn extends AbstractBitBoardPiece {
 			}
 			final int index = targetSq.bitIndex();
 			// attack from left
-			if ((targetSq.file() > 0) && (pawns.get(index - 9))) {
+			if (targetSq.file() > 0 && pawns.get(index - 9)) {
 				return true;
 			}
 			// attack from right
-			if ((targetSq.file() < 7) && (pawns.get(index - 7))) {
+			if (targetSq.file() < 7 && pawns.get(index - 7)) {
 				return true;
 			}
 			return false;
@@ -704,11 +704,11 @@ public class Pawn extends AbstractBitBoardPiece {
 			}
 			final int index = targetSq.bitIndex();
 			// attack from left
-			if ((targetSq.file() > 0) && (pawnSq.bitIndex() == (index - 9))) {
+			if (targetSq.file() > 0 && pawnSq.bitIndex() == (index - 9)) {
 				return true;
 			}
 			// attack from right
-			if ((targetSq.file() < 7) && (pawnSq.bitIndex() == (index - 7))) {
+			if (targetSq.file() < 7 && pawnSq.bitIndex() == (index - 7)) {
 				return true;
 			}
 			return false;
@@ -746,7 +746,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			if (longArray.length == 0) {
 				return BitSetFactory.createBitSet(64);
 			}
-			return BitSetFactory.createBitSet(new long[] { (longArray[0] >>> 7) });
+			return BitSetFactory.createBitSet(new long[] { longArray[0] >>> 7 });
 		}
 
 		@Override
@@ -759,7 +759,7 @@ public class Pawn extends AbstractBitBoardPiece {
 			if (longArray.length == 0) {
 				return BitSetFactory.createBitSet(64);
 			}
-			return BitSetFactory.createBitSet(new long[] { (longArray[0] >>> 9) });
+			return BitSetFactory.createBitSet(new long[] { longArray[0] >>> 9 });
 		}
 
 		@Override
@@ -800,11 +800,11 @@ public class Pawn extends AbstractBitBoardPiece {
 			}
 			final int index = targetSq.bitIndex();
 			// attack from left
-			if ((targetSq.file() > 0) && (pawns.get(index + 7))) {
+			if (targetSq.file() > 0 && pawns.get(index + 7)) {
 				return true;
 			}
 			// attack from right
-			if ((targetSq.file() < 7) && (pawns.get(index + 9))) {
+			if (targetSq.file() < 7 && pawns.get(index + 9)) {
 				return true;
 			}
 			return false;
@@ -818,11 +818,11 @@ public class Pawn extends AbstractBitBoardPiece {
 			}
 			final int index = targetSq.bitIndex();
 			// attack from left
-			if ((targetSq.file() > 0) && (pawnSq.bitIndex() == (index + 7))) {
+			if (targetSq.file() > 0 && pawnSq.bitIndex() == (index + 7)) {
 				return true;
 			}
 			// attack from right
-			if ((targetSq.file() < 7) && (pawnSq.bitIndex() == (index + 9))) {
+			if (targetSq.file() < 7 && pawnSq.bitIndex() == (index + 9)) {
 				return true;
 			}
 			return false;

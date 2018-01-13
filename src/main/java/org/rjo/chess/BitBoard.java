@@ -247,7 +247,7 @@ public class BitBoard {
 		int val = 0;
 		int mask = 1;
 		// BitSet.toByteArray() is unfortunately little-endian, we have the least sig bit on the RHS
-		for (int i = (startOfRankAsBitIndex * 8) + 7; i >= (startOfRankAsBitIndex * 8); i--) {
+		for (int i = (startOfRankAsBitIndex * 8) + 7; i >= startOfRankAsBitIndex * 8; i--) {
 			if (this.bs.get(i)) {
 				val += mask;
 			}

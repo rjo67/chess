@@ -6,7 +6,7 @@ package org.rjo.chess.util;
  * @author rich
  * @since 2017-09-06
  */
-public class ChessBitSetUnifier implements BitSetUnifier {
+public final class ChessBitSetUnifier implements BitSetUnifier, Cloneable {
 
 	private ChessBitSet bs;
 
@@ -24,7 +24,14 @@ public class ChessBitSetUnifier implements BitSetUnifier {
 
 	@Override
 	public boolean equals(Object obj) {
-		return bs.equals(((ChessBitSetUnifier) obj).bs);
+		if (obj == null) {
+			return false;
+		}
+		if (obj instanceof ChessBitSetUnifier) {
+		   return bs.equals(((ChessBitSetUnifier) obj).bs);
+		} else {
+			return false;
+		}
 	}
 
 	@Override

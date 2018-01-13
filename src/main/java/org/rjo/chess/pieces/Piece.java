@@ -21,26 +21,26 @@ import org.rjo.chess.util.SquareCache;
  */
 public interface Piece extends Cloneable {
 
-	public Object clone() throws CloneNotSupportedException;
+	Object clone() throws CloneNotSupportedException;
 
 	/**
 	 * @return the symbol for this piece.
 	 */
-	public String getSymbol();
+	String getSymbol();
 
 	/**
 	 * Initialises data structures to the starting position of the pieces.
 	 *
 	 * @see #initPosition(Square...)
 	 */
-	public void initPosition();
+	void initPosition();
 
 	/**
 	 * Sets the start squares for this piece type to the parameter(s).
 	 *
 	 * @param requiredSquares all required squares.
 	 */
-	public void initPosition(Square... requiredSquares);
+	void initPosition(Square... requiredSquares);
 
 	/**
 	 * Finds all possible moves for this piece type in the given position. Delegates to {@link #findMoves(Game, boolean)}
@@ -50,7 +50,7 @@ public interface Piece extends Cloneable {
 	 * @param position current game state.
 	 * @return a list of all possible moves.
 	 */
-	public List<Move> findMoves(Position position);
+	List<Move> findMoves(Position position);
 
 	/**
 	 * Finds all possible moves for this piece type in the given position. <b>Moves returned are legal. However, this method
@@ -62,7 +62,7 @@ public interface Piece extends Cloneable {
 	 *           then this object contains the squares which will potentially get out of check.
 	 * @return a list of all possible moves.
 	 */
-	public List<Move> findMoves(Position position,
+	List<Move> findMoves(Position position,
 			CheckInformation kingInCheck,
 			CheckRestriction checkRestriction);
 
@@ -78,7 +78,7 @@ public interface Piece extends Cloneable {
 	 *           then this object contains the squares which will potentially get out of check.
 	 * @return a list of all possible moves.
 	 */
-	public List<Move> findPotentialMoves(Position position,
+	List<Move> findPotentialMoves(Position position,
 			CheckRestriction checkRestriction);
 
 	/**
@@ -97,7 +97,7 @@ public interface Piece extends Cloneable {
 	 * @return either null (when not check) or a checkInformation object, which stores which piece is checking / discovered
 	 *         check etc
 	 */
-	public CheckInformation isOpponentsKingInCheckAfterMove(Position position,
+	CheckInformation isOpponentsKingInCheckAfterMove(Position position,
 			Move move,
 			Square opponentsKing,
 			BitSetUnifier emptySquares,
@@ -112,7 +112,7 @@ public interface Piece extends Cloneable {
 	 * @param checkCache check cache
 	 * @return true if it is attacked, otherwise false.
 	 */
-	public boolean attacksSquare(BitSetUnifier emptySquares,
+	boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq,
 			PositionCheckState checkCache);
 
@@ -124,7 +124,7 @@ public interface Piece extends Cloneable {
 	 * @param targetSq the square to check.
 	 * @return true if it is attacked, otherwise false.
 	 */
-	public boolean attacksSquare(BitSetUnifier emptySquares,
+	boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq);
 
 	/**
@@ -133,14 +133,14 @@ public interface Piece extends Cloneable {
 	 *
 	 * @param move the move to make
 	 */
-	public void move(Move move);
+	void move(Move move);
 
 	/**
 	 * Removes the captured piece in a capture move from the internal data structures for that piece type.
 	 *
 	 * @param square from where to remove the piece
 	 */
-	public void removePiece(Square square);
+	void removePiece(Square square);
 
 	/**
 	 * Adds a piece to the internal data structures at the given square. Mainly for promotions. No error checking is
@@ -148,30 +148,30 @@ public interface Piece extends Cloneable {
 	 *
 	 * @param square where to add the piece
 	 */
-	public void addPiece(Square square);
+	void addPiece(Square square);
 
 	/**
 	 * @return the colour of the piece.
 	 */
-	public Colour getColour();
+	Colour getColour();
 
-	public BitBoard getBitBoard();
+	BitBoard getBitBoard();
 
 	/**
 	 * Returns all the squares currently occupied by this piece type.
 	 *
 	 * @return the squares currently occupied by this piece type
 	 */
-	public Square[] getLocations();
+	Square[] getLocations();
 
 	/**
 	 * Returns the FEN symbol for this piece. Delegates to {@link PieceType#getFenSymbol(Colour)}.
 	 *
 	 * @return the FEN symbol for this piece.
 	 */
-	public String getFenSymbol();
+	String getFenSymbol();
 
-	public PieceType getType();
+	PieceType getType();
 
 	/**
 	 * Returns true if this piece type is present on the given square.
@@ -179,7 +179,7 @@ public interface Piece extends Cloneable {
 	 * @param targetSquare square of interest.
 	 * @return true if this piece type is present, otherwise false.
 	 */
-	public boolean pieceAt(Square targetSquare);
+	boolean pieceAt(Square targetSquare);
 
 	/**
 	 * Calculates the piece-square value in centipawns. For each piece, its piece_value is added to the square_value of the
@@ -187,6 +187,6 @@ public interface Piece extends Cloneable {
 	 *
 	 * @return the piece-square value in centipawns (for all pieces of this type).
 	 */
-	public int calculatePieceSquareValue();
+	int calculatePieceSquareValue();
 
 }

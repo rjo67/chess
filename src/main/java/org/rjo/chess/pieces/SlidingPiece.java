@@ -221,7 +221,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 		}
 		Ray originSquareToKing = RayUtils.getDiagonalRay(move.from(), opponentsKing);
 		// case 1:
-		if (!((destSquareToKing == null) || (originSquareToKing == null))) {
+		if (!(destSquareToKing == null || originSquareToKing == null)) {
 			if (originSquareToKing == destSquareToKing) {
 				// move.from <-> king and move.to <-> king have the same ray
 				if (!emptySquares.get(move.to().bitIndex())) {

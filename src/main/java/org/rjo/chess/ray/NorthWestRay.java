@@ -18,7 +18,7 @@ public class NorthWestRay extends BaseRay {
 			raySquares[i] = new ArrayList<>(8);
 			final BitSetUnifier bitset = BitSetFactory.createBitSet(64);
 			int startSquareIndex = i + offset;
-			while ((startSquareIndex < 64) && (startSquareIndex % 8 != 7)) {
+			while (startSquareIndex < 64 && startSquareIndex % 8 != 7) {
 				raySquares[i].add(startSquareIndex);
 				bitset.set(startSquareIndex);
 				startSquareIndex += offset;

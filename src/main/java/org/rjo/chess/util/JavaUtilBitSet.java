@@ -8,7 +8,7 @@ import java.util.BitSet;
  * @author rich
  * @since 2017-08-18
  */
-public class JavaUtilBitSet implements BitSetUnifier {
+public final class JavaUtilBitSet implements BitSetUnifier, Cloneable {
 
 	private BitSet bs;
 
@@ -26,7 +26,14 @@ public class JavaUtilBitSet implements BitSetUnifier {
 
 	@Override
 	public boolean equals(Object obj) {
-		return bs.equals(((JavaUtilBitSet) obj).bs);
+		if (obj == null) {
+			return false;
+		}
+		if (obj instanceof JavaUtilBitSet) {
+		   return bs.equals(((JavaUtilBitSet) obj).bs);
+		} else {
+			return false;
+		}
 	}
 
 	@Override

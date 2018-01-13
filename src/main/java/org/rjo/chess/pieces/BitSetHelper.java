@@ -24,9 +24,9 @@ public class BitSetHelper {
 
 		long lo = startPosn.toLongArray()[0];
 		if (shift < 0) {
-			return BitSetFactory.createBitSet(new long[] { (lo >>> Math.abs(shift)) });
+			return BitSetFactory.createBitSet(new long[] { lo >>> Math.abs(shift) });
 		} else {
-			return BitSetFactory.createBitSet(new long[] { (lo << shift) });
+			return BitSetFactory.createBitSet(new long[] { lo << shift });
 		}
 	}
 
@@ -42,7 +42,7 @@ public class BitSetHelper {
 		}
 		long lo = startPosn.toLongArray()[0];
 		// don't need to check for 'overlap' off 8th rank, since only passing one long to valueOf().
-		return BitSetFactory.createBitSet(new long[] { (lo << 8) });
+		return BitSetFactory.createBitSet(new long[] { lo << 8 });
 	}
 
 	/**
@@ -56,7 +56,7 @@ public class BitSetHelper {
 			return (BitSetUnifier) startPosn.clone();
 		}
 		long lo = startPosn.toLongArray()[0];
-		return BitSetFactory.createBitSet(new long[] { (lo >>> 8) });
+		return BitSetFactory.createBitSet(new long[] { lo >>> 8 });
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class BitSetHelper {
 			return bs;
 		}
 		long lo = bs.toLongArray()[0];
-		bs = BitSetFactory.createBitSet(new long[] { (lo >>> 1) }); // unsigned shift
+		bs = BitSetFactory.createBitSet(new long[] { lo >>> 1 }); // unsigned shift
 		return bs;
 	}
 
@@ -139,7 +139,7 @@ public class BitSetHelper {
 			return bs;
 		}
 		long lo = bs.toLongArray()[0];
-		bs = BitSetFactory.createBitSet(new long[] { (lo << 1) });
+		bs = BitSetFactory.createBitSet(new long[] { lo << 1 });
 		return bs;
 	}
 

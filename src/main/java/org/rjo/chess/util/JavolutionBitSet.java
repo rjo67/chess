@@ -10,7 +10,7 @@ import org.javolution.util.BitSet;
  * @author rich
  * @since 2017-08-18
  */
-public class JavolutionBitSet implements BitSetUnifier {
+public final class JavolutionBitSet implements BitSetUnifier, Cloneable {
 
 	private static Field bitsField;
 
@@ -43,8 +43,14 @@ public class JavolutionBitSet implements BitSetUnifier {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return bs.equals(((JavolutionBitSet) obj).bs);
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof JavolutionBitSet)) {
+			return false;
+		}
+		return bs.equals(((JavolutionBitSet) o).bs);
 	}
 
 	@Override

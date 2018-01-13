@@ -100,4 +100,20 @@
 				</plugin>
 			</plugins>
 	</build>
+	<!-- generate with mvn:site -->
+	<reporting>
+		<plugins>
+	      <!-- start gui with mvn findbugs:gui -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>3.0.5</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.8</version>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>

@@ -1,7 +1,6 @@
 package org.rjo.chess;
 
 import java.util.Iterator;
-import java.util.Map;
 
 import org.rjo.chess.pieces.Knight;
 import org.rjo.chess.pieces.Pawn;
@@ -73,7 +72,7 @@ public class KingCheck {
 
 		// short circuit if king was not in check beforehand (therefore only
 		// need to check for a pinned piece) and the moving piece's original square is not on a ray to the king
-		if (!kingIsAlreadyInCheck && (move.getPiece() != PieceType.KING)) {
+		if (!kingIsAlreadyInCheck && move.getPiece() != PieceType.KING) {
 			if (null == RayUtils.getRay(king, move.from())) {
 				return false;
 			}
@@ -134,7 +133,7 @@ public class KingCheck {
 			BitSetUnifier[] enemyPieces,
 			RayType rayToExamine) {
 
-		boolean optimizedRaySearch = (rayToExamine != null);
+		boolean optimizedRaySearch = rayToExamine != null;
 
 		/*
 		 * The algorithm first handles the special cases of pawn or knight checks. Then, for each ray emenating from the king's

@@ -9,8 +9,7 @@ import org.apache.lucene.util.FixedBitSet;
  * @author rich
  * @since 2017-08-18
  */
-public class LuceneBitSet
-		implements BitSetUnifier {
+public final class LuceneBitSet implements BitSetUnifier, Cloneable {
 
 	private FixedBitSet bs;
 
@@ -27,8 +26,14 @@ public class LuceneBitSet
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return bs.equals(((LuceneBitSet) obj).bs);
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof LuceneBitSet)) {
+			return false;
+		}
+		return bs.equals(((LuceneBitSet) o).bs);
 	}
 
 	@Override

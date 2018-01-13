@@ -3,7 +3,7 @@ package org.rjo.chess.util;
 /**
  * Fixed length 64bit bitset, based on apache lucene implementation FixedBitSet.
  */
-public final class ChessBitSet {
+public final class ChessBitSet implements Cloneable {
 
 	private static final int numBits = 64; // The number of bits in use
 	private long bits; // Array of longs holding the bits

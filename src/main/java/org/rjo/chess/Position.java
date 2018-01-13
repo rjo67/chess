@@ -664,7 +664,7 @@ public class Position {
 		}
 		// update OPPONENT's castling rights if necessary
 		final int opponentsSide = Colour.oppositeColour(sideToMove).ordinal();
-		if (move.isCapture() && (castling[opponentsSide].canCastle())) {
+		if (move.isCapture() && castling[opponentsSide].canCastle()) {
 			CastlingRightsSummary newRights = null;
 			if (CastlingRightsSummary.opponentKingsSideCastlingRightsGoneAfterMove(castling[opponentsSide], sideToMove, move)) {
 				newRights = new CastlingRightsSummary(castling[opponentsSide]);
@@ -989,10 +989,8 @@ public class Position {
 		BitSetUnifier emptySquares = getEmptySquares();
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			Piece piece = opponentsPieces[type.ordinal()];
-			if (piece != null) {
-				if (piece.attacksSquare(emptySquares, targetSquare)) {
-					return true;
-				}
+			if (piece != null && piece.attacksSquare(emptySquares, targetSquare)) {
+				return true;
 			}
 		}
 		return false;
@@ -1059,13 +1057,13 @@ public class Position {
 	public PieceType pieceAt(Square targetSquare,
 			Colour expectedColour) {
 		for (Colour colour : Colour.ALL_COLOURS) {
-			if ((expectedColour != null) && (colour != expectedColour)) {
+			if (expectedColour != null && colour != expectedColour) {
 				continue;
 			}
 			for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 				Piece p = getPieces(colour)[type.ordinal()];
 				// null == piece-type no longer on board
-				if ((p != null) && (p.pieceAt(targetSquare))) {
+				if (p != null && p.pieceAt(targetSquare)) {
 					return type;
 				}
 			}

@@ -85,10 +85,10 @@ public enum Square {
 		String fileStr = String.valueOf(coord.charAt(0)).toLowerCase();
 		char file = fileStr.charAt(0);
 		int rank = Character.digit(coord.charAt(1), 10);
-		if ((file < 'a') || (file > 'h')) {
+		if (file < 'a' || file > 'h') {
 			throw new IllegalArgumentException("bad value for 'file': " + file);
 		}
-		if ((rank < 1) || (rank > 8)) {
+		if (rank < 1 || rank > 8) {
 			throw new IllegalArgumentException("bad value for 'rank': " + rank);
 		}
 		return Square.fromRankAndFile(rank - 1, file - 'a');
@@ -103,7 +103,7 @@ public enum Square {
 	 */
 	public static Square fromRankAndFile(int rank,
 			int file) {
-		int bitPosn = (rank * 8) + (file);
+		int bitPosn = (rank * 8) + file;
 		return Square.fromBitIndex(bitPosn);
 	}
 

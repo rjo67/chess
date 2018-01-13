@@ -79,7 +79,7 @@ public class Move {
 		this.from = from;
 		this.to = to;
 		this.captureInfo = (capturedPiece != null) ? new CaptureInfo(capturedPiece) : null;
-		this.check = (check) ? new CheckInformation(piece, to) : CheckInformation.NOT_CHECK;
+		this.check = check ? new CheckInformation(piece, to) : CheckInformation.NOT_CHECK;
 		this.castlingInfo = null;
 		this.enpassant = false;
 		this.castlingRightsInfo = new CastlingRightsInfo();
@@ -201,7 +201,7 @@ public class Move {
 				m.setPromotionPiece(promotedPiece);
 				// check move is valid
 				int validRank = (game.getPosition().getSideToMove() == Colour.WHITE) ? 7 : 0;
-				if ((piece != PieceType.PAWN) || (to.rank() != validRank)) {
+				if (piece != PieceType.PAWN || to.rank() != validRank) {
 					throw new IllegalArgumentException("UCI string " + moveStr + " indicates pawn promotion, but incorrect piece/rank");
 				}
 			}
@@ -253,11 +253,11 @@ public class Move {
 	}
 
 	public boolean isCastleKingsSide() {
-		return ((castlingInfo != null) && (castlingInfo.direction == CastlingRights.KINGS_SIDE));
+		return (castlingInfo != null && castlingInfo.direction == CastlingRights.KINGS_SIDE);
 	}
 
 	public boolean isCastleQueensSide() {
-		return ((castlingInfo != null) && (castlingInfo.direction == CastlingRights.QUEENS_SIDE));
+		return (castlingInfo != null && castlingInfo.direction == CastlingRights.QUEENS_SIDE);
 	}
 
 	public Move getRooksCastlingMove() {
@@ -349,7 +349,7 @@ public class Move {
 	 */
 	public boolean isPawnMoveTwoSquaresForward() {
 		if (PieceType.PAWN == piece) {
-			return (Math.abs(to.rank() - from.rank()) == 2);
+			return Math.abs(to.rank() - from.rank()) == 2;
 		} else {
 			return false;
 		}
@@ -472,7 +472,7 @@ public class Move {
 		private PieceType promotedPiece;
 
 		public PromotionInfo(PieceType promotedPiece) {
-			if ((promotedPiece == PieceType.PAWN) || (promotedPiece == PieceType.KING)) {
+			if (promotedPiece == PieceType.PAWN || promotedPiece == PieceType.KING) {
 				throw new IllegalArgumentException("cannot promote to a pawn or king!");
 			}
 			this.promotedPiece = promotedPiece;
