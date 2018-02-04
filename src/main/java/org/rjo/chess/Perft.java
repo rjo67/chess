@@ -28,6 +28,9 @@ public class Perft {
 
 	private static final Logger MOVE_LOGGER = LogManager.getLogger("MOVE-LOG");
 
+	/** flag to make sure logging is switched off when starting from main */
+	private static boolean LOG_MOVES = true;
+
 	public static final int DEFAULT_NBR_THREADS = 3;
 
 	// see PerftTest::posn6ply5
@@ -51,6 +54,7 @@ public class Perft {
 	public static void main(String[] args) {
 		Game game = Fen.decode("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
 		int nbrThreads = DEFAULT_NBR_THREADS;
+		LOG_MOVES = false;
 		if (args.length == 1) {
 			nbrThreads = Integer.parseInt(args[0]);
 		}
@@ -207,7 +211,7 @@ public class Perft {
 	private static void logMove(int depth,
 			Move move,
 			Position posn) {
-		if (MOVE_LOGGER.isDebugEnabled()) {
+		if (LOG_MOVES && MOVE_LOGGER.isDebugEnabled()) {
 			//			MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn) + "\n" + posn.getCheckState()[0] + "\n" + posn.getCheckState()[1]);
 			MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn));
 		}

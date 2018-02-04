@@ -23,8 +23,10 @@ public enum PieceType {
 	},
 	ROOK("R"), KNIGHT("N"), BISHOP("B"), QUEEN("Q"), KING("K");
 
-	/** All the pieces, from pawn to queen */
-	public final static PieceType[] ALL_PIECE_TYPES = new PieceType[] { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING };
+	/**
+	 * All the pieces, from pawn to queen. The order here is used by findMoves().
+	 */
+	public final static PieceType[] ALL_PIECE_TYPES = new PieceType[] { QUEEN, ROOK, KNIGHT, BISHOP, PAWN, KING };
 
 	/**
 	 * All the possible pieces, excluding the king.

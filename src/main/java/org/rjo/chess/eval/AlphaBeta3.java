@@ -22,6 +22,8 @@ public class AlphaBeta3 implements SearchStrategy {
 	private static final int MIN_VAL = -99999;
 	private static final int MAX_VAL = -MIN_VAL;
 
+	private static boolean USE_ZOBRIST = true;
+
 	private static int count = 0;
 
 	/** whether to order the moves or not -- mainly for tests */
@@ -113,16 +115,18 @@ public class AlphaBeta3 implements SearchStrategy {
 				Optional<ZobristInfo> previouslyProcessedPosition = zobristMap.checkZobrist(newPosn);
 				SearchResult result = null;
 				boolean foundZobrist = false;
-				if (previouslyProcessedPosition.isPresent() && previouslyProcessedPosition.get().getDepth() >= depth) {
+				if (USE_ZOBRIST && previouslyProcessedPosition.isPresent() && previouslyProcessedPosition.get().getDepth() >= depth) {
 					// TODO need to check for sideToMove?
 					LOG.debug("max(): depth {}, zobrist hit {}", newPosn.getZobristHash());
 					result = previouslyProcessedPosition.get().getSearchResult();
+					// use the current line, not the line stored in the zobrist map
+					result.line = Optional.of(line);
 					foundZobrist = true;
 				} else {
 					result = alphabeta(newPosn, depth - 1, min, max, line, moveEntry, MiniMax.MIN);
 				}
 				moveEntry.setScore(result.getScore());
-				if (!foundZobrist) {
+				if (USE_ZOBRIST && !foundZobrist) {
 					zobristMap.updateZobristMap(newPosn, depth, result);
 				}
 				if (result.getScore() > min) {

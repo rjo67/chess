@@ -15,7 +15,7 @@ public class AlphaBetaTest {
 		SearchStrategy strat = new AlphaBeta3(System.out);
 		strat.incrementDepth(2);
 		MoveInfo m = strat.findMove(game.getPosition());
-		assertEquals("Ke3-d2", m.getMove().toString());
+		assertEquals("Ke3-d3", m.getMove().toString());
 	}
 
 	@Test
@@ -63,8 +63,7 @@ public class AlphaBetaTest {
 						+ "c3d5 c1a3 a7a6 c2c4 d5f6 d4d5 e6e5 d5c6 d8d3 c6b7 c8b7 f3e5 d3a3 e5g6");
 
 		//		System.out.println(uci.getGame().getPosition().isInCheck());
-		SearchStrategy strat = new AlphaBeta3(System.out);
-		MoveInfo m = strat.findMove(uci.getGame().getPosition());
+		MoveInfo m = uci.findMove(new AlphaBeta3(System.out));
 	}
 
 	@Test
@@ -265,8 +264,14 @@ public class AlphaBetaTest {
 2017-12-27 11:00:40.181<--1:	at org.rjo.chess.UCI.run(UCI.java:41)
 2017-12-27 11:00:40.182<--1:	at org.rjo.chess.UCI.main(UCI.java:23)
 2017-12-27 11:00:47.092-->1:stop
-
-
 	 * {@formatter:on}
     */
+
+	@Test
+	public void fromFenString() {
+		Game game = Fen.decode("r2r2k1/pR3p1p/2n5/3N2p1/2P1p1b1/P1B1P3/2K3PP/5R2 b - - 1 22");
+		SearchStrategy strat = new AlphaBeta3(System.out);
+		MoveInfo m = strat.findMove(game.getPosition());
+		System.out.println(m);
+	}
 }

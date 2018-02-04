@@ -35,6 +35,9 @@ public class King extends AbstractSetPiece {
 	/** piece value in centipawns */
 	private static final int PIECE_VALUE = 20000;
 
+	/** set true when we're in the endgame */
+	public static boolean IN_ENDGAME = false;
+
 	/**
 	 * stores the piece-square values. http://chessprogramming.wikispaces.com/Simplified+evaluation+function
 	 */
@@ -79,7 +82,6 @@ public class King extends AbstractSetPiece {
 		CASTLING_SQUARES_NOT_IN_CHECK[Colour.WHITE.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new Square[] { Square.c1, Square.d1 };
 		CASTLING_SQUARES_NOT_IN_CHECK[Colour.BLACK.ordinal()][CastlingRights.KINGS_SIDE.ordinal()] = new Square[] { Square.f8, Square.g8 };
 		CASTLING_SQUARES_NOT_IN_CHECK[Colour.BLACK.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new Square[] { Square.c8, Square.d8 };
-
 	}
 
 	/**
@@ -100,7 +102,6 @@ public class King extends AbstractSetPiece {
 				Square.g8.bitIndex() };
 		CASTLING_SQUARES_WHICH_MUST_BE_EMPTY[Colour.BLACK.ordinal()][CastlingRights.QUEENS_SIDE.ordinal()] = new int[] { Square.b8.bitIndex(),
 				Square.c8.bitIndex(), Square.d8.bitIndex() };
-
 	}
 
 	/**
@@ -206,14 +207,10 @@ public class King extends AbstractSetPiece {
 
 		int bitIndex = pieces.iterator().next().bitIndex();
 
-		int sqValue;
-		if (getColour() == Colour.WHITE) {
-			// TODO ENDGAME
-			sqValue = SQUARE_VALUE_MIDDLEGAME[bitIndex];
-		} else {
-			sqValue = SQUARE_VALUE_MIDDLEGAME[63 - bitIndex];
-		}
-		return PIECE_VALUE + sqValue;
+		int[] values = IN_ENDGAME ? SQUARE_VALUE_ENDGAME : SQUARE_VALUE_MIDDLEGAME;
+		int offset = getColour() == Colour.WHITE ? bitIndex : 63 - bitIndex;
+
+		return PIECE_VALUE + values[offset];
 	}
 
 	@Override

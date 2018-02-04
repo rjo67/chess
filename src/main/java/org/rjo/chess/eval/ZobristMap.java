@@ -23,6 +23,13 @@ public class ZobristMap {
 	}
 
 	/**
+	 * empty the map.
+	 */
+	public void clear() {
+		this.zobristMap.clear();
+	}
+
+	/**
 	 * check if the given position has already been evaluated. If so, returns its PositionScore.
 	 *
 	 * @param posn the position

@@ -55,6 +55,11 @@ public abstract class AbstractSetPiece extends AbstractPiece {
 	}
 
 	@Override
+	public int numberOfPieces() {
+		return pieces.size();
+	}
+
+	@Override
 	public void removePiece(Square square) {
 		boolean removed = pieces.remove(square);
 		if (!removed) {

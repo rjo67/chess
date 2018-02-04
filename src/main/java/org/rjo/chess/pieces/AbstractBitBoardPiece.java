@@ -70,6 +70,11 @@ public abstract class AbstractBitBoardPiece extends AbstractPiece {
 	}
 
 	@Override
+	public int numberOfPieces() {
+		return pieces.getBitSet().cardinality();
+	}
+
+	@Override
 	public Square[] getLocations() {
 		Set<Square> set = new HashSet<>();
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {

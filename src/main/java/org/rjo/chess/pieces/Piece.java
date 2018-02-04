@@ -189,4 +189,11 @@ public interface Piece extends Cloneable {
 	 */
 	int calculatePieceSquareValue();
 
+	/**
+	 * returns the number of pieces of this type still on the board.
+	 *
+	 * @return number of pieces of this type.
+	 */
+	int numberOfPieces();
+
 }
