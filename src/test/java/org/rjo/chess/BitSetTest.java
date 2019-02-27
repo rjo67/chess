@@ -24,8 +24,8 @@ public class BitSetTest {
 		BitSetUnifier bs = new ChessBitSetUnifier(64);
 		BitSetUnifier bs2 = new ChessBitSetUnifier(64);
 
-		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(i -> bs.set(i));
-		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(i -> bs2.set(i));
+		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(bs::set);
+		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(bs2::set);
 
 		System.out.println("ChessBitSet");
 		repeat("flip", bs, (a) -> a.flip(0, 63));
@@ -34,7 +34,7 @@ public class BitSetTest {
 		repeat("and", bs, (a) -> a.and(bs2));
 		repeat("or", bs, (a) -> a.or(bs2));
 		repeat("xor", bs, (a) -> a.xor(bs2));
-		repeat("cardinality", bs, (a) -> a.cardinality());
+		repeat("cardinality", bs, BitSetUnifier::cardinality);
 	}
 
 	@Test
@@ -42,8 +42,8 @@ public class BitSetTest {
 		BitSetUnifier bs = new JavaUtilBitSet(64);
 		BitSetUnifier bs2 = new JavaUtilBitSet(64);
 
-		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(i -> bs.set(i));
-		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(i -> bs2.set(i));
+		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(bs::set);
+		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(bs2::set);
 
 		System.out.println("javautil");
 		repeat("flip", bs, (a) -> a.flip(0, 63));
@@ -52,7 +52,7 @@ public class BitSetTest {
 		repeat("and", bs, (a) -> a.and(bs2));
 		repeat("or", bs, (a) -> a.or(bs2));
 		repeat("xor", bs, (a) -> a.xor(bs2));
-		repeat("cardinality", bs, (a) -> a.cardinality());
+		repeat("cardinality", bs, BitSetUnifier::cardinality);
 	}
 
 	@Test
@@ -60,8 +60,8 @@ public class BitSetTest {
 		BitSetUnifier bs = new LuceneBitSet(64);
 		BitSetUnifier bs2 = new LuceneBitSet(64);
 
-		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(i -> bs.set(i));
-		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(i -> bs2.set(i));
+		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(bs::set);
+		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(bs2::set);
 
 		System.out.println("lucene");
 		repeat("flip", bs, (a) -> a.flip(0, 63));
@@ -70,7 +70,7 @@ public class BitSetTest {
 		repeat("and", bs, (a) -> a.and(bs2));
 		repeat("or", bs, (a) -> a.or(bs2));
 		repeat("xor", bs, (a) -> a.xor(bs2));
-		repeat("cardinality", bs, (a) -> a.cardinality());
+		repeat("cardinality", bs, BitSetUnifier::cardinality);
 	}
 
 	@Test
@@ -78,8 +78,8 @@ public class BitSetTest {
 		BitSetUnifier bs = new JavolutionBitSet(64);
 		BitSetUnifier bs2 = new JavolutionBitSet(64);
 
-		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(i -> bs.set(i));
-		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(i -> bs2.set(i));
+		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(bs::set);
+		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(bs2::set);
 
 		System.out.println("javolution");
 		repeat("flip", bs, (a) -> a.flip(0, 63));
@@ -88,7 +88,7 @@ public class BitSetTest {
 		repeat("and", bs, (a) -> a.and(bs2));
 		repeat("or", bs, (a) -> a.or(bs2));
 		repeat("xor", bs, (a) -> a.xor(bs2));
-		repeat("cardinality", bs, (a) -> a.cardinality());
+		repeat("cardinality", bs, BitSetUnifier::cardinality);
 	}
 
 	private void repeat(String name,

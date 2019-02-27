@@ -119,10 +119,10 @@ public class Position {
 	 */
 	public Position(Colour sideToMove) {
 		// default piece positions
-		this(new HashSet<Piece>(Arrays.asList(new Pawn(Colour.WHITE, true), new Rook(Colour.WHITE, true), new Knight(Colour.WHITE, true),
-				new Bishop(Colour.WHITE, true), new Queen(Colour.WHITE, true), new King(Colour.WHITE, true))),
-				new HashSet<Piece>(Arrays.asList(new Pawn(Colour.BLACK, true), new Rook(Colour.BLACK, true), new Knight(Colour.BLACK, true),
-						new Bishop(Colour.BLACK, true), new Queen(Colour.BLACK, true), new King(Colour.BLACK, true))),
+		this(new HashSet<>(Arrays.asList(new Pawn(Colour.WHITE, true), new Rook(Colour.WHITE, true), new Knight(Colour.WHITE, true),
+                new Bishop(Colour.WHITE, true), new Queen(Colour.WHITE, true), new King(Colour.WHITE, true))),
+                new HashSet<>(Arrays.asList(new Pawn(Colour.BLACK, true), new Rook(Colour.BLACK, true), new Knight(Colour.BLACK, true),
+                        new Bishop(Colour.BLACK, true), new Queen(Colour.BLACK, true), new King(Colour.BLACK, true))),
 				sideToMove,
 				// default castling rights
 				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE),
@@ -221,7 +221,7 @@ public class Position {
 	/**
 	 * return the castling rights of the current posn. this is for the zobrist calculation.
 	 *
-	 * @return
+	 * @return castling rights
 	 */
 	public CastlingRightsSummary[] getCastlingRights() {
 		return castling;
@@ -430,7 +430,6 @@ public class Position {
 
 		BitSetUnifier friendlyPieces = this.getAllPieces(sideToMove).getBitSet();
 		Colour opponentsColour = Colour.oppositeColour(sideToMove);
-		BitSetUnifier[] enemyPieces = Position.setupEnemyBitsets(this.getPieces(opponentsColour));
 
 		// check if the piece moving away from 'fromSquare' has left my king in (discovered) check
 		ListIterator<Move> iter = moves.listIterator();
@@ -451,8 +450,7 @@ public class Position {
 					}
 				}
 			} else {
-
-				enemyPieces = Position.setupEnemyBitsets(this.getPieces(opponentsColour));
+				BitSetUnifier[] enemyPieces = Position.setupEnemyBitsets(this.getPieces(opponentsColour));
 				if (KingCheck.isKingInCheckAfterMove(myKing, sideToMove, friendlyPieces, enemyPieces, move, inCheck)) {
 					iter.remove();
 				}
@@ -507,7 +505,7 @@ public class Position {
 			pieceMgr.getClonedPiece(sideToMove, PieceType.ROOK).move(move.getRooksCastlingMove());
 			// castling rights are reset later on
 		} else {
-			if (!move.isCapture() && getTotalPieces().getBitSet().get(move.to().bitIndex())) {
+			if (!move.isCapture() && getTotalPieces().get(move.to().bitIndex())) {
 				throw new IllegalArgumentException("square " + move.to() + " is not empty. Move=" + move);
 			}
 			// update structures for the moving piece
@@ -619,7 +617,7 @@ public class Position {
 			enpassantSquare = prevEnpassantSquare;
 		}
 		whiteMobility = moves.size();
-		moves = new ArrayList<>(60);
+
 		if (getSideToMove() != Colour.BLACK) {
 			prevEnpassantSquare = getEnpassantSquare();
 			enpassantSquare = null;
@@ -761,7 +759,7 @@ public class Position {
 	 * this is a debug method to make sure that all squares marked as 'check' in checkState do really check the opponent's
 	 * king.
 	 *
-	 * @param sideToMove which side is moving
+	 * @param move the current move
 	 */
 	private void examineCheckState(Move move) {
 		Colour sideToMove = move.getColour();
@@ -853,16 +851,16 @@ public class Position {
 			}
 			switch (rank) {
 			case 7:
-				sb.append("   " + sideToMove + " to move");
+				sb.append("   ").append(sideToMove).append(" to move");
 				break;
 			case 6:
-				sb.append("   castlingRights: " + castling[0] + ", " + castling[1]);
+				sb.append("   castlingRights: ").append(castling[0]).append(", ").append(castling[1]);
 				break;
 			case 5:
-				sb.append("   enpassant square: " + enpassantSquare);
+				sb.append("   enpassant square: ").append(enpassantSquare);
 				break;
 			case 4:
-				sb.append("   hash (zobrist): " + hashCode());
+				sb.append("   hash (zobrist): ").append(hashCode());
 				break;
 			default:
 				break;
@@ -981,7 +979,6 @@ public class Position {
 	/**
 	 * Returns true if the given square is attacked by any opponent's pieces.
 	 *
-	 * @param game the game
 	 * @param targetSquare the square to consider
 	 * @param opponentsColour the colour of the opponent
 	 * @return true if this square is attacked by the opponent
@@ -1055,7 +1052,7 @@ public class Position {
 	 * Finds the piece at the given square. TODO optimize using Lookup?
 	 *
 	 * @param targetSquare square to use
-	 * @param colour if not null, this piece's colour is expected.
+	 * @param expectedColour if not null, this piece's colour is expected.
 	 * @return the piece at this location.
 	 * @throws IllegalArgumentException if no piece [of the given colour] exists at the given square.
 	 */

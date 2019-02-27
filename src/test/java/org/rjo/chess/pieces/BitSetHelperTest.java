@@ -81,7 +81,7 @@ public class BitSetHelperTest {
             (byte) 0b00000000 }).getBitSet();
       //@formatter:on
 		BitSetUnifier result = BitSetHelper.shiftOneNorthEast(BitSetFactory.createBitSet(new long[] { -1 }));
-		assertTrue(expected.equals(result));
+		assertEquals(expected, result);
 	}
 
 	@Test

@@ -1,7 +1,6 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.rjo.chess.CheckRestriction;
@@ -46,7 +45,7 @@ public class Bishop extends SlidingPiece {
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return AbstractBitBoardPiece.pieceSquareValue(pieces.getBitSet(), getColour(), PIECE_VALUE, SQUARE_VALUE);
+		return AbstractBitBoardPiece.pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	/**
@@ -115,13 +114,7 @@ public class Bishop extends SlidingPiece {
 		// make sure king is not/no longer in check
 		Square myKing = posn.getKingPosition(colour);
 		KingCheck kingChecker = new KingCheck(posn, Colour.oppositeColour(colour), myKing);
-		Iterator<Move> iter = moves.listIterator();
-		while (iter.hasNext()) {
-			Move move = iter.next();
-			if (kingChecker.isKingInCheck(move, kingInCheck.isCheck())) {
-				iter.remove();
-			}
-		}
+		moves.removeIf(move -> kingChecker.isKingInCheck(move, kingInCheck.isCheck()));
 		return moves;
 	}
 
@@ -175,7 +168,7 @@ public class Bishop extends SlidingPiece {
 			Square targetSq,
 			PositionCheckState checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false/** TODO */
+			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false/* TODO */
 					, false)) {
 				return true;
 			}
@@ -184,7 +177,7 @@ public class Bishop extends SlidingPiece {
 	}
 
 	/**
-	 * static version of {@link #attacksSquare(BitSet, Square, SquareCache)}, for use from Pawn.
+	 * static version of {@link #attacksSquare(BitSetUnifier, Square, PositionCheckState)}, for use from Pawn.
 	 *
 	 * @param emptySquares the empty squares
 	 * @param startSquare start square (i.e. where the bishop is)

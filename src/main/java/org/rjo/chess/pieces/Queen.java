@@ -1,7 +1,6 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.rjo.chess.CheckRestriction;
@@ -40,7 +39,7 @@ public class Queen extends SlidingPiece {
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return AbstractBitBoardPiece.pieceSquareValue(pieces.getBitSet(), getColour(), PIECE_VALUE, SQUARE_VALUE);
+		return AbstractBitBoardPiece.pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	/**
@@ -109,13 +108,7 @@ public class Queen extends SlidingPiece {
 		// make sure my king is not/no longer in check
 		Square myKing = posn.getKingPosition(colour);
 		Colour opponentsColour = Colour.oppositeColour(colour);
-		Iterator<Move> iter = moves.listIterator();
-		while (iter.hasNext()) {
-			Move move = iter.next();
-			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck())) {
-				iter.remove();
-			}
-		}
+		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck()));
 
 		return moves;
 	}
@@ -173,7 +166,7 @@ public class Queen extends SlidingPiece {
 			Square targetSq,
 			PositionCheckState checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false/** TODO */
+			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false /* TODO */
 					, false)) {
 				return true;
 			}
@@ -182,7 +175,7 @@ public class Queen extends SlidingPiece {
 	}
 
 	/**
-	 * static version of {@link #attacksSquare(BitSet, Square, SquareCache)}, for use from Pawn.
+	 * static version of {@link #attacksSquare(BitSetUnifier, Square, PositionCheckState)}, for use from Pawn.
 	 *
 	 * @param emptySquares the empty squares
 	 * @param startSquare start square (i.e. where the queen is)
@@ -201,9 +194,6 @@ public class Queen extends SlidingPiece {
 		if (attacksSquareRankOrFile(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion)) {
 			return true;
 		}
-		if (attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion)) {
-			return true;
-		}
-		return false;
-	}
+        return attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion);
+    }
 }

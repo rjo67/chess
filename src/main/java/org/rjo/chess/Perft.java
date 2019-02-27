@@ -1,6 +1,5 @@
 package org.rjo.chess;
 
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -74,7 +73,7 @@ public class Perft {
 	}
 
 	/**
-	 * Finds and counts the moves (combination of {@link #findMoves(Position, Colour, int)} and {@link #countMoves(Map)}).
+	 * Finds and counts the moves (combination of {@link #findMoves(Position, Colour, int, int)} and {@link #countMoves(Map)}).
 	 *
 	 * @param posn a game position
 	 * @param sideToMove the starting colour
@@ -143,9 +142,7 @@ public class Perft {
 		for (final Move move : posn.findMoves(sideToMove)) {
 			logMove(depth, move, posn);
 			Position posnAfterMove = posn.move(move);
-			Callable<MoveResult> callable = () -> {
-				return findMovesInternal(move, posnAfterMove, Colour.oppositeColour(sideToMove), depth - 1);
-			};
+			Callable<MoveResult> callable = () -> findMovesInternal(move, posnAfterMove, Colour.oppositeColour(sideToMove), depth - 1);
 			futures.add(threadPool.submit(callable));
 		}
 		threadPool.shutdown();
@@ -159,7 +156,7 @@ public class Perft {
 			}
 			threadPool.shutdownNow();
 		}
-		futures.stream().forEach(fut -> {
+		futures.forEach(fut -> {
 			try {
 				moveMap.put(fut.get().move.toString(), fut.get().nbrMoves);
 			} catch (InterruptedException | ExecutionException e) {
@@ -218,7 +215,7 @@ public class Perft {
 	}
 
 	/**
-	 * Like {@link #findMoves(Game, Colour, int)} but with the option of storing the moves in a file. (Now uses MOVE_LOGGER
+	 * Like {@link #findMoves(Position, Colour, int, int)} but with the option of storing the moves in a file. (Now uses MOVE_LOGGER
 	 * at level TRACE.) Uses more memory than the other method and is therefore not recommended. <b>This is mainly for
 	 * PerftTests</b>. We return List of String instead of List of Move to try to conserve memory.
 	 *
@@ -226,12 +223,11 @@ public class Perft {
 	 * @param sideToMove the starting colour
 	 * @param depth the required depth to search
 	 * @return the list of possible moves at the given depth. The string representation is stored in order to save memory.
-	 * @throws IOException if can't write to temp file
-	 */
+     */
 	public static List<String> findMovesDebug(Game game,
 			Colour sideToMove,
-			int depth) throws IOException {
-		return findMovesInternalDebug(game.getPosition(), sideToMove, depth, new ArrayDeque<String>(1000), new ArrayList<String>(500000));
+			int depth) {
+		return findMovesInternalDebug(game.getPosition(), sideToMove, depth, new ArrayDeque<>(1000), new ArrayList<>(500000));
 
 	}
 

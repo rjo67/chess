@@ -54,13 +54,13 @@ import org.junit.runners.Parameterized.Parameters;
  * moves, and take it from there (at depth-1).
  *
  * @author rich
- * @see http://chessprogramming.wikispaces.com/Perft
- * @see http://chessprogramming.wikispaces.com/Perft+Results
- * @see http://wismuth.com/chess/statistics-games.html
- * @see http://www.chessprogramming.net/perfect-perft/
- * @see http://www.talkchess.com/forum/viewtopic.php?topic_view=threads&p=508921&t=47318
- * @see http://www.rocechess.ch/perft.html
- * @see https://sites.google.com/site/numptychess/perft
+ * @see 'http://chessprogramming.wikispaces.com/Perft'
+ * @see 'http://chessprogramming.wikispaces.com/Perft+Results'
+ * @see 'http://wismuth.com/chess/statistics-games.html'
+ * @see 'http://www.chessprogramming.net/perfect-perft/'
+ * @see 'http://www.talkchess.com/forum/viewtopic.php?topic_view=threads&p=508921&t=47318'
+ * @see 'http://www.rocechess.ch/perft.html'
+ * @see 'https://sites.google.com/site/numptychess/perft'
  */
 @RunWith(Parameterized.class)
 public class PerftTest {

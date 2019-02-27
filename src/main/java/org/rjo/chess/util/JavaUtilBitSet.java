@@ -1,6 +1,8 @@
 package org.rjo.chess.util;
 
 import java.util.BitSet;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * BitSetUnifier-Implementation using java.util.BitSet.
@@ -131,4 +133,5 @@ public final class JavaUtilBitSet implements BitSetUnifier, Cloneable {
 		return bs.previousSetBit(fromIndex);
 	}
 
+	public IntStream stream() { return bs.stream();}
 }

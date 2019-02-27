@@ -146,7 +146,7 @@ public class BitSetHelper {
 	/**
 	 * Shifts the bits in <code>startPosn</code> one file to west and one rank north.
 	 *
-	 * @param startPosn starting position. Does not get changed by this routine.
+	 * @param startBoard starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
 	public static BitSetUnifier shiftOneNorthWest(BitSetUnifier startBoard) {
@@ -157,7 +157,7 @@ public class BitSetHelper {
 	/**
 	 * Shifts the bits in <code>startPosn</code> one file to west and one rank south.
 	 *
-	 * @param startPosn starting position. Does not get changed by this routine.
+	 * @param startBoard starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
 	public static BitSetUnifier shiftOneSouthWest(BitSetUnifier startBoard) {
@@ -168,7 +168,7 @@ public class BitSetHelper {
 	/**
 	 * Shifts the bits in <code>startPosn</code> one file to east and one rank north.
 	 *
-	 * @param startPosn starting position. Does not get changed by this routine.
+	 * @param startBoard starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
 	public static BitSetUnifier shiftOneNorthEast(BitSetUnifier startBoard) {
@@ -179,7 +179,7 @@ public class BitSetHelper {
 	/**
 	 * Shifts the bits in <code>startPosn</code> one file to east and one rank south.
 	 *
-	 * @param startPosn starting position. Does not get changed by this routine.
+	 * @param startBoard starting position. Does not get changed by this routine.
 	 * @return a new bitset with the shifted bits.
 	 */
 	public static BitSetUnifier shiftOneSouthEast(BitSetUnifier startBoard) {

@@ -35,7 +35,7 @@ public abstract class AbstractSetPiece extends AbstractPiece {
 	public void initPosition(Square... squares) {
 		pieces = new HashSet<>(3);
 		if (squares != null) {
-			Arrays.stream(squares).forEach(pieces::add);
+			pieces.addAll(Arrays.asList(squares));
 		}
 	}
 
@@ -46,7 +46,7 @@ public abstract class AbstractSetPiece extends AbstractPiece {
 
 	@Override
 	public Square[] getLocations() {
-		return pieces.toArray(new Square[pieces.size()]);
+		return pieces.toArray(new Square[0]);
 	}
 
 	@Override

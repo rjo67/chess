@@ -55,19 +55,16 @@ public class Fen {
 	 */
 	public static String encode(Game game) {
 
-		StringBuilder fen = new StringBuilder(encode(game.getPosition()));
-
-		fen.append(" ").append(addHalfmoveClock(game));
-		fen.append(" ").append(addFullmoveNumber(game));
-
-		return fen.toString();
+		String fen = encode(game.getPosition()) + " " + addHalfmoveClock(game) +
+				" " + addFullmoveNumber(game);
+		return fen;
 	}
 
 	/**
 	 * Creates a FEN notation for the given position. NB: not a complete FEN string, since information about the move nbr /
 	 * halfmove clock is only available from the <code>Game</code> object.
 	 *
-	 * @param position state of the position
+	 * @param posn state of the position
 	 * @return a FEN string
 	 */
 	public static String encode(Position posn) {

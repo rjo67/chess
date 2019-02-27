@@ -24,7 +24,7 @@ public class QueenMoveTest {
 	public void startPosition() {
 		Game game = new Game();
 		Queen whiteQueen = new Queen(Colour.WHITE);
-		TestUtil.checkMoves(whiteQueen.findMoves(game.getPosition()), new String[0]);
+		TestUtil.checkMoves(whiteQueen.findMoves(game.getPosition()));
 	}
 
 	@Test

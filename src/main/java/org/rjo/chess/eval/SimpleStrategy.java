@@ -1,7 +1,6 @@
 package org.rjo.chess.eval;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -34,12 +33,8 @@ public class SimpleStrategy implements SearchStrategy {
 				evalList.add(new MoveEval(posn.evaluate(move), move));
 			}
 			int PLAY_BEST_MOVE = 95; // play 'best' move x% of the time
-			evalList.sort(new Comparator<MoveEval>() {
-				@Override
-				public int compare(MoveEval arg0,
-						MoveEval arg1) {
-					return arg1.getValue() - arg0.getValue(); // to sort in 'best-first' order
-				}
+			evalList.sort((arg0, arg1) -> {
+				return arg1.getValue() - arg0.getValue(); // to sort in 'best-first' order
 			});
 			System.out.println(evalList);
 			for (MoveEval moveEval : evalList) {

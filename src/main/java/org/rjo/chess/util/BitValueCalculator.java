@@ -93,14 +93,14 @@ public class BitValueCalculator {
 			maskStart = maskStart << 1;
 			int mask = maskStart + 1;
 			StringBuilder sb = new StringBuilder();
-			sb.append("mask=0b" + Integer.toBinaryString(mask));
+			sb.append("mask=0b").append(Integer.toBinaryString(mask));
 
 			Iterator<Integer> iter = cache.iterator();
 			while (iter.hasNext()) {
 				int value = iter.next();
 				if ((value & mask) == mask) { // set
 					iter.remove();
-					sb.append(", " + value);
+					sb.append(", ").append(value);
 				}
 			}
 			System.out.println(sb.toString());

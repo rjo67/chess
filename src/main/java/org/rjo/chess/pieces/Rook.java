@@ -173,11 +173,9 @@ public class Rook extends SlidingPiece {
 				for (Integer key : tmpMoveMap[piecePosn][1].keySet()) {
 					concatMoveMap[translatedPiecePosn].put(key + 128, tmpMoveMap[piecePosn][1].get(key));
 				}
-				continue;
 			} else if (piecePosn == 0) {
 				// special case: from extreme RHS, take all of map[0]
 				concatMoveMap[translatedPiecePosn] = tmpMoveMap[piecePosn][0];
-				continue;
 			} else {
 				for (int hi : tmpMoveMap[piecePosn][0].keySet()) {
 					for (int lo : tmpMoveMap[piecePosn][1].keySet()) {
@@ -215,7 +213,7 @@ public class Rook extends SlidingPiece {
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return AbstractBitBoardPiece.pieceSquareValue(pieces.getBitSet(), getColour(), PIECE_VALUE, SQUARE_VALUE);
+		return AbstractBitBoardPiece.pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	/**
@@ -356,13 +354,7 @@ public class Rook extends SlidingPiece {
 		// make sure king is not/no longer in check
 		Square myKing = posn.getKingPosition(colour);
 		Colour opponentsColour = Colour.oppositeColour(colour);
-		Iterator<Move> iter = moves.listIterator();
-		while (iter.hasNext()) {
-			Move move = iter.next();
-			if (KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck())) {
-				iter.remove();
-			}
-		}
+		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck()));
 		return moves;
 	}
 
@@ -419,7 +411,7 @@ public class Rook extends SlidingPiece {
 			Square targetSq,
 			PositionCheckState checkCache) {
 		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false /** TODO */
+			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false /* TODO */
 					, false)) {
 				return true;
 			}
@@ -428,7 +420,7 @@ public class Rook extends SlidingPiece {
 	}
 
 	/**
-	 * static version of {@link #attacksSquare(BitSet, Square, SquareCache)}, for use from Pawn.
+	 * static version of {@link #attacksSquare(BitSetUnifier, Square, PositionCheckState)}, for use from Pawn.
 	 *
 	 * @param emptySquares the empty squares
 	 * @param startSquare start square (i.e. where the rook is)
@@ -486,21 +478,14 @@ class MoveInfo {
 	public static MoveInfo concat(MoveInfo m1,
 			MoveInfo m2) {
 		List<Integer> moves = new ArrayList<>();
-		for (Integer i : m1.moveOffsets) {
-			moves.add(i);
-		}
-		for (Integer i : m2.moveOffsets) {
-			moves.add(i);
-		}
+		Collections.addAll(moves, m1.moveOffsets);
+		Collections.addAll(moves, m2.moveOffsets);
 
 		List<Integer> captures = new ArrayList<>();
-		for (Integer i : m1.possibleCapturesOffset) {
-			captures.add(i);
-		}
-		for (Integer i : m2.possibleCapturesOffset) {
-			captures.add(i);
-		}
-		MoveInfo mi = new MoveInfo(moves.toArray(new Integer[moves.size()]), captures.toArray(new Integer[captures.size()]));
+		Collections.addAll(captures, m1.possibleCapturesOffset);
+		Collections.addAll(captures, m2.possibleCapturesOffset);
+
+		MoveInfo mi = new MoveInfo(moves.toArray(new Integer[0]), captures.toArray(new Integer[0]));
 		// System.out.println(String.format("m1: %s, m2: %s, concat: %s", m1,
 		// m2, mi));
 		return mi;

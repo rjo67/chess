@@ -22,5 +22,5 @@ public enum CheckStates {
 	CHECK_IF_CAPTURE,
 
 	/** don't know yet what the state is */
-	UNKNOWN;
+	UNKNOWN
 }

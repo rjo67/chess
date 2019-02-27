@@ -14,7 +14,7 @@ public final class JavolutionBitSet implements BitSetUnifier, Cloneable {
 
 	private static Field bitsField;
 
-	/** need this in order to create a BitSet from a long[] */
+	/* need this in order to create a BitSet from a long[] */
 	static {
 		try {
 			bitsField = BitSet.class.getDeclaredField("bits");
@@ -145,4 +145,9 @@ public final class JavolutionBitSet implements BitSetUnifier, Cloneable {
 	public int previousSetBit(int fromIndex) {
 		return bs.previousSetBit(fromIndex);
 	}
+
+	private void test()  {
+		//bs.iterator()
+	}
+
 }

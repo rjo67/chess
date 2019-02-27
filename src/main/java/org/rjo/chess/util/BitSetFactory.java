@@ -9,8 +9,8 @@ package org.rjo.chess.util;
 public class BitSetFactory {
 
 	enum BitSetImplementation {
-		CHESS_BITSET, JAVA_UTIL, LUCENE, JAVOLUTION;
-	}
+		CHESS_BITSET, JAVA_UTIL, LUCENE, JAVOLUTION
+    }
 
 	/** the bitset implementation to use */
 	private final static BitSetImplementation BITSET_IMPL = BitSetImplementation.CHESS_BITSET;

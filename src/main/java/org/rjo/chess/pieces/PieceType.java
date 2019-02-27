@@ -3,8 +3,7 @@ package org.rjo.chess.pieces;
 import org.rjo.chess.Colour;
 
 /**
- * Piece types. NB: when iterating over this enum, do not use {@link PieceType#values()} since this will also return a
- * 'dummy' value. Use instead {@link PieceType#getPieceTypes()}.
+ * Piece types.
  *
  * @author rich
  */
@@ -42,7 +41,7 @@ public enum PieceType {
 
 	private String symbol;
 
-	private PieceType(String symbol) {
+	PieceType(String symbol) {
 		this.symbol = symbol;
 	}
 
@@ -72,7 +71,7 @@ public enum PieceType {
 	}
 
 	/**
-	 * @return all piece types -- apart from {@link PieceType#DUMMY}.
+	 * @return all piece types
 	 */
 	public static PieceType[] getPieceTypes() {
 		return ALL_PIECE_TYPES;

@@ -140,4 +140,9 @@ public final class LuceneBitSet implements BitSetUnifier, Cloneable {
 		}
 		return bs.prevSetBit(fromIndex);
 	}
+
+/*	private void iterator(int from)  {
+		int start = from;
+		return new IteratorImpl(this, start, false);
+	}*/
 }

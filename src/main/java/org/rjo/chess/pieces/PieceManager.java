@@ -40,8 +40,8 @@ public class PieceManager {
 	 */
 	public PieceManager(Set<Piece> whitePieces, Set<Piece> blackPieces) {
 		this();
-		whitePieces.stream().forEach(p -> pieces[Colour.WHITE.ordinal()][p.getType().ordinal()] = p);
-		blackPieces.stream().forEach(p -> pieces[Colour.BLACK.ordinal()][p.getType().ordinal()] = p);
+		whitePieces.forEach(p -> pieces[Colour.WHITE.ordinal()][p.getType().ordinal()] = p);
+		blackPieces.forEach(p -> pieces[Colour.BLACK.ordinal()][p.getType().ordinal()] = p);
 	}
 
 	/**
@@ -104,12 +104,12 @@ public class PieceManager {
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer(600);
+		StringBuilder sb = new StringBuilder(600);
 		sb.append("PieceManager@").append(Integer.toHexString(System.identityHashCode(this)));
 		sb.append("[");
 		List<String> tempList = new ArrayList<>();
 		for (Colour col : Colour.ALL_COLOURS) {
-			StringBuffer sb2 = new StringBuffer(300);
+			StringBuilder sb2 = new StringBuilder(300);
 			boolean first = true;
 			for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
 				if (first) {

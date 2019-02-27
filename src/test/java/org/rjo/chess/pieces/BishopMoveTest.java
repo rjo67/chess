@@ -58,7 +58,7 @@ public class BishopMoveTest {
 	public void startPosition() {
 		Game game = new Game();
 		Bishop whiteBishop = new Bishop(Colour.WHITE);
-		TestUtil.checkMoves(whiteBishop.findMoves(game.getPosition()), new String[0]);
+		TestUtil.checkMoves(whiteBishop.findMoves(game.getPosition()));
 	}
 
 	@Test

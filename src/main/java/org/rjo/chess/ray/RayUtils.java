@@ -63,7 +63,7 @@ public class RayUtils {
 						SQUARES_ON_RAY[sq1][sq2] = Collections.unmodifiableList(squaresFound);
 						// System.out.println(sq1 + " -> " + sq2 + ": " + SQUARES_ON_RAY[sq1][sq2]);
 						BitBoard bb = new BitBoard();
-						squaresFound.stream().forEach(sq -> bb.setBitsAt(Square.fromBitIndex(sq)));
+						squaresFound.forEach(sq -> bb.setBitsAt(Square.fromBitIndex(sq)));
 						BITSET_SQUARES_ON_RAY[sq1][sq2] = bb.getBitSet();
 					}
 				}
@@ -100,9 +100,7 @@ public class RayUtils {
 			RayInfo info = RayUtils.findFirstPieceOnRay(myColour, emptySquares, myPieces, ray, opponentsKingsSquare.bitIndex());
 			if (info.foundPiece() && (info.getColour() == myColour)) {
 				PieceType firstPieceFound = cb.pieceAt(Square.fromBitIndex(info.getIndexOfPiece()), myColour);
-				if (ray.isRelevantPieceForDiscoveredCheck(firstPieceFound)) {
-					return true;
-				}
+                return ray.isRelevantPieceForDiscoveredCheck(firstPieceFound);
 			}
 		}
 		return false;
@@ -111,11 +109,11 @@ public class RayUtils {
 	/**
 	 * Finds a discovered check on the opponent's king after a move from square <code>moveFromSquare</code>.
 	 *
-	 * @param myColour my colour
+	 * @param kingsColour my colour
 	 * @param cb the chessboard -- required for pieceAt()
 	 * @param emptySquares the empty squares
-	 * @param myPieces BitSet of my pieces
-	 * @param opponentsKingsSquare where the opponent's king is
+	 * @param kingsColourPieces BitSet of the pieces of the king's colour
+	 * @param kingsSquare where the opponent's king is
 	 * @param moveFromSquare the square where the piece moved from
 	 * @return true if the move from square <code>moveFromSquare</code> leads to a discovered check on the king.
 	 */
@@ -132,9 +130,7 @@ public class RayUtils {
 			RayInfo info = RayUtils.findFirstPieceOnRay(kingsColour, emptySquares, kingsColourPieces, ray, kingsSquare.bitIndex());
 			if (info.foundPiece() && (info.getColour() != kingsColour)) {
 				PieceType firstPieceFound = cb.pieceAt(Square.fromBitIndex(info.getIndexOfPiece()), Colour.oppositeColour(kingsColour));
-				if (ray.isRelevantPieceForDiscoveredCheck(firstPieceFound)) {
-					return true;
-				}
+                return ray.isRelevantPieceForDiscoveredCheck(firstPieceFound);
 			}
 		}
 		return false;

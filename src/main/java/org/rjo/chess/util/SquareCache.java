@@ -64,7 +64,7 @@ public class SquareCache<T> {
 		StringBuilder sb = new StringBuilder(100);
 		for (Square sq : Square.values()) {
 			if (this.lookup(sq) != null) {
-				sb.append("(" + sq + ":" + this.lookup(sq) + ")");
+				sb.append("(").append(sq).append(":").append(this.lookup(sq)).append(")");
 			}
 		}
 		return sb.toString();

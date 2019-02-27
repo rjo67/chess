@@ -1,6 +1,5 @@
 package org.rjo.chess.uci;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +31,7 @@ public class UCI {
 	// set after "processCommandPosition" to store the last move from the uci string
 	private Move lastMove;
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) {
 		UCI uci = new UCI();
 		uci.run();
 	}
@@ -145,11 +144,7 @@ public class UCI {
 		strategy.incrementDepth((32 - nbrPieces) / 12);
 		System.out.println("set strategy depth to " + strategy.getCurrentDepth());
 
-		if (inEndgame(pieceCounts)) {
-			King.IN_ENDGAME = true;
-		} else {
-			King.IN_ENDGAME = false;
-		}
+        King.IN_ENDGAME = inEndgame(pieceCounts);
 
 		// can clear the zobrist map if the last move was a pawn move
 		if (lastMove.getPiece() == PieceType.PAWN) {
@@ -249,7 +244,7 @@ public class UCI {
 
 	static class NullOutputStream extends OutputStream {
 		@Override
-		public void write(@SuppressWarnings("unused") int arg0) throws IOException {
+		public void write(@SuppressWarnings("unused") int arg0) {
 		}
 	}
 

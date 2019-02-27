@@ -30,7 +30,7 @@ public class PieceManagerTest {
 		// System.out.println("----");
 		// System.out.println(p2.getPieceManager());
 
-		checkPieceObjects(p, p2, new HashSet<>(Arrays.asList(PieceType.PAWN)), new HashSet<PieceType>());
+		checkPieceObjects(p, p2, new HashSet<>(Arrays.asList(PieceType.PAWN)), new HashSet<>());
 	}
 
 	@Test
@@ -39,7 +39,7 @@ public class PieceManagerTest {
 		Move move = new Move(PieceType.KNIGHT, Colour.BLACK, Square.b8, Square.a6);
 		Position p2 = p.move(move);
 
-		checkPieceObjects(p, p2, new HashSet<PieceType>(), new HashSet<>(Arrays.asList(PieceType.KNIGHT)));
+		checkPieceObjects(p, p2, new HashSet<>(), new HashSet<>(Arrays.asList(PieceType.KNIGHT)));
 	}
 
 	@Test
@@ -56,11 +56,11 @@ public class PieceManagerTest {
 		Position p = Fen.decode("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 0").getPosition();
 		Move move = Move.castleKingsSide(Colour.WHITE);
 		Position p2 = p.move(move);
-		checkPieceObjects(p, p2, new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)), new HashSet<PieceType>());
+		checkPieceObjects(p, p2, new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)), new HashSet<>());
 
 		move = Move.castleQueensSide(Colour.WHITE);
 		p2 = p.move(move);
-		checkPieceObjects(p, p2, new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)), new HashSet<PieceType>());
+		checkPieceObjects(p, p2, new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)), new HashSet<>());
 	}
 
 	@Test
@@ -68,11 +68,11 @@ public class PieceManagerTest {
 		Position p = Fen.decode("r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 0").getPosition();
 		Move move = Move.castleKingsSide(Colour.BLACK);
 		Position p2 = p.move(move);
-		checkPieceObjects(p, p2, new HashSet<PieceType>(), new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)));
+		checkPieceObjects(p, p2, new HashSet<>(), new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)));
 
 		move = Move.castleQueensSide(Colour.BLACK);
 		p2 = p.move(move);
-		checkPieceObjects(p, p2, new HashSet<PieceType>(), new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)));
+		checkPieceObjects(p, p2, new HashSet<>(), new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)));
 	}
 
 	@Test

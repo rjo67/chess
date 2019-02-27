@@ -29,7 +29,7 @@ public enum Square {
 	private int rank;// Rank of this square (0..7)
 	private int file;// File of this square (0..7)
 
-	private Square(int bitIndex) {
+	Square(int bitIndex) {
 		this.bitIndex = bitIndex;
 		this.rank = bitIndex / 8;
 		this.file = bitIndex % 8;

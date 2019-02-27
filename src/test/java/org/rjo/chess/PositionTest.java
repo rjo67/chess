@@ -1,11 +1,5 @@
 package org.rjo.chess;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +11,8 @@ import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.util.BitSetFactory;
 import org.rjo.chess.util.BitSetUnifier;
 
+import static org.junit.Assert.*;
+
 /**
  * Test Position.
  *
@@ -25,7 +21,7 @@ import org.rjo.chess.util.BitSetUnifier;
 public class PositionTest {
 
 	@Test
-	public void posnSpeedTest() throws InterruptedException {
+	public void posnSpeedTest() {
 		Position p = Fen.decode("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0").getPosition();
 
 		StopWatch sw = new StopWatch();
@@ -48,7 +44,7 @@ public class PositionTest {
 
 		// System.out.println(p);
 		// System.out.println(p2);
-		assertFalse("positions are the same -- objects not immutable!?", p.toString().equals(p2.toString()));
+		assertNotEquals("positions are the same -- objects not immutable!?", p.toString(), p2.toString());
 	}
 
 	@Test
@@ -343,7 +339,7 @@ public class PositionTest {
 		Position newPosn = game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5, PieceType.PAWN));
 		assertEmptySquare(newPosn, Square.c4);
 		assertPieceAt(newPosn, Square.d5, PieceType.PAWN, Colour.WHITE);
-		assertTrue(newPosn.getPieces(Colour.BLACK)[PieceType.PAWN.ordinal()].getBitBoard().getBitSet().isEmpty());
+		assertTrue(newPosn.getPieces(Colour.BLACK)[PieceType.PAWN.ordinal()].getBitBoard().isEmpty());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -466,10 +462,7 @@ public class PositionTest {
 			if (!this.allPiecesBlack.equals(other.allPiecesBlack)) {
 				return false;
 			}
-			if (!this.totalPieces.equals(other.totalPieces)) {
-				return false;
-			}
-			return true;
-		}
+            return this.totalPieces.equals(other.totalPieces);
+        }
 	}
 }

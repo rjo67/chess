@@ -326,8 +326,8 @@ public class AlphaBeta3 implements SearchStrategy {
 	}
 
 	enum MiniMax {
-		MAX, MIN;
-	}
+		MAX, MIN
+    }
 
 	enum EvalType {
 		BESTSOFAR, ALPHA_CUTOFF, BETA_CUTOFF, NORMAL;
@@ -457,7 +457,7 @@ public class AlphaBeta3 implements SearchStrategy {
 			if (mateIn != -1) {
 				sb.append("mate ").append((mateIn + 1) / 2); // mate in x moves, not plies
 			} else {
-				sb.append("cp " + score);
+				sb.append("cp ").append(score);
 			}
 
 			outputStream.println(sb.toString());

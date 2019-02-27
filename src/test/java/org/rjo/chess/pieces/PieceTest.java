@@ -20,14 +20,14 @@ public class PieceTest {
 	public void addPiece() {
 		Queen queen = new Queen(Colour.WHITE, Square.b6);
 		queen.addPiece(Square.a6);
-		assertEquals(2, queen.getBitBoard().getBitSet().cardinality());
+		assertEquals(2, queen.getBitBoard().cardinality());
 	}
 
 	@Test
 	public void removePiece() {
 		Pawn pawn = new Pawn(Colour.WHITE, Square.a6);
 		pawn.removePiece(Square.a6);
-		assertTrue(pawn.getBitBoard().getBitSet().isEmpty());
+		assertTrue(pawn.getBitBoard().isEmpty());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -41,8 +41,8 @@ public class PieceTest {
 	public void move() {
 		Queen queen = new Queen(Colour.WHITE, Square.b6);
 		queen.move(new Move(PieceType.QUEEN, Colour.WHITE, Square.b6, Square.a6));
-		assertFalse(queen.getBitBoard().getBitSet().get(Square.b6.bitIndex()));
-		assertTrue(queen.getBitBoard().getBitSet().get(Square.a6.bitIndex()));
+		assertFalse(queen.getBitBoard().get(Square.b6.bitIndex()));
+		assertTrue(queen.getBitBoard().get(Square.a6.bitIndex()));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -57,7 +57,7 @@ public class PieceTest {
 		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.a7, Square.a8);
 		move.setPromotionPiece(PieceType.BISHOP);
 		pawn.move(move);
-		assertTrue(pawn.getBitBoard().getBitSet().isEmpty());
+		assertTrue(pawn.getBitBoard().isEmpty());
 	}
 
 	@Test

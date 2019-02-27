@@ -126,12 +126,12 @@ public final class ChessBitSet implements Cloneable {
 			return;
 		}
 
-		/***
+		/* **
 		 * Grrr, java shifting uses only the lower 6 bits of the count so -1L>>>64 == -1 for that reason, make sure not to use
 		 * endmask if the bits to flip will be zero in the last word (redefine endWord to be the last changed...) long startmask
 		 * = -1L << (startIndex & 0x3f); // example: 11111...111000 long endmask = -1L >>> (64-(endIndex & 0x3f)); // example:
 		 * 00111...111111
-		 ***/
+		 */
 
 		long startmask = -1L << startIndex;
 		long endmask = -1L >>> -endIndex; // 64-(endIndex&0x3f) is the same as -endIndex since only the lowest 6 bits are used

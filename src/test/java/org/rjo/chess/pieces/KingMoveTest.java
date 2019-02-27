@@ -43,8 +43,8 @@ public class KingMoveTest {
 		Game game = new Game();
 		whiteKing = new King(Colour.WHITE, true);
 		blackKing = new King(Colour.BLACK, true);
-		TestUtil.checkMoves(whiteKing.findMoves(game.getPosition()), new String[0]);
-		TestUtil.checkMoves(blackKing.findMoves(game.getPosition()), new String[0]);
+		TestUtil.checkMoves(whiteKing.findMoves(game.getPosition()));
+		TestUtil.checkMoves(blackKing.findMoves(game.getPosition()));
 	}
 
 	@Test

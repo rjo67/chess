@@ -1,14 +1,10 @@
 package org.rjo.chess;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Map;
-
 import org.junit.Test;
 import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.util.BitSetUnifier;
+
+import static org.junit.Assert.*;
 
 /**
  * Test determination of whether the king is in check.
@@ -130,7 +126,7 @@ public class KingCheckTest {
 
 	/**
 	 * the 'friendlyPieces' bitset must not get changed by the call to
-	 * {@link KingCheck#isKingInCheck(Square, Colour, BitSetUnifier, Map, Move)}.
+	 * {@link KingCheck#isKingInCheckAfterMove_PreviouslyNotInCheck(Square, Colour, BitSetUnifier, BitSetUnifier[], Move)}.
 	 */
 	@Test
 	public void friendlyPiecesDoesNotGetChangedAfterMove() {
@@ -143,7 +139,7 @@ public class KingCheckTest {
 
 	/**
 	 * the 'enemyPieces' bitset must not get changed by the call to
-	 * {@link KingCheck#isKingInCheck(Square, Colour, BitSetUnifier, Map, Move)}.
+	 * {@link KingCheck#isKingInCheckAfterMove_PreviouslyNotInCheck(Square, Colour, BitSetUnifier, BitSetUnifier[], Move)}.
 	 */
 	@Test
 	public void enemyPiecesNotChangedAfterCaptureMove() {
@@ -153,7 +149,7 @@ public class KingCheckTest {
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d2, Colour.WHITE, getWhitePieces(game.getPosition()),
 				enemyPieces, move));
 		// should be same object
-		assertTrue(bishopBitSet == game.getPosition().getPieces(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard().getBitSet());
+		assertSame(bishopBitSet, game.getPosition().getPieces(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard().getBitSet());
 	}
 
 	//

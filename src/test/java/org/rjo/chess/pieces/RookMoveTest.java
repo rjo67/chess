@@ -45,7 +45,7 @@ public class RookMoveTest {
 	public void startPosition() {
 		Game game = new Game();
 		Rook whiteRook = (Rook) game.getPosition().getPieces(Colour.WHITE)[PieceType.ROOK.ordinal()];
-		TestUtil.checkMoves(whiteRook.findMoves(game.getPosition()), new String[0]);
+		TestUtil.checkMoves(whiteRook.findMoves(game.getPosition()));
 	}
 
 	@Test

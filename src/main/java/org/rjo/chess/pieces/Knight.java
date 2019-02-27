@@ -1,7 +1,6 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -177,13 +176,7 @@ public class Knight extends AbstractSetPiece {
 		/*
 		 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
 		 */
-		Iterator<Move> iter = moves.listIterator();
-		while (iter.hasNext()) {
-			Move move = iter.next();
-			if (KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck())) {
-				iter.remove();
-			}
-		}
+		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck()));
 		return moves;
 	}
 

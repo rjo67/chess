@@ -13,8 +13,8 @@ import org.rjo.chess.pieces.PieceType;
 public class CastlingRightsSummary {
 
 	public enum CastlingRights {
-		QUEENS_SIDE, KINGS_SIDE;
-	}
+		QUEENS_SIDE, KINGS_SIDE
+    }
 
 	public static final CastlingRightsSummary NO_RIGHTS = new CastlingRightsSummary(false, false);
 
