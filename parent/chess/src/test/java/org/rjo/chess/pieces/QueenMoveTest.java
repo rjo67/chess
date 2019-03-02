@@ -4,11 +4,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.rjo.chess.Game;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 import org.rjo.chess.TestUtil;
 
 public class QueenMoveTest {

@@ -13,6 +13,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 
 /**
  * Perft, (PERFormance Test, move path enumeration) is a debugging function to walk the move generation tree of strictly

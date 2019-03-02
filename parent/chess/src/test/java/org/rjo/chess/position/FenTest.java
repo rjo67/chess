@@ -2,7 +2,6 @@ package org.rjo.chess.position;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.rjo.chess.Game;
 import org.rjo.chess.position.Fen;
 
 import static org.junit.Assert.assertEquals;

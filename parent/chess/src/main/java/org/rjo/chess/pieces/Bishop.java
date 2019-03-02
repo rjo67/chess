@@ -3,7 +3,6 @@ package org.rjo.chess.pieces;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.rjo.chess.CheckRestriction;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.Move.CheckInformation;
@@ -13,6 +12,7 @@ import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.BaseRay;
 import org.rjo.chess.base.ray.RayType;
+import org.rjo.chess.position.CheckRestriction;
 import org.rjo.chess.position.KingCheck;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;

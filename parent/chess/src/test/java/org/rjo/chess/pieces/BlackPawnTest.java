@@ -1,10 +1,10 @@
 package org.rjo.chess.pieces;
 
 import org.junit.Test;
-import org.rjo.chess.Game;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 
 public class BlackPawnTest {
 	private Game game;

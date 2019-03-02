@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.rjo.chess.Game;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;

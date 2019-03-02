@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.ray.RayType;

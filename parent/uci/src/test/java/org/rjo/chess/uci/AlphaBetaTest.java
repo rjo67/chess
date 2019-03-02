@@ -1,11 +1,11 @@
 package org.rjo.chess.uci;
 
 import org.junit.Test;
-import org.rjo.chess.Game;
 import org.rjo.chess.base.eval.MoveInfo;
 import org.rjo.chess.eval.AlphaBeta3;
 import org.rjo.chess.eval.SearchStrategy;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 
 public class AlphaBetaTest {
 

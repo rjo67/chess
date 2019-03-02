@@ -1,4 +1,4 @@
-package org.rjo.chess;
+package org.rjo.chess.position;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -6,12 +6,14 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.junit.Test;
+import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 
 /**
  * Move generation where the king is in check.

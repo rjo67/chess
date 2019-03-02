@@ -1,4 +1,4 @@
-package org.rjo.chess;
+package org.rjo.chess.position;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -9,6 +9,7 @@ import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 
 public class GameTest {
 

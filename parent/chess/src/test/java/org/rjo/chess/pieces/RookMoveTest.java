@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.junit.Test;
-import org.rjo.chess.Game;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
@@ -14,6 +13,7 @@ import org.rjo.chess.base.Square;
 import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.TestUtil;

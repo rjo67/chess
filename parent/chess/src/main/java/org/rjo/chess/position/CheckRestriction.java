@@ -1,4 +1,4 @@
-package org.rjo.chess;
+package org.rjo.chess.position;
 
 import org.rjo.chess.base.bits.BitBoard;
 

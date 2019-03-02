@@ -3,9 +3,9 @@ package org.rjo.chess.uci;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.rjo.chess.Game;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 
 public class UciTest {
 	@Test
