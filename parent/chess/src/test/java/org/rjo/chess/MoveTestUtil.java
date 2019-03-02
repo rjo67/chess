@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.rjo.chess.base.Move;
 
-public class MoveUtil {
+public class MoveTestUtil {
 
-	private MoveUtil() {
+	private MoveTestUtil() {
 
 	}
 

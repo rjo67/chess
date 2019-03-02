@@ -1,8 +1,4 @@
-package org.rjo.chess.pieces;
-
-import org.rjo.chess.base.bits.BitBoard;
-import org.rjo.chess.base.bits.BitSetFactory;
-import org.rjo.chess.base.bits.BitSetUnifier;
+package org.rjo.chess.base.bits;
 
 public class BitSetHelper {
 

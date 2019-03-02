@@ -3,9 +3,9 @@ package org.rjo.chess.eval;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import org.rjo.chess.Game;
 import org.rjo.chess.base.eval.MoveInfo;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 
 public class AlphaBetaTest {
 

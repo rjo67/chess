@@ -2,13 +2,13 @@ package org.rjo.chess.pieces;
 
 import java.util.List;
 
-import org.rjo.chess.CheckRestriction;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.bits.BitSetUnifier;
+import org.rjo.chess.position.CheckRestriction;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 

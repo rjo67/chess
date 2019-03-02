@@ -1,13 +1,10 @@
-package org.rjo.chess;
+package org.rjo.chess.position;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.position.MovePosition;
-import org.rjo.chess.position.Position;
-import org.rjo.chess.position.ZobristMap;
 
 /**
  * Encapsulates the board, the moves, castling rights, etc (clocks?).

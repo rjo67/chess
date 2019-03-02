@@ -4,12 +4,12 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.rjo.chess.Game;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 
 /**
  * Test movement of the king. Tests are repeated for white and black kings,

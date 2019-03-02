@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 import org.rjo.chess.position.Position;
 
 /**

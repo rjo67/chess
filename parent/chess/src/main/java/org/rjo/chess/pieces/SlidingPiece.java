@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.rjo.chess.CheckRestriction;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
@@ -14,6 +12,8 @@ import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.Ray;
 import org.rjo.chess.base.ray.RayUtils;
+import org.rjo.chess.position.CheckRestriction;
+import org.rjo.chess.position.CheckStates;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.SystemFlags;

@@ -13,8 +13,6 @@ import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.rjo.chess.CheckRestriction;
-import org.rjo.chess.CheckStates;
 import org.rjo.chess.SystemFlags;
 import org.rjo.chess.base.CastlingRightsSummary;
 import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;

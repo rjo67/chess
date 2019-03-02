@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
-import org.rjo.chess.Game;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.eval.MoveInfo;
@@ -13,6 +12,7 @@ import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Pawn;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 
 public class EvaluationTest {
 

@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 
 /**
  * Perft, (PERFormance Test, move path enumeration) is a debugging function to

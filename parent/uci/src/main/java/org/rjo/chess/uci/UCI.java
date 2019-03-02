@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-import org.rjo.chess.Game;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
@@ -16,6 +15,7 @@ import org.rjo.chess.eval.SearchStrategy;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 import org.rjo.chess.position.Position;
 
 /**
