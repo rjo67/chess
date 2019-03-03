@@ -106,7 +106,7 @@
 				 <configuration>
 					 <release>11</release>
 					<excludes>
-						<exclude>**/org/rjo/chess/base/bits/Javolution*.java</exclude>
+						<exclude>**/org/rjo/chess/base/bits/impl/Javolution*.java</exclude>
 					</excludes>
 				 </configuration>
 			 </plugin>

@@ -9,6 +9,14 @@ import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
+import org.rjo.chess.base.ray.impl.EastRay;
+import org.rjo.chess.base.ray.impl.NorthEastRay;
+import org.rjo.chess.base.ray.impl.NorthRay;
+import org.rjo.chess.base.ray.impl.NorthWestRay;
+import org.rjo.chess.base.ray.impl.SouthEastRay;
+import org.rjo.chess.base.ray.impl.SouthRay;
+import org.rjo.chess.base.ray.impl.SouthWestRay;
+import org.rjo.chess.base.ray.impl.WestRay;
 
 public class RayUtils {
 	// lookup table for each square sq1, storing the ray for every other square relative to sq1
@@ -28,6 +36,29 @@ public class RayUtils {
 	// this is the same info as SQUARES_ON_RAY, but stored as a bitset
 	private final static BitSetUnifier[][] BITSET_SQUARES_ON_RAY = new BitSetUnifier[64][64];
 
+	private static final Ray[] rays = new Ray[RayType.values().length];
+
+	static {
+		rays[RayType.NORTH.getIndex()] = NorthRay.instance();
+		rays[RayType.NORTHEAST.getIndex()] = NorthEastRay.instance();
+		rays[RayType.EAST.getIndex()] = EastRay.instance();
+		rays[RayType.SOUTHEAST.getIndex()] = SouthEastRay.instance();
+		rays[RayType.SOUTH.getIndex()] = SouthRay.instance();
+		rays[RayType.SOUTHWEST.getIndex()] = SouthWestRay.instance();
+		rays[RayType.WEST.getIndex()] = WestRay.instance();
+		rays[RayType.NORTHWEST.getIndex()] = NorthWestRay.instance();
+	}
+
+	/**
+	 * Returns the appropriate Ray class for the given raytype.
+	 *
+	 * @param type ray type
+	 * @return the matching Ray class
+	 */
+	public static Ray getRay(RayType type) {
+		return rays[type.getIndex()];
+	}
+
 	// set up static lookups
 	static {
 		for (int sq1 = 0; sq1 < 64; sq1++) {
@@ -40,13 +71,13 @@ public class RayUtils {
 					if (found) {
 						break;
 					}
-					Iterator<Integer> iter = BaseRay.getRay(rayType).squaresFrom(sq1);
+					Iterator<Integer> iter = getRay(rayType).squaresFrom(sq1);
 					List<Integer> squaresFound = new ArrayList<>();
 					while (iter.hasNext() && !found) {
 						Integer square = iter.next();
 						if (sq2 == square) {
 							found = true;
-							Ray ray = BaseRay.getRay(rayType);
+							Ray ray = getRay(rayType);
 							RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;
 							if (ray.getRayType().isDiagonal()) {
 								DIAGONAL_RAYS_BETWEEN_SQUARES[sq1][sq2] = ray;

@@ -1,8 +1,9 @@
-package org.rjo.chess.base.bits;
+package org.rjo.chess.base.bits.impl;
 
 import java.lang.reflect.Field;
 
 import org.javolution.util.BitSet;
+import org.rjo.chess.base.bits.BitSetUnifier;
 
 /**
  * BitSetUnifier-Implementation using the javolution BitSet.

@@ -5,13 +5,13 @@ import java.util.List;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
+import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.SquareCache;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.base.ray.BaseRay;
 import org.rjo.chess.base.ray.RayType;
+import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.position.CheckRestriction;
 import org.rjo.chess.position.KingCheck;
 import org.rjo.chess.position.Position;
@@ -124,7 +124,7 @@ public class Queen extends SlidingPiece {
 		 * search for moves in all compass directions.
 		 */
 		for (RayType rayType : RayType.values()) {
-			moves.addAll(search(posn, BaseRay.getRay(rayType), checkRestriction));
+			moves.addAll(search(posn, RayUtils.getRay(rayType), checkRestriction));
 		}
 		return moves;
 	}
@@ -195,6 +195,6 @@ public class Queen extends SlidingPiece {
 		if (attacksSquareRankOrFile(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion)) {
 			return true;
 		}
-        return attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion);
-    }
+		return attacksSquareDiagonally(emptySquares, startSquare, targetSquare, checkCache, isCapture, isPromotion);
+	}
 }

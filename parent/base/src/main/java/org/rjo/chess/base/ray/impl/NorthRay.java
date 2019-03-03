@@ -1,4 +1,4 @@
-package org.rjo.chess.base.ray;
+package org.rjo.chess.base.ray.impl;
 
 import java.util.ArrayList;
 
@@ -6,19 +6,20 @@ import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetUnifier;
+import org.rjo.chess.base.ray.RayType;
 
-public class NorthEastRay extends BaseRay {
+public class NorthRay extends BaseRay {
 
-	private static NorthEastRay instance = new NorthEastRay();
+	private static NorthRay instance = new NorthRay();
 
-	private NorthEastRay() {
-		super(RayType.NORTHEAST, new PieceType[] { PieceType.QUEEN, PieceType.BISHOP });
-		final int offset = 9;
+	private NorthRay() {
+		super(RayType.NORTH, new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
+		final int offset = 8;
 		for (int i = 0; i < 64; i++) {
 			final BitSetUnifier bitset = BitSetFactory.createBitSet(64);
 			raySquares[i] = new ArrayList<>(8);
 			int startSquareIndex = i + offset;
-			while (startSquareIndex < 64 && startSquareIndex % 8 != 0) {
+			while (startSquareIndex < 64) {
 				raySquares[i].add(startSquareIndex);
 				bitset.set(startSquareIndex);
 				startSquareIndex += offset;
@@ -27,8 +28,7 @@ public class NorthEastRay extends BaseRay {
 		}
 	}
 
-	public static NorthEastRay instance() {
+	public static NorthRay instance() {
 		return instance;
 	}
-
 }

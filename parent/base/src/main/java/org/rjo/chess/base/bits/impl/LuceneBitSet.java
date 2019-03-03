@@ -1,7 +1,8 @@
-package org.rjo.chess.base.bits;
+package org.rjo.chess.base.bits.impl;
 
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.FixedBitSet;
+import org.rjo.chess.base.bits.BitSetUnifier;
 
 /**
  * BitSetUnifier-Implementation using the lucene FixedBitSet.

@@ -1,4 +1,6 @@
-package org.rjo.chess.base.bits;
+package org.rjo.chess.base.bits.impl;
+
+import org.rjo.chess.base.bits.BitSetUnifier;
 
 /**
  * BitSetUnifier-Implementation using ChessBitSet.

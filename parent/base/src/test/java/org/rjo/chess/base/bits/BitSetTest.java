@@ -10,6 +10,9 @@ import java.util.function.Consumer;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
 import org.rjo.chess.base.Square;
+import org.rjo.chess.base.bits.impl.ChessBitSetUnifier;
+import org.rjo.chess.base.bits.impl.JavaUtilBitSet;
+import org.rjo.chess.base.bits.impl.LuceneBitSet;
 import org.rjo.chess.base.ray.Ray;
 import org.rjo.chess.base.ray.RayUtils;
 

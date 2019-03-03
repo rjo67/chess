@@ -1,4 +1,4 @@
-package org.rjo.chess.base.ray;
+package org.rjo.chess.base.ray.impl;
 
 import java.util.ArrayList;
 
@@ -6,19 +6,20 @@ import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetUnifier;
+import org.rjo.chess.base.ray.RayType;
 
-public class SouthWestRay extends BaseRay {
+public class EastRay extends BaseRay {
 
-	private static SouthWestRay instance = new SouthWestRay();
+	private static EastRay instance = new EastRay();
 
-	private SouthWestRay() {
-		super(RayType.SOUTHWEST, new PieceType[] { PieceType.QUEEN, PieceType.BISHOP });
-		final int offset = -9;
+	private EastRay() {
+		super(RayType.EAST, new PieceType[] { PieceType.QUEEN, PieceType.ROOK });
+		final int offset = 1;
 		for (int i = 0; i < 64; i++) {
+			final BitSetUnifier bitset = BitSetFactory.createBitSet(64);
 			raySquares[i] = new ArrayList<>(8);
 			int startSquareIndex = i + offset;
-			final BitSetUnifier bitset = BitSetFactory.createBitSet(64);
-			while ((startSquareIndex >= 0) && (startSquareIndex % 8 != 7)) {
+			while (startSquareIndex % 8 != 0) {
 				raySquares[i].add(startSquareIndex);
 				bitset.set(startSquareIndex);
 				startSquareIndex += offset;
@@ -27,7 +28,7 @@ public class SouthWestRay extends BaseRay {
 		}
 	}
 
-	public static SouthWestRay instance() {
+	public static EastRay instance() {
 		return instance;
 	}
 }

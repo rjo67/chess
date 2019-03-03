@@ -1,4 +1,4 @@
-package org.rjo.chess.base.bits;
+package org.rjo.chess.base.bits.impl;
 
 /**
  * Fixed length 64bit bitset, based on apache lucene implementation FixedBitSet.

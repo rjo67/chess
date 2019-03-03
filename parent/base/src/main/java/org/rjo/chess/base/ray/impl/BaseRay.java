@@ -1,4 +1,4 @@
-package org.rjo.chess.base.ray;
+package org.rjo.chess.base.ray.impl;
 
 import java.util.Iterator;
 import java.util.List;
@@ -7,31 +7,11 @@ import java.util.stream.Stream;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
+import org.rjo.chess.base.ray.Ray;
+import org.rjo.chess.base.ray.RayType;
+import org.rjo.chess.base.ray.RayUtils;
 
 public abstract class BaseRay implements Ray {
-
-	private static final Ray[] rays = new Ray[RayType.values().length];
-
-	static {
-		rays[RayType.NORTH.getIndex()] = NorthRay.instance();
-		rays[RayType.NORTHEAST.getIndex()] = NorthEastRay.instance();
-		rays[RayType.EAST.getIndex()] = EastRay.instance();
-		rays[RayType.SOUTHEAST.getIndex()] = SouthEastRay.instance();
-		rays[RayType.SOUTH.getIndex()] = SouthRay.instance();
-		rays[RayType.SOUTHWEST.getIndex()] = SouthWestRay.instance();
-		rays[RayType.WEST.getIndex()] = WestRay.instance();
-		rays[RayType.NORTHWEST.getIndex()] = NorthWestRay.instance();
-	}
-
-	/**
-	 * Returns the appropriate Ray class for the given raytype.
-	 *
-	 * @param type ray type
-	 * @return the matching Ray class
-	 */
-	public static Ray getRay(RayType type) {
-		return rays[type.getIndex()];
-	}
 
 	private final RayType rayType;
 
@@ -114,6 +94,6 @@ public abstract class BaseRay implements Ray {
 
 	@Override
 	public final Ray getOpposite() {
-		return rays[this.getRayType().getOpposite().getIndex()];
+		return RayUtils.getRay(this.getRayType().getOpposite());
 	}
 }
