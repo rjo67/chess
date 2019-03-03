@@ -1,5 +1,10 @@
 package org.rjo.chess.base.bits;
 
+import org.rjo.chess.base.bits.impl.ChessBitSetUnifier;
+import org.rjo.chess.base.bits.impl.JavaUtilBitSet;
+import org.rjo.chess.base.bits.impl.JavolutionBitSet;
+import org.rjo.chess.base.bits.impl.LuceneBitSet;
+
 /**
  * Decides on the BitSet implementation to use.
  *

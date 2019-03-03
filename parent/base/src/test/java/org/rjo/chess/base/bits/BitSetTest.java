@@ -12,10 +12,10 @@ import org.junit.Test;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.base.bits.ChessBitSetUnifier;
-import org.rjo.chess.base.bits.JavaUtilBitSet;
-import org.rjo.chess.base.bits.JavolutionBitSet;
-import org.rjo.chess.base.bits.LuceneBitSet;
+import org.rjo.chess.base.bits.impl.ChessBitSetUnifier;
+import org.rjo.chess.base.bits.impl.JavaUtilBitSet;
+import org.rjo.chess.base.bits.impl.JavolutionBitSet;
+import org.rjo.chess.base.bits.impl.LuceneBitSet;
 import org.rjo.chess.base.ray.Ray;
 import org.rjo.chess.base.ray.RayUtils;
 

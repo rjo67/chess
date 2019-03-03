@@ -10,8 +10,8 @@ import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.base.ray.BaseRay;
 import org.rjo.chess.base.ray.RayType;
+import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.position.CheckRestriction;
 import org.rjo.chess.position.KingCheck;
 import org.rjo.chess.position.Position;
@@ -126,7 +126,7 @@ public class Bishop extends SlidingPiece {
 
 		// search for moves
 		for (RayType rayType : RayType.RAY_TYPES_DIAGONAL) {
-			moves.addAll(search(posn, BaseRay.getRay(rayType), checkRestriction));
+			moves.addAll(search(posn, RayUtils.getRay(rayType), checkRestriction));
 		}
 
 		return moves;

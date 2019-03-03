@@ -1,8 +1,9 @@
-package org.rjo.chess.base.bits;
+package org.rjo.chess.base.bits.impl;
 
 import java.util.BitSet;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
+
+import org.rjo.chess.base.bits.BitSetUnifier;
 
 /**
  * BitSetUnifier-Implementation using java.util.BitSet.
@@ -32,7 +33,7 @@ public final class JavaUtilBitSet implements BitSetUnifier, Cloneable {
 			return false;
 		}
 		if (obj instanceof JavaUtilBitSet) {
-		   return bs.equals(((JavaUtilBitSet) obj).bs);
+			return bs.equals(((JavaUtilBitSet) obj).bs);
 		} else {
 			return false;
 		}
@@ -120,7 +121,6 @@ public final class JavaUtilBitSet implements BitSetUnifier, Cloneable {
 	@Override
 	public void clear(int bitIndex) {
 		bs.clear(bitIndex);
-
 	}
 
 	@Override
@@ -133,5 +133,7 @@ public final class JavaUtilBitSet implements BitSetUnifier, Cloneable {
 		return bs.previousSetBit(fromIndex);
 	}
 
-	public IntStream stream() { return bs.stream();}
+	public IntStream stream() {
+		return bs.stream();
+	}
 }

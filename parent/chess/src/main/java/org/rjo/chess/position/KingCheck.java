@@ -8,7 +8,6 @@ import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.base.ray.BaseRay;
 import org.rjo.chess.base.ray.Ray;
 import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.base.ray.RayUtils;
@@ -168,7 +167,7 @@ public class KingCheck {
 		}
 
 		for (RayType rayType : raysToCheck) {
-			Ray ray = BaseRay.getRay(rayType);
+			Ray ray = RayUtils.getRay(rayType);
 			Iterator<Integer> rayIter = ray.squaresFrom(kingsSquare);
 			while (rayIter.hasNext()) {
 				int bitIndex = rayIter.next();

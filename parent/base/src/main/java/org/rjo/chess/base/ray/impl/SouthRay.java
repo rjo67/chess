@@ -1,4 +1,4 @@
-package org.rjo.chess.base.ray;
+package org.rjo.chess.base.ray.impl;
 
 import java.util.ArrayList;
 
@@ -6,6 +6,7 @@ import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetUnifier;
+import org.rjo.chess.base.ray.RayType;
 
 public class SouthRay extends BaseRay {
 

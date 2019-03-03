@@ -21,7 +21,6 @@ import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.base.ray.BaseRay;
 import org.rjo.chess.base.ray.RayInfo;
 import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.base.ray.RayUtils;
@@ -418,7 +417,7 @@ public class PositionTest {
 			int nbrEmptySquares = 0;
 			for (RayType rayType : RayType.values()) {
 				RayInfo info = RayUtils.findFirstPieceOnRay(Colour.BLACK, game.getPosition().getTotalPieces().flip(),
-						game.getPosition().getAllPieces(Colour.WHITE).getBitSet(), BaseRay.getRay(rayType), i);
+						game.getPosition().getAllPieces(Colour.WHITE).getBitSet(), RayUtils.getRay(rayType), i);
 				// System.out.println(ray + " " + info);
 				nbrEmptySquares += info.getEmptySquares().size();
 			}
