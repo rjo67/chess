@@ -8,9 +8,9 @@ import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.position.CheckRestriction;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
+import org.rjo.chess.position.check.CheckRestriction;
 
 /**
  * Stores the type and colour of a piece.

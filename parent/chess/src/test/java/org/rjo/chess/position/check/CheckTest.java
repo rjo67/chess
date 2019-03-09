@@ -1,4 +1,4 @@
-package org.rjo.chess.position;
+package org.rjo.chess.position.check;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
+import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.position.Fen;
 import org.rjo.chess.position.Game;
 
@@ -40,6 +40,12 @@ public class CheckTest {
 	public void doubleCheck() {
 		Game game = Fen.decode("5R2/3r1K2/1N6/8/2b5/8/4Q3/7k w - - 0 4");
 		TestUtil.checkMoves(game.getPosition().findMoves(Colour.WHITE), "Kf7-e8", "Kf7-f6", "Kf7-g6");
+	}
+
+	@Test
+	public void doubleCheckAdjacentPiece() {
+		Game game = Fen.decode("5R2/4rK2/1N6/8/2b5/8/4Q3/7k w - - 0 4");
+		TestUtil.checkMoves(game.getPosition().findMoves(Colour.WHITE), "Kf7xe7", "Kf7-f6", "Kf7-g6");
 	}
 
 	@Test

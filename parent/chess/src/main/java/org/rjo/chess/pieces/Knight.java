@@ -6,18 +6,19 @@ import java.util.Optional;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
+import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.SquareCache;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.position.CheckRestriction;
-import org.rjo.chess.position.KingCheck;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
+import org.rjo.chess.position.check.BoardInfo;
+import org.rjo.chess.position.check.CheckRestriction;
+import org.rjo.chess.position.check.KingCheck;
 
 /**
  * Stores information about the knights (still) in the game.
@@ -183,6 +184,34 @@ public class Knight extends AbstractSetPiece {
 	}
 
 	@Override
+	public List<Move> findMoves(Position posn,
+			BoardInfo boardInfo) {
+		List<Move> moves = new ArrayList<>(20);
+		final Colour oppositeColour = Colour.oppositeColour(getColour());
+		final BitSetUnifier allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
+		final BitSetUnifier allOpponentsPiecesBitSet = posn.getAllPieces(oppositeColour).getBitSet();
+
+		/*
+		 * for each knight on the board, finds its moves using the lookup table
+		 */
+		for (Square knightStartSquare : pieces) {
+			BitSetUnifier possibleMoves = (BitSetUnifier) knightMoves[knightStartSquare.bitIndex()].clone();
+			// remove target squares occupied by my own pieces
+			possibleMoves.andNot(allMyPiecesBitSet);
+			// take into account squares restricted because of check
+			possibleMoves.and(boardInfo.getCheckRestrictedSquares().getBitSet());
+			/*
+			 * Iterates over all possible moves and stores them as moves or captures
+			 */
+			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
+				moves.add(createMove(k, posn, allOpponentsPiecesBitSet, knightStartSquare, oppositeColour));
+			}
+
+		}
+		return moves;
+	}
+
+	@Override
 	public List<Move> findPotentialMoves(Position posn,
 			CheckRestriction checkRestriction) {
 		List<Move> moves = new ArrayList<>(20);
@@ -204,22 +233,29 @@ public class Knight extends AbstractSetPiece {
 				if (!allMyPiecesBitSet.get(k)) {
 					// restrict squares i/c of check
 					if (checkRestriction.getSquareRestriction().get(k)) {
-						Square targetSquare = Square.fromBitIndex(k);
-						Move move;
-						// decide if capture or not
-						if (allOpponentsPiecesBitSet.get(k)) {
-							// capture
-							move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare,
-									posn.pieceAt(targetSquare, oppositeColour));
-						} else {
-							move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare);
-						}
-						moves.add(move);
+						moves.add(createMove(k, posn, allOpponentsPiecesBitSet, knightStartSquare, oppositeColour));
 					}
 				}
 			}
 		}
 		return moves;
+	}
+
+	private Move createMove(int bitIndex,
+			Position posn,
+			BitSetUnifier allOpponentsPiecesBitSet,
+			Square knightStartSquare,
+			Colour oppositeColour) {
+		Move move;
+		// decide if capture or not
+		Square targetSquare = Square.fromBitIndex(bitIndex);
+		if (allOpponentsPiecesBitSet.get(bitIndex)) {
+			// capture
+			move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare, posn.pieceAt(targetSquare, oppositeColour));
+		} else {
+			move = new Move(PieceType.KNIGHT, getColour(), knightStartSquare, targetSquare);
+		}
+		return move;
 	}
 
 	@Override
@@ -294,12 +330,15 @@ public class Knight extends AbstractSetPiece {
 	 *
 	 * @param targetSq square to be attacked
 	 * @param knights bitset describing where the knights are
-	 * @return true if <code>targetSq</code> is attacked by one or more knights
+	 * @return the index of the square occupied by a knight which attacks <code>targetSq</code>, or -1.
 	 */
-	public static boolean attacksSquare(Square targetSq,
+	public static int attacksSquare(Square targetSq,
 			BitSetUnifier knights) {
-		BitSetUnifier possibleMovesFromTargetSquare = knightMoves[targetSq.bitIndex()];
-		return possibleMovesFromTargetSquare.intersects(knights);
+		// we want the square where the knight is, therefore can't use possibleMovesFromTargetSquare.intersects(knights)
+		// and have to clone the knightMoves value
+		BitSetUnifier possibleMovesFromTargetSquare = (BitSetUnifier) knightMoves[targetSq.bitIndex()].clone();
+		possibleMovesFromTargetSquare.and(knights);
+		return possibleMovesFromTargetSquare.nextSetBit(0);
 	}
 
 }

@@ -2,7 +2,6 @@ package org.rjo.chess.pieces;
 
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
@@ -31,13 +30,6 @@ public class KingMoveTest {
 	private void setupKings() {
 		whiteKing = game.getPosition().getPieces(Colour.WHITE)[PieceType.KING.ordinal()];
 		blackKing = game.getPosition().getPieces(Colour.BLACK)[PieceType.KING.ordinal()];
-	}
-
-	@BeforeEach
-	public void init() {
-		// NB: initialised without any starting squares
-		whiteKing = new King(Colour.WHITE);
-		blackKing = new King(Colour.BLACK);
 	}
 
 	@Test

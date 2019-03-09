@@ -1,4 +1,4 @@
-package org.rjo.chess.position;
+package org.rjo.chess.position.check;
 
 import org.rjo.chess.base.bits.BitBoard;
 
@@ -19,7 +19,7 @@ public class CheckRestriction {
 	private boolean inCheck;
 
 	private CheckRestriction() {
-		this.squareRestriction = BitBoard.ALL_SET;
+		this.squareRestriction = BitBoard.allSet();
 		this.inCheck = false;
 	}
 

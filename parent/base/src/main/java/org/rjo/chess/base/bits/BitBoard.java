@@ -19,9 +19,6 @@ import org.rjo.chess.base.Square;
  */
 public class BitBoard {
 
-	public final static BitBoard ALL_SET = new BitBoard(new BitBoard().flip());
-	public final static BitBoard EMPTY = new BitBoard();
-
 	/**
 	 * BitSets for each <code>file</code> of the board.
 	 * <p>
@@ -213,6 +210,14 @@ public class BitBoard {
 	}
 
 	private BitSetUnifier bs;
+
+	public static BitBoard allSet() {
+		return new BitBoard(new BitBoard().flip());
+	}
+
+	public static BitBoard empty() {
+		return new BitBoard();
+	}
 
 	/**
 	 * default constructor. Initialises the underlying bit set to 64 bits.

@@ -63,6 +63,16 @@ public enum Square {
 	}
 
 	/**
+	 * Is this square adjacent to the given square?
+	 * 
+	 * @param other the other square
+	 * @return true when adjacent
+	 */
+	public boolean isAdjacentTo(Square other) {
+		return Math.abs(this.rank - other.rank) <= 1 && Math.abs(this.file - other.file) <= 1;
+	}
+
+	/**
 	 * Gives the matching square to a bit posn.
 	 *
 	 * @param bitIndex the required bit index (0..63)

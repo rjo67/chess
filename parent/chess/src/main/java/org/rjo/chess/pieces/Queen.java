@@ -12,10 +12,11 @@ import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.base.ray.RayUtils;
-import org.rjo.chess.position.CheckRestriction;
-import org.rjo.chess.position.KingCheck;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
+import org.rjo.chess.position.check.BoardInfo;
+import org.rjo.chess.position.check.CheckRestriction;
+import org.rjo.chess.position.check.KingCheck;
 
 /**
  * Stores information about the queens (still) in the game.
@@ -101,6 +102,25 @@ public class Queen extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
+			BoardInfo boardInfo) {
+		List<Move> moves = new ArrayList<>(30);
+
+		/*
+		 * search for moves in all compass directions.
+		 */
+		for (RayType rayType : RayType.values()) {
+			moves.addAll(search(posn, RayUtils.getRay(rayType), boardInfo.getCheckRestrictedSquares(), boardInfo.isKingInCheck()));
+		}
+		// make sure my king is not/no longer in check
+		Square myKing = posn.getKingPosition(colour);
+		Colour opponentsColour = Colour.oppositeColour(colour);
+		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, boardInfo.isKingInCheck()));
+
+		return moves;
+	}
+
+	@Override
+	public List<Move> findMoves(Position posn,
 			CheckInformation kingInCheck,
 			CheckRestriction checkRestriction) {
 
@@ -124,7 +144,7 @@ public class Queen extends SlidingPiece {
 		 * search for moves in all compass directions.
 		 */
 		for (RayType rayType : RayType.values()) {
-			moves.addAll(search(posn, RayUtils.getRay(rayType), checkRestriction));
+			moves.addAll(search(posn, RayUtils.getRay(rayType), checkRestriction.getSquareRestriction(), checkRestriction.isInCheck()));
 		}
 		return moves;
 	}
