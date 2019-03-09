@@ -16,7 +16,7 @@ import org.rjo.chess.base.bits.BitSetHelper;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
-import org.rjo.chess.position.check.BoardInfo;
+import org.rjo.chess.position.PositionInfo;
 import org.rjo.chess.position.check.CheckRestriction;
 import org.rjo.chess.position.check.KingCheck;
 
@@ -185,7 +185,7 @@ public class Knight extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			BoardInfo boardInfo) {
+			PositionInfo boardInfo) {
 		List<Move> moves = new ArrayList<>(20);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
 		final BitSetUnifier allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();

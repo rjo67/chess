@@ -15,7 +15,7 @@ import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.position.Fen;
 import org.rjo.chess.position.Game;
 import org.rjo.chess.position.Position;
-import org.rjo.chess.position.check.BoardInfo.PieceInfo;
+import org.rjo.chess.position.PositionInfo.PieceInfo;
 
 /**
  * Test determination of whether pieces are pinned.

@@ -14,6 +14,7 @@ import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.pieces.Knight;
 import org.rjo.chess.pieces.Pawn;
 import org.rjo.chess.position.Position;
+import org.rjo.chess.position.PositionInfo;
 
 /**
  * Routines to discover if the king is in check.
@@ -118,7 +119,7 @@ public class KingCheck {
 	 * @return an object containing a list of pieces checking the king (list is empty if the king is not in check) and a
 	 *         list of pieces which are pinned against the king. If friendlyPieces==null, pinned info will not be returned
 	 */
-	public static BoardInfo isKingInCheck(Square kingsSquare,
+	public static PositionInfo isKingInCheck(Square kingsSquare,
 			Colour kingsColour,
 			BitSetUnifier allFriendlyPieces,
 			BitSetUnifier[] friendlyPieces,
@@ -126,7 +127,7 @@ public class KingCheck {
 			RayType rayToExamine,
 			boolean findAllChecks) {
 
-		var boardInfo = new BoardInfo(kingsSquare);
+		var boardInfo = new PositionInfo(kingsSquare);
 		boolean optimizedRaySearch = rayToExamine != null;
 
 		/*
