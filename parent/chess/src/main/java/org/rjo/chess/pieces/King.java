@@ -22,7 +22,7 @@ import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Fen;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
-import org.rjo.chess.position.check.BoardInfo;
+import org.rjo.chess.position.PositionInfo;
 import org.rjo.chess.position.check.CheckRestriction;
 import org.rjo.chess.position.check.KingCheck;
 
@@ -327,7 +327,7 @@ public class King extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findMoves(Position position,
-			BoardInfo boardInfo) {
+			PositionInfo boardInfo) {
 		Square kingsSquare = pieces.iterator().next();
 		final Colour oppositeColour = Colour.oppositeColour(colour);
 		Square opponentsKingSquare = position.getKingPosition(oppositeColour);

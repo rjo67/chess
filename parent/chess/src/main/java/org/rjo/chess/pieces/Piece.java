@@ -12,7 +12,7 @@ import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
-import org.rjo.chess.position.check.BoardInfo;
+import org.rjo.chess.position.PositionInfo;
 import org.rjo.chess.position.check.CheckRestriction;
 
 /**
@@ -65,7 +65,7 @@ public interface Piece extends Cloneable {
 	 * @return a list of all possible moves.
 	 */
 	List<Move> findMoves(Position position,
-			BoardInfo boardInfo);
+			PositionInfo boardInfo);
 
 	/**
 	 * Finds all possible moves for this piece type in the given position. <b>Moves returned are legal. However, this method

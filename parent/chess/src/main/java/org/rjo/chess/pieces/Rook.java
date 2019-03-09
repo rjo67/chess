@@ -21,7 +21,7 @@ import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
-import org.rjo.chess.position.check.BoardInfo;
+import org.rjo.chess.position.PositionInfo;
 import org.rjo.chess.position.check.CheckRestriction;
 import org.rjo.chess.position.check.KingCheck;
 
@@ -348,7 +348,7 @@ public class Rook extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			BoardInfo boardInfo) {
+			PositionInfo boardInfo) {
 		List<Move> moves = new ArrayList<>(30);
 
 		for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {

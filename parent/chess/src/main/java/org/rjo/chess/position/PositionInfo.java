@@ -1,4 +1,4 @@
-package org.rjo.chess.position.check;
+package org.rjo.chess.position;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -11,20 +11,28 @@ import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.base.ray.RayUtils;
 
 /**
- * TODO merge with PositionCheckState?
+ * Stores information about a position:
+ * <ul>
+ * <li>is king in check and if so, from where and which pieces?</li>
+ * <li>which pieces are pinned</li>
+ * </ul>
+ * TODO merge with PositionCheckState? Normally all squares come into consideration for a move. If the king is in check
+ * however, the available squares are greatly reduced. In this case either the checking piece must be captured, a piece
+ * interposed on the checking ray, or the king must move.
+ * <p>
+ * (Merged with CheckRestriction March 2019.)
  *
  * @author rich
- * @since 2019-03-03
  */
-public class BoardInfo {
+public class PositionInfo {
 
 	private Square kingsSquare;
 	private List<PieceInfo> checkInfo;
 	private List<PieceInfo> pinInfo;
-	private BitBoard restrictedSquares = BitBoard.allSet();
-	private BitBoard restrictedSquaresForKing = BitBoard.empty();
+	private BitBoard restrictedSquares = BitBoard.allSet(); // default is no restriction
+	private BitBoard restrictedSquaresForKing = BitBoard.empty(); // default is no restriction
 
-	public BoardInfo(Square kingsSquare) {
+	public PositionInfo(Square kingsSquare) {
 		this.kingsSquare = kingsSquare;
 		this.checkInfo = new ArrayList<>();
 		this.pinInfo = new ArrayList<>();
@@ -133,7 +141,7 @@ public class BoardInfo {
 		return restrictedSquaresForKing;
 	}
 
-	static class PieceInfo {
+	public static class PieceInfo {
 		private RayType ray;
 		private PieceType piece;
 		private int bitIndex;
