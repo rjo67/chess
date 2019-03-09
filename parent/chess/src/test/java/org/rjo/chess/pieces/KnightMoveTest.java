@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.junit.Test;
+import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
@@ -16,7 +17,6 @@ import org.rjo.chess.position.Fen;
 import org.rjo.chess.position.Game;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
-import org.rjo.chess.TestUtil;
 
 public class KnightMoveTest {
 
@@ -157,6 +157,13 @@ public class KnightMoveTest {
 		List<Move> moves = game.getPosition().findMoves(Colour.WHITE);
 		TestUtil.checkMoves(moves, "Rh5-h6", "Rh5-h7", "Rh5-h8", "Rh5-h4", "Rh5-h3", "Rh5-h2", "Rh5-h1", "Ke3-d2", "Ke3-d3", "Ke3-d4",
 				"Ke3-e2", "Ke3-e4", "Ke3-f2", "Ke3-f3", "Ke3-f4", "Ng5-h3+", "Ng5-f3+", "Ng5-e4+", "Ng5-e6+", "Ng5-f7+", "Ng5-h7+");
+	}
+
+	@Test
+	public void kingInCheckFollowedByDiscoveredCheck() {
+		setupGame("8/4r3/8/1k4NR/8/4K3/8/8 w - - 0 10");
+		List<Move> moves = game.getPosition().findMoves(Colour.WHITE);
+		TestUtil.checkMoves(moves, "Ke3-d2", "Ke3-d3", "Ke3-d4", "Ke3-f2", "Ke3-f3", "Ke3-f4", "Ng5-e4+", "Ng5-e6+");
 	}
 
 	@Test

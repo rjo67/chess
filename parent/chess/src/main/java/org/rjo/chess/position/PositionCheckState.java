@@ -8,6 +8,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.ray.RayType;
+import org.rjo.chess.position.check.CheckStates;
 
 /**
  * Stores information about which squares in a position lead to check on the opponent's king.

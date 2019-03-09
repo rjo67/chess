@@ -1,18 +1,26 @@
-package org.rjo.chess.position;
+package org.rjo.chess.position.check;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.Optional;
+
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
+import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.position.KingCheck;
+import org.rjo.chess.base.ray.RayType;
+import org.rjo.chess.position.Fen;
+import org.rjo.chess.position.Game;
 import org.rjo.chess.position.Position;
+import org.rjo.chess.position.check.BoardInfo.PieceInfo;
 
 /**
  * Test determination of whether the king is in check.
@@ -21,11 +29,13 @@ import org.rjo.chess.position.Position;
  */
 public class KingCheckTest {
 	private Game game;
-	private BitSetUnifier[] enemyPieces;
+	private BitSetUnifier[] whitePieces;
+	private BitSetUnifier[] blackPieces;
 
 	private void setup(String fen) {
 		game = Fen.decode(fen);
-		enemyPieces = setupBlackBitsets(game.getPosition());
+		whitePieces = setupBitsets(game.getPosition(), Colour.WHITE);
+		blackPieces = setupBitsets(game.getPosition(), Colour.BLACK);
 	}
 
 	/**
@@ -69,67 +79,50 @@ public class KingCheckTest {
 	}
 
 	/**
-	 * 'static' check of a position
+	 * Calling the isKingInCheck method directly and inspecting the results.
 	 */
 	@Test
-	public void knightGivesCheck() {
-		setup("8/4k3/8/2n5/4P3/3K4/8/8 w - - 10 10");
-		BitSetUnifier[] enemyPieces = setupBlackBitsets(game.getPosition());
-		assertTrue(KingCheck.isKingInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()), enemyPieces));
-	}
+	public void simpleChecks() {
+		var data = Arrays.asList(new Object[][] {
+				{ "8/4k3/8/b7/8/2BP4/3K4/8 w - - 10 10", Square.d2, Colour.WHITE, null },
+				{ "3bq3/pp2k3/8/rn3b2/4P3/3K1Pr1/8/8 w - - 10 10", Square.d3, Colour.WHITE, null },
+				{ "8/4k3/8/8/2p5/3K4/8/8 w - - 10 10", Square.d3, Colour.WHITE,
+						new PieceInfo[] { new PieceInfo(null, PieceType.PAWN, Square.c4) } },
+				{ "8/4k3/8/1b6/4P3/3K4/8/8 w - - 10 10", Square.d3, Colour.WHITE,
+						new PieceInfo[] { new PieceInfo(RayType.NORTHWEST, PieceType.BISHOP, Square.b5) } },
+				{ "8/4k3/8/8/4P3/3K3q/8/6q1 w - - 10 10", Square.d3, Colour.WHITE,
+						new PieceInfo[] { new PieceInfo(RayType.EAST, PieceType.QUEEN, Square.h3) } },
+				{ "8/4k3/8/8/4P3/3K4/8/5q2 w - - 10 10", Square.d3, Colour.WHITE,
+						new PieceInfo[] { new PieceInfo(RayType.SOUTHEAST, PieceType.QUEEN, Square.f1) } },
+				{ "3r4/4k3/8/r7/4P3/3K4/8/8 w - - 10 10", Square.d3, Colour.WHITE,
+						new PieceInfo[] { new PieceInfo(RayType.NORTH, PieceType.ROOK, Square.d8) } },
+				{ "8/4k3/8/8/4P3/3K4/8/4n3 w - - 10 10", Square.d3, Colour.WHITE,
+						new PieceInfo[] { new PieceInfo(null, PieceType.KNIGHT, Square.e1) } },
+				{ "8/4k3/b7/8/4P3/3K4/8/4n3 w - - 10 10", Square.d3, Colour.WHITE,
+						new PieceInfo[] { new PieceInfo(null, PieceType.KNIGHT, Square.e1),
+								new PieceInfo(RayType.NORTHWEST, PieceType.BISHOP, Square.a6) } },
+				{ "8/4k3/8/8/4P3/3K2q1/8/4n3 w - - 10 10", Square.d3, Colour.WHITE,
+						new PieceInfo[] { new PieceInfo(null, PieceType.KNIGHT, Square.e1),
+								new PieceInfo(RayType.EAST, PieceType.QUEEN, Square.g3) } },
+		});
 
-	/**
-	 * 'static' check of a position
-	 */
-	@Test
-	public void pawnGivesCheck() {
-		setup("8/4k3/8/8/2p5/3K4/8/8 w - - 10 10");
-		assertTrue(KingCheck.isKingInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()), enemyPieces));
-	}
-
-	/**
-	 * 'static' check of a position
-	 */
-	@Test
-	public void bishopGivesCheck() {
-		setup("8/4k3/8/1b6/4P3/3K4/8/8 w - - 10 10");
-		assertTrue(KingCheck.isKingInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()), enemyPieces));
-	}
-
-	/**
-	 * 'static' check of a position
-	 */
-	@Test
-	public void queenGivesCheckOnFile() {
-		setup("8/4k3/8/8/4P3/3K3q/8/6q1 w - - 10 10");
-		assertTrue(KingCheck.isKingInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()), enemyPieces));
-	}
-
-	/**
-	 * 'static' check of a position
-	 */
-	@Test
-	public void queenGivesCheckDiagonally() {
-		setup("8/4k3/8/8/4P3/3K4/8/5q2 w - - 10 10");
-		assertTrue(KingCheck.isKingInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()), enemyPieces));
-	}
-
-	/**
-	 * 'static' check of a position
-	 */
-	@Test
-	public void rookGivesCheck() {
-		setup("3r4/4k3/8/r7/4P3/3K4/8/8 w - - 10 10");
-		assertTrue(KingCheck.isKingInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()), enemyPieces));
-	}
-
-	/**
-	 * 'static' check of a position
-	 */
-	@Test
-	public void notInCheck() {
-		setup("3bq3/pp2k3/8/rn3b2/4P3/3K1Pr1/8/8 w - - 10 10");
-		assertFalse(KingCheck.isKingInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()), enemyPieces));
+		for (Object[] d : data) {
+			setup((String) d[0]);
+			var checks = KingCheck.isKingInCheck((Square) d[1], (Colour) d[2],
+					getWhitePieces(game.getPosition()),
+					whitePieces,
+					blackPieces,
+					null,
+					true).getCheckInfo();
+			if (d[3] != null) {
+				var expectedChecks = ((PieceInfo[]) d[3]).length;
+				assertEquals(String.format("bad nbr of checks for posn %s", d[0]), expectedChecks, checks.size());
+				for (PieceInfo expectedCheck : (PieceInfo[]) d[3]) {
+					Optional<PieceInfo> result = checks.stream().filter(c -> c.equals(expectedCheck)).findFirst();
+					assertFalse(String.format("expected check: %s, got %s", expectedCheck, checks), result.isEmpty());
+				}
+			}
+		}
 	}
 
 	/**
@@ -141,7 +134,7 @@ public class KingCheckTest {
 		setup("3bq3/pp2k3/8/rn3b2/4P3/3K1Pr1/8/8 w - - 10 10");
 		BitSetUnifier friendlyPieces = getWhitePieces(game.getPosition());
 		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.e4, Square.e5);
-		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d3, Colour.WHITE, friendlyPieces, enemyPieces, move));
+		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d3, Colour.WHITE, friendlyPieces, blackPieces, move));
 		assertEquals(friendlyPieces, getWhitePieces(game.getPosition()));
 	}
 
@@ -155,7 +148,7 @@ public class KingCheckTest {
 		BitSetUnifier bishopBitSet = game.getPosition().getPieces(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard().getBitSet();
 		Move move = new Move(PieceType.KING, Colour.WHITE, Square.c2, Square.d2, PieceType.BISHOP);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d2, Colour.WHITE, getWhitePieces(game.getPosition()),
-				enemyPieces, move));
+				blackPieces, move));
 		// should be same object
 		assertSame(bishopBitSet, game.getPosition().getPieces(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard().getBitSet());
 	}
@@ -169,7 +162,7 @@ public class KingCheckTest {
 		setup("3bq3/pp2k3/8/rn3b2/4P3/3K1Pr1/8/8 w - - 10 10");
 		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.e4, Square.e5);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()),
-				enemyPieces, move));
+				blackPieces, move));
 	}
 
 	@Test
@@ -177,7 +170,7 @@ public class KingCheckTest {
 		setup("3r4/4k3/8/r7/4q3/3P4/3K4/8 w - - 10 10");
 		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.d3, Square.e4, PieceType.QUEEN);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d2, Colour.WHITE, getWhitePieces(game.getPosition()),
-				enemyPieces, move));
+				blackPieces, move));
 	}
 
 	@Test
@@ -185,7 +178,7 @@ public class KingCheckTest {
 		setup("3r4/4k3/8/2pP4/8/3K4/8/8 w - - 10 10");
 		Move move = Move.enpassant(Colour.WHITE, Square.d5, Square.c6);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d3, Colour.WHITE, getWhitePieces(game.getPosition()),
-				enemyPieces, move));
+				blackPieces, move));
 	}
 
 	//
@@ -197,7 +190,7 @@ public class KingCheckTest {
 		setup("3r4/4k3/8/r7/4P3/8/2K5/8 w - - 10 10");
 		Move move = new Move(PieceType.KING, Colour.WHITE, Square.c2, Square.d2);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d2, Colour.WHITE, getWhitePieces(game.getPosition()),
-				enemyPieces, move));
+				blackPieces, move));
 	}
 
 	@Test
@@ -205,7 +198,7 @@ public class KingCheckTest {
 		setup("3r4/4k3/8/r7/4P3/8/2Kb4/8 w - - 10 10");
 		Move move = new Move(PieceType.KING, Colour.WHITE, Square.c2, Square.d2, PieceType.BISHOP);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d2, Colour.WHITE, getWhitePieces(game.getPosition()),
-				enemyPieces, move));
+				blackPieces, move));
 	}
 
 	@Test
@@ -213,7 +206,7 @@ public class KingCheckTest {
 		setup("8/6r1/8/8/8/k7/8/4K2R w K - 10 10");
 		Move move = Move.castleKingsSide(Colour.WHITE);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.g1, Colour.WHITE, getWhitePieces(game.getPosition()),
-				enemyPieces, move));
+				blackPieces, move));
 	}
 
 	//
@@ -225,18 +218,37 @@ public class KingCheckTest {
 		setup("8/4k3/8/b7/8/2BP4/3K4/8 w - - 10 10");
 		Move move = new Move(PieceType.BISHOP, Colour.WHITE, Square.c3, Square.d4);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d2, Colour.WHITE, getWhitePieces(game.getPosition()),
-				enemyPieces, move));
+				blackPieces, move));
+	}
+
+	@Test
+	public void speed() {
+		setup("3r4/R1b1k3/6b1/8/3RP3/3K4/8/8 b - - 10 10");
+		int NBR_ITERATIONS = 50000;
+		for (int q = 0; q < 10; q++) {
+			var sw = StopWatch.createStarted();
+			for (int i = 0; i < NBR_ITERATIONS; i++) {
+				TestUtil.checkMoves(game.getPosition().findMoves(Colour.BLACK), "Rd8-e8", "Rd8-f8", "Rd8-g8", "Rd8-h8", "Rd8-d7", "Rd8-d6",
+						"Rd8-d5", "Rd8xd4+", "Rd8-c8", "Rd8-b8", "Rd8-a8", "Bg6-h5", "Bg6-f5", "Bg6xe4+", "Bg6-h7", "Bg6-f7", "Bg6-e8", "Ke7-e6",
+						"Ke7-f6", "Ke7-f7", "Ke7-e8", "Ke7-f8");
+			}
+			sw.stop();
+			System.out.println(String.format("%d iterations in %d ms, %2.3f/iter", NBR_ITERATIONS, sw.getTime(),
+					1.0 * sw.getTime() / NBR_ITERATIONS));
+			// ~400ms
+		}
 	}
 
 	private BitSetUnifier getWhitePieces(Position chessboard) {
 		return chessboard.getAllPieces(Colour.WHITE).getBitSet();
 	}
 
-	private BitSetUnifier[] setupBlackBitsets(Position posn) {
-		BitSetUnifier[] enemyPieces = new BitSetUnifier[PieceType.ALL_PIECE_TYPES.length];
+	private BitSetUnifier[] setupBitsets(Position posn,
+			Colour colour) {
+		BitSetUnifier[] pieces = new BitSetUnifier[PieceType.ALL_PIECE_TYPES.length];
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			enemyPieces[type.ordinal()] = posn.getPieces(Colour.BLACK)[type.ordinal()].getBitBoard().getBitSet();
+			pieces[type.ordinal()] = posn.getPieces(colour)[type.ordinal()].getBitBoard().getBitSet();
 		}
-		return enemyPieces;
+		return pieces;
 	}
 }
