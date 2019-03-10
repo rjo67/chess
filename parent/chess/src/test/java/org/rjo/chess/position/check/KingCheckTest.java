@@ -107,8 +107,12 @@ public class KingCheckTest {
 
 		for (Object[] d : data) {
 			setup((String) d[0]);
-			var checks = KingCheck.isKingInCheck((Square) d[1], (Colour) d[2], getWhitePieces(game.getPosition()),
-					whitePieces, blackPieces, null, true).getCheckInfo();
+			var checks = KingCheck.isKingInCheck((Square) d[1], (Colour) d[2],
+					getWhitePieces(game.getPosition()),
+					whitePieces,
+					blackPieces,
+					null,
+					true).getCheckers();
 			if (d[3] != null) {
 				var expectedChecks = ((PieceInfo[]) d[3]).length;
 				assertEquals(expectedChecks, checks.size(), String.format("bad nbr of checks for posn %s", d[0]));

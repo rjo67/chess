@@ -1,16 +1,10 @@
 package org.rjo.chess.pieces;
 
-import java.util.List;
-
 import org.rjo.chess.base.Colour;
-import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
-import org.rjo.chess.position.check.CheckRestriction;
 
 /**
  * Stores the type and colour of a piece.
@@ -45,18 +39,6 @@ public abstract class AbstractPiece implements Piece {
 	@Override
 	public String getSymbol() {
 		return type.getSymbol();
-	}
-
-	/**
-	 * Finds all possible moves for this piece type in the given position. Delegates to
-	 * {@link #findMoves(Position, CheckInformation, CheckRestriction) with 2nd parameter NOT_CHECK and 3rd paramter NO_RESTRICTION.
-	 *
-	 * @param position current game state.
-	 * @return a list of all possible moves.
-	 */
-	@Override
-	public final List<Move> findMoves(Position position) {
-		return findMoves(position, CheckInformation.NOT_CHECK, CheckRestriction.NO_RESTRICTION);
 	}
 
 	@Override

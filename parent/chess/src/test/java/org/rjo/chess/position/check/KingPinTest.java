@@ -51,8 +51,12 @@ public class KingPinTest {
 
 		for (Object[] d : data) {
 			setup((String) d[0]);
-			var pins = KingCheck.isKingInCheck((Square) d[1], (Colour) d[2], getWhitePieces(game.getPosition()),
-					whitePieces, blackPieces, null, true).getPinInfo();
+			var pins = KingCheck.isKingInCheck((Square) d[1], (Colour) d[2],
+					getWhitePieces(game.getPosition()),
+					whitePieces,
+					blackPieces,
+					null,
+					true).getPinnedPieces();
 			if (d[3] != null) {
 				var expectedChecks = ((PieceInfo[]) d[3]).length;
 				assertEquals(expectedChecks, pins.size(), String.format("bad nbr of pins for posn %s", d[0]));

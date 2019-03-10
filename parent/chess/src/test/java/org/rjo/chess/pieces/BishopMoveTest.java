@@ -6,45 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
-import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.SquareCache;
-import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.position.Fen;
-import org.rjo.chess.position.Game;
 import org.rjo.chess.position.Position;
-import org.rjo.chess.position.PositionCheckState;
-import org.rjo.chess.TestUtil;
 
-public class BishopMoveTest {
-
-	private Game game;
-	private Piece whiteBishop;
-
-	private void setupGame(String fen) {
-		game = Fen.decode(fen);
-		whiteBishop = game.getPosition().getPieces(Colour.WHITE)[PieceType.BISHOP.ordinal()];
-	}
-
-	// need this, since findMoves no longer checks for checks
-	private List<Move> findMoves(Position posn) {
-		List<Move> moves = whiteBishop.findMoves(posn);
-		final Square opponentsKing = posn.getKingPosition(Colour.oppositeColour(posn.getSideToMove()));
-		final BitSetUnifier emptySquares = posn.getTotalPieces().flip();
-		PositionCheckState checkCache = new PositionCheckState();
-		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>(Boolean.FALSE);
-		for (Move move : moves) {
-			move.setCheck(whiteBishop.isOpponentsKingInCheckAfterMove(posn, move, opponentsKing, emptySquares,
-					checkCache, discoveredCheckCache));
-		}
-		return moves;
-	}
+public class BishopMoveTest extends AbstractMoveTest {
 
 	@Test
 	public void locations() {
@@ -57,23 +28,21 @@ public class BishopMoveTest {
 
 	@Test
 	public void startPosition() {
-		Game game = new Game();
-		Bishop whiteBishop = new Bishop(Colour.WHITE);
-		TestUtil.checkMoves(whiteBishop.findMoves(game.getPosition()));
+		setupGame("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 0");
+		TestUtil.checkMoves(findBishopMoves());
 	}
 
 	@Test
 	public void moveFromMiddleOfBoard() {
 		setupGame("4k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Bd4-e5", "Bd4-f6", "Bd4xg7", "Bd4-c5", "Bd4-b6", "Bd4-a7",
-				"Bd4-e3", "Bd4-f2", "Bd4-g1", "Bd4-c3", "Bd4-b2", "Bd4-a1");
+		TestUtil.checkMoves(findBishopMoves(), "Bd4-e5", "Bd4-f6", "Bd4xg7", "Bd4-c5", "Bd4-b6", "Bd4-a7", "Bd4-e3",
+				"Bd4-f2", "Bd4-g1", "Bd4-c3", "Bd4-b2", "Bd4-a1");
 	}
 
 	@Test
 	public void moveFromA1() {
 		setupGame("4k3/8/8/8/8/8/8/B3K3 w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Ba1-b2", "Ba1-c3", "Ba1-d4", "Ba1-e5", "Ba1-f6", "Ba1-g7",
-				"Ba1-h8");
+		TestUtil.checkMoves(findBishopMoves(), "Ba1-b2", "Ba1-c3", "Ba1-d4", "Ba1-e5", "Ba1-f6", "Ba1-g7", "Ba1-h8");
 	}
 
 	/**
@@ -82,7 +51,7 @@ public class BishopMoveTest {
 	@Test
 	public void moveFromA1WithBlockade() {
 		setupGame("4k3/8/8/8/3P4/2K5/8/B7 w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Ba1-b2");
+		TestUtil.checkMoves(findBishopMoves(), "Ba1-b2");
 	}
 
 	/**
@@ -91,14 +60,13 @@ public class BishopMoveTest {
 	@Test
 	public void moveFromA1WithCapture() {
 		setupGame("4k3/8/8/8/3b4/8/8/B3K3 w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Ba1-b2", "Ba1-c3", "Ba1xd4");
+		TestUtil.checkMoves(findBishopMoves(), "Ba1-b2", "Ba1-c3", "Ba1xd4");
 	}
 
 	@Test
 	public void moveFromH1() {
 		setupGame("4k3/8/8/8/8/8/8/4K2B w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Bh1-g2", "Bh1-f3", "Bh1-e4", "Bh1-d5", "Bh1-c6+", "Bh1-b7",
-				"Bh1-a8");
+		TestUtil.checkMoves(findBishopMoves(), "Bh1-g2", "Bh1-f3", "Bh1-e4", "Bh1-d5", "Bh1-c6+", "Bh1-b7", "Bh1-a8");
 	}
 
 	/**
@@ -107,7 +75,7 @@ public class BishopMoveTest {
 	@Test
 	public void moveFromH1WithBlockade() {
 		setupGame("4k3/8/8/8/4P3/8/8/4K2B w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Bh1-g2", "Bh1-f3");
+		TestUtil.checkMoves(findBishopMoves(), "Bh1-g2", "Bh1-f3");
 	}
 
 	/**
@@ -116,14 +84,13 @@ public class BishopMoveTest {
 	@Test
 	public void moveFromH1WithCapture() {
 		setupGame("4k3/8/8/8/4p3/8/8/4K2B w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Bh1-g2", "Bh1-f3", "Bh1xe4");
+		TestUtil.checkMoves(findBishopMoves(), "Bh1-g2", "Bh1-f3", "Bh1xe4");
 	}
 
 	@Test
 	public void moveFromA8() {
 		setupGame("B3k3/8/8/8/8/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Ba8-b7", "Ba8-c6+", "Ba8-d5", "Ba8-e4", "Ba8-f3", "Ba8-g2",
-				"Ba8-h1");
+		TestUtil.checkMoves(findBishopMoves(), "Ba8-b7", "Ba8-c6+", "Ba8-d5", "Ba8-e4", "Ba8-f3", "Ba8-g2", "Ba8-h1");
 	}
 
 	/**
@@ -132,7 +99,7 @@ public class BishopMoveTest {
 	@Test
 	public void moveFromA8WithBlockade() {
 		setupGame("B3k3/8/8/3P4/8/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Ba8-b7", "Ba8-c6+");
+		TestUtil.checkMoves(findBishopMoves(), "Ba8-b7", "Ba8-c6+");
 	}
 
 	/**
@@ -141,14 +108,13 @@ public class BishopMoveTest {
 	@Test
 	public void moveFromA8WithCapture() {
 		setupGame("B3k3/8/8/3p4/8/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Ba8-b7", "Ba8-c6+", "Ba8xd5");
+		TestUtil.checkMoves(findBishopMoves(), "Ba8-b7", "Ba8-c6+", "Ba8xd5");
 	}
 
 	@Test
 	public void moveFromH8() {
 		setupGame("4k2B/8/8/8/8/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Bh8-g7", "Bh8-f6", "Bh8-e5", "Bh8-d4", "Bh8-c3", "Bh8-b2",
-				"Bh8-a1");
+		TestUtil.checkMoves(findBishopMoves(), "Bh8-g7", "Bh8-f6", "Bh8-e5", "Bh8-d4", "Bh8-c3", "Bh8-b2", "Bh8-a1");
 	}
 
 	/**
@@ -157,7 +123,7 @@ public class BishopMoveTest {
 	@Test
 	public void moveFromH8WithBlockade() {
 		setupGame("4k2B/8/8/4P3/8/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Bh8-g7", "Bh8-f6");
+		TestUtil.checkMoves(findBishopMoves(), "Bh8-g7", "Bh8-f6");
 	}
 
 	/**
@@ -166,12 +132,13 @@ public class BishopMoveTest {
 	@Test
 	public void moveFromH8WithCapture() {
 		setupGame("4k2B/8/8/4p3/8/8/8/4K3 w - - 0 0");
-		TestUtil.checkMoves(findMoves(game.getPosition()), "Bh8-g7", "Bh8-f6", "Bh8xe5");
+		TestUtil.checkMoves(findBishopMoves(), "Bh8-g7", "Bh8-f6", "Bh8xe5");
 	}
 
 	@Test
 	public void attacksSquare() {
 		setupGame("k2B1K2/8/8/4P3/8/8/8/8 w - - 0 4");
+		Piece whiteBishop = game.getPosition().getPieces(Colour.WHITE)[PieceType.BISHOP.ordinal()];
 		Position posn = game.getPosition();
 		for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
 			assertTrue(whiteBishop.attacksSquare(posn.getTotalPieces().flip(), sq), "square " + sq);
@@ -197,12 +164,12 @@ public class BishopMoveTest {
 	public void speedTest() {
 		setupGame("r3k2r/pp3p2/8/4B3/2p1b3/8/PPPPB2P/R3K2R w KQkq - 0 0");
 		// init
-		assertEquals(17, findMoves(game.getPosition()).size());
+		assertEquals(17, findBishopMoves().size());
 		int repeats = 10;
 		long start = System.currentTimeMillis();
 		for (int loop = 0; loop < repeats; loop++) {
 			for (int i = 0; i < 10000; i++) {
-				assertEquals(17, findMoves(game.getPosition()).size());
+				assertEquals(17, findBishopMoves().size());
 			}
 		}
 		long timeTaken = System.currentTimeMillis() - start;

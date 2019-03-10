@@ -16,9 +16,11 @@ import org.rjo.chess.base.ray.RayUtils;
  * <li>is king in check and if so, from where and which pieces?</li>
  * <li>which pieces are pinned</li>
  * </ul>
- * TODO merge with PositionCheckState? Normally all squares come into consideration for a move. If the king is in check
- * however, the available squares are greatly reduced. In this case either the checking piece must be captured, a piece
- * interposed on the checking ray, or the king must move.
+ * TODO merge with PositionCheckState?
+ * <p>
+ * Normally all squares come into consideration for a move. If the king is in check however, the available squares are
+ * greatly reduced. In this case either the checking piece must be captured, a piece interposed on the checking ray, or
+ * the king must move.
  * <p>
  * (Merged with CheckRestriction March 2019.)
  *
@@ -27,70 +29,81 @@ import org.rjo.chess.base.ray.RayUtils;
 public class PositionInfo {
 
 	private Square kingsSquare;
-	private List<PieceInfo> checkInfo;
-	private List<PieceInfo> pinInfo;
-	private BitBoard restrictedSquares = BitBoard.allSet(); // default is no restriction
-	private BitBoard restrictedSquaresForKing = BitBoard.empty(); // default is no restriction
+	private List<PieceInfo> checkers;
+	private List<PieceInfo> pinnedPieces;
+	/**
+	 * bitboard of all squares from the checking piece(s) to the king. This represents the squares where a piece could
+	 * interpose (or take the attacker) to block the check. Default is all-set, i.e. all squares are allowed.
+	 */
+	private BitBoard squaresToBlockCheck;
+	/**
+	 * squares in this bitset represent the squares where the king <B>cannot</B> move since it would still be in check.
+	 * Default is empty, i.e. no restriction.
+	 */
+	private BitBoard restrictedSquaresForKing; // default is no restriction
 
 	public PositionInfo(Square kingsSquare) {
 		this.kingsSquare = kingsSquare;
-		this.checkInfo = new ArrayList<>();
-		this.pinInfo = new ArrayList<>();
+		this.checkers = new ArrayList<>();
+		this.pinnedPieces = new ArrayList<>();
 	}
 
 	public void addChecker(RayType ray,
 			PieceType piece,
 			Square square) {
-		checkInfo.add(new PieceInfo(ray, piece, square));
+		checkers.add(new PieceInfo(ray, piece, square));
 	}
 
 	public void addChecker(RayType ray,
 			PieceType piece,
 			int bitIndex) {
-		checkInfo.add(new PieceInfo(ray, piece, bitIndex));
+		checkers.add(new PieceInfo(ray, piece, bitIndex));
 	}
 
 	public void addChecker(PieceType piece,
 			int bitIndex) {
-		checkInfo.add(new PieceInfo(null, piece, bitIndex));
+		checkers.add(new PieceInfo(null, piece, bitIndex));
 	}
 
 	public void addPinnedPiece(RayType ray,
 			PieceType piece,
 			int bitIndex) {
-		pinInfo.add(new PieceInfo(ray, piece, bitIndex));
+		pinnedPieces.add(new PieceInfo(ray, piece, bitIndex));
 	}
 
-	public List<PieceInfo> getCheckInfo() {
-		return checkInfo;
+	public List<PieceInfo> getCheckers() {
+		return checkers;
 	}
 
-	public List<PieceInfo> getPinInfo() {
-		return pinInfo;
+	public List<PieceInfo> getPinnedPieces() {
+		return pinnedPieces;
 	}
 
 	public boolean isKingInCheck() {
-		return checkInfo.size() >= 1;
+		return checkers.size() >= 1;
 	}
 
 	public boolean isDoubleCheck() {
-		return checkInfo.size() >= 2;
+		return checkers.size() >= 2;
 	}
 
 	/**
-	 * Calculates the 'restricted squares', all squares from the ones from the checking piece to the king.
+	 * Calculates the 'restricted squares', e.g. all squares from the ones from the checking piece to the king.
 	 * <p>
-	 * If not in check, sets an empty bitset.
+	 * This must be called after the check- and pin-info has been set.
 	 */
-	public void calculateCheckRestrictedSquares() {
-		restrictedSquares = BitBoard.empty();
-		restrictedSquaresForKing = BitBoard.empty();
+	public void calculateRestrictedSquares() {
 		if (isKingInCheck()) {
-			for (PieceInfo pieceInfo : checkInfo) {
-				if (pieceInfo.ray != null) {
-					// 'restrictedSquares' includes square of checking piece itself
-					restrictedSquares.set(pieceInfo.getBitIndex());
-					// 'restrictedSquaresForKing' excludes this square if adjacent to king since the king can move there and take the piece
+			squaresToBlockCheck = BitBoard.empty();
+			restrictedSquaresForKing = BitBoard.empty();
+			for (PieceInfo pieceInfo : checkers) {
+				if (pieceInfo.ray == null) {
+					// knight or pawn giving check
+					squaresToBlockCheck.set(pieceInfo.getBitIndex());
+				} else {
+					// normally the square of the checking piece itself is included in both bitsets.
+					// 'restrictedSquaresForKing' excludes this square if adjacent to king since the king could move there and take the piece
+					squaresToBlockCheck.set(pieceInfo.getBitIndex());
 					if (!Square.fromBitIndex(pieceInfo.getBitIndex()).isAdjacentTo(kingsSquare)) {
 						restrictedSquaresForKing.set(pieceInfo.getBitIndex());
 					}
@@ -102,7 +115,7 @@ public class PositionInfo {
 							reachedKingsSquare = true;
 							break;
 						}
-						restrictedSquares.set(sq);
+						squaresToBlockCheck.set(sq);
 						restrictedSquaresForKing.set(sq);
 					}
 					if (reachedKingsSquare) {
@@ -113,21 +126,24 @@ public class PositionInfo {
 					}
 				}
 			}
+		} else {
+			squaresToBlockCheck = BitBoard.allSet();
+			restrictedSquaresForKing = BitBoard.empty();
 		}
 	}
 
 	/**
-	 * A bitset of all the squares where pieces <B>must</B> interpose to block a check / take the attacking piece.
+	 * A bitset of all the squares where pieces <B>must</B> interpose to block a check (or take the attacking piece).
 	 * <p>
-	 * Usage: possibleMoves.and(boardInfo.getCheckRestrictedSquares().getBitSet());
+	 * Usage: possibleMoves.and(boardInfo.getSquaresToBlockCheck().getBitSet());
 	 */
-	public BitBoard getCheckRestrictedSquares() {
-		return restrictedSquares;
+	public BitBoard getSquaresToBlockCheck() {
+		return squaresToBlockCheck;
 	}
 
 	/**
 	 * A bitset of all the squares where the king <B>cannot</B> move to, since he'll still be in check. This differs from
-	 * {@link #getCheckRestrictedSquares()} in that
+	 * {@link #getSquaresToBlockCheck()} in that
 	 * <ul>
 	 * <li>the rays from checking-piece to king are continued past the king up to the end of the ray, since the king cannot
 	 * move in that direction either.</li>
@@ -139,6 +155,17 @@ public class PositionInfo {
 	 */
 	public BitBoard getCheckRestrictedSquaresForKing() {
 		return restrictedSquaresForKing;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("PositionInfo [kingsSquare=").append(kingsSquare);
+		sb.append(", checkers: ").append(checkers).append(", pins: ").append(pinnedPieces);
+		sb.append(", restrictedSquaresForKing:\n").append(restrictedSquaresForKing);
+		sb.append(", squaresToBlockCheck:\n").append(squaresToBlockCheck);
+		sb.append("]");
+		return sb.toString();
 	}
 
 	public static class PieceInfo {

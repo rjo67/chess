@@ -10,4 +10,5 @@ module org.rjo.chess {
 	requires transitive org.rjo.chess.base;
 	requires org.apache.logging.log4j;
 	requires org.apache.commons.lang3;
+//	requires org.junit.jupiter.api;
 }

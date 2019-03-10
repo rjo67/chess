@@ -16,7 +16,6 @@ import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
-import org.rjo.chess.position.check.CheckRestriction;
 import org.rjo.chess.position.check.KingCheck;
 
 /**
@@ -139,35 +138,15 @@ public class Pawn extends AbstractBitBoardPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			PositionInfo boardInfo) {
-		List<Move> moves = _findPotentialMoves(posn, boardInfo.getCheckRestrictedSquares(), boardInfo.isKingInCheck());
-
-		// make sure king is not/no longer in check
-		final Square myKing = posn.getKingPosition(colour);
-		final Colour opponentsColour = Colour.oppositeColour(colour);
-		// make sure my king is not/no longer in check
-		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, boardInfo.isKingInCheck()));
-		return moves;
-	}
-
-	@Override
-	public List<Move> findMoves(Position posn,
 			CheckInformation kingInCheck,
-			CheckRestriction checkRestriction) {
-		List<Move> moves = findPotentialMoves(posn, checkRestriction);
+			PositionInfo posnInfo) {
+		List<Move> moves = _findPotentialMoves(posn, posnInfo.getSquaresToBlockCheck(), posnInfo.isKingInCheck());
 
-		// make sure king is not/no longer in check
 		final Square myKing = posn.getKingPosition(colour);
 		final Colour opponentsColour = Colour.oppositeColour(colour);
 		// make sure my king is not/no longer in check
 		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck()));
 		return moves;
-	}
-
-	@Override
-	public List<Move> findPotentialMoves(Position posn,
-			CheckRestriction checkRestriction) {
-		return _findPotentialMoves(posn, checkRestriction.getSquareRestriction(), checkRestriction.isInCheck());
 	}
 
 	private List<Move> _findPotentialMoves(Position posn,

@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
@@ -19,11 +18,9 @@ import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.position.Fen;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
-import org.rjo.chess.position.check.CheckRestriction;
 import org.rjo.chess.position.check.KingCheck;
 
 /**
@@ -267,26 +264,6 @@ public class King extends AbstractSetPiece {
 		return canCastle;
 	}
 
-	@Override
-	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck,
-			CheckRestriction checkRestriction) {
-		StopWatch stopwatch = new StopWatch();
-		List<Move> moves = findPotentialMoves(posn, checkRestriction);
-
-		long time1 = stopwatch.getTime();
-
-		final Colour oppositeColour = Colour.oppositeColour(getColour());
-
-		isKingNowInCheck(posn, kingInCheck.isCheck(), moves, oppositeColour);
-
-		long time3 = stopwatch.getTime();
-		if (time3 != 0) {
-			LOG.debug("found " + moves.size() + " moves in " + time1 + "," + time3 + ", fen: " + Fen.encode(posn));
-		}
-		return moves;
-	}
-
 	/**
 	 * For each move in 'moves', make sure king is no longer in check. If it is still in check, the move is removed from the
 	 * list.
@@ -327,6 +304,7 @@ public class King extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findMoves(Position position,
+			CheckInformation kingInCheck,
 			PositionInfo boardInfo) {
 		Square kingsSquare = pieces.iterator().next();
 		final Colour oppositeColour = Colour.oppositeColour(colour);
@@ -340,25 +318,8 @@ public class King extends AbstractSetPiece {
 			possibleSquares.andNot(boardInfo.getCheckRestrictedSquaresForKing().getBitSet());
 		}
 		List<Move> moves = processMoves(position, kingsSquare, oppositeColour, addCastlingMoves, possibleSquares);
-		isKingNowInCheck(position, boardInfo.isKingInCheck(), moves, oppositeColour);
+		isKingNowInCheck(position, kingInCheck.isCheck(), moves, oppositeColour);
 		return moves;
-	}
-
-	@Override
-	public List<Move> findPotentialMoves(Position posn,
-			@SuppressWarnings("unused") CheckRestriction checkRestriction) {
-
-		Square kingsSquare = pieces.iterator().next();
-		final Colour oppositeColour = Colour.oppositeColour(colour);
-		Square opponentsKingSquare = posn.getKingPosition(oppositeColour);
-
-		BitSetUnifier possibleSquares = calculatePossibleSquares(posn, kingsSquare, opponentsKingSquare);
-
-		/*
-		 * possibleMoves now contains the possible moves apart from castling. (Moving the king to an attacked square has not
-		 * been checked yet.)
-		 */
-		return processMoves(posn, kingsSquare, oppositeColour, true, possibleSquares);
 	}
 
 	/**
