@@ -172,6 +172,7 @@ public class Knight extends AbstractSetPiece {
 			PositionInfo boardInfo) {
 		List<Move> moves = new ArrayList<>(20);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
+		final Square myKing = posn.getKingPosition(colour);
 		final BitSetUnifier allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
 		final BitSetUnifier allOpponentsPiecesBitSet = posn.getAllPieces(oppositeColour).getBitSet();
 
@@ -179,6 +180,11 @@ public class Knight extends AbstractSetPiece {
 		 * for each knight on the board, finds its moves using the lookup table
 		 */
 		for (Square knightStartSquare : pieces) {
+			List<Move> oneKnightMoves = new ArrayList<>(8);
+			// stop processing this knight if it's pinned
+			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare)) {
+				continue;
+			}
 			BitSetUnifier possibleMoves = (BitSetUnifier) knightMoves[knightStartSquare.bitIndex()].clone();
 			// remove target squares occupied by my own pieces
 			possibleMoves.andNot(allMyPiecesBitSet);
@@ -188,16 +194,19 @@ public class Knight extends AbstractSetPiece {
 			 * Iterates over all possible moves and stores them as moves or captures
 			 */
 			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
-				moves.add(createMove(k, posn, allOpponentsPiecesBitSet, knightStartSquare, oppositeColour));
+				oneKnightMoves.add(createMove(k, posn, allOpponentsPiecesBitSet, knightStartSquare, oppositeColour));
 			}
+			/*
+			 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
+			 */
+			oneKnightMoves.removeIf(move -> KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck()));
+
+			//			 DEBUG if piece was pinned but moves!=empty, --> problemo (remove 'continue' above to test here)
+			//			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare) && !oneKnightMoves.isEmpty()) {
+			//				System.out.println("??");
+			//			}
+			moves.addAll(oneKnightMoves);
 		}
-
-		final Square myKing = posn.getKingPosition(colour);
-
-		/*
-		 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
-		 */
-		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck()));
 
 		return moves;
 	}
