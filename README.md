@@ -10,6 +10,7 @@ And finally a **Game** object stores a list of MovePosition objects.
 
 ## TODO ##
 
+- [ ] info about pinned knight is now used in movegen; expand this for other pieces
 - [x] Cleanup KingChecker, KingCheck, ... ?! Position:isKingInCheck should take parameter isKingInCheck and call the
 appropriate KingCheck method.
 - [x] implement interface for BitSet

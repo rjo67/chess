@@ -88,6 +88,20 @@ public class PositionInfo {
 	}
 
 	/**
+	 * returns true if the given piece on the square is pinned. (piecetype is only for sanity-check.)
+	 */
+	public boolean isPiecePinned(PieceType pieceType,
+			Square sq) {
+		var match = pinnedPieces.stream()
+				.filter(pinned -> pinned.bitIndex == sq.bitIndex()).findFirst();
+		if (match.isPresent() && match.get().piece != pieceType) {
+			throw new IllegalArgumentException(String.format("bad piece type at sq %d, expected %s, got %s. Info: %s",
+					sq, pieceType, match.get().piece, this));
+		}
+		return match.isPresent();
+	}
+
+	/**
 	 * Calculates the 'restricted squares', e.g. all squares from the ones from the checking piece to the king.
 	 * <p>
 	 * This must be called after the check- and pin-info has been set.

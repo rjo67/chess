@@ -258,6 +258,7 @@ public class KingCheck {
 					} else if (enemyPieces[PieceType.BISHOP.ordinal()].get(bitIndex)) {
 						return true;
 					}
+					break; // found an enemy's piece, but it's not a pinner
 				} else // !rayType.isDiagonal
 				{
 					if (enemyPieces[PieceType.QUEEN.ordinal()].get(bitIndex)) {
@@ -265,6 +266,7 @@ public class KingCheck {
 					} else if (enemyPieces[PieceType.ROOK.ordinal()].get(bitIndex)) {
 						return true;
 					}
+					break; // found an enemy's piece, but it's not a pinner
 				}
 			}
 		}
