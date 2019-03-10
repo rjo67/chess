@@ -113,7 +113,7 @@ public class KingCheckTest {
 					whitePieces,
 					blackPieces,
 					null,
-					true).getCheckInfo();
+					true).getCheckers();
 			if (d[3] != null) {
 				var expectedChecks = ((PieceInfo[]) d[3]).length;
 				assertEquals(String.format("bad nbr of checks for posn %s", d[0]), expectedChecks, checks.size());

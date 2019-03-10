@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.rjo.chess.SystemFlags;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.Move.CheckInformation;
@@ -22,7 +21,6 @@ import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
-import org.rjo.chess.position.check.CheckRestriction;
 import org.rjo.chess.position.check.KingCheck;
 
 /**
@@ -348,47 +346,18 @@ public class Rook extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
+			CheckInformation kingInCheck,
 			PositionInfo boardInfo) {
 		List<Move> moves = new ArrayList<>(30);
 
 		for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
-			moves.addAll(search(posn, RayUtils.getRay(rayType), boardInfo.getCheckRestrictedSquares(), boardInfo.isKingInCheck()));
+			moves.addAll(search(posn, RayUtils.getRay(rayType), boardInfo.getSquaresToBlockCheck(), boardInfo.isKingInCheck()));
 		}
-		// make sure my king is not/no longer in check
-		Square myKing = posn.getKingPosition(colour);
-		Colour opponentsColour = Colour.oppositeColour(colour);
-		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, boardInfo.isKingInCheck()));
-
-		return moves;
-	}
-
-	@Override
-	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck,
-			CheckRestriction checkRestriction) {
-
-		List<Move> moves = findPotentialMoves(posn, checkRestriction);
 
 		// make sure king is not/no longer in check
 		Square myKing = posn.getKingPosition(colour);
 		Colour opponentsColour = Colour.oppositeColour(colour);
 		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck()));
-		return moves;
-	}
-
-	@Override
-	public List<Move> findPotentialMoves(Position posn,
-			CheckRestriction checkRestriction) {
-		List<Move> moves = new ArrayList<>(30);
-
-		// search for moves
-		if (SystemFlags.USE_MOVE_MAP) {
-			moves = findMovesUsingMoveMap(posn);
-		} else {
-			for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
-				moves.addAll(search(posn, RayUtils.getRay(rayType), checkRestriction.getSquareRestriction(), checkRestriction.isInCheck()));
-			}
-		}
 		return moves;
 	}
 

@@ -15,7 +15,6 @@ import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
-import org.rjo.chess.position.check.CheckRestriction;
 import org.rjo.chess.position.check.KingCheck;
 
 /**
@@ -109,44 +108,19 @@ public class Bishop extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
+			CheckInformation kingInCheck,
 			PositionInfo boardInfo) {
 		List<Move> moves = new ArrayList<>(30);
 
 		// search for moves
 		for (RayType rayType : RayType.RAY_TYPES_DIAGONAL) {
-			moves.addAll(search(posn, RayUtils.getRay(rayType), boardInfo.getCheckRestrictedSquares(), boardInfo.isKingInCheck()));
+			moves.addAll(search(posn, RayUtils.getRay(rayType), boardInfo.getSquaresToBlockCheck(), boardInfo.isKingInCheck()));
 		}
-		// make sure my king is not/no longer in check
-		Square myKing = posn.getKingPosition(colour);
-		KingCheck kingChecker = new KingCheck(posn, Colour.oppositeColour(colour), myKing);
-		moves.removeIf(move -> kingChecker.isKingInCheck(move, boardInfo.isKingInCheck()));
-
-		return moves;
-	}
-
-	@Override
-	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck,
-			CheckRestriction checkRestriction) {
-		List<Move> moves = findPotentialMoves(posn, checkRestriction);
 
 		// make sure king is not/no longer in check
 		Square myKing = posn.getKingPosition(colour);
 		KingCheck kingChecker = new KingCheck(posn, Colour.oppositeColour(colour), myKing);
 		moves.removeIf(move -> kingChecker.isKingInCheck(move, kingInCheck.isCheck()));
-		return moves;
-	}
-
-	@Override
-	public List<Move> findPotentialMoves(Position posn,
-			CheckRestriction checkRestriction) {
-		List<Move> moves = new ArrayList<>(30);
-
-		// search for moves
-		for (RayType rayType : RayType.RAY_TYPES_DIAGONAL) {
-			moves.addAll(search(posn, RayUtils.getRay(rayType), checkRestriction.getSquareRestriction(), checkRestriction.isInCheck()));
-		}
-
 		return moves;
 	}
 

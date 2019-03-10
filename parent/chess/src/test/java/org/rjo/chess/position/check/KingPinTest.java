@@ -57,7 +57,7 @@ public class KingPinTest {
 					whitePieces,
 					blackPieces,
 					null,
-					true).getPinInfo();
+					true).getPinnedPieces();
 			if (d[3] != null) {
 				var expectedChecks = ((PieceInfo[]) d[3]).length;
 				assertEquals(String.format("bad nbr of pins for posn %s", d[0]), expectedChecks, pins.size());

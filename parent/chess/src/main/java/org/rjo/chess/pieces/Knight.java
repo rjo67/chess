@@ -17,7 +17,6 @@ import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
-import org.rjo.chess.position.check.CheckRestriction;
 import org.rjo.chess.position.check.KingCheck;
 
 /**
@@ -170,21 +169,6 @@ public class Knight extends AbstractSetPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			CheckInformation kingInCheck,
-			CheckRestriction checkRestriction) {
-		final Square myKing = posn.getKingPosition(colour);
-		final Colour oppositeColour = Colour.oppositeColour(colour);
-
-		List<Move> moves = findPotentialMoves(posn, checkRestriction);
-
-		/*
-		 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
-		 */
-		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck()));
-		return moves;
-	}
-
-	@Override
-	public List<Move> findMoves(Position posn,
 			PositionInfo boardInfo) {
 		List<Move> moves = new ArrayList<>(20);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
@@ -199,45 +183,22 @@ public class Knight extends AbstractSetPiece {
 			// remove target squares occupied by my own pieces
 			possibleMoves.andNot(allMyPiecesBitSet);
 			// take into account squares restricted because of check
-			possibleMoves.and(boardInfo.getCheckRestrictedSquares().getBitSet());
+			possibleMoves.and(boardInfo.getSquaresToBlockCheck().getBitSet());
 			/*
 			 * Iterates over all possible moves and stores them as moves or captures
 			 */
 			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
 				moves.add(createMove(k, posn, allOpponentsPiecesBitSet, knightStartSquare, oppositeColour));
 			}
-
 		}
-		return moves;
-	}
 
-	@Override
-	public List<Move> findPotentialMoves(Position posn,
-			CheckRestriction checkRestriction) {
-		List<Move> moves = new ArrayList<>(20);
-		final Colour oppositeColour = Colour.oppositeColour(getColour());
-		final BitSetUnifier allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
-		final BitSetUnifier allOpponentsPiecesBitSet = posn.getAllPieces(oppositeColour).getBitSet();
+		final Square myKing = posn.getKingPosition(colour);
 
 		/*
-		 * for each knight on the board, finds its moves using the lookup table
+		 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
 		 */
-		for (Square knightStartSquare : pieces) {
-			BitSetUnifier possibleMoves = knightMoves[knightStartSquare.bitIndex()];
+		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck()));
 
-			/*
-			 * Iterates over all possible moves and stores them as moves or captures
-			 */
-			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
-				// move can't be to a square with a piece of the same colour on it
-				if (!allMyPiecesBitSet.get(k)) {
-					// restrict squares i/c of check
-					if (checkRestriction.getSquareRestriction().get(k)) {
-						moves.add(createMove(k, posn, allOpponentsPiecesBitSet, knightStartSquare, oppositeColour));
-					}
-				}
-			}
-		}
 		return moves;
 	}
 

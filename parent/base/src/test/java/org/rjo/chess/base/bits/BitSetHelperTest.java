@@ -1,4 +1,4 @@
-package org.rjo.chess.pieces;
+package org.rjo.chess.base.bits;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

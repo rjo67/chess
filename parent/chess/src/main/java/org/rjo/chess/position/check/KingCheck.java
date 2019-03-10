@@ -141,14 +141,14 @@ public class KingCheck {
 			var i = Knight.attacksSquare(kingsSquare, enemyPieces[PieceType.KNIGHT.ordinal()]);
 			if (i >= 0) {
 				boardInfo.addChecker(PieceType.KNIGHT, i);
-				if (!findAllChecks || boardInfo.getCheckInfo().size() == 2) {
+				if (!findAllChecks || boardInfo.getCheckers().size() == 2) {
 					return boardInfo;
 				}
 			}
 			i = Pawn.attacksSquare(kingsSquare, Colour.oppositeColour(kingsColour), enemyPieces[PieceType.PAWN.ordinal()]);
 			if (i >= 0) {
 				boardInfo.addChecker(PieceType.PAWN, i);
-				if (!findAllChecks || boardInfo.getCheckInfo().size() == 2) {
+				if (!findAllChecks || boardInfo.getCheckers().size() == 2) {
 					return boardInfo;
 				}
 			}
@@ -205,7 +205,7 @@ public class KingCheck {
 			}
 
 		}
-		boardInfo.calculateCheckRestrictedSquares();
+		boardInfo.calculateRestrictedSquares();
 		return boardInfo;
 
 	}
@@ -390,10 +390,10 @@ public class KingCheck {
 
 		// no optimizations if the king moved or was in check beforehand
 		if (kingMoved || kingWasInCheck) {
-			return !isKingInCheck(kingsSquare, kingsColour, friendlyPieces, null, enemyPieces, null, false).getCheckInfo().isEmpty();
+			return !isKingInCheck(kingsSquare, kingsColour, friendlyPieces, null, enemyPieces, null, false).getCheckers().isEmpty();
 		} else {
 			return !isKingInCheck(kingsSquare, kingsColour, friendlyPieces, null, enemyPieces, rayFromKingToMoveOrigin.getRayType(), false)
-					.getCheckInfo().isEmpty();
+					.getCheckers().isEmpty();
 		}
 	}
 }

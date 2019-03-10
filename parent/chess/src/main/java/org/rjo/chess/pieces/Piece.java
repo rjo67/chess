@@ -13,7 +13,6 @@ import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
-import org.rjo.chess.position.check.CheckRestriction;
 
 /**
  * The interface for a chess piece.
@@ -44,57 +43,22 @@ public interface Piece extends Cloneable {
 	void initPosition(Square... requiredSquares);
 
 	/**
-	 * Finds all possible moves for this piece type in the given position. <b>Moves returned are legal. However, this method
-	 * does not check to see if the opponent's king is in check after the move.</b>
-	 *
-	 * @param position current game state.
-	 * @return a list of all possible moves.
-	 */
-	List<Move> findMoves(Position position);
-
-	/**
 	 * New version of findMoves.
 	 * <p>
 	 * Finds all possible moves for this piece type in the given position.
 	 * <p>
-	 * TODO <b>Moves returned are legal. However, this method does not check to see if the opponent's king is in check after
+	 * <b>Moves returned are legal. However, this method does not check to see if the _opponent_'s king is in check after
 	 * the move.</b>
 	 *
 	 * @param position current position.
-	 * @param boardInfo info about pieces checking the king, pinned pieces, etc.
-	 * @return a list of all possible moves.
-	 */
-	List<Move> findMoves(Position position,
-			PositionInfo boardInfo);
-
-	/**
-	 * Finds all possible moves for this piece type in the given position. <b>Moves returned are legal. However, this method
-	 * does not check to see if the opponent's king is in check after the move.</b>
-	 *
-	 * @param position current position.
 	 * @param kingInCheck indicates if the king is currently in check. This limits the available moves.
-	 * @param checkRestriction the squares which come into consideration. Normally all are allowed. If the king is in check
-	 *           then this object contains the squares which will potentially get out of check.
+	 * @param posnInfo info about pieces checking the king, pinned pieces, etc. Normally all squares are allowed. If the
+	 *           king is in check then this object contains the squares which will potentially get out of check.
 	 * @return a list of all possible moves.
 	 */
 	List<Move> findMoves(Position position,
 			CheckInformation kingInCheck,
-			CheckRestriction checkRestriction);
-
-	/**
-	 * Finds all possible moves for this piece type in the given position.
-	 * <p>
-	 * Moves returned are <B>not guaranteed to be legal</B>, i.e. this method does not check if my king is (still) in check
-	 * after the move. Also, we do not calculate if the the opponent's king is in check after the move (i.e.
-	 * {@link Move#isCheck()} is not set).
-	 *
-	 * @param position current position.
-	 * @param checkRestriction the squares which come into consideration. Normally all are allowed. If the king is in check
-	 *           then this object contains the squares which will potentially get out of check.
-	 * @return a list of all possible moves.
-	 */
-	List<Move> findPotentialMoves(Position position,
-			CheckRestriction checkRestriction);
+			PositionInfo posnInfo);
 
 	/**
 	 * Does the given move leave the opponent's king in check?

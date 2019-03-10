@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
@@ -38,7 +37,6 @@ import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
 import org.rjo.chess.pieces.SlidingPiece;
 import org.rjo.chess.position.PositionCheckState.CheckInfo;
-import org.rjo.chess.position.check.CheckRestriction;
 import org.rjo.chess.position.check.CheckStates;
 import org.rjo.chess.position.check.KingCheck;
 
@@ -377,59 +375,12 @@ public class Position {
 			// single check -- set up check restriction
 			// otherwise process as normal, but with info about pinned pieces
 			if (boardInfo.isDoubleCheck()) {
-				moves.addAll(getPieces(colour)[PieceType.KING.ordinal()].findMoves(this, boardInfo));
-			} else if (boardInfo.isKingInCheck()) {
-				for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-					Piece p = getPieces(colour)[type.ordinal()];
-					moves.addAll(p.findMoves(this, boardInfo));
-				}
+				moves.addAll(getPieces(colour)[PieceType.KING.ordinal()].findMoves(this, checkInformation, boardInfo));
 			} else {
 				for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 					Piece p = getPieces(colour)[type.ordinal()];
-					moves.addAll(p.findMoves(this, checkInformation, CheckRestriction.NO_RESTRICTION));
+					moves.addAll(p.findMoves(this, checkInformation, boardInfo));
 				}
-			}
-		} else {
-			// set up 'squareRestrictions' if in check
-			CheckRestriction checkRestriction;
-			if (checkInformation.isCheck()) {
-				BitBoard squareRestriction = BitBoard.allSet();
-				// if it is check, we restrict the possible move.to() squares
-				if (checkInformation.getCheckingSquare() != null) {
-					Square kingsPosn = getKingPosition(colour);
-					Ray ray = RayUtils.getRay(checkInformation.getCheckingSquare(), kingsPosn);
-					// TODO could be null if discovered check (since not dealing with this properly as yet)
-					if (ray != null) {
-						// set up bitset from checksquare to opponent's king
-						squareRestriction = new BitBoard();
-						squareRestriction.set(checkInformation.getCheckingSquare());
-						Iterator<Integer> iter = ray.squaresFrom(checkInformation.getCheckingSquare());
-						while (iter.hasNext()) {
-							int sq = iter.next();
-							if (sq == kingsPosn.bitIndex()) {
-								break;
-							}
-							squareRestriction.set(sq);
-						}
-					}
-				}
-				checkRestriction = new CheckRestriction(squareRestriction);
-			} else {
-				checkRestriction = CheckRestriction.NO_RESTRICTION;
-			}
-
-			for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-				Piece p = getPieces(colour)[type.ordinal()];
-				if (SystemFlags.GENERATE_ILLEGAL_MOVES) {
-					moves.addAll(p.findPotentialMoves(this, checkRestriction));
-				} else {
-					moves.addAll(p.findMoves(this, checkInformation, checkRestriction));
-				}
-			}
-			if (SystemFlags.GENERATE_ILLEGAL_MOVES) {
-				// 'moves' must now be pruned to get rid of illegal moves,
-				// i.e. those leaving my king in check
-				checkMovesForLegality(moves, checkInformation.isCheck());
 			}
 		}
 
