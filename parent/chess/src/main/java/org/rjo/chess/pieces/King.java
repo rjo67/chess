@@ -1,12 +1,9 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
@@ -28,8 +25,7 @@ import org.rjo.chess.position.check.KingCheck;
  * @author rich
  * @see 'http://chessprogramming.wikispaces.com/King+Pattern'
  */
-public class King extends AbstractSetPiece {
-	private static final Logger LOG = LogManager.getLogger(King.class);
+public class King extends AbstractPiece {
 
 	/**
 	 * piece value in centipawns
@@ -138,6 +134,8 @@ public class King extends AbstractSetPiece {
 		}
 	}
 
+	private Square kingsLocation;
+
 	/**
 	 * Constructs the King class -- with no pieces on the board. Delegates to King(Colour, boolean) with parameter false.
 	 *
@@ -200,15 +198,14 @@ public class King extends AbstractSetPiece {
 			if (requiredSquares.length > 1) {
 				throw new IllegalArgumentException("king cannot have more than one start square");
 			}
-			pieces = new HashSet<>(1);
-			pieces.add(requiredSquares[0]);
+			kingsLocation = requiredSquares[0];
 		}
 	}
 
 	@Override
 	public int calculatePieceSquareValue() {
 
-		int bitIndex = pieces.iterator().next().bitIndex();
+		int bitIndex = kingsLocation.bitIndex();
 
 		int[] values = IN_ENDGAME ? SQUARE_VALUE_ENDGAME : SQUARE_VALUE_MIDDLEGAME;
 		int offset = getColour() == Colour.WHITE ? bitIndex : 63 - bitIndex;
@@ -222,8 +219,39 @@ public class King extends AbstractSetPiece {
 	}
 
 	@Override
+	public void move(Move move) {
+		if (kingsLocation != move.from()) {
+			throw new IllegalArgumentException(
+					"no " + this.getType() + " found on required square. Move: " + move + ", king's square: " + kingsLocation);
+		}
+		kingsLocation = move.to();
+	}
+
+	@Override
 	public void removePiece(@SuppressWarnings("unused") Square square) {
 		throw new IllegalStateException("cannot remove king!?");
+	}
+
+	@Override
+	public boolean pieceAt(Square targetSquare) {
+		return kingsLocation == targetSquare;
+	}
+
+	@Override
+	public int numberOfPieces() {
+		return 1;
+	}
+
+	@Override
+	public Square[] getLocations() {
+		return new Square[] { kingsLocation };
+	}
+
+	@Override
+	public BitBoard getBitBoard() {
+		BitBoard bb = new BitBoard();
+		bb.set(kingsLocation);
+		return bb;
 	}
 
 	/**
@@ -305,7 +333,7 @@ public class King extends AbstractSetPiece {
 	public List<Move> findMoves(Position position,
 			boolean kingInCheck,
 			PositionInfo boardInfo) {
-		Square kingsSquare = pieces.iterator().next();
+		Square kingsSquare = kingsLocation;
 		final Colour oppositeColour = Colour.oppositeColour(colour);
 		Square opponentsKingSquare = position.getKingPosition(oppositeColour);
 
@@ -396,6 +424,6 @@ public class King extends AbstractSetPiece {
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square sq,
 			@SuppressWarnings("unused") PositionCheckState checkCache) {
-		return MoveDistance.calculateDistance(pieces.iterator().next(), sq) == 1;
+		return MoveDistance.calculateDistance(kingsLocation, sq) == 1;
 	}
 }
