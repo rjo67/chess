@@ -166,8 +166,6 @@ public class Pawn extends AbstractBitBoardPiece {
 		// 5) enpassant
 		// 6) promotion
 		//
-		//		moves.addAll(moveOneSquareForward(posn, helper[getColour().ordinal()], checkRestriction, isInCheck));
-		//		moves.addAll(moveTwoSquaresForward(posn, helper[getColour().ordinal()], checkRestriction, isInCheck));
 		moves.addAll(calculateForwardMoves(posn, posnInfo, helper[getColour().ordinal()], checkRestriction, isInCheck));
 		moves.addAll(captureLeft(posn, posnInfo, helper[getColour().ordinal()], checkRestriction, isInCheck));
 		moves.addAll(captureRight(posn, posnInfo, helper[getColour().ordinal()], checkRestriction, isInCheck));

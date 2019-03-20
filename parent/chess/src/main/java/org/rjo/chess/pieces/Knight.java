@@ -193,10 +193,6 @@ public class Knight extends AbstractSetPiece {
 			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
 				oneKnightMoves.add(createMove(k, posn, allOpponentsPiecesBitSet, knightStartSquare, oppositeColour));
 			}
-			/*
-			 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
-			 */
-			//			oneKnightMoves.removeIf(move -> KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck()));
 
 			//			 DEBUG if piece was pinned but moves!=empty, --> problemo (remove 'continue' above to test here)
 			//			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare) && !oneKnightMoves.isEmpty()) {

@@ -31,8 +31,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Searches for moves in the direction specified by the {@link Ray} implementation. This is for rooks, bishops, and
-	 * queens.
+	 * Searches for moves in the specified ray directions for the specified piece. This is for rooks, bishops, and queens.
 	 * <p>
 	 * <b>New implementation, using bitsets.</b>
 	 * </p>
@@ -49,17 +48,20 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * </code>
 	 *
 	 * @param posn state of the board
-	 * @param ray the ray (direction) in which to search
+	 * @param indexOfPiece where the piece of interest ist
 	 * @param posnInfo info about the position, e.g. if the king is in check then this object will contain only a bitmap of
 	 *           squares which will allow us to get out of check (either blocking or capturing the checking piece).
+	 * @param raysToSearch the rays to search
 	 * @return the moves found
 	 */
-	protected List<Move> searchByRay(Position posn,
-			Ray ray,
-			PositionInfo posnInfo) {
+	protected List<Move> searchByPiece(Position posn,
+			int indexOfPiece,
+			PositionInfo posnInfo,
+			RayType[] raysToSearch) {
 		List<Move> moves = new ArrayList<>(30);
-		for (int indexOfPiece = pieces.getBitSet().nextSetBit(0); indexOfPiece >= 0; indexOfPiece = pieces.getBitSet()
-				.nextSetBit(indexOfPiece + 1)) {
+		for (RayType rayType : raysToSearch) {
+
+			var ray = RayUtils.getRay(rayType);
 
 			final Colour opponentsColour = Colour.oppositeColour(getColour());
 			boolean blockingSquareContainsEnemyPiece = false;
@@ -128,69 +130,6 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			//					break;
 			//				}
 			//			}
-			Square fromSquare = Square.fromBitIndex(indexOfPiece);
-			if (ray.getRayType().isBitIndicesIncrease()) {
-				for (int sqIndex = rayAttack.getBitSet().nextSetBit(indexOfPiece); sqIndex >= 0; //
-						sqIndex = rayAttack.getBitSet().nextSetBit(sqIndex + 1)) {
-					if (addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn)) {
-						break;
-					}
-				}
-			} else {
-				for (int sqIndex = indexOfPiece; (sqIndex = rayAttack.getBitSet().previousSetBit(sqIndex - 1)) >= 0;) {
-					if (addMove(moves, fromSquare, sqIndex, blockingSquare, blockingSquareContainsEnemyPiece, opponentsColour, posn)) {
-						break;
-					}
-				}
-			}
-		}
-		return moves;
-	}
-
-	// same as above but searches the given rays for the given piece
-	protected List<Move> searchByPiece(Position posn,
-			int indexOfPiece,
-			PositionInfo posnInfo,
-			RayType[] raysToSearch) {
-		List<Move> moves = new ArrayList<>(30);
-		for (RayType rayType : raysToSearch) {
-
-			var ray = RayUtils.getRay(rayType);
-
-			final Colour opponentsColour = Colour.oppositeColour(getColour());
-			boolean blockingSquareContainsEnemyPiece = false;
-
-			// from http://www.craftychess.com/hyatt/bitmaps.html:
-			//
-			// 'rayAttack' is the bitmap for the attacks in the ray's direction from the square 'indexOfPiece'.
-			// blockers becomes a bitmap of any pieces sitting on this ray.
-			// We find the first blocking piece, and then exclusive-OR attackBitBoard[blocking_square]
-			// with the original 'rayAttack' which effectively 'cuts off' the attacks beyond that point.
-
-			BitBoard rayAttack = new BitBoard(ray.getAttackBitBoard(indexOfPiece)); // clone
-
-			// remove occupied squares along the ray
-			BitBoard blockers = new BitBoard(ray.getAttackBitBoard(indexOfPiece)); // clone
-			blockers.getBitSet().and(posn.getTotalPieces().getBitSet());
-
-			// find blocking square, i.e. first square on this ray which contains a piece
-			int blockingSquare;
-			if (ray.getRayType().isBitIndicesIncrease()) {
-				blockingSquare = blockers.getBitSet().nextSetBit(indexOfPiece);
-			} else {
-				blockingSquare = blockers.getBitSet().previousSetBit(indexOfPiece);
-			}
-			if (blockingSquare != -1) {
-				// truncate the attacks beyond the blocking piece
-				rayAttack.getBitSet().xor(ray.getAttackBitBoard(blockingSquare).getBitSet());
-				blockingSquareContainsEnemyPiece = posn.getAllPieces(opponentsColour).get(blockingSquare);
-			}
-
-			// remove squares in checkRestriction
-			if (posnInfo.isKingInCheck()) {
-				rayAttack.getBitSet().and(posnInfo.getSquaresToBlockCheck().getBitSet());
-			}
-
 			Square fromSquare = Square.fromBitIndex(indexOfPiece);
 			if (ray.getRayType().isBitIndicesIncrease()) {
 				for (int sqIndex = rayAttack.getBitSet().nextSetBit(indexOfPiece); sqIndex >= 0; //
@@ -420,34 +359,6 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			}
 		}
 		return overallCheckState == CheckStates.CHECK;
-	}
-
-	/**
-	 * Checks if the given move would place the opponent's king in check, i.e. the destination square of the move attacks
-	 * the location of the king along a rank or file.
-	 * <p>
-	 * This is for rook-type moves.
-	 *
-	 * @param posn the position. Only used if emptySquares is null.
-	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getEmptySquares().
-	 * @param move the move
-	 * @param opponentsKing where the opponent's king is
-	 * @param checkCache checkCache
-	 * @return true if this move is a check
-	 */
-	protected boolean findRankOrFileCheck(Position posn,
-			BitSetUnifier emptySquares,
-			Move move,
-			Square opponentsKing,
-			PositionCheckState checkCache) {
-		// abort if dest sq rank/file is not the same as the king's rank/file
-		if (move.to().file() == opponentsKing.file() || move.to().rank() == opponentsKing.rank()) {
-			return attacksSquareRankOrFile(emptySquares == null ? posn.getEmptySquares() : emptySquares, move.to(), opponentsKing,
-					checkCache, move.isCapture(), move.isPromotion());
-		} else {
-			checkCache.setNotCheck(null, move.to());
-			return false;
-		}
 	}
 
 	/**
