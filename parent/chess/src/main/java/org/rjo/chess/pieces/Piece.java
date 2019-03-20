@@ -7,7 +7,6 @@ import org.rjo.chess.base.Move;
 import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Position;
@@ -61,37 +60,14 @@ public interface Piece extends Cloneable {
 			PositionInfo posnInfo);
 
 	/**
-	 * Does the given move leave the opponent's king in check?
-	 * <p>
-	 * Currently two parts to this:<br>
-	 * (a) does the piece check the king at square move.to()?<br>
-	 * (b) is there a discovered check having vacated the square move.from()?
+	 * After the move, is the opponent's king in check. <b>DOES NOT look for discovered checks.</b>
 	 *
-	 * @param position current position
-	 * @param move current move
-	 * @param opponentsKing location of opponent's king
-	 * @param emptySquares bitset of empty squares (passed in as optimization)
-	 * @param checkCache cache for checks. This should only be used for bishop, queen or rook moves.
-	 * @param discoveredCheckCache cache for discovered checks
-	 * @return either null (when not check) or a checkInformation object, which stores which piece is checking / discovered
-	 *         check etc
-	 */
-	@Deprecated
-	CheckInformation isOpponentsKingInCheckAfterMove(Position position,
-			Move move,
-			Square opponentsKing,
-			BitSetUnifier emptySquares,
-			PositionCheckState checkCache,
-			SquareCache<Boolean> discoveredCheckCache);
-
-	/**
-	 * After the move, is the opponent's king in check. DOES NOT look for discovered checks.
-	 *
-	 * @param move
-	 * @param pieces
-	 * @param opponentsKing
-	 * @param checkingBitboards
-	 * @return
+	 * @param move the move
+	 * @param pieces all my pieces (is required by the pawn implementation)
+	 * @param opponentsKing where the opponent's king is
+	 * @param checkingBitboards the bitboards of squares which check the opponent's king [0]=rook,[1]=bishop
+	 * @return true if the opponent's king is in check as a direct result of this move (disregarding any possible discovered
+	 *         checks)
 	 */
 	boolean doesMoveLeaveOpponentInCheck(Move move,
 			Piece[] pieces,
