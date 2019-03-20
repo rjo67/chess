@@ -118,11 +118,6 @@ public class Queen extends SlidingPiece {
 			}
 			moves.addAll(searchByPiece(posn, indexOfPiece, posnInfo, raysToSearch));
 		}
-
-		//				// make sure my king is not/no longer in check
-		//				Square myKing = posn.getKingPosition(colour);
-		//				Colour opponentsColour = Colour.oppositeColour(colour);
-		//				moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck()));
 		return moves;
 	}
 
