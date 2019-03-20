@@ -1,6 +1,5 @@
 package org.rjo.chess.position.check;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -9,9 +8,6 @@ import org.junit.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.base.Move.CheckInformation;
-import org.rjo.chess.base.PieceType;
-import org.rjo.chess.base.Square;
 import org.rjo.chess.position.Fen;
 import org.rjo.chess.position.Game;
 
@@ -72,11 +68,8 @@ public class CheckTest {
 		Game game = Fen.decode("3k4/p1p1p1p1/8/8/8/p3p2p/P3P2P/R3K2R w KQ - 0 4");
 		List<Move> moves = game.getPosition().findMoves(Colour.WHITE);
 		TestUtil.checkMoves(moves, "O-O", "O-O-O+", "Ra1-b1", "Ra1-c1", "Ra1-d1+", "Rh1-g1", "Rh1-f1", "Ke1-d1", "Ke1-f1");
-		Move castlingmove = moves.stream().filter(move -> move.toString().equals("O-O-O+")).findAny().orElseThrow(IllegalStateException::new);
-		CheckInformation ci = castlingmove.getCheckInformation();
-		assertTrue(ci.isCheck());
-		assertEquals(PieceType.ROOK, ci.getCheckingPiece());
-		assertEquals(Square.d1, ci.getCheckingSquare());
+		Move castlingmove = moves.stream().filter(move -> move.isCastleQueensSide()).findAny().orElseThrow(IllegalStateException::new);
+		assertTrue(castlingmove.isCheck());
 	}
 
 	@Test
@@ -84,10 +77,7 @@ public class CheckTest {
 		Game game = Fen.decode("5k2/p1p1p1p1/8/8/8/p3p2p/P3P2P/R3K2R w KQ - 0 4");
 		List<Move> moves = game.getPosition().findMoves(Colour.WHITE);
 		TestUtil.checkMoves(moves, "O-O+", "O-O-O", "Ra1-b1", "Ra1-c1", "Ra1-d1", "Rh1-g1", "Rh1-f1+", "Ke1-d1", "Ke1-f1");
-		Move castlingmove = moves.stream().filter(move -> move.toString().equals("O-O+")).findAny().orElseThrow(IllegalStateException::new);
-		CheckInformation ci = castlingmove.getCheckInformation();
-		assertTrue(ci.isCheck());
-		assertEquals(PieceType.ROOK, ci.getCheckingPiece());
-		assertEquals(Square.f1, ci.getCheckingSquare());
+		Move castlingmove = moves.stream().filter(move -> move.isCastleKingsSide()).findAny().orElseThrow(IllegalStateException::new);
+		assertTrue(castlingmove.isCheck());
 	}
 }
