@@ -8,7 +8,6 @@ import org.rjo.chess.base.Move;
 import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
@@ -175,27 +174,6 @@ public class Pawn extends AbstractBitBoardPiece {
 		moves.addAll(captureRight(posn, posnInfo, helper[getColour().ordinal()], checkRestriction, isInCheck));
 
 		return moves;
-	}
-
-	@Override
-	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
-			Move move,
-			Square opponentsKing,
-			@SuppressWarnings("unused") BitSetUnifier emptySquares,
-			PositionCheckState checkCache,
-			@SuppressWarnings("unused") SquareCache<Boolean> discoveredCheckCache) {
-
-		if (checkIfCheckInternal(posn, move, opponentsKing, checkCache, helper[getColour().ordinal()])) {
-			return new CheckInformation(move.getPiece(), move.to());
-		}
-		// if it's already check, don't need to calculate discovered check
-
-		// probably not worth caching discovered check results for pawns
-		if (Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing)) {
-			return new CheckInformation(true);
-		} else {
-			return CheckInformation.NOT_CHECK;
-		}
 	}
 
 	@Override

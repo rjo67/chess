@@ -9,7 +9,6 @@ import org.rjo.chess.base.Move;
 import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
@@ -228,41 +227,10 @@ public class Knight extends AbstractSetPiece {
 	}
 
 	@Override
-	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
-			Move move,
-			Square opponentsKing,
-			@SuppressWarnings("unused") BitSetUnifier emptySquares,
-			@SuppressWarnings("unused") PositionCheckState checkCache,
-			SquareCache<Boolean> discoveredCheckCache) {
-
-		if (checkIfMoveAttacksSquare(move, opponentsKing.bitIndex())) {
-			// if it's already check, don't need to calculate discovered check
-			return new CheckInformation(move.getPiece(), move.to());
-		}
-		/*
-		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use
-		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
-		 */
-		boolean isCheck;
-		Boolean lookup = discoveredCheckCache.lookup(move.from());
-		if (lookup != null) {
-			isCheck = lookup;
-		} else {
-			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-			discoveredCheckCache.store(move.from(), isCheck);
-		}
-		if (isCheck) {
-			return new CheckInformation(true);
-		} else {
-			return CheckInformation.NOT_CHECK;
-		}
-	}
-
-	@Override
 	public boolean doesMoveLeaveOpponentInCheck(Move move,
-			Piece[] pieces,
+			@SuppressWarnings("unused") Piece[] pieces,
 			Square opponentsKing,
-			BitBoard[] checkingBitboards) {
+			@SuppressWarnings("unused") BitBoard[] checkingBitboards) {
 		return checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
 	}
 

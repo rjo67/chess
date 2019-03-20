@@ -14,7 +14,6 @@ import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.MoveDistance;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
@@ -383,43 +382,9 @@ public class King extends AbstractSetPiece {
 	}
 
 	@Override
-	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
-			Move move,
-			Square opponentsKing,
-			@SuppressWarnings("unused") BitSetUnifier emptySquares,
-			PositionCheckState checkCache,
-			SquareCache<Boolean> discoveredCheckCache) {
-		// checks: a king move can only give check if (a) castled with check or (b) discovered check
-		/*
-		 * all king moves have the same starting square. If we've already checked for discovered check for this square, then can
-		 * use the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
-		 */
-		boolean isCheck;
-		Boolean lookup = discoveredCheckCache.lookup(move.from());
-		if (lookup != null) {
-			isCheck = lookup;
-		} else {
-			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-			discoveredCheckCache.store(move.from(), isCheck);
-		}
-		if (isCheck) {
-			return new CheckInformation(true);
-		} else {
-			CheckInformation checkInfo = CheckInformation.NOT_CHECK;
-			if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-				if (SlidingPiece.attacksSquareRankOrFile(posn.getEmptySquares(), move.getRooksCastlingMove().to(), opponentsKing,
-						checkCache, move.isCapture(), move.isPromotion())) {
-					checkInfo = new CheckInformation(PieceType.ROOK, move.getRooksCastlingMove().to());
-				}
-			}
-			return checkInfo;
-		}
-	}
-
-	@Override
 	public boolean doesMoveLeaveOpponentInCheck(Move move,
-			Piece[] pieces,
-			Square opponentsKing,
+			@SuppressWarnings("unused") Piece[] pieces,
+			@SuppressWarnings("unused") Square opponentsKing,
 			BitBoard[] checkingBitboards) {
 		// 'castles' could leave the opponent in check
 		if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
