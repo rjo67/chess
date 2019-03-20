@@ -76,12 +76,27 @@ public interface Piece extends Cloneable {
 	 * @return either null (when not check) or a checkInformation object, which stores which piece is checking / discovered
 	 *         check etc
 	 */
+	@Deprecated
 	CheckInformation isOpponentsKingInCheckAfterMove(Position position,
 			Move move,
 			Square opponentsKing,
 			BitSetUnifier emptySquares,
 			PositionCheckState checkCache,
 			SquareCache<Boolean> discoveredCheckCache);
+
+	/**
+	 * After the move, is the opponent's king in check. DOES NOT look for discovered checks.
+	 *
+	 * @param move
+	 * @param pieces
+	 * @param opponentsKing
+	 * @param checkingBitboards
+	 * @return
+	 */
+	boolean doesMoveLeaveOpponentInCheck(Move move,
+			Piece[] pieces,
+			Square opponentsKing,
+			BitBoard[] checkingBitboards);
 
 	/**
 	 * Checks to see if the given square is attacked by one or more pieces of this piece type.

@@ -15,6 +15,7 @@ import org.rjo.chess.base.MoveDistance;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.SquareCache;
+import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
 import org.rjo.chess.base.bits.BitSetUnifier;
@@ -413,6 +414,18 @@ public class King extends AbstractSetPiece {
 			}
 			return checkInfo;
 		}
+	}
+
+	@Override
+	public boolean doesMoveLeaveOpponentInCheck(Move move,
+			Piece[] pieces,
+			Square opponentsKing,
+			BitBoard[] checkingBitboards) {
+		// 'castles' could leave the opponent in check
+		if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
+			return checkingBitboards[0].get(move.getRooksCastlingMove().to().bitIndex());
+		}
+		return false;
 	}
 
 	@Override

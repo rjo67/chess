@@ -3,6 +3,7 @@ package org.rjo.chess.pieces;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
@@ -106,6 +107,19 @@ public class WhitePawnTest extends AbstractMoveTest {
 	public void checkCaptureRight() {
 		setupGame("8/5k2/3pp3/3P4/8/8/8/4K3 w - - 0 0");
 		TestUtil.checkMoves(findPawnMoves(), "d5xe6+");
+	}
+
+	@Test
+	public void pinnedSpeed() {
+		setupGame("4k3/7b/8/1q3P2/2P5/3K1P1q/8/8 w - - 0 0");
+		var NBR_ITERS = 100000;
+		var sw = StopWatch.createStarted();
+		for (int i = 0; i < NBR_ITERS; i++) {
+			TestUtil.checkMoves(findPawnMoves(), "c4xb5");
+		}
+		System.out.println("pinned pawn: " + sw.getTime());
+		// takes ~7300ms for a million times, not evaluating 'pinnedPieces'
+		// takes ~xms for a million times,  evaluating 'pinnedPieces'
 	}
 
 	@Test

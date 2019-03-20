@@ -2,7 +2,7 @@ package org.rjo.chess.base;
 
 /**
  * Represents the colours of the sides in the game.
- * 
+ *
  * @author rich
  */
 public enum Colour {
@@ -19,7 +19,11 @@ public enum Colour {
 		return name().charAt(0) + name().substring(1).toLowerCase();
 	}
 
+	public Colour oppositeColour() {
+		return this == WHITE ? BLACK : WHITE;
+	}
+
 	public static Colour oppositeColour(Colour colour) {
-		return (colour == Colour.WHITE ? BLACK : WHITE);
+		return colour.oppositeColour();
 	}
 }

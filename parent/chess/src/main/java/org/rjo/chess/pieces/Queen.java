@@ -9,13 +9,12 @@ import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.SquareCache;
+import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.RayType;
-import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
-import org.rjo.chess.position.check.KingCheck;
 
 /**
  * Stores information about the queens (still) in the game.
@@ -102,21 +101,30 @@ public class Queen extends SlidingPiece {
 	@Override
 	public List<Move> findMoves(Position posn,
 			CheckInformation kingInCheck,
-			PositionInfo boardInfo) {
+			PositionInfo posnInfo) {
 		List<Move> moves = new ArrayList<>(30);
 
-		/*
-		 * search for moves in all compass directions.
-		 */
-		for (RayType rayType : RayType.values()) {
-			moves.addAll(search(posn, RayUtils.getRay(rayType), boardInfo.getSquaresToBlockCheck(), boardInfo.isKingInCheck()));
+		// search for each piece in all directions (unless pinned, in which case can limit the rays searched)
+
+		for (int indexOfPiece = pieces.getBitSet().nextSetBit(0); indexOfPiece >= 0; indexOfPiece = pieces.getBitSet()
+				.nextSetBit(indexOfPiece + 1)) {
+			RayType[] raysToSearch;
+			var pinnedPiece = posnInfo.isPiecePinned(PieceType.QUEEN, Square.fromBitIndex(indexOfPiece));
+			if (pinnedPiece.isPresent()) {
+				// search only the pinned ray and its opposite
+				raysToSearch = new RayType[2];
+				raysToSearch[0] = pinnedPiece.get().getRay();
+				raysToSearch[1] = pinnedPiece.get().getRay().getOpposite();
+			} else {
+				raysToSearch = RayType.values();
+			}
+			moves.addAll(searchByPiece(posn, indexOfPiece, posnInfo, raysToSearch));
 		}
 
-		// make sure my king is not/no longer in check
-		Square myKing = posn.getKingPosition(colour);
-		Colour opponentsColour = Colour.oppositeColour(colour);
-		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck()));
-
+		//				// make sure my king is not/no longer in check
+		//				Square myKing = posn.getKingPosition(colour);
+		//				Colour opponentsColour = Colour.oppositeColour(colour);
+		//				moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck()));
 		return moves;
 	}
 
@@ -151,6 +159,14 @@ public class Queen extends SlidingPiece {
 		} else {
 			return CheckInformation.NOT_CHECK;
 		}
+	}
+
+	@Override
+	public boolean doesMoveLeaveOpponentInCheck(Move move,
+			Piece[] pieces,
+			Square opponentsKing,
+			BitBoard[] checkingBitboards) {
+		return checkingBitboards[0].get(move.to().bitIndex()) || checkingBitboards[1].get(move.to().bitIndex());
 	}
 
 	@Override
