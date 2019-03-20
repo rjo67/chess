@@ -148,7 +148,7 @@ public class RayUtils {
 			}
 			// assumed to be opponent's piece...
 			else {
-				info.storePiece(sqIndex, Colour.oppositeColour(myColour), distance);
+				info.storePiece(sqIndex, myColour.oppositeColour(), distance);
 				break;
 			}
 		}

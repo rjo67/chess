@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
@@ -158,6 +159,19 @@ public class BishopMoveTest extends AbstractMoveTest {
 	public void pinnedBishopsKingInCheck() {
 		setupGame("rnbqkbnr/ppppppp1/8/b4r2/P3r2b/1B6/2PBB3/2B1K3 w - - 0 4");
 		TestUtil.checkMoves(game.getPosition().findMoves(Colour.WHITE), "Ke1-d1");
+	}
+
+	@Test
+	public void pinnedSpeed() {
+		setupGame("rnbqkbnr/ppppppp1/8/b4r2/4r3/8/3BB3/4K3 w - - 0 4");
+		var NBR_ITERS = 500000;
+		var sw = StopWatch.createStarted();
+		for (int i = 0; i < NBR_ITERS; i++) {
+			TestUtil.checkMoves(findBishopMoves(), "Bd2-c3", "Bd2-b4", "Bd2xa5");
+		}
+		System.out.println("pinned bishops: " + sw.getTime());
+		// takes ~: 8800ms for 1000000 times, not evaluating 'pinnedPieces'
+		// takes ~5300ms for 1000000 times,  evaluating 'pinnedPieces'
 	}
 
 	@Test

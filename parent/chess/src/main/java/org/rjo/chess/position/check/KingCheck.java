@@ -1,20 +1,14 @@
 package org.rjo.chess.position.check;
 
-import java.util.Iterator;
-
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.Ray;
-import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.base.ray.RayUtils;
-import org.rjo.chess.pieces.Knight;
-import org.rjo.chess.pieces.Pawn;
 import org.rjo.chess.position.Position;
-import org.rjo.chess.position.PositionInfo;
+import org.rjo.chess.position.PositionAnalyser;
 
 /**
  * Routines to discover if the king is in check.
@@ -93,184 +87,6 @@ public class KingCheck {
 			return isKingInCheckAfterMove_PreviouslyNotInCheck(king, Colour.oppositeColour(opponentsColour), friendlyPieces, enemyPieces,
 					move);
 		}
-	}
-
-	/**
-	 * Returns a list of pieces which currently check the given king.
-	 * <p>
-	 * The search can be configured in two ways:
-	 * <ul>
-	 * <li>if <code>findAllChecks</code> is 'false', the routine will exit as soon as it finds one checking piece. Otherwise
-	 * all checking pieces will be found (stopping at max 2, since more is not possible in a game situation.</li>
-	 * <li>if <code>rayToExamine</code> is set, only this ray will be examined (and no pawn/knight moves either).</li>
-	 * </ul>
-	 * <p>
-	 * Suitable for multithreaded use, since does not modify any global state.
-	 *
-	 * @param kingsSquare where the king is.
-	 * @param kingsColour colour of the king.
-	 * @param allFriendlyPieces bitset indicating location of the friendly pieces.
-	 * @param friendlyPieces bitsets indicating location of the friendly pieces. FOR BACKWARDS COMPAT: can be null.
-	 * @param enemyPieces bitsets indicating location of the enemy pieces.
-	 * @param rayToExamine if set, JUST this ray will be examined. This is an optimization where the king was not in check
-	 *           beforehand. Then we only need to check the ray which has been vacated by the moving piece. <b>Do not
-	 *           set</b> if the king himself has moved.
-	 * @param findAllChecks if true, all checking pieces will be found. If false, search stops after the first one.
-	 * @return an object containing a list of pieces checking the king (list is empty if the king is not in check) and a
-	 *         list of pieces which are pinned against the king. If friendlyPieces==null, pinned info will not be returned
-	 */
-	public static PositionInfo isKingInCheck(Square kingsSquare,
-			Colour kingsColour,
-			BitSetUnifier allFriendlyPieces,
-			BitSetUnifier[] friendlyPieces,
-			BitSetUnifier[] enemyPieces,
-			RayType rayToExamine,
-			boolean findAllChecks) {
-
-		var boardInfo = new PositionInfo(kingsSquare);
-		boolean optimizedRaySearch = rayToExamine != null;
-
-		/*
-		 * The algorithm first handles the special cases of pawn or knight checks. Then, for each ray emenating from the king's
-		 * square, the squares on the ray get checked. If the square contains an enemy piece then this is checked for a possible
-		 * check.
-		 */
-
-		if (!optimizedRaySearch) {
-			// special cases: pawn and knight attacks
-			var i = Knight.attacksSquare(kingsSquare, enemyPieces[PieceType.KNIGHT.ordinal()]);
-			if (i >= 0) {
-				boardInfo.addChecker(PieceType.KNIGHT, i);
-				if (!findAllChecks || boardInfo.getCheckers().size() == 2) {
-					return boardInfo;
-				}
-			}
-			i = Pawn.attacksSquare(kingsSquare, Colour.oppositeColour(kingsColour), enemyPieces[PieceType.PAWN.ordinal()]);
-			if (i >= 0) {
-				boardInfo.addChecker(PieceType.PAWN, i);
-				if (!findAllChecks || boardInfo.getCheckers().size() == 2) {
-					return boardInfo;
-				}
-			}
-		}
-
-		BitBoard allEnemyPieces = new BitBoard();
-		for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
-			allEnemyPieces.getBitSet().or(enemyPieces[pt.ordinal()]);
-		}
-
-		RayType[] raysToCheck;
-		if (optimizedRaySearch) {
-			raysToCheck = new RayType[] { rayToExamine };
-		} else {
-			raysToCheck = RayType.values();
-		}
-
-		// look along each ray, starting from king's square
-		for (RayType rayType : raysToCheck) {
-			Ray ray = RayUtils.getRay(rayType);
-			boolean keepSearching = true; // we terminate early if we've found 2 checks
-			Iterator<Integer> rayIter = ray.squaresFrom(kingsSquare);
-			while (keepSearching && rayIter.hasNext()) {
-				int bitIndex = rayIter.next();
-				// stop search for a checker if a friendly piece is on this ray; however, process to see if this is pinned (if friendlyPieces has been supplied)
-				if (allFriendlyPieces.get(bitIndex)) {
-					if (friendlyPieces != null && pieceIsPinned(allFriendlyPieces, allEnemyPieces, enemyPieces, rayType, rayIter)) {
-						boardInfo.addPinnedPiece(rayType, findPieceAt(bitIndex, friendlyPieces), bitIndex);
-					}
-					break;
-				}
-				// an enemy piece is relevant for diagonal (queen/bishop) or file (queen/rook)
-				if (allEnemyPieces.get(bitIndex)) {
-					if (rayType.isDiagonal()) {
-						if (enemyPieces[PieceType.QUEEN.ordinal()].get(bitIndex)) {
-							boardInfo.addChecker(rayType, PieceType.QUEEN, bitIndex);
-							keepSearching = !findAllChecks || boardInfo.isDoubleCheck();
-						} else if (enemyPieces[PieceType.BISHOP.ordinal()].get(bitIndex)) {
-							boardInfo.addChecker(rayType, PieceType.BISHOP, bitIndex);
-							keepSearching = !findAllChecks || boardInfo.isDoubleCheck();
-						}
-					} else // !rayType.isDiagonal()
-					{
-						if (enemyPieces[PieceType.QUEEN.ordinal()].get(bitIndex)) {
-							boardInfo.addChecker(rayType, PieceType.QUEEN, bitIndex);
-							keepSearching = !findAllChecks || boardInfo.isDoubleCheck();
-						} else if (enemyPieces[PieceType.ROOK.ordinal()].get(bitIndex)) {
-							boardInfo.addChecker(rayType, PieceType.ROOK, bitIndex);
-							keepSearching = !findAllChecks || boardInfo.isDoubleCheck();
-						}
-					}
-					break;
-				}
-			}
-
-		}
-		boardInfo.calculateRestrictedSquares();
-		return boardInfo;
-
-	}
-
-	/**
-	 * Returns the type of piece at the bitindex location.
-	 *
-	 * @param bitIndex location
-	 * @param pieces bitsets of pieces
-	 * @return the type of piece at the location
-	 */
-	private static PieceType findPieceAt(int bitIndex,
-			BitSetUnifier[] pieces) {
-		for (PieceType pt : PieceType.ALL_PIECE_TYPES_EXCEPT_KING) {
-			if (pieces[pt.ordinal()].get(bitIndex)) {
-				return pt;
-			}
-		}
-		throw new IllegalArgumentException(
-				String.format("no piece found at %d_(%s) for bitmaps: %s", bitIndex, Square.fromBitIndex(bitIndex), pieces));
-	}
-
-	/**
-	 * This method is called when one of our pieces has been found on a ray from our king. It now checks to see if there is
-	 * an enemy piece further along the ray which is pinning our piece. If so, returns true.
-	 * <p>
-	 * NB there is no need to know which of our pieces has been found or even on what square.
-	 *
-	 * @param friendlyPieces our pieces
-	 * @param allEnemyPieces their pieces as a bitboard
-	 * @param enemyPieces their pieces
-	 * @param rayType type of ray
-	 * @param rayIter the iterator along the ray in question
-	 * @return true if there is an enemy piece pinning our piece.
-	 */
-	private static boolean pieceIsPinned(BitSetUnifier friendlyPieces,
-			BitBoard allEnemyPieces,
-			BitSetUnifier[] enemyPieces,
-			RayType rayType,
-			Iterator<Integer> rayIter) {
-		while (rayIter.hasNext()) {
-			int bitIndex = rayIter.next();
-			// stop search if we've found another of our pieces on the ray
-			if (friendlyPieces.get(bitIndex)) {
-				return false;
-			} else if (allEnemyPieces.get(bitIndex)) {
-				if (rayType.isDiagonal()) {
-					if (enemyPieces[PieceType.QUEEN.ordinal()].get(bitIndex)) {
-						return true;
-					} else if (enemyPieces[PieceType.BISHOP.ordinal()].get(bitIndex)) {
-						return true;
-					}
-					break; // found an enemy's piece, but it's not a pinner
-				} else // !rayType.isDiagonal
-				{
-					if (enemyPieces[PieceType.QUEEN.ordinal()].get(bitIndex)) {
-						return true;
-					} else if (enemyPieces[PieceType.ROOK.ordinal()].get(bitIndex)) {
-						return true;
-					}
-					break; // found an enemy's piece, but it's not a pinner
-				}
-			}
-		}
-		return false;
 	}
 
 	/**
@@ -392,9 +208,11 @@ public class KingCheck {
 
 		// no optimizations if the king moved or was in check beforehand
 		if (kingMoved || kingWasInCheck) {
-			return !isKingInCheck(kingsSquare, kingsColour, friendlyPieces, null, enemyPieces, null, false).getCheckers().isEmpty();
+			return !PositionAnalyser.analysePosition(kingsSquare, kingsColour, friendlyPieces, null, enemyPieces, null, false).getCheckers()
+					.isEmpty();
 		} else {
-			return !isKingInCheck(kingsSquare, kingsColour, friendlyPieces, null, enemyPieces, rayFromKingToMoveOrigin.getRayType(), false)
+			return !PositionAnalyser
+					.analysePosition(kingsSquare, kingsColour, friendlyPieces, null, enemyPieces, rayFromKingToMoveOrigin.getRayType(), false)
 					.getCheckers().isEmpty();
 		}
 	}

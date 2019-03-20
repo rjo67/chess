@@ -3,6 +3,7 @@ package org.rjo.chess.pieces;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
@@ -122,6 +123,19 @@ public class RookMoveTest extends AbstractMoveTest {
 	public void moveFromH8WithCapture() {
 		setupGame("5K1R/8/8/6kp/8/8/8/8 w - - 0 0");
 		TestUtil.checkMoves(findRookMoves(), "Rh8-h7", "Rh8-h6", "Rh8xh5+", "Rh8-g8+");
+	}
+
+	@Test
+	public void pinnedSpeed() {
+		setupGame("5K2/4R3/8/2b1pR2/8/8/k4r2/8  w - - 0 0");
+		var NBR_ITERS = 500000;
+		var sw = StopWatch.createStarted();
+		for (int i = 0; i < NBR_ITERS; i++) {
+			TestUtil.checkMoves(findRookMoves(), "Rf5-f6", "Rf5-f7", "Rf5-f4", "Rf5-f3", "Rf5xf2+");
+		}
+		System.out.println("pinned rooks: " + sw.getTime());
+		// takes ~: 11-12000ms for 1000000 times, not evaluating 'pinnedPieces'
+		// takes ~6800ms for 1000000 times,  evaluating 'pinnedPieces'
 	}
 
 	@Test

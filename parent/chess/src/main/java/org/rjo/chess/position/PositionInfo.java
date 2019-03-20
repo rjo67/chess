@@ -3,6 +3,7 @@ package org.rjo.chess.position;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
@@ -90,15 +91,15 @@ public class PositionInfo {
 	/**
 	 * returns true if the given piece on the square is pinned. (piecetype is only for sanity-check.)
 	 */
-	public boolean isPiecePinned(PieceType pieceType,
+	public Optional<PieceInfo> isPiecePinned(PieceType pieceType,
 			Square sq) {
-		var match = pinnedPieces.stream()
+		var pin = pinnedPieces.stream()
 				.filter(pinned -> pinned.bitIndex == sq.bitIndex()).findFirst();
-		if (match.isPresent() && match.get().piece != pieceType) {
-			throw new IllegalArgumentException(String.format("bad piece type at sq %d, expected %s, got %s. Info: %s",
-					sq, pieceType, match.get().piece, this));
+		if (pin.isPresent() && pin.get().piece != pieceType) {
+			throw new IllegalArgumentException(
+					"got piece type " + pin.get().piece + ", expected piece type " + pieceType + " at square: " + sq);
 		}
-		return match.isPresent();
+		return pin;
 	}
 
 	/**

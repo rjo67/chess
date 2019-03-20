@@ -3,6 +3,7 @@ package org.rjo.chess.pieces;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
@@ -85,6 +86,19 @@ public class QueenMoveTest extends AbstractMoveTest {
 			assertTrue("square " + sq, whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}
 		assertFalse(whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));
+	}
+
+	@Test
+	public void pinned() {
+		setupGame("5K2/4Q3/8/2b1pQ2/8/8/k4r2/8  w - - 0 0");
+		var NBR_ITERS = 100000;
+		var sw = StopWatch.createStarted();
+		for (int i = 0; i < NBR_ITERS; i++) {
+			TestUtil.checkMoves(findQueenMoves(), "Qe7-d6", "Qe7xc5", "Qf5-f6", "Qf5-f7+", "Qf5-f4", "Qf5-f3", "Qf5xf2+");
+		}
+		System.out.println("pinned queen: " + sw.getTime());
+		// takes ~2500ms for 100000 times, not evaluating 'pinnedPieces'
+		// takes ~1300ms for 100000 times,  evaluating 'pinnedPieces'
 	}
 
 	@Test

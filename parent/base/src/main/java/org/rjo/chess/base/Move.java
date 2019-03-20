@@ -52,6 +52,12 @@ public class Move {
 	private boolean enpassant;
 
 	/**
+	 * Set to the square where the pawn was, which has just been captured enpassant. See
+	 * {@link Square#findMoveFromEnpassantSquare(Square)}.
+	 */
+	private Square pawnCapturedEnpassant;
+
+	/**
 	 * Constructor for normal non-capture non-check moves.
 	 *
 	 * @param piece which piece is moving
@@ -170,6 +176,7 @@ public class Move {
 			Square to) {
 		Move move = new Move(PieceType.PAWN, colour, from, to, PieceType.PAWN);
 		move.enpassant = true;
+		move.pawnCapturedEnpassant = Square.findMoveFromEnpassantSquare(to);
 		return move;
 	}
 
@@ -199,6 +206,10 @@ public class Move {
 
 	public boolean isEnpassant() {
 		return enpassant;
+	}
+
+	public Square getPawnCapturedEnpassant() {
+		return pawnCapturedEnpassant;
 	}
 
 	public PieceType getCapturedPiece() {

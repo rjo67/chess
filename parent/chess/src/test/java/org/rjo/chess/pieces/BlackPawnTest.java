@@ -2,6 +2,10 @@ package org.rjo.chess.pieces;
 
 import org.junit.Test;
 import org.rjo.chess.TestUtil;
+import org.rjo.chess.base.Colour;
+import org.rjo.chess.base.Move;
+import org.rjo.chess.base.PieceType;
+import org.rjo.chess.base.Square;
 
 public class BlackPawnTest extends AbstractMoveTest {
 
@@ -100,4 +104,27 @@ public class BlackPawnTest extends AbstractMoveTest {
 		TestUtil.checkMoves(findPawnMoves(), "d5xe4+");
 	}
 
+	@Test
+	public void enpassantCheck() {
+		setupGame("8/3pk3/8/4P3/8/8/5K2/8 b - - 0 0");
+		// make pawn move to setup enpassant possibility
+		game.makeMove(new Move(PieceType.PAWN, Colour.BLACK, Square.d7, Square.d5));
+		TestUtil.checkMoves(findPawnMoves(), "e5xd6+", "e5-e6");
+	}
+
+	@Test
+	public void enpassantDiscoveredCheckHorizontally() {
+		setupGame("8/3p4/8/2k1P2Q/8/8/5K2/8 b - - 0 0");
+		// make pawn move to setup enpassant possibility
+		game.makeMove(new Move(PieceType.PAWN, Colour.BLACK, Square.d7, Square.d5));
+		TestUtil.checkMoves(findPawnMoves(), "e5xd6+", "e5-e6");
+	}
+
+	@Test
+	public void enpassantDiscoveredCheckDiagonally() {
+		setupGame("6B1/3p4/8/4P3/2k5/8/5K2/8 b - - 0 0");
+		// make pawn move to setup enpassant possibility
+		game.makeMove(new Move(PieceType.PAWN, Colour.BLACK, Square.d7, Square.d5));
+		TestUtil.checkMoves(findPawnMoves(), "e5xd6+", "e5-e6");
+	}
 }

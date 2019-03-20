@@ -88,7 +88,7 @@ public class PerftTest {
 	 * depth.
 	 */
 	@Test
-	public void test() {
+	public void perft() {
 		for (int depth = 0; depth < expectedNbrOfMoves.length; depth++) {
 			if (expectedNbrOfMoves[depth] != -1) {
 				Game game = Fen.decode(fenString);
@@ -115,7 +115,7 @@ public class PerftTest {
 	 * <li>expected number of moves for each depth (-1 means do not perform search at this depth) -- int[]</li>
 	 * </ul>
 	 */
-	@Parameters(name = "perft({0})")
+	@Parameters(name = "{0}")
 	public static Collection<Object[]> data() {
 		// @formatter:off
 		return Arrays.asList(new Object[][] {

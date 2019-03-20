@@ -17,7 +17,6 @@ import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
-import org.rjo.chess.position.check.KingCheck;
 
 /**
  * Stores information about the knights (still) in the game.
@@ -180,9 +179,8 @@ public class Knight extends AbstractSetPiece {
 		 * for each knight on the board, finds its moves using the lookup table
 		 */
 		for (Square knightStartSquare : pieces) {
-			List<Move> oneKnightMoves = new ArrayList<>(8);
 			// stop processing this knight if it's pinned
-			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare)) {
+			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare).isPresent()) {
 				continue;
 			}
 			BitSetUnifier possibleMoves = (BitSetUnifier) knightMoves[knightStartSquare.bitIndex()].clone();
@@ -193,13 +191,14 @@ public class Knight extends AbstractSetPiece {
 			/*
 			 * Iterates over all possible moves and stores them as moves or captures
 			 */
+			List<Move> oneKnightMoves = new ArrayList<>(8);
 			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
 				oneKnightMoves.add(createMove(k, posn, allOpponentsPiecesBitSet, knightStartSquare, oppositeColour));
 			}
 			/*
 			 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
 			 */
-			oneKnightMoves.removeIf(move -> KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck()));
+			//			oneKnightMoves.removeIf(move -> KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck()));
 
 			//			 DEBUG if piece was pinned but moves!=empty, --> problemo (remove 'continue' above to test here)
 			//			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare) && !oneKnightMoves.isEmpty()) {
@@ -257,6 +256,14 @@ public class Knight extends AbstractSetPiece {
 		} else {
 			return CheckInformation.NOT_CHECK;
 		}
+	}
+
+	@Override
+	public boolean doesMoveLeaveOpponentInCheck(Move move,
+			Piece[] pieces,
+			Square opponentsKing,
+			BitBoard[] checkingBitboards) {
+		return checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
 	}
 
 	/**

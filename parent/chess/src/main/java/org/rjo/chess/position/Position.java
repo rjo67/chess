@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
@@ -20,7 +21,6 @@ import org.rjo.chess.base.Move;
 import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.Ray;
@@ -363,30 +363,119 @@ public class Position {
 
 		List<Move> moves = new ArrayList<>(100);
 
-		if (SystemFlags.INSPECT_CHECKS_FIRST) {
+		var posnInfo = PositionAnalyser.analysePosition(getKingPosition(colour),
+				colour, this.getAllPieces(colour).getBitSet(),
+				setupBitsets(this.getPieces(colour)),
+				setupBitsets(this.getPieces(Colour.oppositeColour(colour))),
+				null, true);
 
-			var boardInfo = KingCheck.isKingInCheck(getKingPosition(colour),
-					colour, this.getAllPieces(colour).getBitSet(),
-					setupBitsets(this.getPieces(colour)),
-					setupBitsets(this.getPieces(Colour.oppositeColour(colour))),
-					null, true);
-
-			// double check -- king must move
-			// single check -- set up check restriction
-			// otherwise process as normal, but with info about pinned pieces
-			if (boardInfo.isDoubleCheck()) {
-				moves.addAll(getPieces(colour)[PieceType.KING.ordinal()].findMoves(this, checkInformation, boardInfo));
-			} else {
-				for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-					Piece p = getPieces(colour)[type.ordinal()];
-					moves.addAll(p.findMoves(this, checkInformation, boardInfo));
-				}
+		// double check -- king must move
+		// single check -- set up check restriction
+		// otherwise process as normal, but with info about pinned pieces
+		if (posnInfo.isDoubleCheck()) {
+			moves.addAll(getPieces(colour)[PieceType.KING.ordinal()].findMoves(this, checkInformation, posnInfo));
+		} else {
+			for (PieceType type : PieceType.ALL_PIECE_TYPES) {
+				Piece p = getPieces(colour)[type.ordinal()];
+				moves.addAll(p.findMoves(this, checkInformation, posnInfo));
 			}
 		}
 
 		/*
 		 * at this point have found all legal moves. Now need to establish which moves leave the opponent's king in check.
 		 */
+
+		final Square opponentsKingsSquare = getKingPosition(colour.oppositeColour());
+		var checkingSquaresBitBoards = PositionAnalyser.findCheckingSquares(opponentsKingsSquare,
+				this.getAllPieces(colour.oppositeColour()),
+				this.getAllPieces(colour));
+
+		for (Move move : moves) {
+			Piece p = getPieces(colour)[move.getPiece().ordinal()];
+			var isCheck = p.doesMoveLeaveOpponentInCheck(move, getPieces(colour), opponentsKingsSquare, checkingSquaresBitBoards);
+			if (isCheck) {
+				move.setCheck(true);
+				continue;
+			}
+
+			// ***********************************************
+			// ... discovered check...
+
+			Ray rayToKing;
+
+			// is the move.from() square (or e.p. square) on a ray to the king?
+			if (move.isEnpassant()) {
+				rayToKing = RayUtils.getRay(move.getPawnCapturedEnpassant(), opponentsKingsSquare);
+			} else {
+				rayToKing = RayUtils.getRay(move.from(), opponentsKingsSquare);
+			}
+			if (rayToKing == null) {
+				continue;
+			}
+
+			// is the 'next' square towards the king a 'checking' square? (and not occupied -- could be the case if this is the first opponent's piece on the ray)
+			int nextSquare;
+			if (move.isEnpassant()) {
+				nextSquare = move.getPawnCapturedEnpassant().bitIndex(); // for e.p., use the e.p. square itself
+			} else {
+				nextSquare = rayToKing.squaresFrom(move.from()).next();
+			}
+			// shortcircuit if the 'nextSquare' is where the king is... this happens if the moving piece was adjacent to the opponent's king
+			if (nextSquare != opponentsKingsSquare.bitIndex()) {
+				var bitboardToUse = rayToKing.getRayType().isDiagonal() ? 1 : 0;
+				// for e.p., the 'nextSquare' will be occupied - with the pawn that has been taken. Therefore don't check for an opponent's piece
+				if (move.isEnpassant()) {
+					if (!checkingSquaresBitBoards[bitboardToUse].get(nextSquare)) {
+						continue;
+					}
+				} else if (!checkingSquaresBitBoards[bitboardToUse].get(nextSquare)
+						|| getAllPieces(sideToMove.oppositeColour()).get(nextSquare)) {
+					continue;
+				}
+			}
+
+			// if the next piece on the opposite ray to 'rayToKing' is our piece (of the correct type) then it's discovered check.
+			// Again, for e.p., use the e.p. square as starting point
+			Iterator<Integer> rayIter;
+			if (move.isEnpassant()) {
+				rayIter = rayToKing.getOpposite().squaresFrom(move.getPawnCapturedEnpassant());
+			} else {
+				rayIter = rayToKing.getOpposite().squaresFrom(move.from());
+			}
+			var keepSearching = true;
+			while (keepSearching && rayIter.hasNext()) {
+				var bitIndex = rayIter.next();
+				// ignore if enpassant move and we're currently on the from() square where the pawn was
+				// this scenario arises when the king, moving pawn, and checking piece are all on the same ray e.g. 8/8/8/2kpP2Q/8/8/5K2/8
+				if (move.isEnpassant() && bitIndex == move.from().bitIndex()) {
+					continue;
+				}
+				if (this.getAllPieces(colour).get(bitIndex)) {
+					// found one of our pieces
+					Square sq = Square.fromBitIndex(bitIndex);
+					if (rayToKing.getRayType().isDiagonal()) {
+						// diagonal ray --> piece must be a bishop or queen for a discovered check
+						isCheck = this.getPieces(colour)[PieceType.QUEEN.ordinal()].pieceAt(sq)
+								|| this.getPieces(colour)[PieceType.BISHOP.ordinal()].pieceAt(sq);
+					} else {
+						// horiz/vert ray --> piece must be a rook or queen for a discovered check
+						isCheck = this.getPieces(colour)[PieceType.QUEEN.ordinal()].pieceAt(sq)
+								|| this.getPieces(colour)[PieceType.ROOK.ordinal()].pieceAt(sq);
+					}
+					keepSearching = false;
+				} else if (this.getAllPieces(colour.oppositeColour()).get(bitIndex)) {
+					// found an opponent's piece
+					keepSearching = false;
+				}
+			}
+			if (isCheck) {
+				move.setCheck(true);
+				continue;
+			}
+		}
+
+	// @formatter:off
+		/*
 		final Square opponentsKing = getKingPosition(Colour.oppositeColour(sideToMove));
 		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>((Boolean) null);//TODO this cache should not be using null
 		final BitSetUnifier emptySquares = getEmptySquares();
@@ -402,6 +491,8 @@ public class Position {
 					pcs, discoveredCheckCache);
 			move.setCheck(checkInfo);
 		}
+		 */
+	// @formatter:on
 
 		return moves;
 	}
@@ -1144,4 +1235,5 @@ public class Position {
 			return false;
 		}
 	}
+
 }

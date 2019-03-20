@@ -87,7 +87,7 @@ public class PieceManagerTest {
 			@SuppressWarnings("unused")
 			PieceManager pm2 = new PieceManager(pm);
 		}
-		System.out.println(sw.getTime());
+		System.out.println("pieceManagerSpeedTest: " + sw.getTime());
 	}
 
 	/**

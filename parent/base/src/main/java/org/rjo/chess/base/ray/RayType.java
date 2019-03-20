@@ -15,6 +15,11 @@ public enum RayType {
 		setOpposites(NORTHWEST, SOUTHEAST);
 		setOpposites(NORTHEAST, SOUTHWEST);
 		setOpposites(WEST, EAST);
+
+		NORTH.vertical = true;
+		SOUTH.vertical = true;
+		WEST.horizontal = true;
+		EAST.horizontal = true;
 	}
 
 	public static final RayType[] RAY_TYPES_DIAGONAL = new RayType[] { RayType.SOUTHEAST, RayType.SOUTHWEST, RayType.NORTHEAST,
@@ -24,6 +29,8 @@ public enum RayType {
 
 	private int index;
 	private boolean diagonal;
+	private boolean vertical = false;
+	private boolean horizontal = false;
 	// if true, the next bit on the ray has a larger index than the previous i.e. use nextSetBit to find it (e.g. NW, N, NE, E)
 	// if false, use prevSetBit.
 	private boolean bitIndicesIncrease;
@@ -53,6 +60,20 @@ public enum RayType {
 	 */
 	public boolean isDiagonal() {
 		return diagonal;
+	}
+
+	/**
+	 * @return true if this ray is a vertical ray.
+	 */
+	public boolean isVertical() {
+		return vertical;
+	}
+
+	/**
+	 * @return true if this ray is a horizontal ray.
+	 */
+	public boolean isHorizontal() {
+		return horizontal;
 	}
 
 	/**

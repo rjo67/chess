@@ -12,18 +12,6 @@ public class SystemFlags {
 	}
 
 	/**
-	 * if TRUE, will first analyse the king's position, i.e. is king in check, and which pieces are pinned.
-	 * <p>
-	 * Overrides GENERATE_ILLEGAL_MOVES.
-	 */
-	public static final boolean INSPECT_CHECKS_FIRST = Boolean.parseBoolean(System.getProperty("inspectChecksFirst", "true"));
-
-	/**
-	 * if TRUE, finds all moves (potentially non-legal) and removes illegal moves later. If FALSE, just finds legal moves.
-	 */
-	public static final boolean GENERATE_ILLEGAL_MOVES = Boolean.parseBoolean(System.getProperty("generateIllegalMoves", "false"));
-
-	/**
 	 * if TRUE, re-calculate the zobrist hash in order to check that the update function works.
 	 * <p>
 	 * Is a good check for the Zobrist function, however it does slow things down dramatically.
