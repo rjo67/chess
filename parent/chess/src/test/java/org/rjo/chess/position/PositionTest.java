@@ -113,15 +113,6 @@ public class PositionTest {
 	}
 
 	@Test
-	public void posn3() {
-		Game game = Fen.decode("8/1Kp4r/3p4/1P6/1R3p1k/8/4P1P1/8 b - - 0 0");
-		List<Move> moves = game.getPosition().findMoves(Colour.BLACK);
-		Map<String, Integer> moveMap = Perft.findMoves(game.getPosition(), Colour.BLACK, 2, 1);
-		int nbrMoves = Perft.countMoves(moveMap);
-		assertEquals(35, nbrMoves, "found moves" + moveMap);
-	}
-
-	@Test
 	public void bishopCapture() {
 		Game game = Fen.decode("r3k2r/pb3p2/5npp/n2p4/1p1PPB2/6P1/P2N1PBP/R3K2R w KQkq - 0 10");
 		Position posn = game.getPosition();

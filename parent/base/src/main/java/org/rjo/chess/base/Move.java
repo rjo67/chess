@@ -29,7 +29,7 @@ public class Move {
 	/**
 	 * whether this move was a check. Cannot be null.
 	 */
-	private CheckInformation check;
+	private boolean check;
 
 	/**
 	 * castling info -- if not null, implies that this move was 0-0 or 0-0-0
@@ -98,7 +98,7 @@ public class Move {
 		this.from = from;
 		this.to = to;
 		this.captureInfo = (capturedPiece != null) ? new CaptureInfo(capturedPiece) : null;
-		this.check = check ? new CheckInformation(piece, to) : CheckInformation.NOT_CHECK;
+		this.check = check;
 		this.castlingInfo = null;
 		this.enpassant = false;
 		this.castlingRightsInfo = new CastlingRightsInfo();
@@ -133,7 +133,7 @@ public class Move {
 			sb.append(to);
 			sb.append(isPromotion() ? "=" + promotionInfo.promotedPiece.getSymbol() : "");
 		}
-		sb.append(check.isCheck() ? "+" : "");
+		sb.append(check ? "+" : "");
 		return sb.toString();
 	}
 
@@ -180,24 +180,12 @@ public class Move {
 		return move;
 	}
 
-	public void setCheck(boolean check) {
-		if (check) {
-			setCheck(new CheckInformation(this.piece, this.to));
-		} else {
-			setCheck(CheckInformation.NOT_CHECK);
-		}
-	}
-
-	public CheckInformation getCheckInformation() {
-		return this.check;
-	}
-
-	public void setCheck(CheckInformation checkInfo) {
+	public void setCheck(boolean checkInfo) {
 		this.check = checkInfo;
 	}
 
 	public boolean isCheck() {
-		return this.check.isCheck();
+		return this.check;
 	}
 
 	public boolean isCapture() {
@@ -340,59 +328,6 @@ public class Move {
 		public CastlingInfo(CastlingRights direction, Move rooksMove) {
 			this.direction = direction;
 			this.rooksMove = rooksMove;
-		}
-	}
-
-	/**
-	 * information about which piece is checking the king after this move.
-	 */
-	public static class CheckInformation {
-
-		/**
-		 * object used when 'check'.
-		 */
-		public final static CheckInformation CHECK;
-
-		/**
-		 * object used when 'not check'.
-		 */
-		public final static CheckInformation NOT_CHECK;
-
-		static {
-			CHECK = new CheckInformation();
-			CHECK.check = true;
-			NOT_CHECK = new CheckInformation();
-			NOT_CHECK.check = false;
-		}
-
-		private boolean check;
-		private PieceType checkingPiece;
-		private Square checkingSquare;
-		private boolean discoveredCheck;
-
-		private CheckInformation() {
-		}
-
-		public CheckInformation(PieceType piece, Square square) {
-			this.checkingPiece = piece;
-			this.checkingSquare = square;
-			this.check = true;
-		}
-
-		public CheckInformation(boolean discoveredCheck) {
-			this.discoveredCheck = discoveredCheck;
-		}
-
-		public boolean isCheck() {
-			return check || discoveredCheck;
-		}
-
-		public PieceType getCheckingPiece() {
-			return checkingPiece;
-		}
-
-		public Square getCheckingSquare() {
-			return checkingSquare;
 		}
 	}
 

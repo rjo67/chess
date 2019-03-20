@@ -17,7 +17,6 @@ import org.rjo.chess.base.CastlingRightsSummary;
 import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
@@ -88,7 +87,7 @@ public class Position {
 	/**
 	 * check information of the previous move.
 	 */
-	private CheckInformation checkInformation;
+	private boolean checkInformation;
 
 	/** zobrist value of this position */
 	private long zobristHash;
@@ -160,7 +159,7 @@ public class Position {
 		castling[Colour.BLACK.ordinal()] = new CastlingRightsSummary(blackCastlingRights);
 		this.sideToMove = sideToMove;
 		this.enpassantSquare = enpassantSquare;
-		this.checkInformation = CheckInformation.NOT_CHECK;
+		this.checkInformation = false;
 
 		NBR_INSTANCES_CREATED++;
 
@@ -357,7 +356,7 @@ public class Position {
 	 * @return all moves for this colour.
 	 */
 	private List<Move> findMoves(Colour colour,
-			CheckInformation checkInformation) {
+			boolean checkInformation) {
 
 		List<Move> moves = new ArrayList<>(100);
 
@@ -371,11 +370,11 @@ public class Position {
 		// single check -- set up check restriction
 		// otherwise process as normal, but with info about pinned pieces
 		if (posnInfo.isDoubleCheck()) {
-			moves.addAll(getPieces(colour)[PieceType.KING.ordinal()].findMoves(this, checkInformation.isCheck(), posnInfo));
+			moves.addAll(getPieces(colour)[PieceType.KING.ordinal()].findMoves(this, checkInformation, posnInfo));
 		} else {
 			for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 				Piece p = getPieces(colour)[type.ordinal()];
-				moves.addAll(p.findMoves(this, checkInformation.isCheck(), posnInfo));
+				moves.addAll(p.findMoves(this, checkInformation, posnInfo));
 			}
 		}
 
@@ -555,7 +554,7 @@ public class Position {
 		if (move.getPiece() == PieceType.KING) {
 			kingPosition[sideToMove.ordinal()] = move.to();
 		}
-		checkInformation = move.getCheckInformation();
+		checkInformation = move.isCheck();
 		sideToMove = Colour.oppositeColour(sideToMove);
 	}
 
@@ -565,11 +564,11 @@ public class Position {
 	 * @param inCheck true when the king is in check.
 	 */
 	public void setInCheck(boolean inCheck) {
-		this.checkInformation = inCheck ? CheckInformation.CHECK : CheckInformation.NOT_CHECK;
+		this.checkInformation = inCheck;
 	}
 
 	public boolean isInCheck() {
-		return checkInformation.isCheck();
+		return checkInformation;
 	}
 
 	public void setPositionScore(PositionScore positionScore) {
@@ -615,8 +614,7 @@ public class Position {
 		}
 
 		// mobility
-		// the sidetomove could be in check; for simplicity this is assumed,
-		// i.e. 'kingInCheck'==TRUE
+		//
 		// the other side (who has just moved) cannot be in check
 		// if enpassant square is set, this can only apply to the sidetomove
 		int whiteMobility, blackMobility;
@@ -625,7 +623,8 @@ public class Position {
 			prevEnpassantSquare = getEnpassantSquare();
 			enpassantSquare = null;
 		}
-		List<Move> moves = findMoves(Colour.WHITE, getSideToMove() == Colour.WHITE ? CheckInformation.CHECK : CheckInformation.NOT_CHECK);
+		//the sidetomove could be in check; for simplicity this is assumed, i.e. 'kingInCheck'==TRUE
+		List<Move> moves = findMoves(Colour.WHITE, getSideToMove() == Colour.WHITE);
 		if (getSideToMove() != Colour.WHITE) {
 			enpassantSquare = prevEnpassantSquare;
 		}
@@ -635,7 +634,8 @@ public class Position {
 			prevEnpassantSquare = getEnpassantSquare();
 			enpassantSquare = null;
 		}
-		moves = findMoves(Colour.BLACK, getSideToMove() == Colour.BLACK ? CheckInformation.CHECK : CheckInformation.NOT_CHECK);
+		//the sidetomove could be in check; for simplicity this is assumed, i.e. 'kingInCheck'==TRUE
+		moves = findMoves(Colour.BLACK, getSideToMove() == Colour.BLACK);
 		if (getSideToMove() != Colour.BLACK) {
 			enpassantSquare = prevEnpassantSquare;
 		}

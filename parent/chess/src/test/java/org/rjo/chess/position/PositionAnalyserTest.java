@@ -1,16 +1,14 @@
 package org.rjo.chess.position;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
@@ -23,55 +21,37 @@ import org.rjo.chess.position.PositionInfo.PieceInfo;
  *
  * @author rich
  */
-@RunWith(Parameterized.class)
 public class PositionAnalyserTest {
-
-	private String fenString;
-	private Colour kingsColour;
-	private PieceInfo[] expectedChecks;
-	private PieceInfo[] expectedPins;
-
-	public PositionAnalyserTest(String fenString,
-			Colour kingsColour,
-			PieceInfo[] expectedChecks,
-			PieceInfo[] expectedPins) {
-		this.fenString = fenString;
-		this.kingsColour = kingsColour;
-		this.expectedChecks = expectedChecks;
-		this.expectedPins = expectedPins;
-	}
 
 	/**
 	 * Test PositionAnalyser::analysePosition for checks.
 	 */
-	@Test
-	public void simpleChecks() {
+	@ParameterizedTest
+	@MethodSource("data")
+	public void simpleChecks(String fenString, Colour kingsColour, PieceInfo[] expectedChecks,
+			PieceInfo[] expectedPins) {
 		var game = Fen.decode(fenString);
 		var friendlyPieces = setupBitsets(game.getPosition(), kingsColour);
 		var enemyPieces = setupBitsets(game.getPosition(), kingsColour.oppositeColour());
 		var kingsSquare = game.getPosition().getKingPosition(kingsColour);
 		var posnInfo = PositionAnalyser.analysePosition(kingsSquare, kingsColour,
-				getAllPieces(game.getPosition(), kingsColour),
-				friendlyPieces,
-				enemyPieces,
-				null,
-				true);
+				getAllPieces(game.getPosition(), kingsColour), friendlyPieces, enemyPieces, null, true);
 		var pins = posnInfo.getPinnedPieces();
 		if (expectedChecks != null) {
 			var checks = posnInfo.getCheckers();
 			var nbrExpectedChecks = expectedChecks.length;
-			assertEquals("bad nbr of checks", nbrExpectedChecks, checks.size());
+			assertEquals(nbrExpectedChecks, checks.size(), "bad nbr of checks");
 			for (PieceInfo expectedCheck : expectedChecks) {
 				Optional<PieceInfo> result = checks.stream().filter(c -> c.equals(expectedCheck)).findFirst();
-				assertFalse(String.format("expected check: %s, got %s", expectedCheck, checks), result.isEmpty());
+				assertFalse(result.isEmpty(), String.format("expected check: %s, got %s", expectedCheck, checks));
 			}
 		}
 		if (expectedPins != null) {
 			var nbrExpectedPins = expectedPins.length;
-			assertEquals("bad nbr of pins", nbrExpectedPins, pins.size());
+			assertEquals(nbrExpectedPins, pins.size(), "bad nbr of pins");
 			for (PieceInfo expectedPin : expectedPins) {
 				Optional<PieceInfo> result = pins.stream().filter(c -> c.equals(expectedPin)).findFirst();
-				assertFalse(String.format("expected pin: %s, got %s", expectedPin, pins), result.isEmpty());
+				assertFalse(result.isEmpty(), String.format("expected pin: %s, got %s", expectedPin, pins));
 			}
 		}
 	}
@@ -85,7 +65,6 @@ public class PositionAnalyserTest {
 	 * <li>pinned pieces</li>
 	 * </ul>
 	 */
-	@Parameters(name = "data({0})")
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] {
 				{ "8/4k3/8/b7/8/2BP4/3K4/8 w - - 10 10", Colour.WHITE, new PieceInfo[] {}, null },
@@ -111,7 +90,7 @@ public class PositionAnalyserTest {
 								new PieceInfo(RayType.EAST, PieceType.QUEEN, Square.g3) },
 						null },
 
-				//************ ab hier pins
+				// ************ ab hier pins
 
 				{ "8/4k3/8/b7/8/2BP4/3K4/8 w - - 10 10", Colour.WHITE, null,
 						new PieceInfo[] { new PieceInfo(RayType.NORTHWEST, PieceType.BISHOP, Square.c3) } },
@@ -121,17 +100,14 @@ public class PositionAnalyserTest {
 				{ "3r4/4k3/6b1/3N1P2/8/q1RK4/8/8 w - - 10 10", Colour.WHITE, null,
 						new PieceInfo[] { new PieceInfo(RayType.WEST, PieceType.ROOK, Square.c3),
 								new PieceInfo(RayType.NORTH, PieceType.KNIGHT, Square.d5),
-								new PieceInfo(RayType.NORTHEAST, PieceType.PAWN, Square.f5) } },
-		});
+								new PieceInfo(RayType.NORTHEAST, PieceType.PAWN, Square.f5) } }, });
 	}
 
-	private BitSetUnifier getAllPieces(Position posn,
-			Colour colour) {
+	private BitSetUnifier getAllPieces(Position posn, Colour colour) {
 		return posn.getAllPieces(colour).getBitSet();
 	}
 
-	private BitSetUnifier[] setupBitsets(Position posn,
-			Colour colour) {
+	private BitSetUnifier[] setupBitsets(Position posn, Colour colour) {
 		BitSetUnifier[] pieces = new BitSetUnifier[PieceType.ALL_PIECE_TYPES.length];
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			pieces[type.ordinal()] = posn.getPieces(colour)[type.ordinal()].getBitBoard().getBitSet();
