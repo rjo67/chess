@@ -22,9 +22,9 @@ public class Move {
 	private final Colour colour;
 
 	/**
-	 * capture info -- if not null, implies that this move was a capture
+	 * captured piece -- null if non-capture, otherwise if implies that this move was a capture
 	 */
-	private final CaptureInfo captureInfo;
+	private PieceType capturedPiece;
 
 	/**
 	 * whether this move was a check. Cannot be null.
@@ -97,7 +97,7 @@ public class Move {
 		this.colour = colour;
 		this.from = from;
 		this.to = to;
-		this.captureInfo = (capturedPiece != null) ? new CaptureInfo(capturedPiece) : null;
+		this.capturedPiece = capturedPiece;
 		this.check = check;
 		this.castlingInfo = null;
 		this.enpassant = false;
@@ -189,7 +189,7 @@ public class Move {
 	}
 
 	public boolean isCapture() {
-		return captureInfo != null;
+		return capturedPiece != null;
 	}
 
 	public boolean isEnpassant() {
@@ -202,7 +202,7 @@ public class Move {
 
 	public PieceType getCapturedPiece() {
 		if (isCapture()) {
-			return captureInfo.capturedPiece;
+			return capturedPiece;
 		} else {
 			throw new IllegalArgumentException("move was not a capture: " + toString());
 		}
@@ -368,14 +368,6 @@ public class Move {
 			return previousCastlingRightsOpponent;
 		}
 
-	}
-
-	private static class CaptureInfo {
-		private PieceType capturedPiece;
-
-		public CaptureInfo(PieceType capturedPiece) {
-			this.capturedPiece = capturedPiece;
-		}
 	}
 
 	private static class PromotionInfo {
