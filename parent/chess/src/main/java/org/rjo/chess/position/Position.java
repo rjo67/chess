@@ -6,7 +6,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,7 +37,6 @@ import org.rjo.chess.pieces.Rook;
 import org.rjo.chess.pieces.SlidingPiece;
 import org.rjo.chess.position.PositionCheckState.CheckInfo;
 import org.rjo.chess.position.check.CheckStates;
-import org.rjo.chess.position.check.KingCheck;
 
 /**
  * An immutable object which stores the board position after a particular move.<br>
@@ -373,11 +371,11 @@ public class Position {
 		// single check -- set up check restriction
 		// otherwise process as normal, but with info about pinned pieces
 		if (posnInfo.isDoubleCheck()) {
-			moves.addAll(getPieces(colour)[PieceType.KING.ordinal()].findMoves(this, checkInformation, posnInfo));
+			moves.addAll(getPieces(colour)[PieceType.KING.ordinal()].findMoves(this, checkInformation.isCheck(), posnInfo));
 		} else {
 			for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 				Piece p = getPieces(colour)[type.ordinal()];
-				moves.addAll(p.findMoves(this, checkInformation, posnInfo));
+				moves.addAll(p.findMoves(this, checkInformation.isCheck(), posnInfo));
 			}
 		}
 
@@ -474,71 +472,7 @@ public class Position {
 			}
 		}
 
-	// @formatter:off
-		/*
-		final Square opponentsKing = getKingPosition(Colour.oppositeColour(sideToMove));
-		final SquareCache<Boolean> discoveredCheckCache = new SquareCache<>((Boolean) null);//TODO this cache should not be using null
-		final BitSetUnifier emptySquares = getEmptySquares();
-		for (Move move : moves) {
-			Piece p = getPieces(colour)[move.getPiece().ordinal()];
-			PositionCheckState pcs;
-			if (SystemFlags.USE_CHECK_STATE) {
-				pcs = checkState[colour.ordinal()];
-			} else {
-				pcs = PositionCheckState.NOOP_STATE;
-			}
-			CheckInformation checkInfo = p.isOpponentsKingInCheckAfterMove(this, move, opponentsKing, emptySquares,
-					pcs, discoveredCheckCache);
-			move.setCheck(checkInfo);
-		}
-		 */
-	// @formatter:on
-
 		return moves;
-	}
-
-	/**
-	 * Removes any moves that leave my king in check, i.e. which are illegal.
-	 *
-	 * @param moves the potential moves found so far
-	 * @param inCheck whether the king is in check already
-	 */
-	private void checkMovesForLegality(List<Move> moves,
-			boolean inCheck) {
-		final Square myKing = getKingPosition(sideToMove);
-
-		BitSetUnifier friendlyPieces = this.getAllPieces(sideToMove).getBitSet();
-		Colour opponentsColour = Colour.oppositeColour(sideToMove);
-
-		// check if the piece moving away from 'fromSquare' has left my king in (discovered) check
-		ListIterator<Move> iter = moves.listIterator();
-		while (iter.hasNext()) {
-			Move move = iter.next();
-
-			// special for castling
-			// castling -- can't castle out of check or over a square in check
-			if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-				if (inCheck) {
-					iter.remove();
-				} else {
-					if (move.isCastleKingsSide() && !King.isCastlingLegal(this, sideToMove, opponentsColour, CastlingRights.KINGS_SIDE)) {
-						iter.remove();
-					}
-					if (move.isCastleQueensSide() && !King.isCastlingLegal(this, sideToMove, opponentsColour, CastlingRights.QUEENS_SIDE)) {
-						iter.remove();
-					}
-				}
-			} else {
-				BitSetUnifier[] enemyPieces = Position.setupBitsets(this.getPieces(opponentsColour));
-				if (KingCheck.isKingInCheckAfterMove(myKing, sideToMove, friendlyPieces, enemyPieces, move, inCheck)) {
-					iter.remove();
-				}
-
-				// Square fromSquare = move.from();
-				// Ray rayToKing = RayUtils.getRay(fromSquare, myKing);
-			}
-		}
-
 	}
 
 	private void logDebug(String string) {

@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.MoveDistance;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
@@ -304,7 +303,7 @@ public class King extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findMoves(Position position,
-			CheckInformation kingInCheck,
+			boolean kingInCheck,
 			PositionInfo boardInfo) {
 		Square kingsSquare = pieces.iterator().next();
 		final Colour oppositeColour = Colour.oppositeColour(colour);
@@ -318,7 +317,7 @@ public class King extends AbstractSetPiece {
 			possibleSquares.andNot(boardInfo.getCheckRestrictedSquaresForKing().getBitSet());
 		}
 		List<Move> moves = processMoves(position, kingsSquare, oppositeColour, addCastlingMoves, possibleSquares);
-		isKingNowInCheck(position, kingInCheck.isCheck(), moves, oppositeColour);
+		isKingNowInCheck(position, kingInCheck, moves, oppositeColour);
 		return moves;
 	}
 

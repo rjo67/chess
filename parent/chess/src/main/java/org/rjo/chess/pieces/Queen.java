@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
@@ -99,7 +98,7 @@ public class Queen extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck,
+			boolean kingInCheck,
 			PositionInfo posnInfo) {
 		List<Move> moves = new ArrayList<>(30);
 
