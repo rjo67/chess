@@ -3,8 +3,6 @@ package org.rjo.chess.base.bits;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Iterator;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.time.StopWatch;
@@ -13,7 +11,6 @@ import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.impl.ChessBitSetUnifier;
 import org.rjo.chess.base.bits.impl.JavaUtilBitSet;
 import org.rjo.chess.base.bits.impl.LuceneBitSet;
-import org.rjo.chess.base.ray.Ray;
 import org.rjo.chess.base.ray.RayUtils;
 
 public class BitSetTest {
@@ -127,19 +124,6 @@ public class BitSetTest {
 		int nbrSquaresBetweenStartAndEnd = bs.cardinality();
 		bs.and(emptySquares);
 		return bs.cardinality() == nbrSquaresBetweenStartAndEnd;
-	}
-
-	private boolean checkUsingIterator(Ray ray, Square startSquare, Square targetSquare, BitSet emptySquares) {
-		Iterator<Integer> squaresFrom = ray.squaresFrom(startSquare);
-		while (squaresFrom.hasNext()) {
-			int nextSquare = squaresFrom.next();
-			if (nextSquare == targetSquare.bitIndex()) {
-				return true;
-			} else if (!emptySquares.get(nextSquare)) {
-				return false;
-			}
-		}
-		return false;
 	}
 
 }

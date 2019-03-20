@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
@@ -56,7 +55,7 @@ public interface Piece extends Cloneable {
 	 * @return a list of all possible moves.
 	 */
 	List<Move> findMoves(Position position,
-			CheckInformation kingInCheck,
+			boolean kingInCheck,
 			PositionInfo posnInfo);
 
 	/**

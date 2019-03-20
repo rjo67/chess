@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
@@ -138,14 +137,14 @@ public class Pawn extends AbstractBitBoardPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck,
+			boolean kingInCheck,
 			PositionInfo posnInfo) {
 		List<Move> moves = _findPotentialMoves(posn, posnInfo, posnInfo.getSquaresToBlockCheck(), posnInfo.isKingInCheck());
 
 		final Square myKing = posn.getKingPosition(colour);
 		final Colour opponentsColour = Colour.oppositeColour(colour);
 		// make sure my king is not/no longer in check
-		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck()));
+		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck));
 		return moves;
 	}
 
@@ -221,97 +220,6 @@ public class Pawn extends AbstractBitBoardPiece {
 		moves.addAll(generateOneSquareForwardMoves(oneSquareForward, helper));
 		moves.addAll(generateTwoSquareForwardMoves(twoSquaresForward, helper));
 		return moves;
-	}
-
-	/**
-	 * Generates pawn moves one-square forwards.
-	 *
-	 * @param posn state of the board
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkRestriction info about the squares which come into consideration (e.g. when in check). Normally all are
-	 *           allowed.
-	 * @return list of moves found by this method
-	 */
-	private List<Move> moveOneSquareForward(Position posn,
-			MoveHelper helper,
-			BitBoard checkRestriction,
-			boolean isInCheck) {
-
-		// one square forward: shift by 8 and check if empty square
-		BitSetUnifier oneSquareForward = moveOneSquareForwardAndCheckForEmptySquare(pieces.getBitSet(), posn.getTotalPieces().getBitSet(),
-				helper, checkRestriction, isInCheck);
-		return generateOneSquareForwardMoves(oneSquareForward, helper);
-	}
-
-	/**
-	 * Generates pawn moves two-squares forwards.
-	 *
-	 * @param posn state of the board
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkRestriction info about the squares which come into consideration (e.g. when in check). Normally all are
-	 *           allowed.
-	 * @return list of moves found by this method
-	 */
-	private List<Move> moveTwoSquaresForward(Position posn,
-			MoveHelper helper,
-			BitBoard checkRestriction,
-			boolean isInCheck) {
-
-		BitSetUnifier twoSquaresForward = moveTwoSquaresForwardAndCheckForEmptySquare(pieces.getBitSet(), posn.getTotalPieces().getBitSet(),
-				helper, checkRestriction, isInCheck);
-		return generateTwoSquareForwardMoves(twoSquaresForward, helper);
-	}
-
-	/**
-	 * Shifts the pieces in 'pieces' one square 'forward', removing any which do not land on an empty square.
-	 *
-	 * @param pieces the pawns bitset
-	 * @param totalPieces total pieces
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkRestriction a bitboard of squares which come into consideration (e.g. when in check). Normally all are
-	 *           allowed.
-	 * @return a bitset of all pawns, moved forward one square.
-	 */
-	private BitSetUnifier moveOneSquareForwardAndCheckForEmptySquare(BitSetUnifier pieces,
-			BitSetUnifier totalPieces,
-			MoveHelper helper,
-			BitBoard checkRestriction,
-			boolean isInCheck) {
-		BitSetUnifier oneSquareForward = helper.moveOneRank(pieces);
-		oneSquareForward.andNot(totalPieces); // move must be to an empty square
-		if (isInCheck) {
-			oneSquareForward.and(checkRestriction.getBitSet()); // respect square restrictions
-		}
-		return oneSquareForward;
-	}
-
-	/**
-	 * Shifts the pieces in 'pieces' two squares 'forward', removing any which do not land on an empty square.
-	 *
-	 * @param pieces the pawns bitset
-	 * @param totalPieces total pieces
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkRestriction the squares which come into consideration (e.g. when in check). Normally all are allowed.
-	 * @return a bitset of all pawns, moved forward two squares.
-	 */
-	private BitSetUnifier moveTwoSquaresForwardAndCheckForEmptySquare(BitSetUnifier pieces,
-			BitSetUnifier totalPieces,
-			MoveHelper helper,
-			BitBoard checkRestriction,
-			boolean isInCheck) {
-		BitSetUnifier twoSquaresForward = helper.moveOneRank(pieces);
-		twoSquaresForward.andNot(totalPieces); // move must be to an empty square
-		//TODO could rewrite as move two ranks
-		// and then apply 4th rank / square restriction
-		// and then check that 3rd rank was empty
-		twoSquaresForward = helper.moveOneRank(twoSquaresForward);
-		twoSquaresForward.andNot(totalPieces); // move must be to an empty square
-		// just take the pawns now on the 4th rank (relative to colour), since only these can have moved two squares
-		twoSquaresForward.and(helper.fourthRank());
-		if (isInCheck) {
-			twoSquaresForward.and(checkRestriction.getBitSet()); // respect square restrictions
-		}
-		return twoSquaresForward;
 	}
 
 	/**
@@ -492,46 +400,6 @@ public class Pawn extends AbstractBitBoardPiece {
 				.forEach(pi -> pawnsMinusPinnedPawns.clear(pi.getBitIndex()));
 
 		return capture(chessboard, pawnsMinusPinnedPawns, helper, false, checkRestriction, isInCheck);
-	}
-
-	/**
-	 * Calculates if the given move leaves the opponent's king in check.
-	 *
-	 * @param posn the board
-	 * @param move the pawn move
-	 * @param opponentsKing square of the opponent's king
-	 * @param checkCache stores whether a particular square checks the opponents king. Only for B/R/Q.
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @return true if this move leaves the king in check
-	 */
-	private boolean checkIfCheckInternal(Position posn,
-			Move move,
-			Square opponentsKing,
-			PositionCheckState checkCache,
-			MoveHelper helper) {
-		if (move.isPromotion()) {
-			if (move.getPromotedPiece() == PieceType.KNIGHT) {
-				return Knight.checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
-			} else {
-				BitSetUnifier emptySquares = (BitSetUnifier) posn.getEmptySquares().clone(); // need a clone, since changing it hereafter
-				emptySquares.set(move.from().bitIndex());
-				emptySquares.clear(move.to().bitIndex());
-
-				PieceType promotedPiece = move.getPromotedPiece();
-				switch (promotedPiece) {
-				case QUEEN:
-					return Queen.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, move.isCapture(), move.isPromotion());
-				case ROOK:
-					return Rook.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, move.isCapture(), move.isPromotion());
-				case BISHOP:
-					return Bishop.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, move.isCapture(), move.isPromotion());
-				default:
-					throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
-				}
-			}
-		} else {
-			return helper.doesPawnAttackSquare(opponentsKing, move.to());
-		}
 	}
 
 	@Override
