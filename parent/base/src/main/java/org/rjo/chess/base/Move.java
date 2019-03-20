@@ -22,7 +22,7 @@ public class Move {
 	private final Colour colour;
 
 	/**
-	 * captured piece -- null if non-capture, otherwise if implies that this move was a capture
+	 * captured piece -- null if non-capture, otherwise implies that this move was a capture
 	 */
 	private PieceType capturedPiece;
 
@@ -42,9 +42,9 @@ public class Move {
 	private CastlingRightsInfo castlingRightsInfo;
 
 	/**
-	 * if promotion info -- if not null, implies that this move was a promotion
+	 * if promotion info -- null if non-promotion, otherwise implies that this move was a promotion
 	 */
-	private PromotionInfo promotionInfo;
+	private PieceType promotedPiece;
 
 	/**
 	 * true if enpassant move
@@ -107,14 +107,14 @@ public class Move {
 	/**
 	 * Sets the promotion piece i/c of a pawn promotion.
 	 *
-	 * @param type to which piece the pawn gets promoted
+	 * @param promotedPieceType to which piece the pawn gets promoted
 	 */
-	public void setPromotionPiece(PieceType type) {
+	public void setPromotionPiece(PieceType promotedPieceType) {
 		if (piece != PieceType.PAWN) {
 			throw new IllegalArgumentException("can only specify a promotion piece for a pawn move");
 		}
 
-		this.promotionInfo = new PromotionInfo(type);
+		this.promotedPiece = promotedPieceType;
 	}
 
 	@Override
@@ -131,7 +131,7 @@ public class Move {
 			sb.append(from);
 			sb.append(isCapture() ? "x" : "-");
 			sb.append(to);
-			sb.append(isPromotion() ? "=" + promotionInfo.promotedPiece.getSymbol() : "");
+			sb.append(isPromotion() ? "=" + promotedPiece.getSymbol() : "");
 		}
 		sb.append(check ? "+" : "");
 		return sb.toString();
@@ -212,7 +212,11 @@ public class Move {
 	 * true if this move represents a pawn promotion.
 	 */
 	public boolean isPromotion() {
-		return promotionInfo != null;
+		return promotedPiece != null;
+	}
+
+	public PieceType getPromotedPiece() {
+		return promotedPiece;
 	}
 
 	public boolean isCastleKingsSide() {
@@ -243,10 +247,6 @@ public class Move {
 	 */
 	public Colour getColour() {
 		return colour;
-	}
-
-	public PieceType getPromotedPiece() {
-		return (promotionInfo != null) ? promotionInfo.promotedPiece : null;
 	}
 
 	public Square from() {
@@ -368,17 +368,6 @@ public class Move {
 			return previousCastlingRightsOpponent;
 		}
 
-	}
-
-	private static class PromotionInfo {
-		private PieceType promotedPiece;
-
-		public PromotionInfo(PieceType promotedPiece) {
-			if (promotedPiece == PieceType.PAWN || promotedPiece == PieceType.KING) {
-				throw new IllegalArgumentException("cannot promote to a pawn or king!");
-			}
-			this.promotedPiece = promotedPiece;
-		}
 	}
 
 }
