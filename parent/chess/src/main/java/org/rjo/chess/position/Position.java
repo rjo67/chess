@@ -173,8 +173,8 @@ public class Position {
 			//			this.checkState[Colour.WHITE.ordinal()] = PositionCheckState.NOOP_STATE;
 			//			this.checkState[Colour.BLACK.ordinal()] = PositionCheckState.NOOP_STATE;
 		}
-		this.kingPosition[Colour.WHITE.ordinal()] = pieceMgr.getPiece(Colour.WHITE, PieceType.KING).getLocations()[0];
-		this.kingPosition[Colour.BLACK.ordinal()] = pieceMgr.getPiece(Colour.BLACK, PieceType.KING).getLocations()[0];
+		this.kingPosition[Colour.WHITE.ordinal()] = pieceMgr.getPiece(Colour.WHITE, PieceType.KING).getLocations().iterator().next();
+		this.kingPosition[Colour.BLACK.ordinal()] = pieceMgr.getPiece(Colour.BLACK, PieceType.KING).getLocations().iterator().next();
 	}
 
 	/**
@@ -850,8 +850,7 @@ public class Position {
 		for (Colour colour : Colour.ALL_COLOURS) {
 			for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
 				Piece p = getPieceManager().getPiece(colour, pt);
-				Square[] locations = p.getLocations();
-				for (Square locn : locations) {
+				for (Square locn : p.getLocations()) {
 					board[locn.rank()][locn.file()] = p.getFenSymbol();
 				}
 			}

@@ -9,10 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.pieces.Bishop;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Knight;
@@ -136,8 +136,13 @@ public class Fen {
 
 		Position posn = parsePosition(fenTokenizer.nextToken(), parseActiveColour(fenTokenizer.nextToken()),
 				parseCastlingRights(fenTokenizer.nextToken()), parseEnpassantSquare(fenTokenizer.nextToken()));
-		boolean inCheck = posn.squareIsAttacked(posn.getKingPosition(posn.getSideToMove()), Colour.oppositeColour(posn.getSideToMove()));
-		posn.setInCheck(inCheck);
+
+		var colour = posn.getSideToMove();
+		final var findAllChecks = false;
+		var posnInfo = PositionAnalyser.analysePosition(posn.getKingPosition(colour), colour, posn.getAllPieces(colour).getBitSet(), null,
+				Position.setupBitsets(posn.getPieces(Colour.oppositeColour(colour))), null, findAllChecks);
+
+		posn.setInCheck(posnInfo.isKingInCheck());
 
 		Game game = new Game(posn);
 		if (fenTokenizer.hasMoreTokens()) {

@@ -1,8 +1,10 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.base.Colour;
@@ -243,8 +245,10 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public Square[] getLocations() {
-		return new Square[] { kingsLocation };
+	public Set<Square> getLocations() {
+		Set<Square> set = new HashSet<>();
+		set.add(kingsLocation);
+		return set;
 	}
 
 	@Override

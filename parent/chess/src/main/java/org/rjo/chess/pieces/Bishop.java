@@ -128,10 +128,6 @@ public class Bishop extends SlidingPiece {
 			moves.addAll(searchByPiece(posn, indexOfPiece, posnInfo, raysToSearch));
 		}
 
-		//		// make sure king is not/no longer in check
-		//		Square myKing = posn.getKingPosition(colour);
-		//		KingCheck kingChecker = new KingCheck(posn, Colour.oppositeColour(colour), myKing);
-		//		moves.removeIf(move -> kingChecker.isKingInCheck(move, kingInCheck.isCheck()));
 		return moves;
 	}
 

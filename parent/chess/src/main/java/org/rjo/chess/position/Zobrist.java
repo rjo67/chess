@@ -3,11 +3,11 @@ package org.rjo.chess.position;
 import java.util.Random;
 
 import org.rjo.chess.base.CastlingRightsSummary;
+import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.pieces.Piece;
 
 /**
@@ -115,8 +115,7 @@ public class Zobrist {
 		for (Colour colour : Colour.ALL_COLOURS) {
 			Piece[] pieces = posn.getPieces(colour);
 			for (Piece piece : pieces) {
-				Square[] locations = piece.getLocations();
-				for (Square square : locations) {
+				for (Square square : piece.getLocations()) {
 					hash ^= squareValues[colour.ordinal()][piece.getType().ordinal()][square.bitIndex()];
 				}
 			}
@@ -139,8 +138,8 @@ public class Zobrist {
 	}
 
 	/**
-	 * Returns a new Zobrist hash after <code>move</code>. The fact that the xor-operation is own inverse and can be undone
-	 * by using the same xor-operation again, allows a fast incremental update of the hash key.
+	 * Returns a new Zobrist hash after <code>move</code>. The fact that the xor-operation is its own inverse and can be
+	 * undone by using the same xor-operation again, allows a fast incremental update of the hash key.
 	 *
 	 * @param hash the zobrist hash
 	 * @param move the move

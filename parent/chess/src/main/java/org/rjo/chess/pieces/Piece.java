@@ -1,6 +1,7 @@
 package org.rjo.chess.pieces;
 
 import java.util.List;
+import java.util.Set;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
@@ -131,7 +132,7 @@ public interface Piece extends Cloneable {
 	 *
 	 * @return the squares currently occupied by this piece type
 	 */
-	Square[] getLocations();
+	Set<Square> getLocations();
 
 	/**
 	 * Returns the FEN symbol for this piece. Delegates to {@link PieceType#getFenSymbol(Colour)}.

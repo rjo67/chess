@@ -24,12 +24,10 @@ import org.rjo.chess.position.Position;
  */
 public class KingCheckTest {
 	private Game game;
-	private BitSetUnifier[] whitePieces;
 	private BitSetUnifier[] blackPieces;
 
 	private void setup(String fen) {
 		game = Fen.decode(fen);
-		whitePieces = setupBitsets(game.getPosition(), Colour.WHITE);
 		blackPieces = setupBitsets(game.getPosition(), Colour.BLACK);
 	}
 

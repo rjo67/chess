@@ -169,7 +169,6 @@ public class Knight extends AbstractSetPiece {
 			PositionInfo boardInfo) {
 		List<Move> moves = new ArrayList<>(20);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
-		final Square myKing = posn.getKingPosition(colour);
 		final BitSetUnifier allMyPiecesBitSet = posn.getAllPieces(getColour()).getBitSet();
 		final BitSetUnifier allOpponentsPiecesBitSet = posn.getAllPieces(oppositeColour).getBitSet();
 

@@ -43,7 +43,8 @@ public class PositionAnalyser {
 	 * @param kingsSquare where the king is.
 	 * @param kingsColour colour of the king.
 	 * @param allFriendlyPieces bitset indicating location of the friendly pieces.
-	 * @param friendlyPieces bitsets indicating location of the friendly pieces. FOR BACKWARDS COMPAT: can be null.
+	 * @param friendlyPieces bitsets indicating location of the friendly pieces. FOR BACKWARDS COMPAT: can be null. In this
+	 *           case a list of pinned pieces will not be created.
 	 * @param enemyPieces bitsets indicating location of the enemy pieces.
 	 * @param rayToExamine if set, JUST this ray will be examined. This is an optimization where the king was not in check
 	 *           beforehand. Then we only need to check the ray which has been vacated by the moving piece. <b>Do not

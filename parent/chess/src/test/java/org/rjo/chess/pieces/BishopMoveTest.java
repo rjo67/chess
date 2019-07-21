@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.time.StopWatch;
@@ -21,8 +19,7 @@ public class BishopMoveTest extends AbstractMoveTest {
 	@Test
 	public void locations() {
 		Bishop b = new Bishop(Colour.WHITE, true);
-		Square[] locn = b.getLocations();
-		Set<Square> set = new HashSet<>(Arrays.asList(locn));
+		Set<Square> set = b.getLocations();
 		assertTrue(set.contains(Square.c1));
 		assertTrue(set.contains(Square.f1));
 	}

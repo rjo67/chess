@@ -46,8 +46,8 @@ public abstract class AbstractSetPiece extends AbstractPiece {
 	}
 
 	@Override
-	public Square[] getLocations() {
-		return pieces.toArray(new Square[0]);
+	public Set<Square> getLocations() {
+		return pieces;
 	}
 
 	@Override
