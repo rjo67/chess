@@ -10,6 +10,7 @@ import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.RayType;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
@@ -37,63 +38,17 @@ public class Queen extends SlidingPiece {
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return AbstractBitBoardPiece.pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);
+		return pieceSquareValue(location, getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	/**
-	 * Constructs the Queen class -- with no pieces on the board. Delegates to Queen(Colour, boolean) with parameter false.
+	 * Constructs the Queen class, defining the start square.
 	 *
 	 * @param colour indicates the colour of the pieces
+	 * @param location the required starting square of the piece. Cannot be null.
 	 */
-	public Queen(Colour colour) {
-		this(colour, false);
-	}
-
-	/**
-	 * Constructs the Queen class.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are placed on the board.
-	 */
-	public Queen(Colour colour, boolean startPosition) {
-		this(colour, startPosition, (Square[]) null);
-	}
-
-	/**
-	 * Constructs the Queen class, defining the start squares.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
-	 *           the board.
-	 */
-	public Queen(Colour colour, Square... startSquares) {
-		this(colour, false, startSquares);
-	}
-
-	/**
-	 * Constructs the Queen class with the required squares (can be null) or the default start squares. Setting
-	 * <code>startPosition</code> true has precedence over <code>startSquares</code>.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be
-	 *           ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
-	 *           the board.
-	 */
-	public Queen(Colour colour, boolean startPosition, Square... startSquares) {
-		super(colour, PieceType.QUEEN);
-		if (startPosition) {
-			initPosition();
-		} else {
-			initPosition(startSquares);
-		}
-	}
-
-	@Override
-	public void initPosition() {
-		Square[] requiredSquares = null;
-		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.d1 } : new Square[] { Square.d8 };
-		initPosition(requiredSquares);
+	public Queen(Colour colour, Square location) {
+		super(colour, PieceType.QUEEN, location);
 	}
 
 	@Override
@@ -102,28 +57,25 @@ public class Queen extends SlidingPiece {
 			PositionInfo posnInfo) {
 		List<Move> moves = new ArrayList<>(30);
 
-		// search for each piece in all directions (unless pinned, in which case can limit the rays searched)
+		// search in all directions (unless pinned, in which case can limit the rays searched)
 
-		for (int indexOfPiece = pieces.getBitSet().nextSetBit(0); indexOfPiece >= 0; indexOfPiece = pieces.getBitSet()
-				.nextSetBit(indexOfPiece + 1)) {
-			RayType[] raysToSearch;
-			var pinnedPiece = posnInfo.isPiecePinned(PieceType.QUEEN, Square.fromBitIndex(indexOfPiece));
-			if (pinnedPiece.isPresent()) {
-				// search only the pinned ray and its opposite
-				raysToSearch = new RayType[2];
-				raysToSearch[0] = pinnedPiece.get().getRay();
-				raysToSearch[1] = pinnedPiece.get().getRay().getOpposite();
-			} else {
-				raysToSearch = RayType.values();
-			}
-			moves.addAll(searchByPiece(posn, indexOfPiece, posnInfo, raysToSearch));
+		RayType[] raysToSearch;
+		var pinnedPiece = posnInfo.isPiecePinned(PieceType.QUEEN, location);
+		if (pinnedPiece.isPresent()) {
+			// search only the pinned ray and its opposite
+			raysToSearch = new RayType[2];
+			raysToSearch[0] = pinnedPiece.get().getRay();
+			raysToSearch[1] = pinnedPiece.get().getRay().getOpposite();
+		} else {
+			raysToSearch = RayType.values();
 		}
+		moves.addAll(searchByPiece(posn, location.bitIndex(), posnInfo, raysToSearch));
 		return moves;
 	}
 
 	@Override
 	public boolean doesMoveLeaveOpponentInCheck(Move move,
-			@SuppressWarnings("unused") Piece[] pieces,
+			@SuppressWarnings("unused") Pieces pieces,
 			@SuppressWarnings("unused") Square opponentsKing,
 			BitBoard[] checkingBitboards) {
 		return checkingBitboards[0].get(move.to().bitIndex()) || checkingBitboards[1].get(move.to().bitIndex());
@@ -133,13 +85,8 @@ public class Queen extends SlidingPiece {
 	public boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq,
 			PositionCheckState checkCache) {
-		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false /* TODO */
-					, false)) {
-				return true;
-			}
-		}
-		return false;
+		return attacksSquare(emptySquares, location, targetSq, checkCache, false /* TODO */
+				, false);
 	}
 
 	/**

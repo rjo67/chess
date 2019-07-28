@@ -91,12 +91,12 @@ public class KingCheckTest {
 	@Test
 	public void enemyPiecesNotChangedAfterCaptureMove() {
 		setup("3r4/4k3/8/r7/4P3/8/2Kb4/8 w - - 10 10");
-		BitSetUnifier bishopBitSet = game.getPosition().getPieces(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard().getBitSet();
+		BitSetUnifier bishopBitSet = game.getPosition().getPieces(Colour.BLACK).createBitBoard(PieceType.BISHOP).getBitSet();
 		Move move = new Move(PieceType.KING, Colour.WHITE, Square.c2, Square.d2, PieceType.BISHOP);
 		assertTrue(KingCheck.isKingInCheckAfterMove_PreviouslyNotInCheck(Square.d2, Colour.WHITE, getWhitePieces(game.getPosition()),
 				blackPieces, move));
 		// should be same object
-		assertSame(bishopBitSet, game.getPosition().getPieces(Colour.BLACK)[PieceType.BISHOP.ordinal()].getBitBoard().getBitSet());
+		assertSame(bishopBitSet, game.getPosition().getPieces(Colour.BLACK).createBitBoard(PieceType.BISHOP).getBitSet());
 	}
 
 	//

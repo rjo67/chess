@@ -3,7 +3,9 @@ package org.rjo.chess.pieces;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.time.StopWatch;
@@ -31,16 +33,16 @@ public class PieceManagerTest {
 		// System.out.println("----");
 		// System.out.println(p2.getPieceManager());
 
-		checkPieceObjects(p, p2, new HashSet<>(Arrays.asList(PieceType.PAWN)), new HashSet<>());
+		checkPieceObjects(p, p2, new Set[] { new HashSet(Arrays.asList(PieceType.PAWN)), new HashSet<>() });
 	}
 
 	@Test
 	public void pieceMgrBlackKnightMove() {
-		Position p = new Position(Colour.BLACK);
+		Position p = Fen.decode("1n2k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0").getPosition();
 		Move move = new Move(PieceType.KNIGHT, Colour.BLACK, Square.b8, Square.a6);
 		Position p2 = p.move(move);
 
-		checkPieceObjects(p, p2, new HashSet<>(), new HashSet<>(Arrays.asList(PieceType.KNIGHT)));
+		checkPieceObjects(p, p2, new Set[] { new HashSet<>(), new HashSet<>(Arrays.asList(PieceType.KNIGHT)) });
 	}
 
 	@Test
@@ -49,7 +51,7 @@ public class PieceManagerTest {
 		Move move = new Move(PieceType.BISHOP, Colour.WHITE, Square.d4, Square.g7, PieceType.PAWN);
 		Position p2 = p.move(move);
 
-		checkPieceObjects(p, p2, new HashSet<>(Arrays.asList(PieceType.BISHOP)), new HashSet<>(Arrays.asList(PieceType.PAWN)));
+		checkPieceObjects(p, p2, new Set[] { new HashSet<>(Arrays.asList(PieceType.BISHOP)), new HashSet<>(Arrays.asList(PieceType.PAWN)) });
 	}
 
 	@Test
@@ -57,11 +59,11 @@ public class PieceManagerTest {
 		Position p = Fen.decode("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 0").getPosition();
 		Move move = Move.castleKingsSide(Colour.WHITE);
 		Position p2 = p.move(move);
-		checkPieceObjects(p, p2, new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)), new HashSet<>());
+		checkPieceObjects(p, p2, new Set[] { new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)), new HashSet<>() });
 
 		move = Move.castleQueensSide(Colour.WHITE);
 		p2 = p.move(move);
-		checkPieceObjects(p, p2, new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)), new HashSet<>());
+		checkPieceObjects(p, p2, new Set[] { new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)), new HashSet<>() });
 	}
 
 	@Test
@@ -69,11 +71,11 @@ public class PieceManagerTest {
 		Position p = Fen.decode("r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 0").getPosition();
 		Move move = Move.castleKingsSide(Colour.BLACK);
 		Position p2 = p.move(move);
-		checkPieceObjects(p, p2, new HashSet<>(), new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)));
+		checkPieceObjects(p, p2, new Set[] { new HashSet<>(), new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)) });
 
 		move = Move.castleQueensSide(Colour.BLACK);
 		p2 = p.move(move);
-		checkPieceObjects(p, p2, new HashSet<>(), new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)));
+		checkPieceObjects(p, p2, new Set[] { new HashSet<>(), new HashSet<>(Arrays.asList(PieceType.KING, PieceType.ROOK)) });
 	}
 
 	@Test
@@ -100,33 +102,29 @@ public class PieceManagerTest {
 	 */
 	private void checkPieceObjects(Position before,
 			Position after,
-			Set<PieceType> allowedChangesWhite,
-			Set<PieceType> allowedChangesBlack) {
-		Piece[] whitePiecesBefore = before.getPieceManager().getPiecesForColour(Colour.WHITE);
-		Piece[] whitePiecesAfter = after.getPieceManager().getPiecesForColour(Colour.WHITE);
-		Piece[] blackPiecesBefore = before.getPieceManager().getPiecesForColour(Colour.BLACK);
-		Piece[] blackPiecesAfter = after.getPieceManager().getPiecesForColour(Colour.BLACK);
+			Set<PieceType>[] allowedChanges) {
 
-		for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
-			if (System.identityHashCode(whitePiecesBefore[pt.ordinal()]) != System.identityHashCode(whitePiecesAfter[pt.ordinal()])) {
-				if (!allowedChangesWhite.contains(pt)) {
-					fail("white " + pt + " changed incorrectly");
-				}
-			} else {
-				if (allowedChangesWhite.contains(pt)) {
-					fail("white " + pt + " NOT changed as expected");
-				}
-			}
-			if (System.identityHashCode(blackPiecesBefore[pt.ordinal()]) != System.identityHashCode(blackPiecesAfter[pt.ordinal()])) {
-				if (!allowedChangesBlack.contains(pt)) {
-					fail("black " + pt + " changed incorrectly");
-				}
-			} else {
-				if (allowedChangesBlack.contains(pt)) {
-					fail("black " + pt + " NOT changed as expected");
-				}
-			}
+		// add all hashcodes from 'before' to maps
+		Map<Integer, PieceType>[] pieceMap = new Map[2];
+		pieceMap[Colour.WHITE.ordinal()] = new HashMap<>();
+		pieceMap[Colour.BLACK.ordinal()] = new HashMap<>();
+		for (Colour col : Colour.ALL_COLOURS) {
+			before.getPieceManager().getPiecesForColour(col)
+					.stream().forEach(p -> pieceMap[col.ordinal()].put(System.identityHashCode(p), p.getType()));
+		}
+		// now iterate through pieces in 'after', removing matching hashcodes
+		for (Colour col : Colour.ALL_COLOURS) {
+			after.getPieceManager().getPiecesForColour(col)
+					.stream().forEach(p -> pieceMap[col.ordinal()].remove(System.identityHashCode(p)));
+		}
+		// analyse 'leftover' entries
+		for (Colour col : Colour.ALL_COLOURS) {
+			pieceMap[col.ordinal()].entrySet()
+					.stream().forEach(entry -> {
+						if (!allowedChanges[col.ordinal()].contains(entry.getValue())) {
+							fail(col + " " + entry.getValue() + " changed incorrectly");
+						}
+					});
 		}
 	}
-
 }

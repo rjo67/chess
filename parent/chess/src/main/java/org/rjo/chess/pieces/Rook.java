@@ -15,6 +15,7 @@ import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.bits.BitValueCalculator;
 import org.rjo.chess.base.ray.RayType;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
@@ -209,63 +210,17 @@ public class Rook extends SlidingPiece {
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return AbstractBitBoardPiece.pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);
-	}
-
-	/**
-	 * Constructs the Rook class -- with no pieces on the board. Delegates to Rook(Colour, boolean) with parameter false.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 */
-	public Rook(Colour colour) {
-		this(colour, false);
-	}
-
-	/**
-	 * Constructs the Rook class.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are placed on the board.
-	 */
-	public Rook(Colour colour, boolean startPosition) {
-		this(colour, startPosition, (Square[]) null);
+		return pieceSquareValue(location, getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	/**
 	 * Constructs the Rook class, defining the start squares.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
-	 *           the board.
+	 * @param location the required starting square of the piece. Cannot be null.
 	 */
-	public Rook(Colour colour, Square... startSquares) {
-		this(colour, false, startSquares);
-	}
-
-	/**
-	 * Constructs the Rook class with the required squares (can be null) or the default start squares. Setting
-	 * 'startPosition' true has precedence over <code>startSquares</code>.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be
-	 *           ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
-	 *           the board.
-	 */
-	public Rook(Colour colour, boolean startPosition, Square... startSquares) {
-		super(colour, PieceType.ROOK);
-		if (startPosition) {
-			initPosition();
-		} else {
-			initPosition(startSquares);
-		}
-	}
-
-	@Override
-	public void initPosition() {
-		Square[] requiredSquares = null;
-		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.a1, Square.h1 } : new Square[] { Square.a8, Square.h8 };
-		initPosition(requiredSquares);
+	public Rook(Colour colour, Square location) {
+		super(colour, PieceType.ROOK, location);
 	}
 
 	/** uses the moveMap and vertMoveMap structures to find possible moves */
@@ -275,33 +230,12 @@ public class Rook extends SlidingPiece {
 		BitBoard allPieces = posn.getTotalPieces();
 		BitSetUnifier opponentsPieces = posn.getAllPieces(opponentsColour).getBitSet();
 
-		// rank, getValueForRank()
-		Map<Integer, Integer> rankValueCache = new HashMap<>();
-		Map<Integer, Integer> fileValueCache = new HashMap<>();
-		for (int bitIndex = pieces.getBitSet().nextSetBit(0); bitIndex >= 0; bitIndex = pieces.getBitSet().nextSetBit(bitIndex + 1)) {
-			Square fromSquareIndex = Square.fromBitIndex(bitIndex);
-			// System.out.println("on square " + fromSquareIndex);
-			int file = fromSquareIndex.file();
-			int rank = fromSquareIndex.rank();
-			int rankVal;
-			if (rankValueCache.containsKey(rank)) {
-				rankVal = rankValueCache.get(rank);
-			} else {
-				rankVal = allPieces.getValueForRank(rank);
-				rankValueCache.put(rank, rankVal);
-			}
+		int rankVal = allPieces.getValueForRank(location.rank());
 
-			addMoves(posn, moves, opponentsColour, opponentsPieces, bitIndex, fromSquareIndex, moveMap[file].get(rankVal));
+		addMoves(posn, moves, opponentsColour, opponentsPieces, location, moveMap[location.file()].get(rankVal));
 
-			int fileVal;
-			if (fileValueCache.containsKey(file)) {
-				fileVal = fileValueCache.get(file);
-			} else {
-				fileVal = allPieces.getValueForFile(file);
-				fileValueCache.put(file, fileVal);
-			}
-			addMoves(posn, moves, opponentsColour, opponentsPieces, bitIndex, fromSquareIndex, vertMoveMap[rank].get(fileVal));
-		}
+		int fileVal = allPieces.getValueForFile(location.file());
+		addMoves(posn, moves, opponentsColour, opponentsPieces, location, vertMoveMap[location.rank()].get(fileVal));
 
 		return moves;
 	}
@@ -313,7 +247,6 @@ public class Rook extends SlidingPiece {
 	 * @param moves possible moves will be returned in this list
 	 * @param opponentsColour opponent's colour
 	 * @param opponentsPieces bitset of opponent's pieces
-	 * @param bitIndexOfPiece bit index of our piece for which the moves are currently being calculated
 	 * @param fromSquareIndex square corresponding to bitIndexOfPiece
 	 * @param moveinfo the MoveInfo object corresponding to the file (or rank) which we're currently looking at.
 	 */
@@ -321,9 +254,10 @@ public class Rook extends SlidingPiece {
 			List<Move> moves,
 			Colour opponentsColour,
 			BitSetUnifier opponentsPieces,
-			int bitIndexOfPiece,
 			Square fromSquareIndex,
 			MoveInfo moveinfo) {
+
+		int bitIndexOfPiece = fromSquareIndex.bitIndex();
 
 		// System.out.printf("val=%d, map entry=%s%n", val, moveinfo);
 		for (int sqOffset : moveinfo.getMoveOffsets()) {
@@ -344,34 +278,31 @@ public class Rook extends SlidingPiece {
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck,
 			PositionInfo posnInfo) {
-		List<Move> moves = new ArrayList<>(30);
+		List<Move> moves = new ArrayList<>(20);
 
-		// search for each piece in all directions (unless pinned, in which case can limit the rays searched)
+		// search in all directions (unless pinned, in which case can limit the rays searched)
 
-		for (int indexOfPiece = pieces.getBitSet().nextSetBit(0); indexOfPiece >= 0; indexOfPiece = pieces.getBitSet()
-				.nextSetBit(indexOfPiece + 1)) {
-			RayType[] raysToSearch;
-			var pinnedPiece = posnInfo.isPiecePinned(PieceType.ROOK, Square.fromBitIndex(indexOfPiece));
-			if (pinnedPiece.isPresent()) {
-				// if pinned diagonally, can't move
-				if (pinnedPiece.get().getRay().isDiagonal()) {
-					continue;
-				}
-				// search only the pinned ray and its opposite
-				raysToSearch = new RayType[2];
-				raysToSearch[0] = pinnedPiece.get().getRay();
-				raysToSearch[1] = pinnedPiece.get().getRay().getOpposite();
-			} else {
-				raysToSearch = new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST };
+		RayType[] raysToSearch;
+		var pinnedPiece = posnInfo.isPiecePinned(PieceType.ROOK, location);
+		if (pinnedPiece.isPresent()) {
+			// if pinned diagonally, can't move
+			if (pinnedPiece.get().getRay().isDiagonal()) {
+				return moves;
 			}
-			moves.addAll(searchByPiece(posn, indexOfPiece, posnInfo, raysToSearch));
+			// search only the pinned ray and its opposite
+			raysToSearch = new RayType[2];
+			raysToSearch[0] = pinnedPiece.get().getRay();
+			raysToSearch[1] = pinnedPiece.get().getRay().getOpposite();
+		} else {
+			raysToSearch = new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST };
 		}
+		moves.addAll(searchByPiece(posn, location.bitIndex(), posnInfo, raysToSearch));
 		return moves;
 	}
 
 	@Override
 	public boolean doesMoveLeaveOpponentInCheck(Move move,
-			@SuppressWarnings("unused") Piece[] pieces,
+			@SuppressWarnings("unused") Pieces pieces,
 			@SuppressWarnings("unused") Square opponentsKing,
 			BitBoard[] checkingBitboards) {
 		return checkingBitboards[0].get(move.to().bitIndex());
@@ -381,13 +312,8 @@ public class Rook extends SlidingPiece {
 	public boolean attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq,
 			PositionCheckState checkCache) {
-		for (int i = pieces.getBitSet().nextSetBit(0); i >= 0; i = pieces.getBitSet().nextSetBit(i + 1)) {
-			if (attacksSquare(emptySquares, Square.fromBitIndex(i), targetSq, checkCache, false /* TODO */
-					, false)) {
-				return true;
-			}
-		}
-		return false;
+		return attacksSquare(emptySquares, location, targetSq, checkCache, false /* TODO */
+				, false);
 	}
 
 	/**

@@ -12,17 +12,18 @@ import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.RayType;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
 import org.rjo.chess.position.check.KingCheck;
 
 /**
- * Stores information about the pawns (still) in the game.
+ * Stores information about the pawns in the game.
  *
  * @author rich
  */
-public class Pawn extends AbstractBitBoardPiece {
+public class Pawns extends AbstractPiece {
 
 	/**
 	 * piece value in centipawns
@@ -50,68 +51,25 @@ public class Pawn extends AbstractBitBoardPiece {
 
 	private static MoveHelper[] helper;
 
+	/**
+	 * stores position of the piece(s)
+	 */
+	private BitBoard pieces;
+
 	static {
 		helper = new MoveHelper[Colour.values().length];
 		helper[Colour.WHITE.ordinal()] = new WhiteMoveHelper();
 		helper[Colour.BLACK.ordinal()] = new BlackMoveHelper();
 	}
 
-	@Override
-	public int calculatePieceSquareValue() {
-		return AbstractBitBoardPiece.pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);
-	}
-
 	/**
-	 * Constructs the Pawn class -- with no pawns on the board. Delegates to Pawn(Colour, boolean) with parameter false.
+	 * Constructs the Pawns class, defining the start square.
 	 *
 	 * @param colour indicates the colour of the pieces
+	 * @param requiredSquares the required starting squares of the pawns. Optional.
 	 */
-	public Pawn(Colour colour) {
-		this(colour, false);
-	}
-
-	/**
-	 * Constructs the Pawn class.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are placed on the board.
-	 */
-	public Pawn(Colour colour, boolean startPosition) {
-		this(colour, startPosition, (Square[]) null);
-	}
-
-	/**
-	 * Constructs the Pawn class, defining the start squares.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
-	 *           the board.
-	 */
-	public Pawn(Colour colour, Square... startSquares) {
-		this(colour, false, startSquares);
-	}
-
-	/**
-	 * Constructs the Pawn class with the required squares (can be null) or the default start squares. Setting
-	 * <code>startPosition</code> true has precedence over <code>startSquares</code>.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be
-	 *           ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pawns are placed on
-	 *           the board.
-	 */
-	public Pawn(Colour colour, boolean startPosition, Square... startSquares) {
-		super(colour, PieceType.PAWN);
-		if (startPosition) {
-			initPosition();
-		} else {
-			initPosition(startSquares);
-		}
-	}
-
-	@Override
-	public void initPosition(Square... requiredSquares) {
+	public Pawns(Colour colour, Square... requiredSquares) {
+		super(colour, PieceType.PAWN, null); //location in the parent class is not used
 		if (requiredSquares != null) {
 			for (Square square : requiredSquares) {
 				if (square.rank() == 0 || square.rank() == 7) {
@@ -119,20 +77,15 @@ public class Pawn extends AbstractBitBoardPiece {
 				}
 			}
 		}
-		super.initPosition(requiredSquares);
+		pieces = new BitBoard();
+		if (requiredSquares != null) {
+			pieces.setBitsAt(requiredSquares);
+		}
 	}
 
 	@Override
-	public void initPosition() {
-		Square[] requiredSquares = null;
-		// @formatter:off
-        requiredSquares = getColour() == Colour.WHITE
-                ? new Square[]{Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2,
-                Square.h2}
-                : new Square[]{Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7,
-                Square.h7};
-        // @formatter:on
-		initPosition(requiredSquares);
+	public int calculatePieceSquareValue() {
+		return pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	@Override
@@ -175,7 +128,7 @@ public class Pawn extends AbstractBitBoardPiece {
 
 	@Override
 	public boolean doesMoveLeaveOpponentInCheck(Move move,
-			Piece[] pieces,
+			Pieces pieces,
 			Square opponentsKing,
 			BitBoard[] checkingBitboards) {
 		if (move.isPromotion()) {
@@ -405,6 +358,30 @@ public class Pawn extends AbstractBitBoardPiece {
 			Square targetSq,
 			@SuppressWarnings("unused") PositionCheckState checkCache) {
 		return helper[getColour().ordinal()].doPawnsAttackSquare(targetSq, pieces.getBitSet()) != -1;
+	}
+
+	public static int pieceSquareValue(final BitBoard pieces,
+			final Colour colour,
+			final int pieceValue,
+			final int[] squareValue) {
+		return pieceSquareValue(pieces.getBitSet(), colour, pieceValue, squareValue);
+	}
+
+	public static int pieceSquareValue(final BitSetUnifier piecesBitSet,
+			final Colour colour,
+			final int pieceValue,
+			final int[] squareValue) {
+		int value = 0;
+		for (int i = piecesBitSet.nextSetBit(0); i >= 0; i = piecesBitSet.nextSetBit(i + 1)) {
+			int sqValue;
+			if (colour == Colour.WHITE) {
+				sqValue = squareValue[i];
+			} else {
+				sqValue = squareValue[63 - i];
+			}
+			value += pieceValue + sqValue;
+		}
+		return value;
 	}
 
 	/**

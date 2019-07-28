@@ -62,7 +62,11 @@ public class Perft {
 		if (args.length == 1) {
 			nbrThreads = Integer.parseInt(args[0]);
 		}
-		System.out.println(String.format("Perft::posn6ply%d starting (%d threads)...", REQD_DEPTH, nbrThreads));
+		System.out.println(String.format("Perft::posn6ply%d starting in 2 seconds ... (%d threads)", REQD_DEPTH, nbrThreads));
+		try {
+			Thread.sleep(2000L);
+		} catch (InterruptedException e) {
+		}
 		StopWatch sw = new StopWatch();
 		sw.start();
 		int moves = Perft.findAndCountMoves(game.getPosition(), Colour.WHITE, REQD_DEPTH, nbrThreads);
@@ -78,7 +82,8 @@ public class Perft {
 	}
 
 	/**
-	 * Finds and counts the moves (combination of {@link #findMoves(Position, Colour, int, int)} and {@link #countMoves(Map)}).
+	 * Finds and counts the moves (combination of {@link #findMoves(Position, Colour, int, int)} and
+	 * {@link #countMoves(Map)}).
 	 *
 	 * @param posn a game position
 	 * @param sideToMove the starting colour
@@ -220,15 +225,15 @@ public class Perft {
 	}
 
 	/**
-	 * Like {@link #findMoves(Position, Colour, int, int)} but with the option of storing the moves in a file. (Now uses MOVE_LOGGER
-	 * at level TRACE.) Uses more memory than the other method and is therefore not recommended. <b>This is mainly for
-	 * PerftTests</b>. We return List of String instead of List of Move to try to conserve memory.
+	 * Like {@link #findMoves(Position, Colour, int, int)} but with the option of storing the moves in a file. (Now uses
+	 * MOVE_LOGGER at level TRACE.) Uses more memory than the other method and is therefore not recommended. <b>This is
+	 * mainly for PerftTests</b>. We return List of String instead of List of Move to try to conserve memory.
 	 *
 	 * @param game the game
 	 * @param sideToMove the starting colour
 	 * @param depth the required depth to search
 	 * @return the list of possible moves at the given depth. The string representation is stored in order to save memory.
-     */
+	 */
 	public static List<String> findMovesDebug(Game game,
 			Colour sideToMove,
 			int depth) {

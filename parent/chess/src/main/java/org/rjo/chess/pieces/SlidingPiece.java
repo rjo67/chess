@@ -24,10 +24,10 @@ import org.rjo.chess.position.check.CheckStates;
  *
  * @author rich
  */
-public abstract class SlidingPiece extends AbstractBitBoardPiece {
+public abstract class SlidingPiece extends AbstractPiece {
 
-	protected SlidingPiece(Colour colour, PieceType type) {
-		super(colour, type);
+	protected SlidingPiece(Colour colour, PieceType type, Square location) {
+		super(colour, type, location);
 	}
 
 	/**

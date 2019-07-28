@@ -1,6 +1,7 @@
 package org.rjo.chess.position;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.rjo.chess.base.CastlingRightsSummary;
 import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
@@ -8,7 +9,6 @@ import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.pieces.Piece;
 
 /**
  * Functions concerning the Zobrist hash of a position. http://chessprogramming.wikispaces.com/Zobrist+Hashing.
@@ -110,31 +110,32 @@ public class Zobrist {
 	 */
 	public long hash(Position posn) {
 
-		long hash = 0;
+		// to get around "effectively final ..." in the stream
+		final AtomicLong hash = new AtomicLong(0);
 
 		for (Colour colour : Colour.ALL_COLOURS) {
-			Piece[] pieces = posn.getPieces(colour);
-			for (Piece piece : pieces) {
-				for (Square square : piece.getLocations()) {
-					hash ^= squareValues[colour.ordinal()][piece.getType().ordinal()][square.bitIndex()];
-				}
-			}
+			posn.getPieces(colour).stream().forEach(p -> {
+				long hash2 = hash.get();
+				hash.set(hash2 ^= squareValues[colour.ordinal()][p.getType().ordinal()][p.getLocation().bitIndex()]);
+			});
 		}
+		long hash2 = hash.get();
+
 		if (posn.getSideToMove() == Colour.BLACK) {
-			hash ^= blackToMove;
+			hash2 ^= blackToMove;
 		}
 		for (Colour colour : Colour.ALL_COLOURS) {
 			for (CastlingRights rights : CastlingRights.values()) {
 				if (posn.canCastle(colour, rights)) {
-					hash ^= castlingValues[colour.ordinal()][rights.ordinal()];
+					hash2 ^= castlingValues[colour.ordinal()][rights.ordinal()];
 				}
 			}
 		}
 		if (posn.getEnpassantSquare() != null) {
-			hash ^= enpassantValues[posn.getEnpassantSquare().file()];
+			hash2 ^= enpassantValues[posn.getEnpassantSquare().file()];
 		}
 
-		return hash;
+		return hash2;
 	}
 
 	/**

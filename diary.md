@@ -3,6 +3,7 @@
 ## Overview of commits and performance
 date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 ---- | ----------- | ------ | -----
+27.07.19 | current impl java11 | 2a3ce97 | 2040,5 moves/ms; 490,1 nanos/move
 14.09.17 | SlidingPiece::searchNew uses bitmaps for all ray directions. | ?? | 2503,0 moves/ms; 399,5 nanos/move
 06.09.17 | SlidingPiece::searchNew uses bitmaps for sliding-pieces. Added ChessBitSet (bitset optimized for 64 bits | ?? | 2302,3 moves/ms, 434,4 nanos/move
 26.08.17 | check-cache deactivated. Many other changes, especially limiting move-generation if in-check. | 9c688f9 | 2019,9 moves/ms
@@ -15,6 +16,11 @@ date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 06.04.15 | using rays, caching discovered check | | 1522,4 moves/ms
 03.04.15 | | | 1148,7 moves/ms
 
+
+## 27.07.19
+
+Branch pieceUmbau. Currently a Piece object holds all instances of this type of piece for a particular colour.
+The change is to store just _one_ instance of a piece in a Piece object.
 
 ## 26.08.17
 

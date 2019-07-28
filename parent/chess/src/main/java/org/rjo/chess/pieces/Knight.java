@@ -2,7 +2,6 @@ package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
@@ -12,6 +11,7 @@ import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
 import org.rjo.chess.base.bits.BitSetUnifier;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
@@ -21,7 +21,7 @@ import org.rjo.chess.position.PositionInfo;
  *
  * @author rich
  */
-public class Knight extends AbstractSetPiece {
+public class Knight extends AbstractPiece {
 
 	/** piece value in centipawns */
 	private static final int PIECE_VALUE = 320;
@@ -102,65 +102,18 @@ public class Knight extends AbstractSetPiece {
 	}
 
 	/**
-	 * Constructs the Knight class -- with no pieces on the board. Delegates to Knight(Colour, boolean) with parameter
-	 * false.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 */
-	public Knight(Colour colour) {
-		this(colour, false);
-	}
-
-	/**
 	 * Constructs the Knight class.
 	 *
 	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are placed on the board.
+	 * @param location the required starting square of the piece. Cannot be null.
 	 */
-	public Knight(Colour colour, boolean startPosition) {
-		this(colour, startPosition, (Square[]) null);
-	}
-
-	/**
-	 * Constructs the Knight class, defining the start squares.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
-	 *           the board.
-	 */
-	public Knight(Colour colour, Square... startSquares) {
-		this(colour, false, startSquares);
-	}
-
-	/**
-	 * Constructs the Knight class with the required squares (can be null) or the default start squares. Setting
-	 * <code>startPosition</code> true has precedence over <code>startSquares</code>.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be
-	 *           ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
-	 *           the board.
-	 */
-	public Knight(Colour colour, boolean startPosition, Square... startSquares) {
-		super(colour, PieceType.KNIGHT);
-		if (startPosition) {
-			initPosition();
-		} else {
-			initPosition(startSquares);
-		}
-	}
-
-	@Override
-	public void initPosition() {
-		Square[] requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.b1, Square.g1 }
-				: new Square[] { Square.b8, Square.g8 };
-		initPosition(requiredSquares);
+	public Knight(Colour colour, Square location) {
+		super(colour, PieceType.KNIGHT, location);
 	}
 
 	@Override
 	public int calculatePieceSquareValue() {
-		return pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);
+		return pieceSquareValue(location, getColour(), PIECE_VALUE, SQUARE_VALUE);
 	}
 
 	@Override
@@ -173,32 +126,30 @@ public class Knight extends AbstractSetPiece {
 		final BitSetUnifier allOpponentsPiecesBitSet = posn.getAllPieces(oppositeColour).getBitSet();
 
 		/*
-		 * for each knight on the board, finds its moves using the lookup table
+		 * finds the knight moves using the lookup table
 		 */
-		for (Square knightStartSquare : pieces) {
-			// stop processing this knight if it's pinned
-			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare).isPresent()) {
-				continue;
-			}
-			BitSetUnifier possibleMoves = (BitSetUnifier) knightMoves[knightStartSquare.bitIndex()].clone();
-			// remove target squares occupied by my own pieces
-			possibleMoves.andNot(allMyPiecesBitSet);
-			// take into account squares restricted because of check
-			possibleMoves.and(boardInfo.getSquaresToBlockCheck().getBitSet());
-			/*
-			 * Iterates over all possible moves and stores them as moves or captures
-			 */
-			List<Move> oneKnightMoves = new ArrayList<>(8);
-			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
-				oneKnightMoves.add(createMove(k, posn, allOpponentsPiecesBitSet, knightStartSquare, oppositeColour));
-			}
-
-			//			 DEBUG if piece was pinned but moves!=empty, --> problemo (remove 'continue' above to test here)
-			//			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare) && !oneKnightMoves.isEmpty()) {
-			//				System.out.println("??");
-			//			}
-			moves.addAll(oneKnightMoves);
+		// stop processing this knight if it's pinned
+		if (boardInfo.isPiecePinned(PieceType.KNIGHT, location).isPresent()) {
+			return moves;
 		}
+		BitSetUnifier possibleMoves = (BitSetUnifier) knightMoves[location.bitIndex()].clone();
+		// remove target squares occupied by my own pieces
+		possibleMoves.andNot(allMyPiecesBitSet);
+		// take into account squares restricted because of check
+		possibleMoves.and(boardInfo.getSquaresToBlockCheck().getBitSet());
+		/*
+		 * Iterates over all possible moves and stores them as moves or captures
+		 */
+		List<Move> oneKnightMoves = new ArrayList<>(8);
+		for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
+			oneKnightMoves.add(createMove(k, posn, allOpponentsPiecesBitSet, location, oppositeColour));
+		}
+
+		//			 DEBUG if piece was pinned but moves!=empty, --> problemo (remove 'continue' above to test here)
+		//			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare) && !oneKnightMoves.isEmpty()) {
+		//				System.out.println("??");
+		//			}
+		moves.addAll(oneKnightMoves);
 
 		return moves;
 	}
@@ -222,7 +173,7 @@ public class Knight extends AbstractSetPiece {
 
 	@Override
 	public boolean doesMoveLeaveOpponentInCheck(Move move,
-			@SuppressWarnings("unused") Piece[] pieces,
+			@SuppressWarnings("unused") Pieces pieces,
 			Square opponentsKing,
 			@SuppressWarnings("unused") BitBoard[] checkingBitboards) {
 		return checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
@@ -247,8 +198,7 @@ public class Knight extends AbstractSetPiece {
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square targetSq,
 			@SuppressWarnings("unused") PositionCheckState checkCache) {
-		Optional<Square> found = pieces.stream().filter(sq -> squareIsReachableFromSquare(sq, targetSq)).findAny();
-		return found.isPresent();
+		return squareIsReachableFromSquare(location, targetSq);
 	}
 
 	/**

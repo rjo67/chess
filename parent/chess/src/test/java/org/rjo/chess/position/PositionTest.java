@@ -343,7 +343,7 @@ public class PositionTest {
 		Position newPosn = game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5, PieceType.PAWN));
 		assertEmptySquare(newPosn, Square.c4);
 		assertPieceAt(newPosn, Square.d5, PieceType.PAWN, Colour.WHITE);
-		assertTrue(newPosn.getPieces(Colour.BLACK)[PieceType.PAWN.ordinal()].getBitBoard().isEmpty());
+		assertTrue(newPosn.getPieces(Colour.BLACK).getPawns().getBitBoard().isEmpty());
 	}
 
 	@Test(expected = IllegalArgumentException.class)

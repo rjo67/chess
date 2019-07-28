@@ -1,7 +1,6 @@
 package org.rjo.chess.pieces;
 
 import java.util.List;
-import java.util.Set;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
@@ -9,6 +8,7 @@ import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
@@ -26,20 +26,6 @@ public interface Piece extends Cloneable {
 	 * @return the symbol for this piece.
 	 */
 	String getSymbol();
-
-	/**
-	 * Initialises data structures to the starting position of the pieces.
-	 *
-	 * @see #initPosition(Square...)
-	 */
-	void initPosition();
-
-	/**
-	 * Sets the start squares for this piece type to the parameter(s).
-	 *
-	 * @param requiredSquares all required squares.
-	 */
-	void initPosition(Square... requiredSquares);
 
 	/**
 	 * New version of findMoves.
@@ -70,7 +56,7 @@ public interface Piece extends Cloneable {
 	 *         checks)
 	 */
 	boolean doesMoveLeaveOpponentInCheck(Move move,
-			Piece[] pieces,
+			Pieces pieces,
 			Square opponentsKing,
 			BitBoard[] checkingBitboards);
 
@@ -106,21 +92,6 @@ public interface Piece extends Cloneable {
 	void move(Move move);
 
 	/**
-	 * Removes the captured piece in a capture move from the internal data structures for that piece type.
-	 *
-	 * @param square from where to remove the piece
-	 */
-	void removePiece(Square square);
-
-	/**
-	 * Adds a piece to the internal data structures at the given square. Mainly for promotions. No error checking is
-	 * performed here.
-	 *
-	 * @param square where to add the piece
-	 */
-	void addPiece(Square square);
-
-	/**
 	 * @return the colour of the piece.
 	 */
 	Colour getColour();
@@ -128,11 +99,11 @@ public interface Piece extends Cloneable {
 	BitBoard getBitBoard();
 
 	/**
-	 * Returns all the squares currently occupied by this piece type.
+	 * Returns the square currently occupied by this piece.
 	 *
-	 * @return the squares currently occupied by this piece type
+	 * @return the square currently occupied by this piece
 	 */
-	Set<Square> getLocations();
+	Square getLocation();
 
 	/**
 	 * Returns the FEN symbol for this piece. Delegates to {@link PieceType#getFenSymbol(Colour)}.
@@ -144,10 +115,10 @@ public interface Piece extends Cloneable {
 	PieceType getType();
 
 	/**
-	 * Returns true if this piece type is present on the given square.
+	 * Returns true if this piece is present on the given square.
 	 *
 	 * @param targetSquare square of interest.
-	 * @return true if this piece type is present, otherwise false.
+	 * @return true if this piece is present, otherwise false.
 	 */
 	boolean pieceAt(Square targetSquare);
 

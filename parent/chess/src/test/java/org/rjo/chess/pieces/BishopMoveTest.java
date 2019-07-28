@@ -4,25 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Set;
-
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
-import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.position.Position;
 
 public class BishopMoveTest extends AbstractMoveTest {
-
-	@Test
-	public void locations() {
-		Bishop b = new Bishop(Colour.WHITE, true);
-		Set<Square> set = b.getLocations();
-		assertTrue(set.contains(Square.c1));
-		assertTrue(set.contains(Square.f1));
-	}
 
 	@Test
 	public void startPosition() {
@@ -136,7 +125,7 @@ public class BishopMoveTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquare() {
 		setupGame("k2B1K2/8/8/4P3/8/8/8/8 w - - 0 4");
-		Piece whiteBishop = game.getPosition().getPieces(Colour.WHITE)[PieceType.BISHOP.ordinal()];
+		var whiteBishop = new Bishop(Colour.WHITE, Square.d4);
 		Position posn = game.getPosition();
 		for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
 			assertTrue("square " + sq, whiteBishop.attacksSquare(posn.getTotalPieces().flip(), sq));

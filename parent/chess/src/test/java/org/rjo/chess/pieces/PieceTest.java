@@ -18,27 +18,6 @@ import org.rjo.chess.base.Square;
 public class PieceTest {
 
 	@Test
-	public void addPiece() {
-		Queen queen = new Queen(Colour.WHITE, Square.b6);
-		queen.addPiece(Square.a6);
-		assertEquals(2, queen.getBitBoard().cardinality());
-	}
-
-	@Test
-	public void removePiece() {
-		Pawn pawn = new Pawn(Colour.WHITE, Square.a6);
-		pawn.removePiece(Square.a6);
-		assertTrue(pawn.getBitBoard().isEmpty());
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void removeNonExistentPiece() {
-		Pawn pawn = new Pawn(Colour.WHITE, Square.a5);
-
-		pawn.removePiece(Square.a6);
-	}
-
-	@Test
 	public void move() {
 		Queen queen = new Queen(Colour.WHITE, Square.b6);
 		queen.move(new Move(PieceType.QUEEN, Colour.WHITE, Square.b6, Square.a6));
@@ -54,7 +33,7 @@ public class PieceTest {
 
 	@Test
 	public void promotionMove() {
-		Pawn pawn = new Pawn(Colour.WHITE, Square.a7);
+		Pawns pawn = new Pawns(Colour.WHITE, Square.a7);
 		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.a7, Square.a8);
 		move.setPromotionPiece(PieceType.BISHOP);
 		pawn.move(move);
@@ -63,121 +42,121 @@ public class PieceTest {
 
 	@Test
 	public void pawnSymbolWhite() {
-		assertEquals("", new Pawn(Colour.WHITE).getSymbol());
+		assertEquals("", new Pawns(Colour.WHITE, Square.e6).getSymbol());
 	}
 
 	@Test
 	public void rookSymbolWhite() {
-		assertEquals("R", new Rook(Colour.WHITE).getSymbol());
+		assertEquals("R", new Rook(Colour.WHITE, Square.a1).getSymbol());
 	}
 
 	@Test
 	public void knightSymbolWhite() {
-		assertEquals("N", new Knight(Colour.WHITE).getSymbol());
+		assertEquals("N", new Knight(Colour.WHITE, Square.a1).getSymbol());
 	}
 
 	@Test
 	public void bishopSymbolWhite() {
-		assertEquals("B", new Bishop(Colour.WHITE).getSymbol());
+		assertEquals("B", new Bishop(Colour.WHITE, Square.a1).getSymbol());
 	}
 
 	@Test
 	public void queenSymbolWhite() {
-		assertEquals("Q", new Queen(Colour.WHITE).getSymbol());
+		assertEquals("Q", new Queen(Colour.WHITE, Square.a1).getSymbol());
 	}
 
 	@Test
 	public void kingSymbolWhite() {
-		assertEquals("K", new King(Colour.WHITE).getSymbol());
+		assertEquals("K", new King(Colour.WHITE, Square.a1).getSymbol());
 	}
 
 	@Test
 	public void pawnSymbolBlack() {
-		assertEquals("", new Pawn(Colour.BLACK).getSymbol());
+		assertEquals("", new Pawns(Colour.BLACK, Square.d4).getSymbol());
 	}
 
 	@Test
 	public void rookSymbolBlack() {
-		assertEquals("R", new Rook(Colour.BLACK).getSymbol());
+		assertEquals("R", new Rook(Colour.BLACK, Square.a1).getSymbol());
 	}
 
 	@Test
 	public void knightSymbolBlack() {
-		assertEquals("N", new Knight(Colour.BLACK).getSymbol());
+		assertEquals("N", new Knight(Colour.BLACK, Square.a1).getSymbol());
 	}
 
 	@Test
 	public void bishopSymbolBlack() {
-		assertEquals("B", new Bishop(Colour.BLACK).getSymbol());
+		assertEquals("B", new Bishop(Colour.BLACK, Square.a1).getSymbol());
 	}
 
 	@Test
 	public void queenSymbolBlack() {
-		assertEquals("Q", new Queen(Colour.BLACK).getSymbol());
+		assertEquals("Q", new Queen(Colour.BLACK, Square.a1).getSymbol());
 	}
 
 	@Test
 	public void kingSymbolBlack() {
-		assertEquals("K", new King(Colour.BLACK).getSymbol());
+		assertEquals("K", new King(Colour.BLACK, Square.a1).getSymbol());
 	}
 
 	@Test
 	public void pawnFenSymbolWhite() {
-		assertEquals("P", new Pawn(Colour.WHITE).getFenSymbol());
+		assertEquals("P", new Pawns(Colour.WHITE, Square.h4).getFenSymbol());
 	}
 
 	@Test
 	public void rookFenSymbolWhite() {
-		assertEquals("R", new Rook(Colour.WHITE).getFenSymbol());
+		assertEquals("R", new Rook(Colour.WHITE, Square.a1).getFenSymbol());
 	}
 
 	@Test
 	public void knightFenSymbolWhite() {
-		assertEquals("N", new Knight(Colour.WHITE).getFenSymbol());
+		assertEquals("N", new Knight(Colour.WHITE, Square.a1).getFenSymbol());
 	}
 
 	@Test
 	public void bishopFenSymbolWhite() {
-		assertEquals("B", new Bishop(Colour.WHITE).getFenSymbol());
+		assertEquals("B", new Bishop(Colour.WHITE, Square.a1).getFenSymbol());
 	}
 
 	@Test
 	public void queenFenSymbolWhite() {
-		assertEquals("Q", new Queen(Colour.WHITE).getFenSymbol());
+		assertEquals("Q", new Queen(Colour.WHITE, Square.a1).getFenSymbol());
 	}
 
 	@Test
 	public void kingFenSymbolWhite() {
-		assertEquals("K", new King(Colour.WHITE).getFenSymbol());
+		assertEquals("K", new King(Colour.WHITE, Square.a1).getFenSymbol());
 	}
 
 	@Test
 	public void pawnFenSymbolBlack() {
-		assertEquals("p", new Pawn(Colour.BLACK).getFenSymbol());
+		assertEquals("p", new Pawns(Colour.BLACK, Square.a5).getFenSymbol());
 	}
 
 	@Test
 	public void rookFenSymbolBlack() {
-		assertEquals("r", new Rook(Colour.BLACK).getFenSymbol());
+		assertEquals("r", new Rook(Colour.BLACK, Square.a1).getFenSymbol());
 	}
 
 	@Test
 	public void knightFenSymbolBlack() {
-		assertEquals("n", new Knight(Colour.BLACK).getFenSymbol());
+		assertEquals("n", new Knight(Colour.BLACK, Square.a1).getFenSymbol());
 	}
 
 	@Test
 	public void bishopFenSymbolBlack() {
-		assertEquals("b", new Bishop(Colour.BLACK).getFenSymbol());
+		assertEquals("b", new Bishop(Colour.BLACK, Square.a1).getFenSymbol());
 	}
 
 	@Test
 	public void queenFenSymbolBlack() {
-		assertEquals("q", new Queen(Colour.BLACK).getFenSymbol());
+		assertEquals("q", new Queen(Colour.BLACK, Square.a1).getFenSymbol());
 	}
 
 	@Test
 	public void kingFenSymbolBlack() {
-		assertEquals("k", new King(Colour.BLACK).getFenSymbol());
+		assertEquals("k", new King(Colour.BLACK, Square.a1).getFenSymbol());
 	}
 }

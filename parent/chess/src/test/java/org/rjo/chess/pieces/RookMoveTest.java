@@ -7,7 +7,6 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
-import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 
 public class RookMoveTest extends AbstractMoveTest {
@@ -141,7 +140,7 @@ public class RookMoveTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquare() {
 		setupGame("5K2/4R3/2k5/4p3/8/8/8/8 w - - 0 0");
-		var whiteRook = game.getPosition().getPieces(Colour.WHITE)[PieceType.ROOK.ordinal()];
+		var whiteRook = new Rook(Colour.WHITE, Square.e7);
 		for (Square sq : new Square[] { Square.e8, Square.e6, Square.d7, Square.c7, Square.b7, Square.a7, Square.f7, Square.g7, Square.h7 }) {
 			assertTrue("square " + sq, whiteRook.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}

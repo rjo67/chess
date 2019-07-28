@@ -2,14 +2,12 @@ package org.rjo.chess.eval;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
-
 import org.junit.Test;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.eval.MoveInfo;
 import org.rjo.chess.pieces.King;
-import org.rjo.chess.pieces.Pawn;
+import org.rjo.chess.pieces.Pawns;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.position.Fen;
 import org.rjo.chess.position.Game;
@@ -18,17 +16,11 @@ public class EvaluationTest {
 
 	@Test
 	public void pawnPieceValue() {
-		Pawn whitePawns = new Pawn(Colour.WHITE, Square.c2, Square.d4);
-		Pawn blackPawns = new Pawn(Colour.BLACK, Square.c7, Square.d5);
+		Pawns whitePawns = new Pawns(Colour.WHITE, Square.c2, Square.d4);
+		Pawns blackPawns = new Pawns(Colour.BLACK, Square.c7, Square.d5);
 
 		assertEquals(230, whitePawns.calculatePieceSquareValue());
 		assertEquals(230, blackPawns.calculatePieceSquareValue());
-
-		Arrays.stream(Square.values())
-				.filter(sq -> sq.rank() != 0).filter(sq -> sq.rank() != 7).forEach(sq -> {
-					Pawn p = new Pawn(Colour.BLACK, sq);
-					System.out.println(sq + ":" + p.calculatePieceSquareValue());
-				});
 	}
 
 	@Test

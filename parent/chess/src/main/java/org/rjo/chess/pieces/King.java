@@ -1,10 +1,8 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.base.Colour;
@@ -16,6 +14,7 @@ import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
 import org.rjo.chess.base.bits.BitSetUnifier;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
@@ -136,126 +135,25 @@ public class King extends AbstractPiece {
 		}
 	}
 
-	private Square kingsLocation;
-
 	/**
-	 * Constructs the King class -- with no pieces on the board. Delegates to King(Colour, boolean) with parameter false.
+	 * Constructs the King class, defining the start square.
 	 *
-	 * @param colour indicates the colour of the pieces
+	 * @param colour indicates the colour of the piece
+	 * @param location the required starting square of the piece. Can not be null.
 	 */
-	public King(Colour colour) {
-		this(colour, false);
-	}
-
-	/**
-	 * Constructs the King class.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. If false, no pieces are placed on the board.
-	 */
-	public King(Colour colour, boolean startPosition) {
-		this(colour, startPosition, (Square[]) null);
-	}
-
-	/**
-	 * Constructs the King class, defining the start squares.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
-	 *           the board.
-	 */
-	public King(Colour colour, Square... startSquares) {
-		this(colour, false, startSquares);
-	}
-
-	/**
-	 * Constructs the King class with the required squares (can be null) or the default start squares. Setting
-	 * <code>startPosition</code> true has precedence over <code>startSquares</code>.
-	 *
-	 * @param colour indicates the colour of the pieces
-	 * @param startPosition if true, the default start squares are assigned. Value of <code>startSquares</code> will be
-	 *           ignored.
-	 * @param startSquares the required starting squares of the piece(s). Can be null, in which case no pieces are placed on
-	 *           the board.
-	 */
-	public King(Colour colour, boolean startPosition, Square... startSquares) {
-		super(colour, PieceType.KING);
-		if (startPosition) {
-			initPosition();
-		} else {
-			initPosition(startSquares);
-		}
-	}
-
-	@Override
-	public void initPosition() {
-		Square[] requiredSquares = null;
-		requiredSquares = getColour() == Colour.WHITE ? new Square[] { Square.e1 } : new Square[] { Square.e8 };
-		initPosition(requiredSquares);
-	}
-
-	@Override
-	public void initPosition(Square... requiredSquares) {
-		if (requiredSquares != null) {
-			if (requiredSquares.length > 1) {
-				throw new IllegalArgumentException("king cannot have more than one start square");
-			}
-			kingsLocation = requiredSquares[0];
-		}
+	public King(Colour colour, Square location) {
+		super(colour, PieceType.KING, location);
 	}
 
 	@Override
 	public int calculatePieceSquareValue() {
 
-		int bitIndex = kingsLocation.bitIndex();
+		int bitIndex = location.bitIndex();
 
 		int[] values = IN_ENDGAME ? SQUARE_VALUE_ENDGAME : SQUARE_VALUE_MIDDLEGAME;
 		int offset = getColour() == Colour.WHITE ? bitIndex : 63 - bitIndex;
 
 		return PIECE_VALUE + values[offset];
-	}
-
-	@Override
-	public void addPiece(@SuppressWarnings("unused") Square square) {
-		throw new IllegalStateException("cannot add king!?");
-	}
-
-	@Override
-	public void move(Move move) {
-		if (kingsLocation != move.from()) {
-			throw new IllegalArgumentException(
-					"no " + this.getType() + " found on required square. Move: " + move + ", king's square: " + kingsLocation);
-		}
-		kingsLocation = move.to();
-	}
-
-	@Override
-	public void removePiece(@SuppressWarnings("unused") Square square) {
-		throw new IllegalStateException("cannot remove king!?");
-	}
-
-	@Override
-	public boolean pieceAt(Square targetSquare) {
-		return kingsLocation == targetSquare;
-	}
-
-	@Override
-	public int numberOfPieces() {
-		return 1;
-	}
-
-	@Override
-	public Set<Square> getLocations() {
-		Set<Square> set = new HashSet<>();
-		set.add(kingsLocation);
-		return set;
-	}
-
-	@Override
-	public BitBoard getBitBoard() {
-		BitBoard bb = new BitBoard();
-		bb.set(kingsLocation);
-		return bb;
 	}
 
 	/**
@@ -337,7 +235,7 @@ public class King extends AbstractPiece {
 	public List<Move> findMoves(Position position,
 			boolean kingInCheck,
 			PositionInfo boardInfo) {
-		Square kingsSquare = kingsLocation;
+		Square kingsSquare = location;
 		final Colour oppositeColour = Colour.oppositeColour(colour);
 		Square opponentsKingSquare = position.getKingPosition(oppositeColour);
 
@@ -414,7 +312,7 @@ public class King extends AbstractPiece {
 
 	@Override
 	public boolean doesMoveLeaveOpponentInCheck(Move move,
-			@SuppressWarnings("unused") Piece[] pieces,
+			@SuppressWarnings("unused") Pieces pieces,
 			@SuppressWarnings("unused") Square opponentsKing,
 			BitBoard[] checkingBitboards) {
 		// 'castles' could leave the opponent in check
@@ -428,6 +326,6 @@ public class King extends AbstractPiece {
 	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square sq,
 			@SuppressWarnings("unused") PositionCheckState checkCache) {
-		return MoveDistance.calculateDistance(kingsLocation, sq) == 1;
+		return MoveDistance.calculateDistance(location, sq) == 1;
 	}
 }

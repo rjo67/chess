@@ -3,10 +3,9 @@ package org.rjo.chess.position;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,9 +27,10 @@ import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.pieces.Bishop;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Knight;
-import org.rjo.chess.pieces.Pawn;
+import org.rjo.chess.pieces.Pawns;
 import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.pieces.PieceManager;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
 import org.rjo.chess.pieces.SlidingPiece;
@@ -115,19 +115,22 @@ public class Position {
 	private Square[] kingPosition = new Square[Colour.ALL_COLOURS.length];
 
 	public static Position startPosition() {
-		return new Position(Colour.WHITE);
-	}
-
-	/**
-	 * Constructs a new position with default starting positions and default castling rights.
-	 */
-	public Position(Colour sideToMove) {
-		// default piece positions
-		this(new HashSet<>(Arrays.asList(new Pawn(Colour.WHITE, true), new Rook(Colour.WHITE, true), new Knight(Colour.WHITE, true),
-				new Bishop(Colour.WHITE, true), new Queen(Colour.WHITE, true), new King(Colour.WHITE, true))),
-				new HashSet<>(Arrays.asList(new Pawn(Colour.BLACK, true), new Rook(Colour.BLACK, true), new Knight(Colour.BLACK, true),
-						new Bishop(Colour.BLACK, true), new Queen(Colour.BLACK, true), new King(Colour.BLACK, true))),
-				sideToMove,
+		return new Position(
+				new ArrayList<>(Arrays.asList(
+						new Pawns(Colour.WHITE, Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2), //
+						new Rook(Colour.WHITE, Square.a1), new Rook(Colour.WHITE, Square.h1), //
+						new Knight(Colour.WHITE, Square.b1), new Knight(Colour.WHITE, Square.g1), //
+						new Bishop(Colour.WHITE, Square.c1), new Bishop(Colour.WHITE, Square.f1), //
+						new Queen(Colour.WHITE, Square.d1), //
+						new King(Colour.WHITE, Square.e1))),
+				new ArrayList<>(Arrays.asList(
+						new Pawns(Colour.BLACK, Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2), //
+						new Rook(Colour.BLACK, Square.a8), new Rook(Colour.BLACK, Square.h8), //
+						new Knight(Colour.BLACK, Square.b8), new Knight(Colour.BLACK, Square.g8), //
+						new Bishop(Colour.BLACK, Square.c8), new Bishop(Colour.BLACK, Square.f8), //
+						new Queen(Colour.BLACK, Square.d8), //
+						new King(Colour.BLACK, Square.e8))),
+				Colour.WHITE,
 				// default castling rights
 				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE),
 				EnumSet.of(CastlingRights.KINGS_SIDE, CastlingRights.QUEENS_SIDE), null);
@@ -137,7 +140,7 @@ public class Position {
 	 * Creates a chessboard with the given piece settings. Castling rights are set to 'none'. Enpassant square is set to
 	 * 'null'.
 	 */
-	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, Colour sideToMove) {
+	public Position(List<Piece> whitePieces, List<Piece> blackPieces, Colour sideToMove) {
 		this(whitePieces, blackPieces, sideToMove, EnumSet.noneOf(CastlingRights.class), EnumSet.noneOf(CastlingRights.class), null);
 	}
 
@@ -151,7 +154,7 @@ public class Position {
 	 * @param blackCastlingRights black's castling rights
 	 * @param enpassantSquare enpassant square (or null)
 	 */
-	public Position(Set<Piece> whitePieces, Set<Piece> blackPieces, Colour sideToMove, EnumSet<CastlingRights> whiteCastlingRights,
+	public Position(List<Piece> whitePieces, List<Piece> blackPieces, Colour sideToMove, EnumSet<CastlingRights> whiteCastlingRights,
 			EnumSet<CastlingRights> blackCastlingRights, Square enpassantSquare) {
 		initBoard(whitePieces, blackPieces);
 		castling = new CastlingRightsSummary[2];
@@ -173,8 +176,8 @@ public class Position {
 			//			this.checkState[Colour.WHITE.ordinal()] = PositionCheckState.NOOP_STATE;
 			//			this.checkState[Colour.BLACK.ordinal()] = PositionCheckState.NOOP_STATE;
 		}
-		this.kingPosition[Colour.WHITE.ordinal()] = pieceMgr.getPiece(Colour.WHITE, PieceType.KING).getLocations().iterator().next();
-		this.kingPosition[Colour.BLACK.ordinal()] = pieceMgr.getPiece(Colour.BLACK, PieceType.KING).getLocations().iterator().next();
+		this.kingPosition[Colour.WHITE.ordinal()] = pieceMgr.getPiecesForColour(Colour.WHITE).getKing().getLocation();
+		this.kingPosition[Colour.WHITE.ordinal()] = pieceMgr.getPiecesForColour(Colour.WHITE).getKing().getLocation();
 	}
 
 	/**
@@ -262,21 +265,14 @@ public class Position {
 	 * @param whitePieces layout of the white pieces
 	 * @param blackPieces layout of the black pieces
 	 */
-	private void initBoard(Set<Piece> whitePieces,
-			Set<Piece> blackPieces) {
+	private void initBoard(List<Piece> whitePieces,
+			List<Piece> blackPieces) {
 		this.pieceMgr = new PieceManager(whitePieces, blackPieces);
 		allEnemyPieces = new BitBoard[2];
 		for (Colour colour : Colour.ALL_COLOURS) {
-			allEnemyPieces[colour.ordinal()] = new BitBoard();
-			for (PieceType p : PieceType.ALL_PIECE_TYPES) {
-				Piece piece = pieceMgr.getPiece(colour, p);
-				if (piece != null) {
-					allEnemyPieces[colour.ordinal()].getBitSet().or(piece.getBitBoard().getBitSet());
-				}
-			}
+			allEnemyPieces[colour.ordinal()] = pieceMgr.getPiecesForColour(colour).createBitBoard();
 		}
-		totalPieces = new BitBoard();
-		totalPieces.getBitSet().or(allEnemyPieces[Colour.WHITE.ordinal()].getBitSet());
+		totalPieces = new BitBoard(allEnemyPieces[Colour.WHITE.ordinal()].getBitSet());
 		totalPieces.getBitSet().or(allEnemyPieces[Colour.BLACK.ordinal()].getBitSet());
 		emptySquares = null;
 
@@ -370,12 +366,9 @@ public class Position {
 		// single check -- set up check restriction
 		// otherwise process as normal, but with info about pinned pieces
 		if (posnInfo.isDoubleCheck()) {
-			moves.addAll(getPieces(colour)[PieceType.KING.ordinal()].findMoves(this, checkInformation, posnInfo));
+			moves.addAll(getPieces(colour).getKing().findMoves(this, checkInformation, posnInfo));
 		} else {
-			for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-				Piece p = getPieces(colour)[type.ordinal()];
-				moves.addAll(p.findMoves(this, checkInformation, posnInfo));
-			}
+			getPieces(colour).stream().forEach(p -> moves.addAll(p.findMoves(this, checkInformation, posnInfo)));
 		}
 
 		/*
@@ -388,9 +381,11 @@ public class Position {
 				this.getAllPieces(colour));
 
 		for (Move move : moves) {
-			Piece p = getPieces(colour)[move.getPiece().ordinal()];
-			var isCheck = p.doesMoveLeaveOpponentInCheck(move, getPieces(colour), opponentsKingsSquare, checkingSquaresBitBoards);
-			if (isCheck) {
+			var isCheck = getPieces(colour)
+					.stream(move.getPiece())
+					.filter(p -> p.doesMoveLeaveOpponentInCheck(move, getPieces(colour), opponentsKingsSquare, checkingSquaresBitBoards))
+					.findAny();
+			if (isCheck.isPresent()) {
 				move.setCheck(true);
 				continue;
 			}
@@ -452,22 +447,26 @@ public class Position {
 					Square sq = Square.fromBitIndex(bitIndex);
 					if (rayToKing.getRayType().isDiagonal()) {
 						// diagonal ray --> piece must be a bishop or queen for a discovered check
-						isCheck = this.getPieces(colour)[PieceType.QUEEN.ordinal()].pieceAt(sq)
-								|| this.getPieces(colour)[PieceType.BISHOP.ordinal()].pieceAt(sq);
-					} else {
-						// horiz/vert ray --> piece must be a rook or queen for a discovered check
-						isCheck = this.getPieces(colour)[PieceType.QUEEN.ordinal()].pieceAt(sq)
-								|| this.getPieces(colour)[PieceType.ROOK.ordinal()].pieceAt(sq);
+						isCheck = this.getPieces(colour).stream(PieceType.QUEEN).filter(p -> p.pieceAt(sq)).findAny();
+						if (!isCheck.isPresent()) {
+							isCheck = this.getPieces(colour).stream(PieceType.BISHOP).filter(p -> p.pieceAt(sq)).findAny();
+						} else {
+							// horiz/vert ray --> piece must be a rook or queen for a discovered check
+							isCheck = this.getPieces(colour).stream(PieceType.QUEEN).filter(p -> p.pieceAt(sq)).findAny();
+							if (!isCheck.isPresent()) {
+								isCheck = this.getPieces(colour).stream(PieceType.ROOK).filter(p -> p.pieceAt(sq)).findAny();
+							}
+						}
+						keepSearching = false;
+					} else if (this.getAllPieces(colour.oppositeColour()).get(bitIndex)) {
+						// found an opponent's piece
+						keepSearching = false;
 					}
-					keepSearching = false;
-				} else if (this.getAllPieces(colour.oppositeColour()).get(bitIndex)) {
-					// found an opponent's piece
-					keepSearching = false;
 				}
-			}
-			if (isCheck) {
-				move.setCheck(true);
-				continue;
+				if (isCheck.isPresent()) {
+					move.setCheck(true);
+					continue;
+				}
 			}
 		}
 
@@ -602,14 +601,8 @@ public class Position {
 		int materialScore = 0;
 		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
 			int pieceScore = 0;
-			Piece piece = getPieces(Colour.WHITE)[type.ordinal()];
-			if (piece != null) {
-				pieceScore += piece.calculatePieceSquareValue();
-			}
-			piece = getPieces(Colour.BLACK)[type.ordinal()];
-			if (piece != null) {
-				pieceScore -= piece.calculatePieceSquareValue();
-			}
+			getPieces(Colour.WHITE).stream().forEach(p -> pieceScore += p.calculatePieceSquareValue());
+			getPieces(Colour.BLACK).stream().forEach(p -> pieceScore += p.calculatePieceSquareValue());
 			materialScore += pieceScore;
 		}
 
@@ -848,12 +841,8 @@ public class Position {
 			}
 		}
 		for (Colour colour : Colour.ALL_COLOURS) {
-			for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
-				Piece p = getPieceManager().getPiece(colour, pt);
-				for (Square locn : p.getLocations()) {
-					board[locn.rank()][locn.file()] = p.getFenSymbol();
-				}
-			}
+			getPieceManager().getPiecesForColour(colour).stream()
+					.forEach(p -> board[p.getLocation().rank()][p.getLocation().file()] = p.getFenSymbol());
 		}
 
 		StringBuilder sb = new StringBuilder(150);
@@ -905,7 +894,7 @@ public class Position {
 	 * @param colour the required colour
 	 * @return the pieces of this colour
 	 */
-	public Piece[] getPieces(Colour colour) {
+	public Pieces getPieces(Colour colour) {
 		return pieceMgr.getPiecesForColour(colour);
 	}
 
@@ -958,9 +947,9 @@ public class Position {
 		}
 		System.out.println("pieces");
 		for (Colour colour : Colour.ALL_COLOURS) {
-			for (PieceType p : PieceType.ALL_PIECE_TYPES) {
-				System.out.println(p + ", " + colour);
-				System.out.println(pieceMgr.getPiece(colour, p).getBitBoard().display());
+			for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
+				System.out.println(pt + ", " + colour);
+				System.out.println(pieceMgr.getPiecesForColour(colour).createBitBoard(pt).display());
 				System.out.println("---");
 			}
 		}
@@ -997,17 +986,12 @@ public class Position {
 	 */
 	public boolean squareIsAttacked(Square targetSquare,
 			Colour opponentsColour) {
-		Piece[] opponentsPieces = getPieces(opponentsColour);
+		Pieces opponentsPieces = getPieces(opponentsColour);
 		// iterate over the pieces
 		// TODO instead of treating queens separately, could 'merge' them with the rooks and the bishops
 		BitSetUnifier emptySquares = getEmptySquares();
-		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			Piece piece = opponentsPieces[type.ordinal()];
-			if (piece != null && piece.attacksSquare(emptySquares, targetSquare)) {
-				return true;
-			}
-		}
-		return false;
+		Optional<Piece> found = opponentsPieces.stream().filter(p -> p.attacksSquare(emptySquares, targetSquare)).findFirst();
+		return found.isPresent();
 	}
 
 	/**
@@ -1113,11 +1097,9 @@ public class Position {
 	 * @param pieces
 	 * @return a bitset array
 	 */
-	public static BitSetUnifier[] setupBitsets(Piece[] pieces) {
+	public static BitSetUnifier[] setupBitsets(Pieces pieces) {
 		BitSetUnifier[] enemyPieces = new BitSetUnifier[PieceType.ALL_PIECE_TYPES.length];
-		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			enemyPieces[type.ordinal()] = pieces[type.ordinal()].getBitBoard().getBitSet();
-		}
+		pieces.stream().forEach(p -> enemyPieces[p.getType().ordinal()] = pieces[type.ordinal()].getBitBoard().getBitSet());
 		return enemyPieces;
 	}
 
@@ -1135,12 +1117,9 @@ public class Position {
 			if (expectedColour != null && colour != expectedColour) {
 				continue;
 			}
-			for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-				Piece p = getPieces(colour)[type.ordinal()];
-				// null == piece-type no longer on board
-				if (p != null && p.pieceAt(targetSquare)) {
-					return type;
-				}
+			var found = getPieces(colour).stream().filter(p -> p.pieceAt(targetSquare)).findAny();
+			if (found.isPresent()) {
+				return found.get().getType();
 			}
 		}
 		if (expectedColour != null) {

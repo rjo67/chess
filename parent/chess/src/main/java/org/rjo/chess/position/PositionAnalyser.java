@@ -12,7 +12,7 @@ import org.rjo.chess.base.ray.Ray;
 import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.pieces.Knight;
-import org.rjo.chess.pieces.Pawn;
+import org.rjo.chess.pieces.Pawns;
 
 /**
  * Routines to discover if the king is in check.
@@ -79,7 +79,7 @@ public class PositionAnalyser {
 					return boardInfo;
 				}
 			}
-			i = Pawn.attacksSquare(kingsSquare, Colour.oppositeColour(kingsColour), enemyPieces[PieceType.PAWN.ordinal()]);
+			i = Pawns.attacksSquare(kingsSquare, Colour.oppositeColour(kingsColour), enemyPieces[PieceType.PAWN.ordinal()]);
 			if (i >= 0) {
 				boardInfo.addChecker(PieceType.PAWN, i);
 				if (!findAllChecks || boardInfo.getCheckers().size() == 2) {

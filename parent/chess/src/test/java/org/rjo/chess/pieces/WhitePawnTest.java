@@ -7,7 +7,6 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
-import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 
 public class WhitePawnTest extends AbstractMoveTest {
@@ -125,7 +124,7 @@ public class WhitePawnTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquare() {
 		setupGame("8/5k2/8/3P4/8/8/8/4K3 w - - 0 0");
-		var pawn = game.getPosition().getPieces(Colour.WHITE)[PieceType.PAWN.ordinal()];
+		var pawn = game.getPosition().getPieces(Colour.WHITE).getPawns();
 		assertTrue(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e6));
 		assertFalse(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.d6));
 		assertFalse(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e7));

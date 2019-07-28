@@ -13,7 +13,7 @@ import org.rjo.chess.base.eval.MoveInfo;
 import org.rjo.chess.eval.AlphaBeta3;
 import org.rjo.chess.eval.SearchStrategy;
 import org.rjo.chess.pieces.King;
-import org.rjo.chess.pieces.Piece;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 import org.rjo.chess.position.Fen;
 import org.rjo.chess.position.Game;
 import org.rjo.chess.position.Position;
@@ -155,14 +155,14 @@ public class UCI {
 	}
 
 	private Map<PieceType, Integer>[] analysePosition(Position position) {
+
 		@SuppressWarnings("unchecked")
-		Map<PieceType, Integer>[] pieceCounts = new HashMap[Colour.ALL_COLOURS.length];
+		Map<PieceType, Integer>[] pieceCounts = new HashMap[2];
 		for (Colour colour : Colour.ALL_COLOURS) {
-			final Piece[] pieces = position.getPieces(colour);
+			final Pieces pieces = position.getPieces(colour);
 			Map<PieceType, Integer> counts = new HashMap<>();
-			counts.put(PieceType.KING, 1); // always one king ;-)
-			for (PieceType pieceType : PieceType.ALL_PIECE_TYPES_EXCEPT_KING) {
-				counts.put(pieceType, pieces[pieceType.ordinal()].numberOfPieces());
+			for (PieceType pieceType : PieceType.ALL_PIECE_TYPES) {
+				counts.put(pieceType, Long.valueOf(pieces.stream(pieceType).count()).intValue());
 			}
 			pieceCounts[colour.ordinal()] = counts;
 		}

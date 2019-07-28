@@ -2,11 +2,7 @@ package org.rjo.chess.position;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.rjo.chess.base.CastlingRightsSummary.CastlingRights;
@@ -16,7 +12,7 @@ import org.rjo.chess.base.Square;
 import org.rjo.chess.pieces.Bishop;
 import org.rjo.chess.pieces.King;
 import org.rjo.chess.pieces.Knight;
-import org.rjo.chess.pieces.Pawn;
+import org.rjo.chess.pieces.Pawns;
 import org.rjo.chess.pieces.Piece;
 import org.rjo.chess.pieces.Queen;
 import org.rjo.chess.pieces.Rook;
@@ -78,12 +74,8 @@ public class Fen {
 			}
 		}
 		for (Colour colour : Colour.ALL_COLOURS) {
-			for (PieceType pieceType : PieceType.ALL_PIECE_TYPES) {
-				Piece piece = posn.getPieces(colour)[pieceType.ordinal()];
-				for (Square sq : piece.getLocations()) {
-					board[sq.rank()][sq.file()] = piece.getFenSymbol().toCharArray()[0];
-				}
-			}
+			posn.getPieceManager().getPiecesForColour(colour).stream()
+					.forEach(p -> board[p.getLocation().rank()][p.getLocation().file()] = p.getFenSymbol().toCharArray()[0]);
 		}
 
 		// fen notation starts at rank 8 and works down
@@ -140,7 +132,7 @@ public class Fen {
 		var colour = posn.getSideToMove();
 		final var findAllChecks = false;
 		var posnInfo = PositionAnalyser.analysePosition(posn.getKingPosition(colour), colour, posn.getAllPieces(colour).getBitSet(), null,
-				Position.setupBitsets(posn.getPieces(Colour.oppositeColour(colour))), null, findAllChecks);
+				posn.getAllPieces(Colour.oppositeColour(colour)).getBitSet(), null, findAllChecks);
 
 		posn.setInCheck(posnInfo.isKingInCheck());
 
@@ -304,16 +296,15 @@ public class Fen {
 			Colour sideToMove,
 			EnumSet<CastlingRights>[] castlingRights,
 			Square enpassantSquare) {
-		// this array is used to reference the FEN symbols for all the pieces
-		// and to store the parsed positions (at the end of the routine)
-		Piece[] allPieces = new Piece[] { new Pawn(Colour.WHITE), new Pawn(Colour.BLACK), new Rook(Colour.WHITE), new Rook(Colour.BLACK),
-				new Knight(Colour.WHITE), new Knight(Colour.BLACK), new Bishop(Colour.WHITE), new Bishop(Colour.BLACK), new Queen(Colour.WHITE),
-				new Queen(Colour.BLACK), new King(Colour.WHITE), new King(Colour.BLACK) };
-		// this map stores the piece locations that get parsed from the FEN string
-		Map<Piece, List<Square>> pieceMap = new HashMap<>();
-		for (Piece piece : allPieces) {
-			pieceMap.put(piece, new ArrayList<>());
-		}
+
+		@SuppressWarnings("unchecked")
+		List<Piece>[] allPieces = new List[2];
+		allPieces[Colour.WHITE.ordinal()] = new ArrayList<>();
+		allPieces[Colour.BLACK.ordinal()] = new ArrayList<>();
+		List<Square> pawnSquares[] = new List[2];
+		pawnSquares[Colour.WHITE.ordinal()] = new ArrayList<>();
+		pawnSquares[Colour.BLACK.ordinal()] = new ArrayList<>();
+
 		StringTokenizer st = new StringTokenizer(fen, "/");
 		if (st.countTokens() != 8) {
 			throw new IllegalArgumentException("invalid FEN string: expected 8 delimiters in input '" + fen + "'");
@@ -330,22 +321,49 @@ public class Fen {
 				if (ch > '0' && ch <= '8') {
 					bitPosn += (ch - '0');
 				} else {
-					// find appropriate piece
-					Piece foundPiece = null;
-					for (Piece piece : allPieces) {
-						if (ch == piece.getFenSymbol().charAt(0)) {
-							foundPiece = piece;
+					// find appropriate piece type matching the fen symbol
+					PieceType foundPieceType = null;
+					Colour pieceColour = null;
+					for (PieceType pieceType : PieceType.ALL_PIECE_TYPES) {
+						if (ch == pieceType.getFenSymbol(Colour.WHITE).charAt(0)) {
+							foundPieceType = pieceType;
+							pieceColour = Colour.WHITE;
+							break;
+						} else if (ch == pieceType.getFenSymbol(Colour.BLACK).charAt(0)) {
+							foundPieceType = pieceType;
+							pieceColour = Colour.BLACK;
 							break;
 						}
 					}
-					if (foundPiece == null) {
+					if (foundPieceType == null) {
 						throw new IllegalArgumentException("invalid FEN string: symbol '" + ch + "' not recognised. Full string: '" + fen + "'");
 					}
-					// add to piece map
-					List<Square> list = pieceMap.get(foundPiece);
-					list.add(Square.fromBitIndex(bitPosn));
-					pieceMap.put(foundPiece, list);
-
+					// add to piece map (special for pawns)
+					if (foundPieceType == PieceType.PAWN) {
+						pawnSquares[pieceColour.ordinal()].add(Square.fromBitIndex(bitPosn));
+					} else {
+						Piece piece = null;
+						switch (foundPieceType) {
+						case KING:
+							piece = new King(pieceColour, Square.fromBitIndex(bitPosn));
+							break;
+						case QUEEN:
+							piece = new Queen(pieceColour, Square.fromBitIndex(bitPosn));
+							break;
+						case BISHOP:
+							piece = new Bishop(pieceColour, Square.fromBitIndex(bitPosn));
+							break;
+						case KNIGHT:
+							piece = new Knight(pieceColour, Square.fromBitIndex(bitPosn));
+							break;
+						case ROOK:
+							piece = new Rook(pieceColour, Square.fromBitIndex(bitPosn));
+							break;
+						default:
+							throw new IllegalArgumentException("unknown piecetype: " + foundPieceType);
+						}
+						allPieces[pieceColour.ordinal()].add(piece);
+					}
 					bitPosn++;
 				}
 				// safety check
@@ -354,29 +372,17 @@ public class Fen {
 							"parse exception, fen: '" + fen + "', bitPosn: " + bitPosn + ", rankNr: " + rankNr + ", current rank: " + rank);
 				}
 			}
-			// at the end of the rank, the bitPosn must be correct (+8 since one
-			// is always added)
+			// at the end of the rank, the bitPosn must be correct (+8 since one is always added)
 			if (bitPosn != (8 * rankNr) + 8) {
 				throw new IllegalArgumentException("invalid FEN string: rank '" + (rankNr + 1) + "' not completely specified: '" + rank
 						+ "'. Bitposn: " + bitPosn + ". Full string: '" + fen + "'");
 			}
 		}
+		// add in pawns to allPieces
+		allPieces[Colour.WHITE.ordinal()].add(new Pawns(Colour.WHITE, pawnSquares[Colour.WHITE.ordinal()].toArray(new Square[0])));
+		allPieces[Colour.BLACK.ordinal()].add(new Pawns(Colour.BLACK, pawnSquares[Colour.BLACK.ordinal()].toArray(new Square[0])));
 
-		// now init the pieces with the squares that have been parsed (from the map pieceMap)
-		// contains all piece types -- even if no pieces of this type exist on the board
-		@SuppressWarnings("unchecked")
-		Set<Piece>[] pieces = new HashSet[Colour.ALL_COLOURS.length];
-		for (Colour colour : Colour.ALL_COLOURS) {
-			pieces[colour.ordinal()] = new HashSet<>();
-		}
-		for (Piece piece : allPieces) {
-			pieces[piece.getColour().ordinal()].add(piece);
-			if (!pieceMap.get(piece).isEmpty()) {
-				piece.initPosition(pieceMap.get(piece).toArray(new Square[1]));
-				pieces[piece.getColour().ordinal()].add(piece);
-			}
-		}
-		return new Position(pieces[Colour.WHITE.ordinal()], pieces[Colour.BLACK.ordinal()], sideToMove,
+		return new Position(allPieces[Colour.WHITE.ordinal()], allPieces[Colour.BLACK.ordinal()], sideToMove,
 				castlingRights[Colour.WHITE.ordinal()], castlingRights[Colour.BLACK.ordinal()], enpassantSquare);
 	}
 
