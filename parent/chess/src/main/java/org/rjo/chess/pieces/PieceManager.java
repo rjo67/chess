@@ -7,6 +7,7 @@ import java.util.stream.Stream.Builder;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.PieceType;
+import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
 
 /**
@@ -230,6 +231,16 @@ public class PieceManager {
 				}
 			}
 			return builder.build();
+		}
+
+		/**
+		 * Find the piece occupying the given square.
+		 *
+		 * @param square the required square
+		 * @return the piece, or throws NoSuchElementException if the square is not occupied
+		 */
+		public Piece findPieceAt(Square square) {
+			return this.stream().filter(p -> p.pieceAt(square)).findAny().orElseThrow();
 		}
 
 		@Override

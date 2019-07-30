@@ -83,6 +83,19 @@ public class Pawns extends AbstractPiece {
 		}
 	}
 
+	/**
+	 * a 'location' is not defined for the collection of pawns.
+	 */
+	@Override
+	public Square getLocation() {
+		throw new IllegalStateException("cannot call Pawns::getLocation");
+	}
+
+	@Override
+	public boolean pieceAt(Square targetSquare) {
+		return pieces.get(targetSquare.bitIndex());
+	}
+
 	@Override
 	public int calculatePieceSquareValue() {
 		return pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);

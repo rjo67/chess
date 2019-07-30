@@ -131,8 +131,11 @@ public class Fen {
 
 		var colour = posn.getSideToMove();
 		final var findAllChecks = false;
-		var posnInfo = PositionAnalyser.analysePosition(posn.getKingPosition(colour), colour, posn.getAllPieces(colour).getBitSet(), null,
-				posn.getAllPieces(Colour.oppositeColour(colour)).getBitSet(), null, findAllChecks);
+		var posnInfo = PositionAnalyser.analysePosition(posn.getKingPosition(colour),
+				colour, posn.getAllPieces(colour).getBitSet(),
+				null,
+				posn.getPieces(colour.oppositeColour()),
+				null, findAllChecks);
 
 		posn.setInCheck(posnInfo.isKingInCheck());
 

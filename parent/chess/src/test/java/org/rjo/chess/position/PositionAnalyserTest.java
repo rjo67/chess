@@ -14,7 +14,6 @@ import org.junit.runners.Parameterized.Parameters;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.position.PositionInfo.PieceInfo;
 
@@ -47,13 +46,11 @@ public class PositionAnalyserTest {
 	@Test
 	public void simpleChecks() {
 		var game = Fen.decode(fenString);
-		var friendlyPieces = setupBitsets(game.getPosition(), kingsColour);
-		var enemyPieces = setupBitsets(game.getPosition(), kingsColour.oppositeColour());
 		var kingsSquare = game.getPosition().getKingPosition(kingsColour);
 		var posnInfo = PositionAnalyser.analysePosition(kingsSquare, kingsColour,
-				getAllPieces(game.getPosition(), kingsColour),
-				friendlyPieces,
-				enemyPieces,
+				game.getPosition().getAllPieces(kingsColour).getBitSet(),
+				game.getPosition().getPieces(kingsColour),
+				game.getPosition().getPieces(kingsColour.oppositeColour()),
 				null,
 				true);
 		var pins = posnInfo.getPinnedPieces();
@@ -125,17 +122,4 @@ public class PositionAnalyserTest {
 		});
 	}
 
-	private BitSetUnifier getAllPieces(Position posn,
-			Colour colour) {
-		return posn.getAllPieces(colour).getBitSet();
-	}
-
-	private BitSetUnifier[] setupBitsets(Position posn,
-			Colour colour) {
-		BitSetUnifier[] pieces = new BitSetUnifier[PieceType.ALL_PIECE_TYPES.length];
-		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			pieces[type.ordinal()] = posn.getPieces(colour)[type.ordinal()].getBitBoard().getBitSet();
-		}
-		return pieces;
-	}
 }

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -358,8 +359,8 @@ public class Position {
 
 		var posnInfo = PositionAnalyser.analysePosition(getKingPosition(colour),
 				colour, this.getAllPieces(colour).getBitSet(),
-				setupBitsets(this.getPieces(colour)),
-				setupBitsets(this.getPieces(Colour.oppositeColour(colour))),
+				this.getPieces(colour),
+				this.getPieces(colour.oppositeColour()),
 				null, true);
 
 		// double check -- king must move
@@ -599,12 +600,10 @@ public class Position {
 		 * pawnWt * (wP-bP) mobilityScore = mobilityWt * (wMobility-bMobility)
 		 */
 		int materialScore = 0;
-		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			int pieceScore = 0;
-			getPieces(Colour.WHITE).stream().forEach(p -> pieceScore += p.calculatePieceSquareValue());
-			getPieces(Colour.BLACK).stream().forEach(p -> pieceScore += p.calculatePieceSquareValue());
-			materialScore += pieceScore;
-		}
+		AtomicInteger pieceScore = new AtomicInteger(0);
+		getPieces(Colour.WHITE).stream().forEach(p -> pieceScore.addAndGet(p.calculatePieceSquareValue()));
+		getPieces(Colour.BLACK).stream().forEach(p -> pieceScore.addAndGet(p.calculatePieceSquareValue()));
+		materialScore += pieceScore.get();
 
 		// mobility
 		//
@@ -1089,18 +1088,6 @@ public class Position {
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Returns the bitsets of the pieces parameter.
-	 *
-	 * @param pieces
-	 * @return a bitset array
-	 */
-	public static BitSetUnifier[] setupBitsets(Pieces pieces) {
-		BitSetUnifier[] enemyPieces = new BitSetUnifier[PieceType.ALL_PIECE_TYPES.length];
-		pieces.stream().forEach(p -> enemyPieces[p.getType().ordinal()] = pieces[type.ordinal()].getBitBoard().getBitSet());
-		return enemyPieces;
 	}
 
 	/**

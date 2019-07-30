@@ -10,7 +10,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.rjo.chess.base.Colour;
-import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
@@ -44,11 +43,8 @@ public class PositionAnalyserCheckingSquaresTest {
 	public void findCheckingSquares() {
 		var game = Fen.decode(fenString);
 		var kingsSquare = game.getPosition().getKingPosition(kingsColour);
-		var friendlyPieces = setupBitsets(game.getPosition(), kingsColour);
-		var enemyPieces = setupBitsets(game.getPosition(), kingsColour.oppositeColour());
-		BitBoard[] outputBitboards = PositionAnalyser.findCheckingSquares(kingsSquare,
-				PositionAnalyser.createBitboardContainingAllPieces(friendlyPieces),
-				PositionAnalyser.createBitboardContainingAllPieces(enemyPieces));
+		BitBoard[] outputBitboards = PositionAnalyser.findCheckingSquares(kingsSquare, game.getPosition().getAllPieces(kingsColour),
+				game.getPosition().getAllPieces(kingsColour.oppositeColour()));
 		BitSetUnifier allSquares = (BitSetUnifier) outputBitboards[0].getBitSet().clone();
 		allSquares.or(outputBitboards[1].getBitSet());
 		BitBoard allSquaresBB = new BitBoard(allSquares);
@@ -101,12 +97,4 @@ public class PositionAnalyserCheckingSquaresTest {
 		});
 	}
 
-	private BitSetUnifier[] setupBitsets(Position posn,
-			Colour colour) {
-		BitSetUnifier[] pieces = new BitSetUnifier[PieceType.ALL_PIECE_TYPES.length];
-		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			pieces[type.ordinal()] = posn.getPieces(colour)[type.ordinal()].getBitBoard().getBitSet();
-		}
-		return pieces;
-	}
 }

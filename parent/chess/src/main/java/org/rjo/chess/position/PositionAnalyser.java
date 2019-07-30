@@ -11,8 +11,7 @@ import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.Ray;
 import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.base.ray.RayUtils;
-import org.rjo.chess.pieces.Knight;
-import org.rjo.chess.pieces.Pawns;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 
 /**
  * Routines to discover if the king is in check.
@@ -43,9 +42,9 @@ public class PositionAnalyser {
 	 * @param kingsSquare where the king is.
 	 * @param kingsColour colour of the king.
 	 * @param allFriendlyPieces bitset indicating location of the friendly pieces.
-	 * @param friendlyPieces bitsets indicating location of the friendly pieces. FOR BACKWARDS COMPAT: can be null. In this
-	 *           case a list of pinned pieces will not be created.
-	 * @param enemyPieces bitsets indicating location of the enemy pieces.
+	 * @param friendlyPieces all the friendly pieces. FOR BACKWARDS COMPAT: can be null. In this case a list of pinned
+	 *           pieces will not be created.
+	 * @param enemyPieces all the enemy pieces.
 	 * @param rayToExamine if set, JUST this ray will be examined. This is an optimization where the king was not in check
 	 *           beforehand. Then we only need to check the ray which has been vacated by the moving piece. <b>Do not
 	 *           set</b> if the king himself has moved.
@@ -56,8 +55,8 @@ public class PositionAnalyser {
 	public static PositionInfo analysePosition(Square kingsSquare,
 			Colour kingsColour,
 			BitSetUnifier allFriendlyPieces,
-			BitSetUnifier[] friendlyPieces,
-			BitSetUnifier[] enemyPieces,
+			Pieces friendlyPieces,
+			Pieces enemyPieces,
 			RayType rayToExamine,
 			boolean findAllChecks) {
 
@@ -72,23 +71,23 @@ public class PositionAnalyser {
 
 		if (!optimizedRaySearch) {
 			// special cases: pawn and knight attacks
-			var i = Knight.attacksSquare(kingsSquare, enemyPieces[PieceType.KNIGHT.ordinal()]);
-			if (i >= 0) {
-				boardInfo.addChecker(PieceType.KNIGHT, i);
+			var p = enemyPieces.stream(PieceType.KNIGHT).filter(kn -> kn.attacksSquare(kingsSquare)).findAny();
+			if (p.isPresent()) {
+				boardInfo.addChecker(PieceType.KNIGHT, p.get().getLocation().bitIndex());
 				if (!findAllChecks || boardInfo.getCheckers().size() == 2) {
 					return boardInfo;
 				}
 			}
-			i = Pawns.attacksSquare(kingsSquare, Colour.oppositeColour(kingsColour), enemyPieces[PieceType.PAWN.ordinal()]);
-			if (i >= 0) {
-				boardInfo.addChecker(PieceType.PAWN, i);
+			p = enemyPieces.getPawns().attacksSquare(kingsSquare, Colour.oppositeColour(kingsColour));
+			if (p >= 0) {
+				boardInfo.addChecker(PieceType.PAWN, p);
 				if (!findAllChecks || boardInfo.getCheckers().size() == 2) {
 					return boardInfo;
 				}
 			}
 		}
 
-		BitBoard allEnemyPieces = createBitboardContainingAllPieces(enemyPieces);
+		BitBoard allEnemyPieces = enemyPieces.createBitBoard();
 
 		RayType[] raysToCheck;
 		if (optimizedRaySearch) {
@@ -114,20 +113,18 @@ public class PositionAnalyser {
 				// an enemy piece is relevant for diagonal (queen/bishop) or file (queen/rook)
 				if (allEnemyPieces.get(bitIndex)) {
 					if (rayType.isDiagonal()) {
-						if (enemyPieces[PieceType.QUEEN.ordinal()].get(bitIndex)) {
-							boardInfo.addChecker(rayType, PieceType.QUEEN, bitIndex);
-							keepSearching = !findAllChecks || boardInfo.isDoubleCheck();
-						} else if (enemyPieces[PieceType.BISHOP.ordinal()].get(bitIndex)) {
-							boardInfo.addChecker(rayType, PieceType.BISHOP, bitIndex);
+						var pieceOnSquare = enemyPieces.stream(PieceType.QUEEN, PieceType.BISHOP)
+								.filter(piece -> piece.pieceAt(Square.fromBitIndex(bitIndex))).findAny();
+						if (pieceOnSquare.isPresent()) {
+							boardInfo.addChecker(rayType, pieceOnSquare.get().getType(), bitIndex);
 							keepSearching = !findAllChecks || boardInfo.isDoubleCheck();
 						}
 					} else // !rayType.isDiagonal()
 					{
-						if (enemyPieces[PieceType.QUEEN.ordinal()].get(bitIndex)) {
-							boardInfo.addChecker(rayType, PieceType.QUEEN, bitIndex);
-							keepSearching = !findAllChecks || boardInfo.isDoubleCheck();
-						} else if (enemyPieces[PieceType.ROOK.ordinal()].get(bitIndex)) {
-							boardInfo.addChecker(rayType, PieceType.ROOK, bitIndex);
+						var pieceOnSquare = enemyPieces.stream(PieceType.QUEEN, PieceType.ROOK)
+								.filter(piece -> piece.pieceAt(Square.fromBitIndex(bitIndex))).findAny();
+						if (pieceOnSquare.isPresent()) {
+							boardInfo.addChecker(rayType, pieceOnSquare.get().getType(), bitIndex);
 							keepSearching = !findAllChecks || boardInfo.isDoubleCheck();
 						}
 					}
@@ -139,20 +136,6 @@ public class PositionAnalyser {
 		boardInfo.calculateRestrictedSquares();
 		return boardInfo;
 
-	}
-
-	/**
-	 * returns a bitboard whose bits are set for each piece contained in the input.
-	 *
-	 * @param pieces bitsets of all pieces for one side.
-	 * @return a bitboard reflecting the positions of all pieces of one side
-	 */
-	public static BitBoard createBitboardContainingAllPieces(BitSetUnifier[] pieces) {
-		BitBoard allPieces = new BitBoard();
-		for (PieceType pt : PieceType.ALL_PIECE_TYPES) {
-			allPieces.getBitSet().or(pieces[pt.ordinal()]);
-		}
-		return allPieces;
 	}
 
 	/**
@@ -204,21 +187,16 @@ public class PositionAnalyser {
 	}
 
 	/**
-	 * Returns the type of piece at the bitindex location.
+	 * Returns the type of piece at the bitindex location. TODO call Pieces.findPieceAt directly, and store the piece rather
+	 * than the piece type
 	 *
 	 * @param bitIndex location
 	 * @param pieces bitsets of pieces
 	 * @return the type of piece at the location
 	 */
 	private static PieceType findPieceAt(int bitIndex,
-			BitSetUnifier[] pieces) {
-		for (PieceType pt : PieceType.ALL_PIECE_TYPES_EXCEPT_KING) {
-			if (pieces[pt.ordinal()].get(bitIndex)) {
-				return pt;
-			}
-		}
-		throw new IllegalArgumentException(
-				String.format("no piece found at %d_(%s) for bitmaps: %s", bitIndex, Square.fromBitIndex(bitIndex), pieces));
+			Pieces pieces) {
+		return pieces.findPieceAt(Square.fromBitIndex(bitIndex)).getType();
 	}
 
 	/**
@@ -236,7 +214,7 @@ public class PositionAnalyser {
 	 */
 	private static boolean pieceIsPinned(BitSetUnifier friendlyPieces,
 			BitBoard allEnemyPieces,
-			BitSetUnifier[] enemyPieces,
+			Pieces enemyPieces,
 			RayType rayType,
 			Iterator<Integer> rayIter) {
 		while (rayIter.hasNext()) {
@@ -246,17 +224,17 @@ public class PositionAnalyser {
 				return false;
 			} else if (allEnemyPieces.get(bitIndex)) {
 				if (rayType.isDiagonal()) {
-					if (enemyPieces[PieceType.QUEEN.ordinal()].get(bitIndex)) {
-						return true;
-					} else if (enemyPieces[PieceType.BISHOP.ordinal()].get(bitIndex)) {
+					var pieceOnSquare = enemyPieces.stream(PieceType.QUEEN, PieceType.BISHOP)
+							.filter(piece -> piece.pieceAt(Square.fromBitIndex(bitIndex))).findAny();
+					if (pieceOnSquare.isPresent()) {
 						return true;
 					}
 					break; // found an enemy's piece, but it's not a pinner
 				} else // !rayType.isDiagonal
 				{
-					if (enemyPieces[PieceType.QUEEN.ordinal()].get(bitIndex)) {
-						return true;
-					} else if (enemyPieces[PieceType.ROOK.ordinal()].get(bitIndex)) {
+					var pieceOnSquare = enemyPieces.stream(PieceType.QUEEN, PieceType.ROOK)
+							.filter(piece -> piece.pieceAt(Square.fromBitIndex(bitIndex))).findAny();
+					if (pieceOnSquare.isPresent()) {
 						return true;
 					}
 					break; // found an enemy's piece, but it's not a pinner
