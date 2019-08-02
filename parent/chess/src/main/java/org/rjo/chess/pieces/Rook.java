@@ -223,6 +223,18 @@ public class Rook extends SlidingPiece {
 		super(colour, PieceType.ROOK, location);
 	}
 
+	/**
+	 * Copy constructor.
+	 *
+	 * @param the Rook to copy.
+	 */
+	public Rook(Piece other) {
+		this(other.getColour(), other.getLocation());
+		if (other.getType() != PieceType.ROOK) {
+			throw new IllegalStateException("piece is wrong type! " + other);
+		}
+	}
+
 	/** uses the moveMap and vertMoveMap structures to find possible moves */
 	private List<Move> findMovesUsingMoveMap(Position posn) {
 		List<Move> moves = new ArrayList<>();

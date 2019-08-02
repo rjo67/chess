@@ -51,6 +51,18 @@ public class Queen extends SlidingPiece {
 		super(colour, PieceType.QUEEN, location);
 	}
 
+	/**
+	 * Copy constructor.
+	 *
+	 * @param the Queen to copy.
+	 */
+	public Queen(Piece other) {
+		this(other.getColour(), other.getLocation());
+		if (other.getType() != PieceType.QUEEN) {
+			throw new IllegalStateException("piece is wrong type! " + other);
+		}
+	}
+
 	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck,

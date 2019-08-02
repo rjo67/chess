@@ -145,6 +145,18 @@ public class King extends AbstractPiece {
 		super(colour, PieceType.KING, location);
 	}
 
+	/**
+	 * Copy constructor.
+	 *
+	 * @param the king to copy.
+	 */
+	public King(Piece other) {
+		this(other.getColour(), other.getLocation());
+		if (other.getType() != PieceType.KING) {
+			throw new IllegalStateException("piece is wrong type! " + other);
+		}
+	}
+
 	@Override
 	public int calculatePieceSquareValue() {
 

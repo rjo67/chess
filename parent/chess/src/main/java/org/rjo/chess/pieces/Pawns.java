@@ -83,6 +83,11 @@ public class Pawns extends AbstractPiece {
 		}
 	}
 
+	public Pawns(Piece other) {
+		super(other.getColour(), PieceType.PAWN, null);
+		pieces = new BitBoard(other.getBitBoard());
+	}
+
 	/**
 	 * a 'location' is not defined for the collection of pawns.
 	 */
@@ -145,7 +150,8 @@ public class Pawns extends AbstractPiece {
 			Square opponentsKing,
 			BitBoard[] checkingBitboards) {
 		if (move.isPromotion()) {
-			return pieces[move.getPromotedPiece().ordinal()].doesMoveLeaveOpponentInCheck(move, pieces, opponentsKing, checkingBitboards);
+			return pieces.createPiece(move.getPromotedPiece(), move.to())
+					.doesMoveLeaveOpponentInCheck(move, pieces, opponentsKing, checkingBitboards);
 		} else {
 			return helper[getColour().ordinal()].doesPawnAttackSquare(opponentsKing, move.to());
 		}

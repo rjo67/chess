@@ -41,44 +41,70 @@ public class PieceManager {
 	 */
 	public PieceManager(List<Piece> whitePieces, List<Piece> blackPieces) {
 		this();
-		pieces[Colour.WHITE.ordinal()] = new Pieces(whitePieces);
-		pieces[Colour.BLACK.ordinal()] = new Pieces(blackPieces);
+		pieces[Colour.WHITE.ordinal()] = new Pieces(Colour.WHITE, whitePieces);
+		pieces[Colour.BLACK.ordinal()] = new Pieces(Colour.BLACK, blackPieces);
 	}
 
 	/**
-	 * Copy constructor. The new object references the same <code>pieces</code> as before. Need to clone iff these objects
-	 * get changed.
+	 * Copy constructor. The new object references the same <code>Piece instances</code> as before. Need to clone iff these
+	 * objects get changed.
 	 *
 	 * @param otherPieceManager the pieceManager that gets copied
 	 */
 	public PieceManager(final PieceManager otherPieceManager) {
 		this();
-		pieces[Colour.WHITE.ordinal()] = otherPieceManager.pieces[Colour.WHITE.ordinal()];
-		pieces[Colour.BLACK.ordinal()] = otherPieceManager.pieces[Colour.BLACK.ordinal()];
+		pieces[Colour.WHITE.ordinal()] = new Pieces(otherPieceManager.pieces[Colour.WHITE.ordinal()]);
+		pieces[Colour.BLACK.ordinal()] = new Pieces(otherPieceManager.pieces[Colour.BLACK.ordinal()]);
 	}
 
-	//	/**
-	//	 * returns a particular Piece object from the map. The Piece object <b>will be cloned</b> and re-inserted into the
-	//	 * <code>pieces</code> hashmap the first time.
-	//	 *
-	//	 * @param colour the required colour
-	//	 * @param pieceType the required piece type
-	//	 * @return a Piece object
-	//	 */
-	//	public Piece getClonedPiece(Colour colour,
-	//			PieceType pieceType) {
-	//		if (alreadyCloned[colour.ordinal()][pieceType.ordinal()]) {
-	//			return getPiece(colour, pieceType);
-	//		}
-	//		try {
-	//			Piece cloned = (Piece) getPiece(colour, pieceType).clone();
-	//			pieces[colour.ordinal()][pieceType.ordinal()] = cloned;
-	//			alreadyCloned[colour.ordinal()][pieceType.ordinal()] = true;
-	//			return cloned;
-	//		} catch (CloneNotSupportedException e) {
-	//			throw new RuntimeException("could not clone piece!?");
-	//		}
-	//	}
+	/**
+	 * Creates a copy of the Piece object for the given type at the given location and returns it.
+	 * <p>
+	 * The new object will replace the previous object in the appropriate data structures.
+	 *
+	 * @param colour the required colour
+	 * @param pieceType the required piece type
+	 * @param location location of the piece
+	 * @return a Piece object
+	 */
+	public Piece getClonedPiece(Colour colour,
+			PieceType pieceType,
+			Square location) {
+		//		if (alreadyCloned[colour.ordinal()][pieceType.ordinal()]) {
+		//			return getPiece(colour, pieceType, location);
+		//		}
+
+		var piece = getPiece(colour, pieceType, location);
+		//			alreadyCloned[colour.ordinal()][pieceType.ordinal()] = true;
+		return pieces[colour.ordinal()].copyPiece(piece);
+	}
+
+	/**
+	 * Adds a piece of the given type and colour to the appropriate data structures.
+	 *
+	 * @param colour colour
+	 * @param pieceType type
+	 * @param location location
+	 * @return the new piece
+	 */
+	public Piece addPiece(Colour colour,
+			PieceType pieceType,
+			Square location) {
+		return pieces[colour.ordinal()].addPiece(pieceType, location);
+	}
+
+	/**
+	 * Removes a piece of the given type and colour from the appropriate data structures.
+	 *
+	 * @param colour colour
+	 * @param pieceType type
+	 * @param location location
+	 */
+	public void removePiece(Colour colour,
+			PieceType pieceType,
+			Square location) {
+		pieces[colour.ordinal()].removePiece(pieceType, location);
+	}
 
 	/**
 	 * returns the pieces for the given colour.
@@ -90,17 +116,19 @@ public class PieceManager {
 		return pieces[colour.ordinal()];
 	}
 
-	//	/**
-	//	 * returns a particular Piece object.
-	//	 *
-	//	 * @param colour the required colour
-	//	 * @param pieceType the required piece type
-	//	 * @return a Piece object
-	//	 */
-	//	public Piece getPiece(Colour colour,
-	//			PieceType pieceType) {
-	//		return pieces[colour.ordinal()][pieceType.ordinal()];
-	//	}
+	/**
+	 * returns a particular Piece object.
+	 *
+	 * @param colour the required colour
+	 * @param pieceType the required piece type
+	 * @param location the location of the piece
+	 * @return a Piece object
+	 */
+	public Piece getPiece(Colour colour,
+			PieceType pieceType,
+			Square location) {
+		return pieces[colour.ordinal()].findPieceAt(location, pieceType);
+	}
 
 	@Override
 	public String toString() {
@@ -121,8 +149,16 @@ public class PieceManager {
 		private List<Piece> bishops = new ArrayList<>();
 		private List<Piece> queens = new ArrayList<>();
 		private Pawns pawns;
+		private Colour colour;
 
-		public Pieces(List<Piece> pieces) {
+		/**
+		 * Constructor with a list of pieces of any types.
+		 *
+		 * @param colour the piece colour
+		 * @param pieces the required pieces
+		 */
+		public Pieces(Colour colour, List<Piece> pieces) {
+			this.colour = colour;
 			for (Piece p : pieces) {
 				switch (p.getType()) {
 				case KING:
@@ -152,6 +188,22 @@ public class PieceManager {
 			}
 		}
 
+		/**
+		 * Copy constructor. The lists are copied (their contents are not duplicated, if the entries are changed they first need
+		 * to be cloned).
+		 *
+		 * @param other the piece object to copy
+		 */
+		public Pieces(Pieces other) {
+			this.colour = other.colour;
+			this.king = other.king; // not copied
+			this.rooks = new ArrayList<>(other.rooks);
+			this.knights = new ArrayList<>(other.knights);
+			this.bishops = new ArrayList<>(other.bishops);
+			this.queens = new ArrayList<>(other.queens);
+			this.pawns = other.pawns; // not copied
+		}
+
 		public Piece getKing() {
 			return king;
 		}
@@ -174,6 +226,159 @@ public class PieceManager {
 
 		public Piece getPawns() {
 			return pawns;
+		}
+
+		/**
+		 * Creates a new piece instance.
+		 *
+		 * @param pieceType type
+		 * @param location location
+		 * @return the new piece
+		 */
+		public Piece createPiece(PieceType pieceType,
+				Square location) {
+			Piece newPiece;
+			switch (pieceType) {
+			case KING:
+				throw new IllegalArgumentException("cannot create a king!");
+			case QUEEN:
+				newPiece = new Queen(this.colour, location);
+				break;
+			case BISHOP:
+				newPiece = new Bishop(this.colour, location);
+				break;
+			case KNIGHT:
+				newPiece = new Knight(this.colour, location);
+				break;
+			case ROOK:
+				newPiece = new Rook(this.colour, location);
+				break;
+			case PAWN:
+				throw new IllegalArgumentException("cannot create a pawn!");
+			default:
+				throw new IllegalArgumentException("unknown piece type: " + pieceType);
+			}
+			return newPiece;
+		}
+
+		/**
+		 * Creats a new piece instance and adds it to the appropriate data structure.
+		 *
+		 * @param pieceType type
+		 * @param location location
+		 * @return the new piece
+		 */
+		public Piece addPiece(PieceType pieceType,
+				Square location) {
+			Piece newPiece = createPiece(pieceType, location);
+			switch (pieceType) {
+			case KING:
+				throw new IllegalArgumentException("cannot add a king!");
+			case QUEEN:
+				this.queens.add(newPiece);
+				break;
+			case BISHOP:
+				this.bishops.add(newPiece);
+				break;
+			case KNIGHT:
+				this.knights.add(newPiece);
+				break;
+			case ROOK:
+				this.rooks.add(newPiece);
+				break;
+			case PAWN:
+				throw new IllegalArgumentException("cannot add a pawn!");
+			default:
+				throw new IllegalArgumentException("unknown piece type: " + pieceType);
+			}
+			return newPiece;
+		}
+
+		/**
+		 * Removes a piece of the given type at the given location from the appropriate data structures.
+		 *
+		 * @param pieceType type
+		 * @param location location
+		 */
+		public void removePiece(PieceType pieceType,
+				Square location) {
+			var piece = findPieceAt(location, pieceType);
+			boolean removeSuccessful;
+			switch (pieceType) {
+			case KING:
+				throw new IllegalArgumentException("cannot add a king!");
+			case QUEEN:
+				removeSuccessful = this.queens.remove(piece);
+				break;
+			case BISHOP:
+				removeSuccessful = this.bishops.remove(piece);
+				break;
+			case KNIGHT:
+				removeSuccessful = this.knights.remove(piece);
+				break;
+			case ROOK:
+				removeSuccessful = this.rooks.remove(piece);
+				break;
+			case PAWN:
+				throw new IllegalArgumentException("not yet implemented!");
+			default:
+				throw new IllegalArgumentException("unknown piece type: " + pieceType);
+			}
+			if (!removeSuccessful) {
+				throw new IllegalStateException("could not remove " + piece);
+			}
+		}
+
+		/**
+		 * The given piece will be copied and returned. The copy replaces the given piece in the appropriate data structure.
+		 *
+		 * @param piece the piece to copy
+		 * @return the copied piece
+		 */
+		public Piece copyPiece(Piece piece) {
+			Piece newPiece;
+			switch (piece.getType()) {
+			case KING:
+				newPiece = new King(piece);
+				this.king = (King) newPiece;
+				break;
+			case QUEEN:
+				newPiece = new Queen(piece);
+				replace(piece, newPiece, this.queens);
+				break;
+			case BISHOP:
+				newPiece = new Bishop(piece);
+				replace(piece, newPiece, this.bishops);
+				break;
+			case KNIGHT:
+				newPiece = new Knight(piece);
+				replace(piece, newPiece, this.knights);
+				break;
+			case ROOK:
+				newPiece = new Rook(piece);
+				replace(piece, newPiece, this.rooks);
+				break;
+			case PAWN:
+				newPiece = new Pawns(piece);
+				this.pawns = (Pawns) newPiece; //TODO need to keep track of having being cloned, otherwise will create new object every time ??
+				break;
+			default:
+				throw new IllegalArgumentException("unknown piece type: " + piece.getType());
+			}
+			return newPiece;
+		}
+
+		/**
+		 * Removes 'oldPiece' from 'pieceList' and adds 'newPiece'.
+		 */
+		private void replace(Piece oldPiece,
+				Piece newPiece,
+				List<Piece> pieceList) {
+			var removed = pieceList.remove(oldPiece);
+			if (!removed) {
+				throw new IllegalArgumentException("could not find piece " + oldPiece + " in list: " + pieceList);
+			}
+			pieceList.add(newPiece);
 		}
 
 		/** return a bitboard of all piece types */
@@ -234,6 +439,18 @@ public class PieceManager {
 		}
 
 		/**
+		 * Find the piece of the given type occupying the given square.
+		 *
+		 * @param square the required square
+		 * @param pieceTypes the required type(s)
+		 * @return the piece, or throws NoSuchElementException if the square is not occupied
+		 */
+		public Piece findPieceAt(Square square,
+				PieceType... pieceTypes) {
+			return this.stream(pieceTypes).filter(p -> p.pieceAt(square)).findAny().orElseThrow();
+		}
+
+		/**
 		 * Find the piece occupying the given square.
 		 *
 		 * @param square the required square
@@ -245,8 +462,8 @@ public class PieceManager {
 
 		@Override
 		public String toString() {
-			return "Pieces [king=" + king + ", rooks=" + rooks + ", knights=" + knights + ", bishops=" + bishops + ", queens=" + queens
-					+ ", pawns=" + pawns + "]";
+			return "Pieces [colour=" + colour + ", king=" + king + ", rooks=" + rooks + ", knights=" + knights + ", bishops=" + bishops
+					+ ", queens=" + queens + ", pawns=" + pawns + "]";
 		}
 
 	}

@@ -7,6 +7,7 @@ import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.Ray;
 import org.rjo.chess.base.ray.RayUtils;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionAnalyser;
 
@@ -21,7 +22,7 @@ import org.rjo.chess.position.PositionAnalyser;
 public class KingCheck {
 
 	private BitSetUnifier friendlyPieces;
-	private BitSetUnifier[] enemyPieces;
+	private Pieces enemyPieces;
 	private Square myKing;
 	private Colour myColour;
 	private Colour opponentsColour;
@@ -32,7 +33,7 @@ public class KingCheck {
 		this.myColour = Colour.oppositeColour(opponentsColour);
 		this.opponentsColour = opponentsColour;
 		friendlyPieces = posn.getAllPieces(myColour).getBitSet();
-		enemyPieces = Position.setupBitsets(posn.getPieces(opponentsColour));
+		enemyPieces = posn.getPieces(opponentsColour);
 		this.myKing = myKing;
 	}
 
@@ -78,7 +79,7 @@ public class KingCheck {
 		}
 
 		BitSetUnifier friendlyPieces = posn.getAllPieces(Colour.oppositeColour(opponentsColour)).getBitSet();
-		BitSetUnifier[] enemyPieces = Position.setupBitsets(posn.getPieces(opponentsColour));
+		Pieces enemyPieces = posn.getPieces(opponentsColour);
 
 		if (kingIsAlreadyInCheck) {
 			return isKingInCheckAfterMove_PreviouslyWasInCheck(king, Colour.oppositeColour(opponentsColour), friendlyPieces, enemyPieces,
@@ -92,9 +93,8 @@ public class KingCheck {
 	/**
 	 * Returns true if the king would be in check after <code>move</code>.
 	 * <p>
-	 * Helper-Method, delegates to
-	 * {@link #isKingInCheckAfterMove(Square, Colour, BitSetUnifier, BitSetUnifier[], Move, boolean)} with last
-	 * parameter==true.
+	 * Helper-Method, delegates to {@link #isKingInCheckAfterMove(Square, Colour, BitSetUnifier, Pieces, Move, boolean)}
+	 * with last parameter==true.
 	 * <p>
 	 * <b>Use this procedure if the king was already in check before the given move.</b>
 	 *
@@ -109,7 +109,7 @@ public class KingCheck {
 	public static boolean isKingInCheckAfterMove_PreviouslyWasInCheck(Square kingsSquare,
 			Colour kingsColour,
 			BitSetUnifier friendlyPieces,
-			BitSetUnifier[] enemyPieces,
+			Pieces enemyPieces,
 			Move move) {
 		return isKingInCheckAfterMove(kingsSquare, kingsColour, friendlyPieces, enemyPieces, move, true);
 	}
@@ -117,9 +117,8 @@ public class KingCheck {
 	/**
 	 * Returns true if the king would be in check after <code>move</code>.
 	 * <p>
-	 * Helper-Method, delegates to
-	 * {@link #isKingInCheckAfterMove(Square, Colour, BitSetUnifier, BitSetUnifier[], Move, boolean)} with last
-	 * parameter==false.
+	 * Helper-Method, delegates to {@link #isKingInCheckAfterMove(Square, Colour, BitSetUnifier, Pieces, Move, boolean)}
+	 * with last parameter==false.
 	 * <p>
 	 * <b>Use this procedure if the king was NOT in check before the given move.</b>
 	 *
@@ -134,7 +133,7 @@ public class KingCheck {
 	public static boolean isKingInCheckAfterMove_PreviouslyNotInCheck(Square kingsSquare,
 			Colour kingsColour,
 			BitSetUnifier friendlyPieces,
-			BitSetUnifier[] enemyPieces,
+			Pieces enemyPieces,
 			Move move) {
 		return isKingInCheckAfterMove(kingsSquare, kingsColour, friendlyPieces, enemyPieces, move, false);
 	}
@@ -154,7 +153,7 @@ public class KingCheck {
 	 *           ignored and the new king's square will be calculated.
 	 * @param kingsColour colour of the king.
 	 * @param friendlyPieces bitset indicating location of the friendly pieces (pre-move).
-	 * @param enemyPieces bitsets indicating location of the enemy pieces (pre-move).
+	 * @param enemyPieces the enemy pieces (pre-move).
 	 * @param move the move to make
 	 * @param kingWasInCheck indicates that the king was in check before this move. Therefore, cannot use the optimized ray
 	 *           search.
@@ -163,7 +162,7 @@ public class KingCheck {
 	public static boolean isKingInCheckAfterMove(Square kingsSquare,
 			Colour kingsColour,
 			BitSetUnifier friendlyPieces,
-			BitSetUnifier[] enemyPieces,
+			Pieces enemyPieces,
 			Move move,
 			boolean kingWasInCheck) {
 
@@ -194,16 +193,13 @@ public class KingCheck {
 		}
 
 		if (move.isCapture()) {
+			Square capturedPieceSquare = move.isEnpassant() ? Square.findMoveFromEnpassantSquare(move.to()) : move.to();
+
 			// need to modify BitSet for the opponent's captured piece,
 			// therefore clone and resave in 'enemyPieces'
-			BitSetUnifier opponentsCapturedPiece = (BitSetUnifier) enemyPieces[move.getCapturedPiece().ordinal()].clone();
-			enemyPieces[move.getCapturedPiece().ordinal()] = opponentsCapturedPiece;
-			// .. and remove captured piece
-			Square capturedPieceSquare = move.to();
-			if (move.isEnpassant()) {
-				capturedPieceSquare = Square.findMoveFromEnpassantSquare(move.to());
-			}
-			opponentsCapturedPiece.clear(capturedPieceSquare.bitIndex());
+			var piece = enemyPieces.findPieceAt(capturedPieceSquare, move.getCapturedPiece());
+			//			piece = enemyPieces.copyPiece(piece);  TODO not necessary, the lists of pieces has already been cloned
+			enemyPieces.removePiece(piece.getType(), capturedPieceSquare);
 		}
 
 		// no optimizations if the king moved or was in check beforehand

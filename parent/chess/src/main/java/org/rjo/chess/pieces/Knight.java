@@ -111,6 +111,18 @@ public class Knight extends AbstractPiece {
 		super(colour, PieceType.KNIGHT, location);
 	}
 
+	/**
+	 * Copy constructor.
+	 *
+	 * @param the Knight to copy.
+	 */
+	public Knight(Piece other) {
+		this(other.getColour(), other.getLocation());
+		if (other.getType() != PieceType.KNIGHT) {
+			throw new IllegalStateException("piece is wrong type! " + other);
+		}
+	}
+
 	@Override
 	public int calculatePieceSquareValue() {
 		return pieceSquareValue(location, getColour(), PIECE_VALUE, SQUARE_VALUE);

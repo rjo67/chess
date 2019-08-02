@@ -57,6 +57,18 @@ public class Bishop extends SlidingPiece {
 		super(colour, PieceType.BISHOP, location);
 	}
 
+	/**
+	 * Copy constructor.
+	 *
+	 * @param the Bishop to copy.
+	 */
+	public Bishop(Piece other) {
+		this(other.getColour(), other.getLocation());
+		if (other.getType() != PieceType.BISHOP) {
+			throw new IllegalStateException("piece is wrong type! " + other);
+		}
+	}
+
 	@Override
 	public List<Move> findMoves(Position posn,
 			boolean kingInCheck,

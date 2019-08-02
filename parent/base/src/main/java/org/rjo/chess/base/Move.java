@@ -107,7 +107,8 @@ public class Move {
 	/**
 	 * Sets the promotion piece i/c of a pawn promotion.
 	 *
-	 * @param promotedPieceType to which piece the pawn gets promoted
+	 * @param promotedPieceType to which piece the pawn gets promoted TODO possibly store Piece here? (although project
+	 *           dependencies don't allow it at the moment)
 	 */
 	public void setPromotionPiece(PieceType promotedPieceType) {
 		if (piece != PieceType.PAWN) {

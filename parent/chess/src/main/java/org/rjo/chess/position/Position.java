@@ -182,7 +182,7 @@ public class Position {
 	}
 
 	/**
-	 * copy constructor
+	 * copy constructor. The piece manager is copied, however the pieces themselves are copied on a move.
 	 */
 	public Position(final Position otherPosn) {
 		pieceMgr = new PieceManager(otherPosn.pieceMgr);
@@ -474,12 +474,6 @@ public class Position {
 		return moves;
 	}
 
-	private void logDebug(String string) {
-		if (LOG.isDebugEnabled()) {
-			LOG.debug(string);
-		}
-	}
-
 	/**
 	 * returns the new position after the given move.
 	 *
@@ -513,27 +507,27 @@ public class Position {
 		zobristHash = Zobrist.INSTANCE.update(zobristHash, move, castling, enpassantSquare);
 
 		if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-			pieceMgr.getClonedPiece(sideToMove, move.getPiece()).move(move);
-			pieceMgr.getClonedPiece(sideToMove, PieceType.ROOK).move(move.getRooksCastlingMove());
+			pieceMgr.getClonedPiece(sideToMove, move.getPiece(), move.from()).move(move);
+			pieceMgr.getClonedPiece(sideToMove, PieceType.ROOK, move.getRooksCastlingMove().from()).move(move.getRooksCastlingMove());
 			// castling rights are reset later on
 		} else {
 			if (!move.isCapture() && getTotalPieces().get(move.to().bitIndex())) {
 				throw new IllegalArgumentException("square " + move.to() + " is not empty. Move=" + move);
 			}
 			// update structures for the moving piece
-			pieceMgr.getClonedPiece(sideToMove, move.getPiece()).move(move);
+			pieceMgr.getClonedPiece(sideToMove, move.getPiece(), move.from()).move(move);
 			// capture: remove the captured piece
 			if (move.isCapture()) {
 				if (move.isEnpassant()) {
-					pieceMgr.getClonedPiece(Colour.oppositeColour(sideToMove), move.getCapturedPiece())
-							.removePiece(Square.findMoveFromEnpassantSquare(move.to()));
+					pieceMgr.removePiece(Colour.oppositeColour(sideToMove), move.getCapturedPiece(),
+							Square.findMoveFromEnpassantSquare(move.to()));
 				} else {
-					pieceMgr.getClonedPiece(Colour.oppositeColour(sideToMove), move.getCapturedPiece()).removePiece(move.to());
+					pieceMgr.removePiece(Colour.oppositeColour(sideToMove), move.getCapturedPiece(), move.to());
 				}
 			}
 			// promotion: add the promoted piece
 			if (move.isPromotion()) {
-				pieceMgr.getClonedPiece(sideToMove, move.getPromotedPiece()).addPiece(move.to());
+				pieceMgr.addPiece(sideToMove, move.getPromotedPiece(), move.to());
 			}
 		}
 		updateStructures(move);

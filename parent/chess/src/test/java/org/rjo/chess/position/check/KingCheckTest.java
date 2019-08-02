@@ -13,6 +13,7 @@ import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitSetUnifier;
+import org.rjo.chess.pieces.PieceManager.Pieces;
 import org.rjo.chess.position.Fen;
 import org.rjo.chess.position.Game;
 import org.rjo.chess.position.Position;
@@ -24,11 +25,11 @@ import org.rjo.chess.position.Position;
  */
 public class KingCheckTest {
 	private Game game;
-	private BitSetUnifier[] blackPieces;
+	private Pieces blackPieces;
 
 	private void setup(String fen) {
 		game = Fen.decode(fen);
-		blackPieces = setupBitsets(game.getPosition(), Colour.BLACK);
+		blackPieces = game.getPosition().getPieces(Colour.BLACK);
 	}
 
 	/**
@@ -189,12 +190,4 @@ public class KingCheckTest {
 		return chessboard.getAllPieces(Colour.WHITE).getBitSet();
 	}
 
-	private BitSetUnifier[] setupBitsets(Position posn,
-			Colour colour) {
-		BitSetUnifier[] pieces = new BitSetUnifier[PieceType.ALL_PIECE_TYPES.length];
-		for (PieceType type : PieceType.ALL_PIECE_TYPES) {
-			pieces[type.ordinal()] = posn.getPieces(colour)[type.ordinal()].getBitBoard().getBitSet();
-		}
-		return pieces;
-	}
 }
