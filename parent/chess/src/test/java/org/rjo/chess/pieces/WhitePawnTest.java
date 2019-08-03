@@ -1,7 +1,7 @@
 package org.rjo.chess.pieces;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
@@ -125,8 +125,8 @@ public class WhitePawnTest extends AbstractMoveTest {
 	public void attacksSquare() {
 		setupGame("8/5k2/8/3P4/8/8/8/4K3 w - - 0 0");
 		var pawn = game.getPosition().getPieces(Colour.WHITE).getPawns();
-		assertTrue(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e6));
-		assertFalse(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.d6));
-		assertFalse(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e7));
+		assertNotNull(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e6));
+		assertNull(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.d6));
+		assertNull(pawn.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e7));
 	}
 }

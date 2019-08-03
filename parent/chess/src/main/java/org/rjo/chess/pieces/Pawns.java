@@ -83,9 +83,9 @@ public class Pawns extends AbstractPiece {
 		}
 	}
 
-	public Pawns(Piece other) {
+	public Pawns(Pawns other) {
 		super(other.getColour(), PieceType.PAWN, null);
-		pieces = new BitBoard(other.getBitBoard());
+		pieces = new BitBoard(other.getLocationBitBoard());
 	}
 
 	/**
@@ -97,6 +97,11 @@ public class Pawns extends AbstractPiece {
 	}
 
 	@Override
+	public BitBoard getLocationBitBoard() {
+		return pieces;
+	}
+
+	@Override
 	public boolean pieceAt(Square targetSquare) {
 		return pieces.get(targetSquare.bitIndex());
 	}
@@ -104,6 +109,24 @@ public class Pawns extends AbstractPiece {
 	@Override
 	public int calculatePieceSquareValue() {
 		return pieceSquareValue(pieces, getColour(), PIECE_VALUE, SQUARE_VALUE);
+	}
+
+	@Override
+	public void move(Move move) {
+		if (!pieces.get(move.from().bitIndex())) {
+			throw new IllegalArgumentException("no " + getType() + " found on square " + move.from() + ". Move: " + move);
+		}
+		pieces.clear(move.from().bitIndex());
+		if (!move.isPromotion()) {
+			pieces.set(move.to().bitIndex());
+		}
+	}
+
+	public void removePiece(Square square) {
+		if (!pieces.get(square.bitIndex())) {
+			throw new IllegalArgumentException("no " + getType() + " found on square " + square);
+		}
+		pieces.clear(square.bitIndex());
 	}
 
 	@Override
@@ -373,10 +396,16 @@ public class Pawns extends AbstractPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
+	public Piece attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square targetSq,
 			@SuppressWarnings("unused") PositionCheckState checkCache) {
-		return helper[getColour().ordinal()].doPawnsAttackSquare(targetSq, pieces.getBitSet()) != -1;
+		int foundPawn = helper[getColour().ordinal()].doPawnsAttackSquare(targetSq, pieces.getBitSet());
+		if (foundPawn != -1) {
+			// construct a 'dummy' pawn piece to transmit the info
+			return new Pawn(this.colour, Square.fromBitIndex(foundPawn));
+		} else {
+			return null;
+		}
 	}
 
 	public static int pieceSquareValue(final BitBoard pieces,
@@ -489,7 +518,7 @@ public class Pawns extends AbstractPiece {
 		BitSetUnifier startRank();
 
 		/**
-		 * Returns true if at least one pawn attacks the given square.
+		 * Returns the bit index of the (first) attacking pawn if at least one pawn attacks the given square.
 		 *
 		 * @param targetSq square to be considered
 		 * @param pawns the pawn bitset

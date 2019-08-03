@@ -38,7 +38,7 @@ public class PieceManagerTest {
 
 	@Test
 	public void pieceMgrBlackKnightMove() {
-		Position p = Fen.decode("1n2k3/6p1/8/8/3B4/8/8/4K3 w - - 0 0").getPosition();
+		Position p = Fen.decode("1n2k3/6p1/8/8/3B4/8/8/4K3 b - - 0 0").getPosition();
 		Move move = new Move(PieceType.KNIGHT, Colour.BLACK, Square.b8, Square.a6);
 		Position p2 = p.move(move);
 

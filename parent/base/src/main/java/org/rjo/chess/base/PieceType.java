@@ -30,6 +30,11 @@ public enum PieceType {
 	 */
 	public final static PieceType[] ALL_PIECE_TYPES_EXCEPT_KING = new PieceType[] { PAWN, ROOK, KNIGHT, BISHOP, QUEEN };
 
+	/**
+	 * All the possible pieces, excluding the pawn.
+	 */
+	public final static PieceType[] ALL_PIECE_TYPES_EXCEPT_PAWN = new PieceType[] { KING, ROOK, KNIGHT, BISHOP, QUEEN };
+
 	public final static PieceType[] PROMOTION_RELEVANT_PIECE_TYPES = new PieceType[] { ROOK, KNIGHT, BISHOP, QUEEN };
 
 	/**

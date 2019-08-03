@@ -1,7 +1,7 @@
 package org.rjo.chess.pieces;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
@@ -80,11 +80,11 @@ public class QueenMoveTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquareStraight() {
 		setupGame("5K2/4Q3/8/4p3/8/8/k7/8  w - - 0 0");
-		Piece whiteQueen = new Queen(Colour.WHITE, Square.e7);
+		var whiteQueen = game.getPosition().getPieces(Colour.WHITE).getQueens().get(0);
 		for (Square sq : new Square[] { Square.e8, Square.e6, Square.d7, Square.c7, Square.b7, Square.a7, Square.f7, Square.g7, Square.h7 }) {
-			assertTrue("square " + sq, whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
+			assertNotNull("square " + sq, whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}
-		assertFalse(whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));
+		assertNull(whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));
 	}
 
 	@Test
@@ -103,11 +103,11 @@ public class QueenMoveTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquareDiag() {
 		setupGame("3Q1K2/8/2k5/4p3/8/8/8/8  w - - 0 0");
-		Piece whiteQueen = new Queen(Colour.WHITE, Square.d8);
+		var whiteQueen = game.getPosition().getPieces(Colour.WHITE).getQueens().get(0);
 		for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
-			assertTrue("square " + sq, whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
+			assertNotNull("square " + sq, whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}
-		assertFalse(whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));
+		assertNull(whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));
 	}
 
 }

@@ -107,14 +107,16 @@ public class Move {
 	/**
 	 * Sets the promotion piece i/c of a pawn promotion.
 	 *
-	 * @param promotedPieceType to which piece the pawn gets promoted TODO possibly store Piece here? (although project
-	 *           dependencies don't allow it at the moment)
+	 * @param promotedPieceType to which piece the pawn gets promoted<br>
+	 *           TODO possibly store Piece here? (although project dependencies don't allow it at the moment)
 	 */
 	public void setPromotionPiece(PieceType promotedPieceType) {
 		if (piece != PieceType.PAWN) {
-			throw new IllegalArgumentException("can only specify a promotion piece for a pawn move");
+			throw new IllegalArgumentException("can only specify a promotion piece for a pawn move. piece=" + piece);
 		}
-
+		if (promotedPieceType == PieceType.PAWN || promotedPieceType == PieceType.KING) {
+			throw new IllegalArgumentException("cannot specify a promotion piece of a pawn or a king: type=" + promotedPieceType);
+		}
 		this.promotedPiece = promotedPieceType;
 	}
 

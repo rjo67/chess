@@ -103,11 +103,15 @@ public class Bishop extends SlidingPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(BitSetUnifier emptySquares,
+	public Piece attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq,
 			PositionCheckState checkCache) {
-		return attacksSquare(emptySquares, location, targetSq, checkCache, false/* TODO */
-				, false);
+		if (attacksSquare(emptySquares, location, targetSq, checkCache, false/* TODO */
+				, false)) {
+			return this;
+		} else {
+			return null;
+		}
 	}
 
 	/**

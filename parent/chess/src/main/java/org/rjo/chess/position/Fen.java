@@ -74,8 +74,9 @@ public class Fen {
 			}
 		}
 		for (Colour colour : Colour.ALL_COLOURS) {
-			posn.getPieceManager().getPiecesForColour(colour).stream()
-					.forEach(p -> board[p.getLocation().rank()][p.getLocation().file()] = p.getFenSymbol().toCharArray()[0]);
+			posn.getPieces(colour).createPieceMap().entrySet().stream()
+					.forEach(
+							entry -> board[entry.getKey().rank()][entry.getKey().file()] = entry.getValue().getFenSymbol(colour).toCharArray()[0]);
 		}
 
 		// fen notation starts at rank 8 and works down

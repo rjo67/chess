@@ -66,9 +66,9 @@ public interface Piece extends Cloneable {
 	 * @param emptySquares empty square bitset
 	 * @param targetSq the square to check.
 	 * @param checkCache check cache
-	 * @return true if it is attacked, otherwise false.
+	 * @return the piece attacking the square if it is attacked, otherwise null.
 	 */
-	boolean attacksSquare(BitSetUnifier emptySquares,
+	Piece attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq,
 			PositionCheckState checkCache);
 
@@ -78,9 +78,9 @@ public interface Piece extends Cloneable {
 	 *
 	 * @param emptySquares empty square bitset
 	 * @param targetSq the square to check.
-	 * @return true if it is attacked, otherwise false.
+	 * @return a piece instance if the square is attacked, otherwise null.
 	 */
-	boolean attacksSquare(BitSetUnifier emptySquares,
+	Piece attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq);
 
 	/**
@@ -96,14 +96,19 @@ public interface Piece extends Cloneable {
 	 */
 	Colour getColour();
 
-	BitBoard getBitBoard();
-
 	/**
 	 * Returns the square currently occupied by this piece.
 	 *
 	 * @return the square currently occupied by this piece
 	 */
 	Square getLocation();
+
+	/**
+	 * Returns the square currently occupied by this piece as a bitboard.
+	 *
+	 * @return bitboards of square currently occupied by this piece.
+	 */
+	BitBoard getLocationBitBoard();
 
 	/**
 	 * Returns the FEN symbol for this piece. Delegates to {@link PieceType#getFenSymbol(Colour)}.

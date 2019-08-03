@@ -25,7 +25,8 @@ public abstract class AbstractPiece implements Piece {
 	protected Square location;
 
 	protected AbstractPiece(Colour colour, PieceType type, Square location) {
-		if (location == null) {
+		// location == null is allowed for 'pawns'
+		if (location == null && type != PieceType.PAWN) {
 			throw new IllegalArgumentException("location cannot be null");
 		}
 		this.colour = colour;
@@ -39,18 +40,18 @@ public abstract class AbstractPiece implements Piece {
 	}
 
 	@Override
+	public BitBoard getLocationBitBoard() {
+		BitBoard bb = new BitBoard();
+		bb.set(location);
+		return bb;
+	}
+
+	@Override
 	public Object clone() throws CloneNotSupportedException {
 		AbstractPiece newPiece = (AbstractPiece) super.clone();
 		newPiece.type = this.type;
 		newPiece.colour = this.colour;
 		return newPiece;
-	}
-
-	@Override
-	public BitBoard getBitBoard() {
-		BitBoard bb = new BitBoard();
-		bb.set(location);
-		return bb;
 	}
 
 	@Override
@@ -98,7 +99,7 @@ public abstract class AbstractPiece implements Piece {
 
 	@Override
 	public String toString() {
-		return colour.toString() + "-" + type.toString() + "@" + Integer.toHexString(System.identityHashCode(this));
+		return colour.toString() + "-" + type.toString() + "@" + location + "@" + Integer.toHexString(System.identityHashCode(this));
 	}
 
 	@Override
@@ -107,7 +108,7 @@ public abstract class AbstractPiece implements Piece {
 	}
 
 	@Override
-	public final boolean attacksSquare(BitSetUnifier emptySquares,
+	public final Piece attacksSquare(BitSetUnifier emptySquares,
 			Square targetSq) {
 		return attacksSquare(emptySquares, targetSq, new PositionCheckState());
 	}

@@ -192,24 +192,31 @@ public class KingCheck {
 			friendlyPieces.clear(move.getRooksCastlingMove().from().bitIndex());
 		}
 
+		//
+		// TODO this needs to be rewritten to use bitsets as before.
+		//
 		if (move.isCapture()) {
 			Square capturedPieceSquare = move.isEnpassant() ? Square.findMoveFromEnpassantSquare(move.to()) : move.to();
 
-			// need to modify BitSet for the opponent's captured piece,
-			// therefore clone and resave in 'enemyPieces'
-			var piece = enemyPieces.findPieceAt(capturedPieceSquare, move.getCapturedPiece());
-			//			piece = enemyPieces.copyPiece(piece);  TODO not necessary, the lists of pieces has already been cloned
-			enemyPieces.removePiece(piece.getType(), capturedPieceSquare);
+			// need to modify 'enemyPieces' to remove the opponent's captured piece.
+			// -- have to clone the 'Pieces' object in its entirety
+			// -- this will create new array lists (pointing to the same 'piece' objects)
+			enemyPieces = new Pieces(enemyPieces); // clone!
+
+			var capturedPiece = enemyPieces.findPieceAt(capturedPieceSquare, move.getCapturedPiece());
+			enemyPieces.removePiece(capturedPiece.getType(), capturedPieceSquare);
 		}
 
 		// no optimizations if the king moved or was in check beforehand
+		boolean inCheck;
 		if (kingMoved || kingWasInCheck) {
-			return !PositionAnalyser.analysePosition(kingsSquare, kingsColour, friendlyPieces, null, enemyPieces, null, false).getCheckers()
+			inCheck = !PositionAnalyser.analysePosition(kingsSquare, kingsColour, friendlyPieces, null, enemyPieces, null, false).getCheckers()
 					.isEmpty();
 		} else {
-			return !PositionAnalyser
+			inCheck = !PositionAnalyser
 					.analysePosition(kingsSquare, kingsColour, friendlyPieces, null, enemyPieces, rayFromKingToMoveOrigin.getRayType(), false)
 					.getCheckers().isEmpty();
 		}
+		return inCheck;
 	}
 }

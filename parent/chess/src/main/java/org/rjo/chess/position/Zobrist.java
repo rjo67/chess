@@ -114,9 +114,9 @@ public class Zobrist {
 		final AtomicLong hash = new AtomicLong(0);
 
 		for (Colour colour : Colour.ALL_COLOURS) {
-			posn.getPieces(colour).stream().forEach(p -> {
+			posn.getPieces(colour).createPieceMap().entrySet().stream().forEach(entry -> {
 				long hash2 = hash.get();
-				hash.set(hash2 ^= squareValues[colour.ordinal()][p.getType().ordinal()][p.getLocation().bitIndex()]);
+				hash.set(hash2 ^= squareValues[colour.ordinal()][entry.getValue().ordinal()][entry.getKey().bitIndex()]);
 			});
 		}
 		long hash2 = hash.get();

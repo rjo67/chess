@@ -1,7 +1,7 @@
 package org.rjo.chess.pieces;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.List;
 
@@ -13,8 +13,6 @@ import org.rjo.chess.base.Move;
 import org.rjo.chess.base.Square;
 
 public class KnightMoveTest extends AbstractMoveTest {
-
-	Piece whiteKnight;
 
 	@Test
 	public void startPosition() {
@@ -157,16 +155,16 @@ public class KnightMoveTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquare() {
 		setupGame("4k3/8/8/8/3N4/5p2/8/4K3 w - - 0 0");
-		whiteKnight = new Knight(Colour.WHITE, Square.d4);
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c2));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.b3));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.b5));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c6));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e6));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.f5));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.f3));
-		assertTrue(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e2));
-		assertFalse(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c5));
+		var whiteKnight = game.getPosition().getPieces(Colour.WHITE).getKnights().get(0);
+		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c2));
+		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.b3));
+		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.b5));
+		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c6));
+		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e6));
+		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.f5));
+		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.f3));
+		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.e2));
+		assertNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c5));
 	}
 
 }

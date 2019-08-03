@@ -207,10 +207,14 @@ public class Knight extends AbstractPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
+	public Piece attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square targetSq,
 			@SuppressWarnings("unused") PositionCheckState checkCache) {
-		return squareIsReachableFromSquare(location, targetSq);
+		if (squareIsReachableFromSquare(location, targetSq)) {
+			return this;
+		} else {
+			return null;
+		}
 	}
 
 	/**

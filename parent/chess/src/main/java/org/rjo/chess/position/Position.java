@@ -178,7 +178,7 @@ public class Position {
 			//			this.checkState[Colour.BLACK.ordinal()] = PositionCheckState.NOOP_STATE;
 		}
 		this.kingPosition[Colour.WHITE.ordinal()] = pieceMgr.getPiecesForColour(Colour.WHITE).getKing().getLocation();
-		this.kingPosition[Colour.WHITE.ordinal()] = pieceMgr.getPiecesForColour(Colour.WHITE).getKing().getLocation();
+		this.kingPosition[Colour.BLACK.ordinal()] = pieceMgr.getPiecesForColour(Colour.BLACK).getKing().getLocation();
 	}
 
 	/**
@@ -273,7 +273,7 @@ public class Position {
 		for (Colour colour : Colour.ALL_COLOURS) {
 			allEnemyPieces[colour.ordinal()] = pieceMgr.getPiecesForColour(colour).createBitBoard();
 		}
-		totalPieces = new BitBoard(allEnemyPieces[Colour.WHITE.ordinal()].getBitSet());
+		totalPieces = new BitBoard(allEnemyPieces[Colour.WHITE.ordinal()]);
 		totalPieces.getBitSet().or(allEnemyPieces[Colour.BLACK.ordinal()].getBitSet());
 		emptySquares = null;
 
@@ -983,7 +983,7 @@ public class Position {
 		// iterate over the pieces
 		// TODO instead of treating queens separately, could 'merge' them with the rooks and the bishops
 		BitSetUnifier emptySquares = getEmptySquares();
-		Optional<Piece> found = opponentsPieces.stream().filter(p -> p.attacksSquare(emptySquares, targetSquare)).findFirst();
+		Optional<Piece> found = opponentsPieces.stream().filter(p -> p.attacksSquare(emptySquares, targetSquare) != null).findFirst();
 		return found.isPresent();
 	}
 

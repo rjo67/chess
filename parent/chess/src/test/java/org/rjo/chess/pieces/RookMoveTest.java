@@ -1,7 +1,7 @@
 package org.rjo.chess.pieces;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
@@ -140,11 +140,11 @@ public class RookMoveTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquare() {
 		setupGame("5K2/4R3/2k5/4p3/8/8/8/8 w - - 0 0");
-		var whiteRook = new Rook(Colour.WHITE, Square.e7);
+		var whiteRook = game.getPosition().getPieces(Colour.WHITE).getRooks().get(0);
 		for (Square sq : new Square[] { Square.e8, Square.e6, Square.d7, Square.c7, Square.b7, Square.a7, Square.f7, Square.g7, Square.h7 }) {
-			assertTrue("square " + sq, whiteRook.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
+			assertNotNull("square " + sq, whiteRook.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}
-		assertFalse(whiteRook.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));
+		assertNull(whiteRook.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c4));
 	}
 
 }

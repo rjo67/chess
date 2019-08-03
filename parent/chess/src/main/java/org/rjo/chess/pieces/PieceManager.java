@@ -1,7 +1,9 @@
 package org.rjo.chess.pieces;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
@@ -196,12 +198,12 @@ public class PieceManager {
 		 */
 		public Pieces(Pieces other) {
 			this.colour = other.colour;
-			this.king = other.king; // not copied
+			this.king = other.king; // not copied, since will never be removing a king
 			this.rooks = new ArrayList<>(other.rooks);
 			this.knights = new ArrayList<>(other.knights);
 			this.bishops = new ArrayList<>(other.bishops);
 			this.queens = new ArrayList<>(other.queens);
-			this.pawns = other.pawns; // not copied
+			this.pawns = new Pawns(other.pawns);
 		}
 
 		public Piece getKing() {
@@ -271,27 +273,37 @@ public class PieceManager {
 		public Piece addPiece(PieceType pieceType,
 				Square location) {
 			Piece newPiece = createPiece(pieceType, location);
-			switch (pieceType) {
+			return this.addPiece(newPiece);
+		}
+
+		/**
+		 * Adds the given piece to the appropriate data structure.
+		 *
+		 * @param piece the piece to add
+		 * @return the piece
+		 */
+		public Piece addPiece(Piece piece) {
+			switch (piece.getType()) {
 			case KING:
 				throw new IllegalArgumentException("cannot add a king!");
 			case QUEEN:
-				this.queens.add(newPiece);
+				this.queens.add(piece);
 				break;
 			case BISHOP:
-				this.bishops.add(newPiece);
+				this.bishops.add(piece);
 				break;
 			case KNIGHT:
-				this.knights.add(newPiece);
+				this.knights.add(piece);
 				break;
 			case ROOK:
-				this.rooks.add(newPiece);
+				this.rooks.add(piece);
 				break;
 			case PAWN:
 				throw new IllegalArgumentException("cannot add a pawn!");
 			default:
-				throw new IllegalArgumentException("unknown piece type: " + pieceType);
+				throw new IllegalArgumentException("unknown piece type: " + piece.getType());
 			}
-			return newPiece;
+			return piece;
 		}
 
 		/**
@@ -306,7 +318,7 @@ public class PieceManager {
 			boolean removeSuccessful;
 			switch (pieceType) {
 			case KING:
-				throw new IllegalArgumentException("cannot add a king!");
+				throw new IllegalArgumentException("cannot remove a king!");
 			case QUEEN:
 				removeSuccessful = this.queens.remove(piece);
 				break;
@@ -320,7 +332,9 @@ public class PieceManager {
 				removeSuccessful = this.rooks.remove(piece);
 				break;
 			case PAWN:
-				throw new IllegalArgumentException("not yet implemented!");
+				pawns.removePiece(location);
+				removeSuccessful = true;
+				break;
 			default:
 				throw new IllegalArgumentException("unknown piece type: " + pieceType);
 			}
@@ -359,7 +373,7 @@ public class PieceManager {
 				replace(piece, newPiece, this.rooks);
 				break;
 			case PAWN:
-				newPiece = new Pawns(piece);
+				newPiece = new Pawns((Pawns) piece);
 				this.pawns = (Pawns) newPiece; //TODO need to keep track of having being cloned, otherwise will create new object every time ??
 				break;
 			default:
@@ -384,7 +398,7 @@ public class PieceManager {
 		/** return a bitboard of all piece types */
 		public BitBoard createBitBoard() {
 			BitBoard bb = new BitBoard();
-			stream().forEach(p -> bb.set(p.getLocation()));
+			stream().forEach(p -> bb.getBitSet().or(p.getLocationBitBoard().getBitSet()));
 			return bb;
 		}
 
@@ -393,6 +407,18 @@ public class PieceManager {
 			BitBoard bb = new BitBoard();
 			stream(types).forEach(p -> bb.set(p.getLocation()));
 			return bb;
+		}
+
+		/**
+		 * Creates a map of all squares occupied by pieces and the corresponding piece type.
+		 */
+		public Map<Square, PieceType> createPieceMap() {
+			Map<Square, PieceType> map = new HashMap<>(40);
+			this.stream(PieceType.ALL_PIECE_TYPES_EXCEPT_PAWN)
+					.forEach(p -> map.put(p.getLocation(), p.getType()));
+			this.pawns.getLocationBitBoard().stream().forEach(bitIndex -> map.put(Square.fromBitIndex(bitIndex), PieceType.PAWN));
+
+			return map;
 		}
 
 		/** return a stream of all piece types */
@@ -462,8 +488,15 @@ public class PieceManager {
 
 		@Override
 		public String toString() {
-			return "Pieces [colour=" + colour + ", king=" + king + ", rooks=" + rooks + ", knights=" + knights + ", bishops=" + bishops
-					+ ", queens=" + queens + ", pawns=" + pawns + "]";
+			return "Pieces@" + System.identityHashCode(this)
+					+ " [" + colour + ": "
+					+ (king != null ? "king=" + king : "")
+					+ (rooks.isEmpty() ? "" : ", rooks=" + rooks)
+					+ (knights.isEmpty() ? "" : ", knights=" + knights)
+					+ (bishops.isEmpty() ? "" : ", bishops=" + bishops)
+					+ (queens.isEmpty() ? "" : ", queens=" + queens)
+					+ (pawns != null ? ", pawns=" + pawns : "")
+					+ "]";
 		}
 
 	}

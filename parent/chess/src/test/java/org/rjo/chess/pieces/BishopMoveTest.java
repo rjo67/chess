@@ -1,7 +1,8 @@
 package org.rjo.chess.pieces;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.lang3.time.StopWatch;
@@ -125,12 +126,12 @@ public class BishopMoveTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquare() {
 		setupGame("k2B1K2/8/8/4P3/8/8/8/8 w - - 0 4");
-		var whiteBishop = new Bishop(Colour.WHITE, Square.d4);
 		Position posn = game.getPosition();
+		var whiteBishop = posn.getPieces(Colour.WHITE).getBishops().get(0);
 		for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
-			assertTrue("square " + sq, whiteBishop.attacksSquare(posn.getTotalPieces().flip(), sq));
+			assertNotNull("square " + sq, whiteBishop.attacksSquare(posn.getTotalPieces().flip(), sq));
 		}
-		assertFalse(whiteBishop.attacksSquare(posn.getTotalPieces().flip(), Square.c4));
+		assertNull(whiteBishop.attacksSquare(posn.getTotalPieces().flip(), Square.c4));
 	}
 
 	@Test

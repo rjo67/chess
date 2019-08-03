@@ -21,8 +21,8 @@ public class PieceTest {
 	public void move() {
 		Queen queen = new Queen(Colour.WHITE, Square.b6);
 		queen.move(new Move(PieceType.QUEEN, Colour.WHITE, Square.b6, Square.a6));
-		assertFalse(queen.getBitBoard().get(Square.b6.bitIndex()));
-		assertTrue(queen.getBitBoard().get(Square.a6.bitIndex()));
+		assertFalse(queen.getLocationBitBoard().get(Square.b6.bitIndex()));
+		assertTrue(queen.getLocationBitBoard().get(Square.a6.bitIndex()));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -37,7 +37,7 @@ public class PieceTest {
 		Move move = new Move(PieceType.PAWN, Colour.WHITE, Square.a7, Square.a8);
 		move.setPromotionPiece(PieceType.BISHOP);
 		pawn.move(move);
-		assertTrue(pawn.getBitBoard().isEmpty());
+		assertTrue(pawn.getLocationBitBoard().isEmpty());
 	}
 
 	@Test

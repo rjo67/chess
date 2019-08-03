@@ -279,6 +279,9 @@ public class King extends AbstractPiece {
 		// can't move adjacent to opponent's king
 		possibleSquares.andNot(MOVES[opponentsKingSquare.bitIndex()]);
 
+		// and can't capture opponent's king
+		possibleSquares.clear(opponentsKingSquare.bitIndex());
+
 		return possibleSquares;
 	}
 
@@ -335,9 +338,13 @@ public class King extends AbstractPiece {
 	}
 
 	@Override
-	public boolean attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
+	public Piece attacksSquare(@SuppressWarnings("unused") BitSetUnifier emptySquares,
 			Square sq,
 			@SuppressWarnings("unused") PositionCheckState checkCache) {
-		return MoveDistance.calculateDistance(location, sq) == 1;
+		if (MoveDistance.calculateDistance(location, sq) == 1) {
+			return this;
+		} else {
+			return null;
+		}
 	}
 }

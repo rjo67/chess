@@ -71,15 +71,16 @@ public class PositionAnalyser {
 
 		if (!optimizedRaySearch) {
 			// special cases: pawn and knight attacks
-			var p = enemyPieces.stream(PieceType.KNIGHT).filter(kn -> kn.attacksSquare(null, kingsSquare)).findAny();
+			var p = enemyPieces.stream(PieceType.KNIGHT).filter(kn -> kn.attacksSquare(null, kingsSquare) != null).findAny();
 			if (p.isPresent()) {
 				boardInfo.addChecker(PieceType.KNIGHT, p.get().getLocation().bitIndex());
 				if (!findAllChecks || boardInfo.getCheckers().size() == 2) {
 					return boardInfo;
 				}
 			}
-			if (enemyPieces.getPawns().attacksSquare(null, kingsSquare)) {
-				boardInfo.addChecker(PieceType.PAWN, -1 /* TODO */);
+			var piece2 = enemyPieces.getPawns().attacksSquare(null, kingsSquare);
+			if (piece2 != null) {
+				boardInfo.addChecker(PieceType.PAWN, piece2.getLocation().bitIndex());
 				if (!findAllChecks || boardInfo.getCheckers().size() == 2) {
 					return boardInfo;
 				}
