@@ -125,7 +125,7 @@ public class Position {
 						new Queen(Colour.WHITE, Square.d1), //
 						new King(Colour.WHITE, Square.e1))),
 				new ArrayList<>(Arrays.asList(
-						new Pawns(Colour.BLACK, Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2), //
+						new Pawns(Colour.BLACK, Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7, Square.h7), //
 						new Rook(Colour.BLACK, Square.a8), new Rook(Colour.BLACK, Square.h8), //
 						new Knight(Colour.BLACK, Square.b8), new Knight(Colour.BLACK, Square.g8), //
 						new Bishop(Colour.BLACK, Square.c8), new Bishop(Colour.BLACK, Square.f8), //
@@ -451,19 +451,20 @@ public class Position {
 						isCheck = this.getPieces(colour).stream(PieceType.QUEEN).filter(p -> p.pieceAt(sq)).findAny();
 						if (!isCheck.isPresent()) {
 							isCheck = this.getPieces(colour).stream(PieceType.BISHOP).filter(p -> p.pieceAt(sq)).findAny();
-						} else {
-							// horiz/vert ray --> piece must be a rook or queen for a discovered check
-							isCheck = this.getPieces(colour).stream(PieceType.QUEEN).filter(p -> p.pieceAt(sq)).findAny();
-							if (!isCheck.isPresent()) {
-								isCheck = this.getPieces(colour).stream(PieceType.ROOK).filter(p -> p.pieceAt(sq)).findAny();
-							}
 						}
-						keepSearching = false;
-					} else if (this.getAllPieces(colour.oppositeColour()).get(bitIndex)) {
-						// found an opponent's piece
-						keepSearching = false;
+					} else {
+						// horiz/vert ray --> piece must be a rook or queen for a discovered check
+						isCheck = this.getPieces(colour).stream(PieceType.QUEEN).filter(p -> p.pieceAt(sq)).findAny();
+						if (!isCheck.isPresent()) {
+							isCheck = this.getPieces(colour).stream(PieceType.ROOK).filter(p -> p.pieceAt(sq)).findAny();
+						}
 					}
+					keepSearching = false;
+				} else if (this.getAllPieces(colour.oppositeColour()).get(bitIndex)) {
+					// found an opponent's piece
+					keepSearching = false;
 				}
+
 				if (isCheck.isPresent()) {
 					move.setCheck(true);
 					continue;
@@ -833,9 +834,11 @@ public class Position {
 				board[rank][file] = ".";
 			}
 		}
+
 		for (Colour colour : Colour.ALL_COLOURS) {
-			getPieceManager().getPiecesForColour(colour).stream()
-					.forEach(p -> board[p.getLocation().rank()][p.getLocation().file()] = p.getFenSymbol());
+			getPieceManager().getPiecesForColour(colour).createPieceMap().entrySet().stream()
+					.forEach(
+							entry -> board[entry.getKey().rank()][entry.getKey().file()] = entry.getValue().getFenSymbol(colour));
 		}
 
 		StringBuilder sb = new StringBuilder(150);

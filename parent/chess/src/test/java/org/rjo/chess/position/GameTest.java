@@ -3,13 +3,13 @@ package org.rjo.chess.position;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.util.NoSuchElementException;
+
 import org.junit.Test;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.position.Fen;
-import org.rjo.chess.position.Game;
 
 public class GameTest {
 
@@ -26,7 +26,7 @@ public class GameTest {
 		game.getPosition().move(new Move(PieceType.PAWN, Colour.BLACK, Square.b7, Square.b5));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = NoSuchElementException.class)
 	public void noPieceOnStartSquare() {
 		Game game = new Game();
 		game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.b5, Square.b6));

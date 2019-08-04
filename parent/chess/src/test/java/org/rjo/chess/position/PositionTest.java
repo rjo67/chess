@@ -9,6 +9,7 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Ignore;
@@ -346,7 +347,7 @@ public class PositionTest {
 		assertTrue(newPosn.getPieces(Colour.BLACK).getPawns().getLocationBitBoard().isEmpty());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = NoSuchElementException.class)
 	public void noPieceToCapture() {
 		Game game = Fen.decode("k1K5/8/8/3p4/2P5/8/8/8 w - - 0 1");
 		game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.b5, PieceType.PAWN));
