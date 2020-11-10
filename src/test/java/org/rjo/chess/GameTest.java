@@ -1,9 +1,10 @@
 package org.rjo.chess;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.rjo.chess.pieces.PieceType;
 
 public class GameTest {
@@ -15,16 +16,18 @@ public class GameTest {
 		Colour.valueOf("WHITE");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void wrongSideToMove() {
 		Game game = new Game();
-		game.getPosition().move(new Move(PieceType.PAWN, Colour.BLACK, Square.b7, Square.b5));
+		assertThrows(IllegalArgumentException.class,
+				() -> game.getPosition().move(new Move(PieceType.PAWN, Colour.BLACK, Square.b7, Square.b5)));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void noPieceOnStartSquare() {
 		Game game = new Game();
-		game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.b5, Square.b6));
+		assertThrows(IllegalArgumentException.class,
+				() -> game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.b5, Square.b6)));
 	}
 
 	@Test
@@ -36,10 +39,11 @@ public class GameTest {
 		assertEquals(2, game.getMoveNumber());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void illegalMoveToNonEmptySquare() {
 		Game game = Fen.decode("k1K5/8/8/3p4/2P5/8/8/8 w - - 0 1");
-		game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5));
+		assertThrows(IllegalArgumentException.class,
+				() -> game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5)));
 	}
 
 	/////////////////////////////////////////////////////

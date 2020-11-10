@@ -1,9 +1,10 @@
 package org.rjo.chess;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 public class FenTest {
 
@@ -12,18 +13,20 @@ public class FenTest {
 		assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", Fen.encode(new Game()));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void invalidDelimiters() {
-		Fen.decode("rnbqkbnr/ppp/ppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1");
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void invalidEndOfRank() {
-		Fen.decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKB w - - 0 1"); // last rank not complete
+		assertThrows(IllegalArgumentException.class,
+				() -> Fen.decode("rnbqkbnr/ppp/ppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1"));
 	}
 
 	@Test
-	@Ignore
+	public void invalidEndOfRank() {
+		assertThrows(IllegalArgumentException.class,
+				() -> Fen.decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKB w - - 0 1")); // last rank not complete
+	}
+
+	@Test
+	@Disabled
 	public void fromStartPosition() {
 		Fen.decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1").getPosition().debug();
 	}

@@ -1,17 +1,23 @@
 package org.rjo.chess;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.time.StopWatch;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.rjo.chess.CastlingRightsSummary.CastlingRights;
 import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.util.BitSetFactory;
 import org.rjo.chess.util.BitSetUnifier;
-
-import static org.junit.Assert.*;
 
 /**
  * Test Position.
@@ -32,8 +38,8 @@ public class PositionTest {
 			Position p2 = new Position(p);
 		}
 		long duration = sw.getTime();
-		System.out
-				.println(nbrIter + " new Positions in " + duration + "ms " + String.format("%9.7f", ((1.0 * duration) / nbrIter)) + "/posn");
+		System.out.println(nbrIter + " new Positions in " + duration + "ms "
+				+ String.format("%9.7f", ((1.0 * duration) / nbrIter)) + "/posn");
 	}
 
 	@Test
@@ -84,11 +90,11 @@ public class PositionTest {
 	public void blockCheck() {
 		Game game = Fen.decode("3r4/4k3/8/R7/4P3/3K4/1BN1P3/8 w - - 10 10");
 		List<Move> moves = game.getPosition().findMoves(Colour.WHITE);
-		assertEquals("found moves: " + moves, 6, moves.size());
+		assertEquals(6, moves.size(), "found moves: " + moves);
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void pinnedPiece() {
 		Game game = Fen.decode("3r4/4k3/8/8/3RP3/3K4/8/8 w - - 10 10");
 		long start = System.currentTimeMillis();
@@ -104,7 +110,7 @@ public class PositionTest {
 		Game game = Fen.decode("r3kr1Q/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQ-q - 0 1");
 		Map<String, Integer> moveMap = Perft.findMoves(game.getPosition(), Colour.BLACK, 1, 1);
 		int moves = Perft.countMoves(moveMap);
-		assertEquals("found moves" + moveMap, 35, moves);
+		assertEquals(35, moves, "found moves" + moveMap);
 	}
 
 	@Test
@@ -336,16 +342,18 @@ public class PositionTest {
 	@Test
 	public void capture() {
 		Game game = Fen.decode("k1K5/8/8/3p4/2P5/8/8/8 w - - 0 1");
-		Position newPosn = game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5, PieceType.PAWN));
+		Position newPosn = game.getPosition()
+				.move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.d5, PieceType.PAWN));
 		assertEmptySquare(newPosn, Square.c4);
 		assertPieceAt(newPosn, Square.d5, PieceType.PAWN, Colour.WHITE);
 		assertTrue(newPosn.getPieces(Colour.BLACK)[PieceType.PAWN.ordinal()].getBitBoard().isEmpty());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void noPieceToCapture() {
 		Game game = Fen.decode("k1K5/8/8/3p4/2P5/8/8/8 w - - 0 1");
-		game.getPosition().move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.b5, PieceType.PAWN));
+		assertThrows(IllegalArgumentException.class, () -> game.getPosition()
+				.move(new Move(PieceType.PAWN, Colour.WHITE, Square.c4, Square.b5, PieceType.PAWN)));
 	}
 
 	@Test
@@ -363,7 +371,8 @@ public class PositionTest {
 		// this is 'posn2' from PerftTest
 		// sequence of moves: Ne5xg6, b4-b3, Ng6xh8. O-O is then not allowed...
 		Game game = Fen.decode("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 4");
-		Position newPosn = game.getPosition().move(new Move(PieceType.KNIGHT, Colour.WHITE, Square.e5, Square.g6, PieceType.PAWN));
+		Position newPosn = game.getPosition()
+				.move(new Move(PieceType.KNIGHT, Colour.WHITE, Square.e5, Square.g6, PieceType.PAWN));
 		newPosn = newPosn.move(new Move(PieceType.PAWN, Colour.BLACK, Square.b4, Square.b3));
 		newPosn = newPosn.move(new Move(PieceType.KNIGHT, Colour.WHITE, Square.g6, Square.h8, PieceType.ROOK));
 		List<Move> moves = newPosn.findMoves(Colour.BLACK);
@@ -382,7 +391,8 @@ public class PositionTest {
 	@Test
 	public void castlingRightsTest() {
 		// increase coverage of enum
-		assertArrayEquals(new CastlingRights[] { CastlingRights.QUEENS_SIDE, CastlingRights.KINGS_SIDE }, CastlingRights.values());
+		assertArrayEquals(new CastlingRights[] { CastlingRights.QUEENS_SIDE, CastlingRights.KINGS_SIDE },
+				CastlingRights.values());
 		CastlingRights.valueOf("QUEENS_SIDE");
 	}
 
@@ -394,15 +404,11 @@ public class PositionTest {
 		System.out.println(moveMap);
 	}
 
-	private void assertPieceAt(Position cb,
-			Square sq,
-			PieceType expectedPiece,
-			Colour expectedColour) {
+	private void assertPieceAt(Position cb, Square sq, PieceType expectedPiece, Colour expectedColour) {
 		assertEquals(expectedPiece, cb.pieceAt(sq, expectedColour));
 	}
 
-	private void assertMoveNotPresent(List<Move> moves,
-			String requiredMove) {
+	private void assertMoveNotPresent(List<Move> moves, String requiredMove) {
 		for (Move move : moves) {
 			if (requiredMove.equals(move.toString())) {
 				throw new AssertionError("move '" + requiredMove + "' was found in " + moves);
@@ -410,8 +416,7 @@ public class PositionTest {
 		}
 	}
 
-	private void assertMovePresent(List<Move> moves,
-			String requiredMove) {
+	private void assertMovePresent(List<Move> moves, String requiredMove) {
 		boolean found = false;
 		for (Move move : moves) {
 			if (requiredMove.equals(move.toString())) {
@@ -424,8 +429,7 @@ public class PositionTest {
 		}
 	}
 
-	private void assertEmptySquare(Position cb,
-			Square sq) {
+	private void assertEmptySquare(Position cb, Square sq) {
 		try {
 			cb.pieceAt(sq, null);
 			fail("expected exception");
@@ -462,7 +466,7 @@ public class PositionTest {
 			if (!this.allPiecesBlack.equals(other.allPiecesBlack)) {
 				return false;
 			}
-            return this.totalPieces.equals(other.totalPieces);
-        }
+			return this.totalPieces.equals(other.totalPieces);
+		}
 	}
 }

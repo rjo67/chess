@@ -1,8 +1,9 @@
 package org.rjo.chess;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
 
 public class SquareTest {
 
@@ -38,28 +39,28 @@ public class SquareTest {
 		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void badInput() {
-		Square.fromString("A92");
+		assertThrows(IllegalArgumentException.class, () -> Square.fromString("A92"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void badRank() {
-		Square.fromString("A9");
+		assertThrows(IllegalArgumentException.class, () -> Square.fromString("A9"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void badRank2() {
-		Square.fromString("A0");
+		assertThrows(IllegalArgumentException.class, () -> Square.fromString("A0"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void badFile() {
-		Square.fromString("I6");
+		assertThrows(IllegalArgumentException.class, () -> Square.fromString("I6"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void badFile2() {
-		Square.fromString("06");
+		assertThrows(IllegalArgumentException.class, () -> Square.fromString("06"));
 	}
 }

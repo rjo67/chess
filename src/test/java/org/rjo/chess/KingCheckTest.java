@@ -1,10 +1,10 @@
 package org.rjo.chess;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.rjo.chess.pieces.PieceType;
 import org.rjo.chess.util.BitSetUnifier;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test determination of whether the king is in check.
