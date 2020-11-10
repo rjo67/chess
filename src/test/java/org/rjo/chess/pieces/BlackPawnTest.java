@@ -1,6 +1,6 @@
 package org.rjo.chess.pieces;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;

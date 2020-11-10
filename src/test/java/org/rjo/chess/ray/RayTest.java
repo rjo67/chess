@@ -1,13 +1,13 @@
 package org.rjo.chess.ray;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
@@ -20,9 +20,9 @@ public class RayTest {
 	@Test
 	public void emptySquares() {
 		Game game = Fen.decode("r3k2r/p6p/8/B7/1pp1p3/3b4/P6P/R3K2R w - - 0 0");
-		int[] expectedEmptySquares = new int[] { 9, 5, 11, 10, 12, 11, 13, 4, 10, 14, 11, 12, 11, 19, 15, 17, 5, 7, 10, 18, 14, 15, 17, 13, 7,
-				15, 15, 14, 16, 19, 18, 11, 13, 13, 17, 15, 18, 19, 22, 15, 10, 17, 15, 19, 17, 23, 17, 17, 14, 12, 15, 17, 14, 17, 19, 13, 6,
-				10, 12, 12, 15, 13, 11, 8 };
+		int[] expectedEmptySquares = new int[] { 9, 5, 11, 10, 12, 11, 13, 4, 10, 14, 11, 12, 11, 19, 15, 17, 5, 7, 10,
+				18, 14, 15, 17, 13, 7, 15, 15, 14, 16, 19, 18, 11, 13, 13, 17, 15, 18, 19, 22, 15, 10, 17, 15, 19, 17,
+				23, 17, 17, 14, 12, 15, 17, 14, 17, 19, 13, 6, 10, 12, 12, 15, 13, 11, 8 };
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < expectedEmptySquares.length; i++) {
 			int nbrEmptySquares = 0;
@@ -32,7 +32,7 @@ public class RayTest {
 				// System.out.println(ray + " " + info);
 				nbrEmptySquares += info.getEmptySquares().size();
 			}
-			assertEquals("bad sq " + Square.fromBitIndex(i), expectedEmptySquares[i], nbrEmptySquares);
+			assertEquals(expectedEmptySquares[i], nbrEmptySquares, "bad sq " + Square.fromBitIndex(i));
 		}
 		System.out.println("emptySquares: " + (System.currentTimeMillis() - start));
 
@@ -47,7 +47,8 @@ public class RayTest {
 		emptySquares.set(Square.e4.bitIndex());
 		BitSetUnifier myPieces = game.getPosition().getAllPieces(Colour.BLACK).getBitSet();
 		myPieces.clear(Square.e4.bitIndex());
-		assertTrue(RayUtils.discoveredCheck(Colour.BLACK, game.getPosition(), emptySquares, myPieces, Square.e1, Square.e4));
+		assertTrue(RayUtils.discoveredCheck(Colour.BLACK, game.getPosition(), emptySquares, myPieces, Square.e1,
+				Square.e4));
 	}
 
 	@Test
@@ -59,7 +60,8 @@ public class RayTest {
 		emptySquares.set(Square.b5.bitIndex());
 		BitSetUnifier myPieces = game.getPosition().getAllPieces(Colour.WHITE).getBitSet();
 		myPieces.clear(Square.b5.bitIndex());
-		assertTrue(RayUtils.discoveredCheck(Colour.WHITE, game.getPosition(), emptySquares, myPieces, Square.e8, Square.b5));
+		assertTrue(RayUtils.discoveredCheck(Colour.WHITE, game.getPosition(), emptySquares, myPieces, Square.e8,
+				Square.b5));
 	}
 
 	@Test
@@ -71,7 +73,8 @@ public class RayTest {
 		emptySquares.set(Square.e4.bitIndex());
 		BitSetUnifier myPieces = game.getPosition().getAllPieces(Colour.BLACK).getBitSet();
 		myPieces.clear(Square.e4.bitIndex());
-		assertFalse(RayUtils.discoveredCheck(Colour.BLACK, game.getPosition(), emptySquares, myPieces, Square.e1, Square.e4));
+		assertFalse(RayUtils.discoveredCheck(Colour.BLACK, game.getPosition(), emptySquares, myPieces, Square.e1,
+				Square.e4));
 	}
 
 	@Test

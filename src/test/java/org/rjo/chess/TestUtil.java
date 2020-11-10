@@ -1,6 +1,6 @@
 package org.rjo.chess;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,10 +57,9 @@ public class TestUtil {
 				iter.remove();
 			}
 		}
-		assertTrue(
-				"not all required moves found: " + requiredMoves + (moveClone.isEmpty() ? "" : ". Input-Moves not processed: " + moveClone),
-				requiredMoves.isEmpty());
+		assertTrue(requiredMoves.isEmpty(),
+				"not all required moves found: " + requiredMoves + (moveClone.isEmpty() ? "" : ". Input-Moves not processed: " + moveClone)				);
 		// all required moves found but still some input moves left over?
-		assertTrue("unexpected moves found: " + moveClone, moveClone.isEmpty());
+		assertTrue(moveClone.isEmpty(),"unexpected moves found: " + moveClone); 
 	}
 }

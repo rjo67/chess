@@ -1,11 +1,12 @@
 package org.rjo.chess;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.rjo.chess.pieces.PieceType;
 
 public class MoveTest {
@@ -40,22 +41,22 @@ public class MoveTest {
 		assertEquals(new Move(PieceType.KING, Colour.WHITE, Square.c5, Square.c6).toString(), "Kc5-c6");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void illegalPromotion() {
 		Move m = new Move(PieceType.ROOK, Colour.WHITE, Square.c7, Square.c8);
-		m.setPromotionPiece(PieceType.QUEEN);
+		assertThrows(IllegalArgumentException.class, () -> m.setPromotionPiece(PieceType.QUEEN));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void illegalPromotion2() {
 		Move m = new Move(PieceType.PAWN, Colour.WHITE, Square.c7, Square.c8);
-		m.setPromotionPiece(PieceType.PAWN);
+		assertThrows(IllegalArgumentException.class, () -> m.setPromotionPiece(PieceType.PAWN));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void illegalPromotion3() {
 		Move m = new Move(PieceType.PAWN, Colour.WHITE, Square.c7, Square.c8);
-		m.setPromotionPiece(PieceType.KING);
+		assertThrows(IllegalArgumentException.class, () -> m.setPromotionPiece(PieceType.KING));
 	}
 
 	@Test
@@ -66,10 +67,10 @@ public class MoveTest {
 		assertNull(new Move(PieceType.KING, Colour.WHITE, Square.c5, Square.c6).getPromotedPiece());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void badCapture() {
 		Move m = new Move(PieceType.ROOK, Colour.WHITE, Square.c7, Square.c8);
-		m.getCapturedPiece();
+		assertThrows(IllegalArgumentException.class, () -> m.getCapturedPiece());
 	}
 
 	@Test

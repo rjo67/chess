@@ -1,10 +1,11 @@
 package org.rjo.chess.pieces;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.rjo.chess.Colour;
 import org.rjo.chess.Move;
 import org.rjo.chess.Square;
@@ -30,11 +31,11 @@ public class PieceTest {
 		assertTrue(pawn.getBitBoard().isEmpty());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void removeNonExistentPiece() {
 		Pawn pawn = new Pawn(Colour.WHITE, Square.a5);
 
-		pawn.removePiece(Square.a6);
+		assertThrows(IllegalArgumentException.class, () -> pawn.removePiece(Square.a6));
 	}
 
 	@Test
@@ -45,10 +46,11 @@ public class PieceTest {
 		assertTrue(queen.getBitBoard().get(Square.a6.bitIndex()));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void badMoveNonExistingPiece() {
 		Queen queen = new Queen(Colour.WHITE, Square.b6);
-		queen.move(new Move(PieceType.QUEEN, Colour.WHITE, Square.g6, Square.a6));
+		assertThrows(IllegalArgumentException.class,
+				() -> queen.move(new Move(PieceType.QUEEN, Colour.WHITE, Square.g6, Square.a6)));
 	}
 
 	@Test

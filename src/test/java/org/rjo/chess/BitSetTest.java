@@ -1,6 +1,6 @@
 package org.rjo.chess;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.time.StopWatch;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.rjo.chess.ray.Ray;
 import org.rjo.chess.ray.RayUtils;
 import org.rjo.chess.util.BitSetUnifier;

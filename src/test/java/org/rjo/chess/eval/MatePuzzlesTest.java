@@ -1,14 +1,14 @@
 package org.rjo.chess.eval;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.rjo.chess.Fen;
 import org.rjo.chess.Game;
 
 public class MatePuzzlesTest {
 
 	@Test
-	@Ignore // too slow
+	@Disabled // too slow
 	public void mateInFour() {
 		Game game = Fen.decode("4k2r/1R3R2/p3p1pp/4b3/1BnNr3/8/P1P5/5K2 w - - 1 0");
 		SearchStrategy strat = new AlphaBeta3(System.out);
@@ -19,7 +19,7 @@ public class MatePuzzlesTest {
 	}
 
 	@Test
-	@Ignore // too slow
+	@Disabled // too slow
 	public void mateInThree() {
 		Game game = Fen.decode("4r1k1/3n1ppp/4r3/3n3q/Q2P4/5P2/PP2BP1P/R1B1R1K1 b - - 0 1");
 		SearchStrategy strat = new AlphaBeta3(System.out);

@@ -1,6 +1,6 @@
 package org.rjo.chess;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.rjo.chess.util.BitSetFactory;
 import org.rjo.chess.util.BitSetUnifier;
 
