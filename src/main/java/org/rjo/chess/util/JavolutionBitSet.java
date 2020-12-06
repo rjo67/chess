@@ -5,7 +5,9 @@ import java.lang.reflect.Field;
 import org.javolution.util.BitSet;
 
 /**
- * BitSetUnifier-Implementation using the javoluation BitSet.
+ * BitSetUnifier-Implementation using the javolution BitSet.
+ * 
+ * NB: currently NOT compiled (see toplevel pom)
  *
  * @author rich
  * @since 2017-08-18

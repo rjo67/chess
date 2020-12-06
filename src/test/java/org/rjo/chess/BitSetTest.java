@@ -14,7 +14,6 @@ import org.rjo.chess.ray.RayUtils;
 import org.rjo.chess.util.BitSetUnifier;
 import org.rjo.chess.util.ChessBitSetUnifier;
 import org.rjo.chess.util.JavaUtilBitSet;
-import org.rjo.chess.util.JavolutionBitSet;
 import org.rjo.chess.util.LuceneBitSet;
 
 public class BitSetTest {
@@ -74,26 +73,24 @@ public class BitSetTest {
 	}
 
 	@Test
-	public void speedOfJavolutionBitset() {
-		BitSetUnifier bs = new JavolutionBitSet(64);
-		BitSetUnifier bs2 = new JavolutionBitSet(64);
+//	public void speedOfJavolutionBitset() {
+//		BitSetUnifier bs = new JavolutionBitSet(64);
+//		BitSetUnifier bs2 = new JavolutionBitSet(64);
+//
+//		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(bs::set);
+//		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(bs2::set);
+//
+//		System.out.println("javolution");
+//		repeat("flip", bs, (a) -> a.flip(0, 63));
+//		repeat("get", bs, (a) -> a.get(18));
+//		repeat("set", bs, (a) -> a.set(42));
+//		repeat("and", bs, (a) -> a.and(bs2));
+//		repeat("or", bs, (a) -> a.or(bs2));
+//		repeat("xor", bs, (a) -> a.xor(bs2));
+//		repeat("cardinality", bs, BitSetUnifier::cardinality);
+//	}
 
-		Arrays.stream(new int[] { 2, 7, 14, 23, 35, 37, 41, 46 }).forEach(bs::set);
-		Arrays.stream(new int[] { 1, 9, 21, 33, 45, 48, 56 }).forEach(bs2::set);
-
-		System.out.println("javolution");
-		repeat("flip", bs, (a) -> a.flip(0, 63));
-		repeat("get", bs, (a) -> a.get(18));
-		repeat("set", bs, (a) -> a.set(42));
-		repeat("and", bs, (a) -> a.and(bs2));
-		repeat("or", bs, (a) -> a.or(bs2));
-		repeat("xor", bs, (a) -> a.xor(bs2));
-		repeat("cardinality", bs, BitSetUnifier::cardinality);
-	}
-
-	private void repeat(String name,
-			BitSetUnifier bs,
-			Consumer<BitSetUnifier> fn) {
+	private void repeat(String name, BitSetUnifier bs, Consumer<BitSetUnifier> fn) {
 		long nbrIters = 10000000;
 		StopWatch sw = new StopWatch();
 		sw.start();
@@ -119,23 +116,20 @@ public class BitSetTest {
 		for (int i = 0; i < nbrTimes; i++) {
 			assertTrue(checkUsingBitSet((BitSetUnifier) RayUtils.getBitSetOfSquaresBetween(sq1, sq2).clone(),
 					emptySquares.getBitSet()));
-			//			assertTrue(checkUsingIterator(EastRay.instance(), Square.b2, Square.c2, emptySquares.getBitSet()));
+			// assertTrue(checkUsingIterator(EastRay.instance(), Square.b2, Square.c2,
+			// emptySquares.getBitSet()));
 		}
 		long end = System.currentTimeMillis();
 		System.out.println(String.format("%9.6f", 1.0 * (end - start) / nbrTimes));
 	}
 
-	private boolean checkUsingBitSet(BitSetUnifier bs,
-			BitSetUnifier emptySquares) {
+	private boolean checkUsingBitSet(BitSetUnifier bs, BitSetUnifier emptySquares) {
 		int nbrSquaresBetweenStartAndEnd = bs.cardinality();
 		bs.and(emptySquares);
 		return bs.cardinality() == nbrSquaresBetweenStartAndEnd;
 	}
 
-	private boolean checkUsingIterator(Ray ray,
-			Square startSquare,
-			Square targetSquare,
-			BitSet emptySquares) {
+	private boolean checkUsingIterator(Ray ray, Square startSquare, Square targetSquare, BitSet emptySquares) {
 		Iterator<Integer> squaresFrom = ray.squaresFrom(startSquare);
 		while (squaresFrom.hasNext()) {
 			int nextSquare = squaresFrom.next();

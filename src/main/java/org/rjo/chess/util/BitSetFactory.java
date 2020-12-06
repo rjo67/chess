@@ -10,7 +10,7 @@ public class BitSetFactory {
 
 	enum BitSetImplementation {
 		CHESS_BITSET, JAVA_UTIL, LUCENE, JAVOLUTION
-    }
+	}
 
 	/** the bitset implementation to use */
 	private final static BitSetImplementation BITSET_IMPL = BitSetImplementation.CHESS_BITSET;
@@ -27,7 +27,8 @@ public class BitSetFactory {
 		case LUCENE:
 			return new LuceneBitSet(nBits);
 		case JAVOLUTION:
-			return new JavolutionBitSet(nBits);
+			throw new IllegalArgumentException("Javolution currently not supported"); // return new
+																						// JavolutionBitSet(nBits);
 		default:
 			throw new IllegalArgumentException("non-implemented case switch");
 		}
@@ -42,7 +43,8 @@ public class BitSetFactory {
 		case LUCENE:
 			return new LuceneBitSet(longarray);
 		case JAVOLUTION:
-			return new JavolutionBitSet(longarray);
+			throw new IllegalArgumentException("Javolution currently not supported"); // return new
+																						// JavolutionBitSet(longarray);
 		default:
 			throw new IllegalArgumentException("non-implemented case switch");
 		}
