@@ -508,15 +508,15 @@ public class Position {
 		zobristHash = Zobrist.INSTANCE.update(zobristHash, move, castling, enpassantSquare);
 
 		if (move.isCastleKingsSide() || move.isCastleQueensSide()) {
-			pieceMgr.getClonedPiece(sideToMove, move.getPiece(), move.from()).move(move);
-			pieceMgr.getClonedPiece(sideToMove, PieceType.ROOK, move.getRooksCastlingMove().from()).move(move.getRooksCastlingMove());
+			pieceMgr.getPiecesForColour(sideToMove).move(move);
+			pieceMgr.getPiecesForColour(sideToMove).move(move.getRooksCastlingMove());
 			// castling rights are reset later on
 		} else {
 			if (!move.isCapture() && getTotalPieces().get(move.to().bitIndex())) {
 				throw new IllegalArgumentException("square " + move.to() + " is not empty. Move=" + move);
 			}
 			// update structures for the moving piece
-			pieceMgr.getClonedPiece(sideToMove, move.getPiece(), move.from()).move(move);
+			pieceMgr.getPiecesForColour(sideToMove).move(move);
 			// capture: remove the captured piece
 			if (move.isCapture()) {
 				if (move.isEnpassant()) {

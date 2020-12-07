@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
+import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 
 public class KnightMoveTest extends AbstractMoveTest {
@@ -155,7 +156,7 @@ public class KnightMoveTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquare() {
 		setupGame("4k3/8/8/8/3N4/5p2/8/4K3 w - - 0 0");
-		var whiteKnight = game.getPosition().getPieces(Colour.WHITE).getKnights().get(0);
+		var whiteKnight = game.getPosition().getPieces(Colour.WHITE).stream(PieceType.KNIGHT).findFirst().orElseThrow();
 		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.c2));
 		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.b3));
 		assertNotNull(whiteKnight.attacksSquare(game.getPosition().getTotalPieces().flip(), Square.b5));

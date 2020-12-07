@@ -9,6 +9,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
+import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.position.Position;
 
@@ -127,7 +128,7 @@ public class BishopMoveTest extends AbstractMoveTest {
 	public void attacksSquare() {
 		setupGame("k2B1K2/8/8/4P3/8/8/8/8 w - - 0 4");
 		Position posn = game.getPosition();
-		var whiteBishop = posn.getPieces(Colour.WHITE).getBishops().get(0);
+		var whiteBishop = game.getPosition().getPieces(Colour.WHITE).stream(PieceType.BISHOP).findFirst().orElseThrow();
 		for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
 			assertNotNull("square " + sq, whiteBishop.attacksSquare(posn.getTotalPieces().flip(), sq));
 		}
@@ -162,11 +163,11 @@ public class BishopMoveTest extends AbstractMoveTest {
 	}
 
 	@Test
-	public void speedTest() {
+	public void speedTest() throws InterruptedException {
 		setupGame("r3k2r/pp3p2/8/4B3/2p1b3/8/PPPPB2P/R3K2R w KQkq - 0 0");
 		// init
 		assertEquals(17, findBishopMoves().size());
-		int repeats = 10;
+		int repeats = 50;
 		long start = System.currentTimeMillis();
 		for (int loop = 0; loop < repeats; loop++) {
 			for (int i = 0; i < 10000; i++) {
@@ -174,7 +175,10 @@ public class BishopMoveTest extends AbstractMoveTest {
 			}
 		}
 		long timeTaken = System.currentTimeMillis() - start;
-		assertTrue("took longer than 250ms: " + timeTaken, (timeTaken / repeats) < 250);
+		assertTrue(
+				String.format("took longer than 250ms per iter (%d ms). Total time: %d, nbr iters: %d", (timeTaken / repeats), timeTaken,
+						repeats),
+				(timeTaken / repeats) < 250);
 		System.out.println("bishop speed test:" + timeTaken);
 	}
 }

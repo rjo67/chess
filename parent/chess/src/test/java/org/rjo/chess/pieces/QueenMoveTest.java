@@ -7,6 +7,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
 import org.rjo.chess.TestUtil;
 import org.rjo.chess.base.Colour;
+import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 
 public class QueenMoveTest extends AbstractMoveTest {
@@ -80,7 +81,7 @@ public class QueenMoveTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquareStraight() {
 		setupGame("5K2/4Q3/8/4p3/8/8/k7/8  w - - 0 0");
-		var whiteQueen = game.getPosition().getPieces(Colour.WHITE).getQueens().get(0);
+		var whiteQueen = game.getPosition().getPieces(Colour.WHITE).stream(PieceType.QUEEN).findFirst().orElseThrow();
 		for (Square sq : new Square[] { Square.e8, Square.e6, Square.d7, Square.c7, Square.b7, Square.a7, Square.f7, Square.g7, Square.h7 }) {
 			assertNotNull("square " + sq, whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}
@@ -103,7 +104,7 @@ public class QueenMoveTest extends AbstractMoveTest {
 	@Test
 	public void attacksSquareDiag() {
 		setupGame("3Q1K2/8/2k5/4p3/8/8/8/8  w - - 0 0");
-		var whiteQueen = game.getPosition().getPieces(Colour.WHITE).getQueens().get(0);
+		var whiteQueen = game.getPosition().getPieces(Colour.WHITE).stream(PieceType.QUEEN).findFirst().orElseThrow();
 		for (Square sq : new Square[] { Square.c7, Square.b6, Square.a5, Square.e7, Square.f6, Square.g5, Square.h4 }) {
 			assertNotNull("square " + sq, whiteQueen.attacksSquare(game.getPosition().getTotalPieces().flip(), sq));
 		}

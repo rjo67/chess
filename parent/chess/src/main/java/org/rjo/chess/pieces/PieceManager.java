@@ -1,13 +1,16 @@
 package org.rjo.chess.pieces;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.rjo.chess.base.Colour;
+import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
@@ -23,16 +26,10 @@ public class PieceManager {
 	private Pieces[] pieces;
 
 	/**
-	 * whether this piece type has already been cloned. Dimensions as for {@link #pieces}.
-	 */
-	private boolean[][] alreadyCloned;
-
-	/**
 	 * Constructor. The pieces data structure will be initialised to null values.
 	 */
 	private PieceManager() {
 		pieces = new Pieces[2];
-		alreadyCloned = new boolean[2][PieceType.ALL_PIECE_TYPES.length]; // set to default FALSE
 	}
 
 	/**
@@ -145,13 +142,20 @@ public class PieceManager {
 	}
 
 	public static class Pieces {
+
+		private static final Logger LOG = LogManager.getLogger(Pieces.class);
+
 		private King king;
-		private List<Piece> rooks = new ArrayList<>();
-		private List<Piece> knights = new ArrayList<>();
-		private List<Piece> bishops = new ArrayList<>();
-		private List<Piece> queens = new ArrayList<>();
 		private Pawns pawns;
 		private Colour colour;
+
+		/** rooks, knights, bishops, queens are stored in these maps, index PieceType. NOT for king or pawns! */
+		private Map<Square, Piece>[] _pieces;
+
+		/**
+		 * whether this piece type has already been copied. Dimensions as for {@link #pieces}.
+		 */
+		private boolean[] alreadyCloned;
 
 		/**
 		 * Constructor with a list of pieces of any types.
@@ -161,6 +165,11 @@ public class PieceManager {
 		 */
 		public Pieces(Colour colour, List<Piece> pieces) {
 			this.colour = colour;
+			alreadyCloned = new boolean[PieceType.ALL_PIECE_TYPES.length]; // set to default FALSE
+			this._pieces = new Map[PieceType.ALL_PIECE_TYPES.length];
+			for (PieceType pt : new PieceType[] { PieceType.QUEEN, PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP }) {
+				_pieces[pt.ordinal()] = new HashMap<>();
+			}
 			for (Piece p : pieces) {
 				switch (p.getType()) {
 				case KING:
@@ -169,17 +178,11 @@ public class PieceManager {
 					}
 					king = (King) p;
 					break;
-				case QUEEN:
-					queens.add(p);
-					break;
-				case BISHOP:
-					bishops.add(p);
-					break;
-				case KNIGHT:
-					knights.add(p);
-					break;
 				case ROOK:
-					rooks.add(p);
+				case KNIGHT:
+				case BISHOP:
+				case QUEEN:
+					_pieces[p.getType().ordinal()].put(p.getLocation(), p);
 					break;
 				case PAWN:
 					pawns = (Pawns) p;
@@ -192,38 +195,28 @@ public class PieceManager {
 
 		/**
 		 * Copy constructor. The lists are copied (their contents are not duplicated, if the entries are changed they first need
-		 * to be cloned).
+		 * to be copied).
 		 *
 		 * @param other the piece object to copy
 		 */
 		public Pieces(Pieces other) {
 			this.colour = other.colour;
+			this.alreadyCloned = new boolean[PieceType.ALL_PIECE_TYPES.length]; // set to default FALSE
+			this._pieces = new Map[PieceType.ALL_PIECE_TYPES.length];
 			this.king = other.king; // not copied, since will never be removing a king
-			this.rooks = new ArrayList<>(other.rooks);
-			this.knights = new ArrayList<>(other.knights);
-			this.bishops = new ArrayList<>(other.bishops);
-			this.queens = new ArrayList<>(other.queens);
 			this.pawns = new Pawns(other.pawns);
+
+			//TODO don't copy the maps here, but instead on demand--using 'alreadyCloned' to keep track
+			// since there will only ever be one piece 'moved' for a given position. It's therefore better to just copy the relevant map and not all of them.
+			for (PieceType pt : new PieceType[] { PieceType.QUEEN, PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP }) {
+				_pieces[pt.ordinal()] = new HashMap<>(other._pieces[pt.ordinal()]);
+			}
+
+			//			debug("copy constructor called with other: " + other);
 		}
 
 		public Piece getKing() {
 			return king;
-		}
-
-		public List<Piece> getRooks() {
-			return rooks;
-		}
-
-		public List<Piece> getKnights() {
-			return knights;
-		}
-
-		public List<Piece> getBishops() {
-			return bishops;
-		}
-
-		public List<Piece> getQueens() {
-			return queens;
 		}
 
 		public Piece getPawns() {
@@ -231,7 +224,39 @@ public class PieceManager {
 		}
 
 		/**
-		 * Creates a new piece instance.
+		 * Performs the 'move' for the given pieceType at the given location.
+		 * <p>
+		 * Do not call piece.move() directly, since then the internal structures in this object will not be updated. e.g. the
+		 * hashmap of locations will be wrong.
+		 *
+		 * @param pieceType
+		 * @param location
+		 * @param move
+		 */
+		public void move(Move move) {
+			var oldPiece = findPieceAt(move.from(), move.getPiece());
+			var newPiece = copyPiece(oldPiece);
+			newPiece.move(move);
+
+			// update internal structures
+			switch (move.getPiece()) {
+			case KING:
+			case PAWN:
+				// nothing to do
+				break;
+			case ROOK:
+			case KNIGHT:
+			case BISHOP:
+			case QUEEN:
+				replace(oldPiece, newPiece, _pieces[move.getPiece().ordinal()]);
+				break;
+			default:
+				throw new IllegalArgumentException("unknown piece type: " + move.getPiece());
+			}
+		}
+
+		/**
+		 * Creates a new piece instance. Cannot create new kings or pawns.
 		 *
 		 * @param pieceType type
 		 * @param location location
@@ -264,7 +289,7 @@ public class PieceManager {
 		}
 
 		/**
-		 * Creats a new piece instance and adds it to the appropriate data structure.
+		 * Creates a new piece instance (not pawn or king) and adds it to the appropriate data structure.
 		 *
 		 * @param pieceType type
 		 * @param location location
@@ -272,8 +297,7 @@ public class PieceManager {
 		 */
 		public Piece addPiece(PieceType pieceType,
 				Square location) {
-			Piece newPiece = createPiece(pieceType, location);
-			return this.addPiece(newPiece);
+			return this.addPiece(createPiece(pieceType, location));
 		}
 
 		/**
@@ -286,17 +310,11 @@ public class PieceManager {
 			switch (piece.getType()) {
 			case KING:
 				throw new IllegalArgumentException("cannot add a king!");
-			case QUEEN:
-				this.queens.add(piece);
-				break;
-			case BISHOP:
-				this.bishops.add(piece);
-				break;
-			case KNIGHT:
-				this.knights.add(piece);
-				break;
 			case ROOK:
-				this.rooks.add(piece);
+			case KNIGHT:
+			case BISHOP:
+			case QUEEN:
+				this._pieces[piece.getType().ordinal()].put(piece.getLocation(), piece);
 				break;
 			case PAWN:
 				throw new IllegalArgumentException("cannot add a pawn!");
@@ -319,17 +337,11 @@ public class PieceManager {
 			switch (pieceType) {
 			case KING:
 				throw new IllegalArgumentException("cannot remove a king!");
-			case QUEEN:
-				removeSuccessful = this.queens.remove(piece);
-				break;
-			case BISHOP:
-				removeSuccessful = this.bishops.remove(piece);
-				break;
-			case KNIGHT:
-				removeSuccessful = this.knights.remove(piece);
-				break;
 			case ROOK:
-				removeSuccessful = this.rooks.remove(piece);
+			case KNIGHT:
+			case BISHOP:
+			case QUEEN:
+				removeSuccessful = this._pieces[pieceType.ordinal()].remove(piece.getLocation(), piece);
 				break;
 			case PAWN:
 				pawns.removePiece(location);
@@ -358,19 +370,19 @@ public class PieceManager {
 				break;
 			case QUEEN:
 				newPiece = new Queen(piece);
-				replace(piece, newPiece, this.queens);
+				replace(piece, newPiece, this._pieces[PieceType.QUEEN.ordinal()]);
 				break;
 			case BISHOP:
 				newPiece = new Bishop(piece);
-				replace(piece, newPiece, this.bishops);
+				replace(piece, newPiece, this._pieces[PieceType.BISHOP.ordinal()]);
 				break;
 			case KNIGHT:
 				newPiece = new Knight(piece);
-				replace(piece, newPiece, this.knights);
+				replace(piece, newPiece, this._pieces[PieceType.KNIGHT.ordinal()]);
 				break;
 			case ROOK:
 				newPiece = new Rook(piece);
-				replace(piece, newPiece, this.rooks);
+				replace(piece, newPiece, this._pieces[PieceType.ROOK.ordinal()]);
 				break;
 			case PAWN:
 				newPiece = new Pawns((Pawns) piece);
@@ -383,22 +395,33 @@ public class PieceManager {
 		}
 
 		/**
-		 * Removes 'oldPiece' from 'pieceList' and adds 'newPiece'.
+		 * Removes 'oldPiece' from 'pieceMap' and adds 'newPiece'.
 		 */
 		private void replace(Piece oldPiece,
 				Piece newPiece,
-				List<Piece> pieceList) {
-			var removed = pieceList.remove(oldPiece);
-			if (!removed) {
-				throw new IllegalArgumentException("could not find piece " + oldPiece + " in list: " + pieceList);
+				Map<Square, Piece> pieceMap) {
+			//			debug(", removing " + oldPiece + " from map " + pieceMap + ", locn:" + oldPiece.getLocation());
+			var removed = pieceMap.remove(oldPiece.getLocation());
+			if (removed == null) {
+				throw new IllegalArgumentException("no piece " + oldPiece + " at location: " + oldPiece.getLocation() + " in map:" + pieceMap);
 			}
-			pieceList.add(newPiece);
+			//			debug(", adding " + newPiece + " to map " + pieceMap + ", locn:" + newPiece.getLocation());
+			pieceMap.put(newPiece.getLocation(), newPiece);
 		}
 
 		/** return a bitboard of all piece types */
 		public BitBoard createBitBoard() {
 			BitBoard bb = new BitBoard();
-			stream().forEach(p -> bb.getBitSet().or(p.getLocationBitBoard().getBitSet()));
+			for (PieceType pt : new PieceType[] { PieceType.QUEEN, PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP }) {
+				for (Square sq : _pieces[pt.ordinal()].keySet()) {
+					bb.set(sq);
+				}
+			}
+			bb.set(king.getLocation());
+			bb.getBitSet().or(pawns.getLocationBitBoard().getBitSet());
+
+			//			stream().forEach(p -> bb.getBitSet().or(p.getLocationBitBoard().getBitSet()));
+
 			return bb;
 		}
 
@@ -425,10 +448,9 @@ public class PieceManager {
 		public Stream<Piece> stream() {
 			Builder<Piece> builder = Stream.builder();
 			builder.accept(king);
-			rooks.stream().forEach(p -> builder.accept(p));
-			knights.stream().forEach(p -> builder.accept(p));
-			bishops.stream().forEach(p -> builder.accept(p));
-			queens.stream().forEach(p -> builder.accept(p));
+			for (PieceType pt : new PieceType[] { PieceType.QUEEN, PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP }) {
+				_pieces[pt.ordinal()].values().stream().forEach(p -> builder.accept(p));
+			}
 			builder.accept(pawns);
 
 			return builder.build();
@@ -437,28 +459,22 @@ public class PieceManager {
 		/** return a stream of the given piece types */
 		public Stream<Piece> stream(PieceType... types) {
 			Builder<Piece> builder = Stream.builder();
-			for (PieceType t : types) {
-				switch (t) {
+			for (PieceType pt : types) {
+				switch (pt) {
 				case KING:
 					builder.accept(king);
 					break;
 				case ROOK:
-					rooks.stream().forEach(p -> builder.accept(p));
-					break;
 				case KNIGHT:
-					knights.stream().forEach(p -> builder.accept(p));
-					break;
 				case BISHOP:
-					bishops.stream().forEach(p -> builder.accept(p));
-					break;
 				case QUEEN:
-					queens.stream().forEach(p -> builder.accept(p));
+					_pieces[pt.ordinal()].values().stream().forEach(p -> builder.accept(p));
 					break;
 				case PAWN:
 					builder.accept(pawns);
 					break;
 				default:
-					throw new IllegalArgumentException("unknown type " + t);
+					throw new IllegalArgumentException("unknown type " + pt);
 				}
 			}
 			return builder.build();
@@ -468,12 +484,39 @@ public class PieceManager {
 		 * Find the piece of the given type occupying the given square.
 		 *
 		 * @param square the required square
-		 * @param pieceTypes the required type(s)
+		 * @param pieceType the required type
 		 * @return the piece, or throws NoSuchElementException if the square is not occupied
 		 */
 		public Piece findPieceAt(Square square,
-				PieceType... pieceTypes) {
-			return this.stream(pieceTypes).filter(p -> p.pieceAt(square)).findAny().orElseThrow();
+				PieceType pieceType) {
+
+			Piece piece = null;
+			switch (pieceType) {
+			case KING:
+				if (king.getLocation() == square) {
+					piece = king;
+				}
+				break;
+			case ROOK:
+			case KNIGHT:
+			case BISHOP:
+			case QUEEN:
+				piece = _pieces[pieceType.ordinal()].get(square);
+				break;
+			case PAWN:
+				if (pawns.pieceAt(square)) {
+					piece = pawns;
+				}
+				break;
+			default:
+				throw new IllegalArgumentException("unknown type " + pieceType);
+			}
+
+			if (piece != null) {
+				return piece;
+			} else {
+				throw new NoSuchElementException("no piece at square: " + square);
+			}
 		}
 
 		/**
@@ -483,21 +526,47 @@ public class PieceManager {
 		 * @return the piece, or throws NoSuchElementException if the square is not occupied
 		 */
 		public Piece findPieceAt(Square square) {
-			return this.stream().filter(p -> p.pieceAt(square)).findAny().orElseThrow();
+			if (king.getLocation() == square) {
+				return king;
+			}
+			for (PieceType pt : new PieceType[] { PieceType.QUEEN, PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP }) {
+				var piece = _pieces[pt.ordinal()].get(square);
+				if (piece != null) {
+					return piece;
+				}
+			}
+
+			if (pawns.pieceAt(square)) {
+				return pawns;
+			}
+			throw new NoSuchElementException("no piece at square: " + square);
 		}
 
 		@Override
 		public String toString() {
-			return "Pieces@" + System.identityHashCode(this)
-					+ " [" + colour + ": "
-					+ (king != null ? "king=" + king : "")
-					+ (rooks.isEmpty() ? "" : ", rooks=" + rooks)
-					+ (knights.isEmpty() ? "" : ", knights=" + knights)
-					+ (bishops.isEmpty() ? "" : ", bishops=" + bishops)
-					+ (queens.isEmpty() ? "" : ", queens=" + queens)
-					+ (pawns != null ? ", pawns=" + pawns : "")
-					+ "]";
+			StringBuilder sb = new StringBuilder(200);
+			sb.append("Pieces@").append(System.identityHashCode(this))
+					.append(" [").append(colour).append(": ");
+			if (king != null) {
+				sb.append(", king=").append(king);
+			}
+			for (PieceType pt : new PieceType[] { PieceType.QUEEN, PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP }) {
+				if (!_pieces[pt.ordinal()].isEmpty()) {
+					sb.append(pt + "=" + _pieces[pt.ordinal()]);
+				}
+			}
+			if (pawns != null) {
+				sb.append(", pawns=").append(pawns);
+			}
+
+			sb.append("]");
+			return sb.toString();
 		}
 
+		private void debug(String message) {
+			if (this.colour == Colour.BLACK && LOG.isDebugEnabled()) {
+				LOG.debug("Pieces@" + System.identityHashCode(this) + " " + message);
+			}
+		}
 	}
 }

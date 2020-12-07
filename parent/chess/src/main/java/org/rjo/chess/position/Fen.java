@@ -305,7 +305,8 @@ public class Fen {
 		List<Piece>[] allPieces = new List[2];
 		allPieces[Colour.WHITE.ordinal()] = new ArrayList<>();
 		allPieces[Colour.BLACK.ordinal()] = new ArrayList<>();
-		List<Square> pawnSquares[] = new List[2];
+		@SuppressWarnings("unchecked")
+		List<Square>[] pawnSquares = new List[2];
 		pawnSquares[Colour.WHITE.ordinal()] = new ArrayList<>();
 		pawnSquares[Colour.BLACK.ordinal()] = new ArrayList<>();
 
