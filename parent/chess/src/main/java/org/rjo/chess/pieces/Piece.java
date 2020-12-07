@@ -4,10 +4,8 @@ import java.util.List;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Position;
@@ -57,31 +55,23 @@ public interface Piece extends Cloneable {
 	 * @return a list of all possible moves.
 	 */
 	List<Move> findMoves(Position position,
-			CheckInformation kingInCheck,
+			boolean kingInCheck,
 			PositionInfo posnInfo);
 
 	/**
-	 * Does the given move leave the opponent's king in check?
-	 * <p>
-	 * Currently two parts to this:<br>
-	 * (a) does the piece check the king at square move.to()?<br>
-	 * (b) is there a discovered check having vacated the square move.from()?
+	 * After the move, is the opponent's king in check. <b>DOES NOT look for discovered checks.</b>
 	 *
-	 * @param position current position
-	 * @param move current move
-	 * @param opponentsKing location of opponent's king
-	 * @param emptySquares bitset of empty squares (passed in as optimization)
-	 * @param checkCache cache for checks. This should only be used for bishop, queen or rook moves.
-	 * @param discoveredCheckCache cache for discovered checks
-	 * @return either null (when not check) or a checkInformation object, which stores which piece is checking / discovered
-	 *         check etc
+	 * @param move the move
+	 * @param pieces all my pieces (is required by the pawn implementation)
+	 * @param opponentsKing where the opponent's king is
+	 * @param checkingBitboards the bitboards of squares which check the opponent's king [0]=rook,[1]=bishop
+	 * @return true if the opponent's king is in check as a direct result of this move (disregarding any possible discovered
+	 *         checks)
 	 */
-	CheckInformation isOpponentsKingInCheckAfterMove(Position position,
-			Move move,
+	boolean doesMoveLeaveOpponentInCheck(Move move,
+			Piece[] pieces,
 			Square opponentsKing,
-			BitSetUnifier emptySquares,
-			PositionCheckState checkCache,
-			SquareCache<Boolean> discoveredCheckCache);
+			BitBoard[] checkingBitboards);
 
 	/**
 	 * Checks to see if the given square is attacked by one or more pieces of this piece type.

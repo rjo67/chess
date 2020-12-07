@@ -6,10 +6,8 @@ import java.util.Optional;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
@@ -17,7 +15,6 @@ import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
-import org.rjo.chess.position.check.KingCheck;
 
 /**
  * Stores information about the knights (still) in the game.
@@ -168,7 +165,7 @@ public class Knight extends AbstractSetPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck,
+			boolean kingInCheck,
 			PositionInfo boardInfo) {
 		List<Move> moves = new ArrayList<>(20);
 		final Colour oppositeColour = Colour.oppositeColour(getColour());
@@ -180,9 +177,8 @@ public class Knight extends AbstractSetPiece {
 		 * for each knight on the board, finds its moves using the lookup table
 		 */
 		for (Square knightStartSquare : pieces) {
-			List<Move> oneKnightMoves = new ArrayList<>(8);
 			// stop processing this knight if it's pinned
-			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare)) {
+			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare).isPresent()) {
 				continue;
 			}
 			BitSetUnifier possibleMoves = (BitSetUnifier) knightMoves[knightStartSquare.bitIndex()].clone();
@@ -193,13 +189,10 @@ public class Knight extends AbstractSetPiece {
 			/*
 			 * Iterates over all possible moves and stores them as moves or captures
 			 */
+			List<Move> oneKnightMoves = new ArrayList<>(8);
 			for (int k = possibleMoves.nextSetBit(0); k >= 0; k = possibleMoves.nextSetBit(k + 1)) {
 				oneKnightMoves.add(createMove(k, posn, allOpponentsPiecesBitSet, knightStartSquare, oppositeColour));
 			}
-			/*
-			 * Iterates over all possible moves/captures. If the move would leave our king in check, it is illegal and is removed.
-			 */
-			oneKnightMoves.removeIf(move -> KingCheck.isKingInCheck(posn, move, oppositeColour, myKing, kingInCheck.isCheck()));
 
 			//			 DEBUG if piece was pinned but moves!=empty, --> problemo (remove 'continue' above to test here)
 			//			if (boardInfo.isPiecePinned(PieceType.KNIGHT, knightStartSquare) && !oneKnightMoves.isEmpty()) {
@@ -229,34 +222,11 @@ public class Knight extends AbstractSetPiece {
 	}
 
 	@Override
-	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
-			Move move,
+	public boolean doesMoveLeaveOpponentInCheck(Move move,
+			@SuppressWarnings("unused") Piece[] pieces,
 			Square opponentsKing,
-			@SuppressWarnings("unused") BitSetUnifier emptySquares,
-			@SuppressWarnings("unused") PositionCheckState checkCache,
-			SquareCache<Boolean> discoveredCheckCache) {
-
-		if (checkIfMoveAttacksSquare(move, opponentsKing.bitIndex())) {
-			// if it's already check, don't need to calculate discovered check
-			return new CheckInformation(move.getPiece(), move.to());
-		}
-		/*
-		 * many moves have the same starting square. If we've already checked for discovered check for this square, then can use
-		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
-		 */
-		boolean isCheck;
-		Boolean lookup = discoveredCheckCache.lookup(move.from());
-		if (lookup != null) {
-			isCheck = lookup;
-		} else {
-			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-			discoveredCheckCache.store(move.from(), isCheck);
-		}
-		if (isCheck) {
-			return new CheckInformation(true);
-		} else {
-			return CheckInformation.NOT_CHECK;
-		}
+			@SuppressWarnings("unused") BitBoard[] checkingBitboards) {
+		return checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
 	}
 
 	/**

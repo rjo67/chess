@@ -5,9 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
-import java.util.Optional;
-
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
 import org.rjo.chess.TestUtil;
@@ -16,11 +13,9 @@ import org.rjo.chess.base.Move;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitSetUnifier;
-import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.position.Fen;
 import org.rjo.chess.position.Game;
 import org.rjo.chess.position.Position;
-import org.rjo.chess.position.PositionInfo.PieceInfo;
 
 /**
  * Test determination of whether the king is in check.
@@ -76,52 +71,6 @@ public class KingCheckTest {
 		setup("8/4k3/6b1/8/4P3/3K3r/8/5Q2 w - - 10 10");
 		Move move = new Move(PieceType.QUEEN, Colour.WHITE, Square.f1, Square.h3, PieceType.ROOK);
 		assertFalse(KingCheck.isKingInCheck(game.getPosition(), move, Colour.BLACK, Square.d3, false));
-	}
-
-	/**
-	 * Calling the isKingInCheck method directly and inspecting the results.
-	 */
-	@Test
-	public void simpleChecks() {
-		var data = Arrays
-				.asList(new Object[][] { { "8/4k3/8/b7/8/2BP4/3K4/8 w - - 10 10", Square.d2, Colour.WHITE, null },
-						{ "3bq3/pp2k3/8/rn3b2/4P3/3K1Pr1/8/8 w - - 10 10", Square.d3, Colour.WHITE, null },
-						{ "8/4k3/8/8/2p5/3K4/8/8 w - - 10 10", Square.d3, Colour.WHITE,
-								new PieceInfo[] { new PieceInfo(null, PieceType.PAWN, Square.c4) } },
-						{ "8/4k3/8/1b6/4P3/3K4/8/8 w - - 10 10", Square.d3, Colour.WHITE,
-								new PieceInfo[] { new PieceInfo(RayType.NORTHWEST, PieceType.BISHOP, Square.b5) } },
-						{ "8/4k3/8/8/4P3/3K3q/8/6q1 w - - 10 10", Square.d3, Colour.WHITE,
-								new PieceInfo[] { new PieceInfo(RayType.EAST, PieceType.QUEEN, Square.h3) } },
-						{ "8/4k3/8/8/4P3/3K4/8/5q2 w - - 10 10", Square.d3, Colour.WHITE,
-								new PieceInfo[] { new PieceInfo(RayType.SOUTHEAST, PieceType.QUEEN, Square.f1) } },
-						{ "3r4/4k3/8/r7/4P3/3K4/8/8 w - - 10 10", Square.d3, Colour.WHITE,
-								new PieceInfo[] { new PieceInfo(RayType.NORTH, PieceType.ROOK, Square.d8) } },
-						{ "8/4k3/8/8/4P3/3K4/8/4n3 w - - 10 10", Square.d3, Colour.WHITE,
-								new PieceInfo[] { new PieceInfo(null, PieceType.KNIGHT, Square.e1) } },
-						{ "8/4k3/b7/8/4P3/3K4/8/4n3 w - - 10 10", Square.d3, Colour.WHITE,
-								new PieceInfo[] { new PieceInfo(null, PieceType.KNIGHT, Square.e1),
-										new PieceInfo(RayType.NORTHWEST, PieceType.BISHOP, Square.a6) } },
-						{ "8/4k3/8/8/4P3/3K2q1/8/4n3 w - - 10 10", Square.d3, Colour.WHITE,
-								new PieceInfo[] { new PieceInfo(null, PieceType.KNIGHT, Square.e1),
-										new PieceInfo(RayType.EAST, PieceType.QUEEN, Square.g3) } }, });
-
-		for (Object[] d : data) {
-			setup((String) d[0]);
-			var checks = KingCheck.isKingInCheck((Square) d[1], (Colour) d[2],
-					getWhitePieces(game.getPosition()),
-					whitePieces,
-					blackPieces,
-					null,
-					true).getCheckers();
-			if (d[3] != null) {
-				var expectedChecks = ((PieceInfo[]) d[3]).length;
-				assertEquals(expectedChecks, checks.size(), String.format("bad nbr of checks for posn %s", d[0]));
-				for (PieceInfo expectedCheck : (PieceInfo[]) d[3]) {
-					Optional<PieceInfo> result = checks.stream().filter(c -> c.equals(expectedCheck)).findFirst();
-					assertFalse(result.isEmpty(), String.format("expected check: %s, got %s", expectedCheck, checks));
-				}
-			}
-		}
 	}
 
 	/**

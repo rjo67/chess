@@ -12,9 +12,11 @@ import org.rjo.chess.base.Square;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.ray.Ray;
+import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
+import org.rjo.chess.position.PositionInfo;
 import org.rjo.chess.position.check.CheckStates;
 
 /**
@@ -29,8 +31,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Searches for moves in the direction specified by the {@link Ray} implementation. This is for rooks, bishops, and
-	 * queens.
+	 * Searches for moves in the specified ray directions for the specified piece. This is for rooks, bishops, and queens.
 	 * <p>
 	 * <b>New implementation, using bitsets.</b>
 	 * </p>
@@ -47,19 +48,20 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * </code>
 	 *
 	 * @param posn state of the board
-	 * @param ray the ray (direction) in which to search
-	 * @param checkRestriction info about the squares which come into consideration. Normally all are allowed. If the king
-	 *           is in check then this object will contain only the squares which will potentially get out of check.
-	 * @param isInCheck (tmp) flag to indicate if in check
+	 * @param indexOfPiece where the piece of interest ist
+	 * @param posnInfo info about the position, e.g. if the king is in check then this object will contain only a bitmap of
+	 *           squares which will allow us to get out of check (either blocking or capturing the checking piece).
+	 * @param raysToSearch the rays to search
 	 * @return the moves found
 	 */
-	protected List<Move> search(Position posn,
-			Ray ray,
-			BitBoard checkRestriction,
-			boolean isInCheck) {
+	protected List<Move> searchByPiece(Position posn,
+			int indexOfPiece,
+			PositionInfo posnInfo,
+			RayType[] raysToSearch) {
 		List<Move> moves = new ArrayList<>(30);
-		for (int indexOfPiece = pieces.getBitSet().nextSetBit(0); indexOfPiece >= 0; indexOfPiece = pieces.getBitSet()
-				.nextSetBit(indexOfPiece + 1)) {
+		for (RayType rayType : raysToSearch) {
+
+			var ray = RayUtils.getRay(rayType);
 
 			final Colour opponentsColour = Colour.oppositeColour(getColour());
 			boolean blockingSquareContainsEnemyPiece = false;
@@ -91,8 +93,8 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			}
 
 			// remove squares in checkRestriction
-			if (isInCheck) {
-				rayAttack.getBitSet().and(checkRestriction.getBitSet());
+			if (posnInfo.isKingInCheck()) {
+				rayAttack.getBitSet().and(posnInfo.getSquaresToBlockCheck().getBitSet());
 			}
 
 			// add moves.
@@ -198,12 +200,17 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 			Square opponentsKing,
 			PositionCheckState checkCache) {
 
-		/*
-		 * two optimizations: <br> 1) if the ray move.from <-> king and move.to <-> king is the same, then it can only be check
-		 * if we've captured a piece <br> 2) if the ray move.from <-> move.to is the opposite to move.to <-> king, then it can't
-		 * be check <p> See for example r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 <br> case 1:
-		 * Bc4-d5 cannot be check (same diagonal and not captured a piece)<br> case 1a: Bc4xf7 is of course check<br> case 2: A
-		 * move Bc4-b3 cannot be check (moved on the same diagonal away from the opponent's king) <p>
+		/**
+		 * two optimizations: <br>
+		 * 1) if the ray move.from <-> king and move.to <-> king is the same, then it can only be check if we've captured a
+		 * piece <br>
+		 * 2) if the ray move.from <-> move.to is the opposite to move.to <-> king, then it can't be check
+		 * <p>
+		 * See for example r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 <br>
+		 * case 1: Bc4-d5 cannot be check (same diagonal and not captured a piece)<br>
+		 * case 1a: Bc4xf7 is of course check<br>
+		 * case 2: A move Bc4-b3 cannot be check (moved on the same diagonal away from the opponent's king)
+		 * <p>
 		 */
 
 		Ray destSquareToKing = RayUtils.getDiagonalRay(move.to(), opponentsKing);
@@ -355,34 +362,6 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * Checks if the given move would place the opponent's king in check, i.e. the destination square of the move attacks
-	 * the location of the king along a rank or file.
-	 * <p>
-	 * This is for rook-type moves.
-	 *
-	 * @param posn the position. Only used if emptySquares is null.
-	 * @param emptySquares bitset of all empty squares. if null, will be created from posn.getEmptySquares().
-	 * @param move the move
-	 * @param opponentsKing where the opponent's king is
-	 * @param checkCache checkCache
-	 * @return true if this move is a check
-	 */
-	protected boolean findRankOrFileCheck(Position posn,
-			BitSetUnifier emptySquares,
-			Move move,
-			Square opponentsKing,
-			PositionCheckState checkCache) {
-		// abort if dest sq rank/file is not the same as the king's rank/file
-		if (move.to().file() == opponentsKing.file() || move.to().rank() == opponentsKing.rank()) {
-			return attacksSquareRankOrFile(emptySquares == null ? posn.getEmptySquares() : emptySquares, move.to(), opponentsKing,
-					checkCache, move.isCapture(), move.isPromotion());
-		} else {
-			checkCache.setNotCheck(null, move.to());
-			return false;
-		}
-	}
-
-	/**
 	 * Checks if a rook/queen on the given startSquare attacks the given targetSquare, i.e. on the same rank or file and no
 	 * intervening pieces. This is for rook-type moves i.e. straight along files or ranks.
 	 *
@@ -394,7 +373,7 @@ public abstract class SlidingPiece extends AbstractBitBoardPiece {
 	 * @param isPromotion true if the move was a promotion (important for the checkcache)
 	 * @return true if the target square is attacked (straight-line) from the start square.
 	 */
-	// public, since King need this too for castling
+	// public, since King needs this too for castling
 	public static boolean attacksSquareRankOrFile(BitSetUnifier emptySquares,
 			Square startSquare,
 			Square targetSquare,

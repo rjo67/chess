@@ -149,8 +149,4 @@ public final class JavolutionBitSet implements BitSetUnifier, Cloneable {
 		return bs.previousSetBit(fromIndex);
 	}
 
-	private void test()  {
-		//bs.iterator()
-	}
-
 }

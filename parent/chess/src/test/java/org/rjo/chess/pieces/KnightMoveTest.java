@@ -37,15 +37,15 @@ public class KnightMoveTest extends AbstractMoveTest {
 	}
 
 	@Test
-	public void pinned() {
+	public void pinnedSpeed() {
 		setupGame("2K1N1r1/8/8/8/8/8/8/3k4 w - -");
 		var sw = new StopWatch();
 		sw.start();
-		var NBR_ITERS = 1000000;
+		var NBR_ITERS = 100000;
 		for (int i = 0; i < NBR_ITERS; i++) {
 			TestUtil.checkMoves(findKnightMoves());
 		}
-		System.out.println(sw.getTime());
+		System.out.println("pinned knights:" + sw.getTime());
 		// takes ~5889ms for a million times, not evaluating 'pinnedPieces'
 		// takes ~4700ms for a million times,  evaluating 'pinnedPieces'
 	}

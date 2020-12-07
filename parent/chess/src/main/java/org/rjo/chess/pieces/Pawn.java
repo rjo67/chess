@@ -5,14 +5,13 @@ import java.util.List;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetFactory;
 import org.rjo.chess.base.bits.BitSetHelper;
 import org.rjo.chess.base.bits.BitSetUnifier;
+import org.rjo.chess.base.ray.RayType;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
@@ -138,18 +137,19 @@ public class Pawn extends AbstractBitBoardPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck,
+			boolean kingInCheck,
 			PositionInfo posnInfo) {
-		List<Move> moves = _findPotentialMoves(posn, posnInfo.getSquaresToBlockCheck(), posnInfo.isKingInCheck());
+		List<Move> moves = _findPotentialMoves(posn, posnInfo, posnInfo.getSquaresToBlockCheck(), posnInfo.isKingInCheck());
 
 		final Square myKing = posn.getKingPosition(colour);
 		final Colour opponentsColour = Colour.oppositeColour(colour);
 		// make sure my king is not/no longer in check
-		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck()));
+		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck));
 		return moves;
 	}
 
 	private List<Move> _findPotentialMoves(Position posn,
+			PositionInfo posnInfo,
 			BitBoard checkRestriction,
 			boolean isInCheck) {
 		/*
@@ -166,124 +166,58 @@ public class Pawn extends AbstractBitBoardPiece {
 		// 5) enpassant
 		// 6) promotion
 		//
-		moves.addAll(moveOneSquareForward(posn, helper[getColour().ordinal()], checkRestriction, isInCheck));
-		moves.addAll(moveTwoSquaresForward(posn, helper[getColour().ordinal()], checkRestriction, isInCheck));
-		moves.addAll(captureLeft(posn, helper[getColour().ordinal()], checkRestriction, isInCheck));
-		moves.addAll(captureRight(posn, helper[getColour().ordinal()], checkRestriction, isInCheck));
+		moves.addAll(calculateForwardMoves(posn, posnInfo, helper[getColour().ordinal()], checkRestriction, isInCheck));
+		moves.addAll(captureLeft(posn, posnInfo, helper[getColour().ordinal()], checkRestriction, isInCheck));
+		moves.addAll(captureRight(posn, posnInfo, helper[getColour().ordinal()], checkRestriction, isInCheck));
 
 		return moves;
 	}
 
 	@Override
-	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
-			Move move,
+	public boolean doesMoveLeaveOpponentInCheck(Move move,
+			Piece[] pieces,
 			Square opponentsKing,
-			@SuppressWarnings("unused") BitSetUnifier emptySquares,
-			PositionCheckState checkCache,
-			@SuppressWarnings("unused") SquareCache<Boolean> discoveredCheckCache) {
-
-		if (checkIfCheckInternal(posn, move, opponentsKing, checkCache, helper[getColour().ordinal()])) {
-			return new CheckInformation(move.getPiece(), move.to());
-		}
-		// if it's already check, don't need to calculate discovered check
-
-		// probably not worth caching discovered check results for pawns
-		if (Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing)) {
-			return new CheckInformation(true);
+			BitBoard[] checkingBitboards) {
+		if (move.isPromotion()) {
+			return pieces[move.getPromotedPiece().ordinal()].doesMoveLeaveOpponentInCheck(move, pieces, opponentsKing, checkingBitboards);
 		} else {
-			return CheckInformation.NOT_CHECK;
+			return helper[getColour().ordinal()].doesPawnAttackSquare(opponentsKing, move.to());
 		}
 	}
 
-	/**
-	 * Generates pawn moves one-square forwards.
-	 *
-	 * @param posn state of the board
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkRestriction info about the squares which come into consideration (e.g. when in check). Normally all are
-	 *           allowed.
-	 * @return list of moves found by this method
-	 */
-	private List<Move> moveOneSquareForward(Position posn,
+	private List<Move> calculateForwardMoves(Position posn,
+			PositionInfo posnInfo,
 			MoveHelper helper,
 			BitBoard checkRestriction,
 			boolean isInCheck) {
 
-		// one square forward: shift by 8 and check if empty square
-		BitSetUnifier oneSquareForward = moveOneSquareForwardAndCheckForEmptySquare(pieces.getBitSet(), posn.getTotalPieces().getBitSet(),
-				helper, checkRestriction, isInCheck);
-		return generateOneSquareForwardMoves(oneSquareForward, helper);
-	}
+		BitSetUnifier pawnsMinusPinnedPawns = pieces.cloneBitSet();
+		// remove pinned pawns -- pinned if the pin ray is not north/south
+		posnInfo.getPinnedPieces().stream()
+				.filter(pi -> pi.getPiece() == PieceType.PAWN)
+				.filter(pi -> !pi.getRay().isVertical())
+				.forEach(pi -> pawnsMinusPinnedPawns.clear(pi.getBitIndex()));
 
-	/**
-	 * Generates pawn moves two-squares forwards.
-	 *
-	 * @param posn state of the board
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkRestriction info about the squares which come into consideration (e.g. when in check). Normally all are
-	 *           allowed.
-	 * @return list of moves found by this method
-	 */
-	private List<Move> moveTwoSquaresForward(Position posn,
-			MoveHelper helper,
-			BitBoard checkRestriction,
-			boolean isInCheck) {
-
-		BitSetUnifier twoSquaresForward = moveTwoSquaresForwardAndCheckForEmptySquare(pieces.getBitSet(), posn.getTotalPieces().getBitSet(),
-				helper, checkRestriction, isInCheck);
-		return generateTwoSquareForwardMoves(twoSquaresForward, helper);
-	}
-
-	/**
-	 * Shifts the pieces in 'pieces' one square 'forward', removing any which do not land on an empty square.
-	 *
-	 * @param pieces the pawns bitset
-	 * @param totalPieces total pieces
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkRestriction a bitboard of squares which come into consideration (e.g. when in check). Normally all are
-	 *           allowed.
-	 * @return a bitset of all pawns, moved forward one square.
-	 */
-	private BitSetUnifier moveOneSquareForwardAndCheckForEmptySquare(BitSetUnifier pieces,
-			BitSetUnifier totalPieces,
-			MoveHelper helper,
-			BitBoard checkRestriction,
-			boolean isInCheck) {
-		BitSetUnifier oneSquareForward = helper.moveOneRank(pieces);
-		oneSquareForward.andNot(totalPieces); // move must be to an empty square
+		BitSetUnifier tmpBits = helper.moveOneRank(pawnsMinusPinnedPawns);
+		tmpBits.andNot(posn.getTotalPieces().getBitSet()); // move must be to an empty square
+		// clone tmpBits, to be able to carry on using it for 2 squares forward
+		var oneSquareForward = ((BitSetUnifier) tmpBits.clone());
 		if (isInCheck) {
 			oneSquareForward.and(checkRestriction.getBitSet()); // respect square restrictions
 		}
-		return oneSquareForward;
-	}
 
-	/**
-	 * Shifts the pieces in 'pieces' two squares 'forward', removing any which do not land on an empty square.
-	 *
-	 * @param pieces the pawns bitset
-	 * @param totalPieces total pieces
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @param checkRestriction the squares which come into consideration (e.g. when in check). Normally all are allowed.
-	 * @return a bitset of all pawns, moved forward two squares.
-	 */
-	private BitSetUnifier moveTwoSquaresForwardAndCheckForEmptySquare(BitSetUnifier pieces,
-			BitSetUnifier totalPieces,
-			MoveHelper helper,
-			BitBoard checkRestriction,
-			boolean isInCheck) {
-		BitSetUnifier twoSquaresForward = helper.moveOneRank(pieces);
-		twoSquaresForward.andNot(totalPieces); // move must be to an empty square
-		//TODO could rewrite as move two ranks
-		// and then apply 4th rank / square restriction
-		// and then check that 3rd rank was empty
-		twoSquaresForward = helper.moveOneRank(twoSquaresForward);
-		twoSquaresForward.andNot(totalPieces); // move must be to an empty square
+		var twoSquaresForward = helper.moveOneRank(tmpBits);
+		twoSquaresForward.andNot(posn.getTotalPieces().getBitSet()); // move must be to an empty square
 		// just take the pawns now on the 4th rank (relative to colour), since only these can have moved two squares
 		twoSquaresForward.and(helper.fourthRank());
 		if (isInCheck) {
 			twoSquaresForward.and(checkRestriction.getBitSet()); // respect square restrictions
 		}
-		return twoSquaresForward;
+
+		List<Move> moves = new ArrayList<>();
+		moves.addAll(generateOneSquareForwardMoves(oneSquareForward, helper));
+		moves.addAll(generateTwoSquareForwardMoves(twoSquaresForward, helper));
+		return moves;
 	}
 
 	/**
@@ -316,7 +250,7 @@ public class Pawn extends AbstractBitBoardPiece {
 	}
 
 	/**
-	 * generates pawn moves from the given bitset. This only contains pawns which have moved two squares forward to a
+	 * generates pawn moves from the given bitset. This should only contain pawns which have moved two squares forward to a
 	 * non-empty square.
 	 *
 	 * @param twoSquaresForward the bitset containing the pawns
@@ -337,6 +271,7 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * Helper method to check for captures 'left' or 'right'.
 	 *
 	 * @param position state of the board
+	 * @param clonedPieces an already cloned bitset of the pawns (pinned pawns could already be removed here)
 	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
 	 * @param captureLeft if true, check for captures 'left'. Otherwise, 'right'.
 	 * @param checkRestriction info about the squares which come into consideration (e.g. when in check). Normally all are
@@ -344,6 +279,7 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @return list of moves found by this method
 	 */
 	private List<Move> capture(Position position,
+			BitSetUnifier clonedPieces,
 			MoveHelper helper,
 			boolean captureLeft,
 			BitBoard checkRestriction,
@@ -352,9 +288,9 @@ public class Pawn extends AbstractBitBoardPiece {
 		BitSetUnifier captures;
 		// generate bitset of pawn captures
 		if (captureLeft) {
-			captures = helper.pawnCaptureLeft(pieces.cloneBitSet());
+			captures = helper.pawnCaptureLeft(clonedPieces);
 		} else {
-			captures = helper.pawnCaptureRight(pieces.cloneBitSet());
+			captures = helper.pawnCaptureRight(clonedPieces);
 		}
 
 		BitBoard opponentsPieces = position.getAllPieces(Colour.oppositeColour(helper.getColour()));
@@ -425,10 +361,18 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @return list of moves found by this method
 	 */
 	private List<Move> captureLeft(Position chessboard,
+			PositionInfo posnInfo,
 			MoveHelper helper,
 			BitBoard checkRestriction,
 			boolean isInCheck) {
-		return capture(chessboard, helper, true, checkRestriction, isInCheck);
+		BitSetUnifier pawnsMinusPinnedPawns = pieces.cloneBitSet();
+		// remove pinned pawns -- pinned if not pinned along the direction of the capture or its opposite
+		posnInfo.getPinnedPieces().stream()
+				.filter(pi -> pi.getPiece() == PieceType.PAWN)
+				.filter(pi -> !helper.isCaptureLeftRayOrOpposite(pi.getRay()))
+				.forEach(pi -> pawnsMinusPinnedPawns.clear(pi.getBitIndex()));
+
+		return capture(chessboard, pawnsMinusPinnedPawns, helper, true, checkRestriction, isInCheck);
 	}
 
 	/**
@@ -441,50 +385,19 @@ public class Pawn extends AbstractBitBoardPiece {
 	 * @return list of moves found by this method
 	 */
 	private List<Move> captureRight(Position chessboard,
+			PositionInfo posnInfo,
 			MoveHelper helper,
 			BitBoard checkRestriction,
 			boolean isInCheck) {
-		return capture(chessboard, helper, false, checkRestriction, isInCheck);
-	}
 
-	/**
-	 * Calculates if the given move leaves the opponent's king in check.
-	 *
-	 * @param posn the board
-	 * @param move the pawn move
-	 * @param opponentsKing square of the opponent's king
-	 * @param checkCache stores whether a particular square checks the opponents king. Only for B/R/Q.
-	 * @param helper distinguishes between white and black sides, since the pawns move in different directions
-	 * @return true if this move leaves the king in check
-	 */
-	private boolean checkIfCheckInternal(Position posn,
-			Move move,
-			Square opponentsKing,
-			PositionCheckState checkCache,
-			MoveHelper helper) {
-		if (move.isPromotion()) {
-			if (move.getPromotedPiece() == PieceType.KNIGHT) {
-				return Knight.checkIfMoveAttacksSquare(move, opponentsKing.bitIndex());
-			} else {
-				BitSetUnifier emptySquares = (BitSetUnifier) posn.getEmptySquares().clone(); // need a clone, since changing it hereafter
-				emptySquares.set(move.from().bitIndex());
-				emptySquares.clear(move.to().bitIndex());
+		BitSetUnifier pawnsMinusPinnedPawns = pieces.cloneBitSet();
+		// remove pinned pawns -- pinned if not pinned along the direction of the capture or its opposite
+		posnInfo.getPinnedPieces().stream()
+				.filter(pi -> pi.getPiece() == PieceType.PAWN)
+				.filter(pi -> !helper.isCaptureRightRayOrOpposite(pi.getRay()))
+				.forEach(pi -> pawnsMinusPinnedPawns.clear(pi.getBitIndex()));
 
-				PieceType promotedPiece = move.getPromotedPiece();
-				switch (promotedPiece) {
-				case QUEEN:
-					return Queen.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, move.isCapture(), move.isPromotion());
-				case ROOK:
-					return Rook.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, move.isCapture(), move.isPromotion());
-				case BISHOP:
-					return Bishop.attacksSquare(emptySquares, move.to(), opponentsKing, checkCache, move.isCapture(), move.isPromotion());
-				default:
-					throw new IllegalArgumentException("promotedPiece=" + promotedPiece);
-				}
-			}
-		} else {
-			return helper.doesPawnAttackSquare(opponentsKing, move.to());
-		}
+		return capture(chessboard, pawnsMinusPinnedPawns, helper, false, checkRestriction, isInCheck);
 	}
 
 	@Override
@@ -613,6 +526,19 @@ public class Pawn extends AbstractBitBoardPiece {
 		 */
 		int captureLeftOffset();
 
+		/**
+		 * Returns true if the given ray matches the ray reflecting a capture 'left' or its opposite.
+		 *
+		 * @param true if the ray is the capture left ray (or its opposite)
+		 */
+		boolean isCaptureLeftRayOrOpposite(RayType ray);
+
+		/**
+		 * Returns true if the given ray matches the ray reflecting a capture 'right' or its opposite.
+		 *
+		 * @param true if the ray is the capture right ray (or its opposite)
+		 */
+		boolean isCaptureRightRayOrOpposite(RayType ray);
 	}
 
 	/**
@@ -724,6 +650,16 @@ public class Pawn extends AbstractBitBoardPiece {
 			return -7;
 		}
 
+		@Override
+		public boolean isCaptureLeftRayOrOpposite(RayType ray) {
+			return ray == RayType.NORTHWEST || ray == RayType.SOUTHEAST;
+		}
+
+		@Override
+		public boolean isCaptureRightRayOrOpposite(RayType ray) {
+			return ray == RayType.NORTHEAST || ray == RayType.SOUTHWEST;
+		}
+
 	}
 
 	/**
@@ -833,6 +769,16 @@ public class Pawn extends AbstractBitBoardPiece {
 		@Override
 		public int captureLeftOffset() {
 			return 9;
+		}
+
+		@Override
+		public boolean isCaptureLeftRayOrOpposite(RayType ray) {
+			return ray == RayType.SOUTHWEST || ray == RayType.NORTHEAST;
+		}
+
+		@Override
+		public boolean isCaptureRightRayOrOpposite(RayType ray) {
+			return ray == RayType.SOUTHEAST || ray == RayType.NORTHWEST;
 		}
 	}
 

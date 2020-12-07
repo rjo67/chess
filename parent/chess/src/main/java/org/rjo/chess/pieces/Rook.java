@@ -9,19 +9,15 @@ import java.util.Map;
 
 import org.rjo.chess.base.Colour;
 import org.rjo.chess.base.Move;
-import org.rjo.chess.base.Move.CheckInformation;
 import org.rjo.chess.base.PieceType;
 import org.rjo.chess.base.Square;
-import org.rjo.chess.base.SquareCache;
 import org.rjo.chess.base.bits.BitBoard;
 import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.chess.base.bits.BitValueCalculator;
 import org.rjo.chess.base.ray.RayType;
-import org.rjo.chess.base.ray.RayUtils;
 import org.rjo.chess.position.Position;
 import org.rjo.chess.position.PositionCheckState;
 import org.rjo.chess.position.PositionInfo;
-import org.rjo.chess.position.check.KingCheck;
 
 /**
  * Stores information about the rooks in the game.
@@ -346,51 +342,39 @@ public class Rook extends SlidingPiece {
 
 	@Override
 	public List<Move> findMoves(Position posn,
-			CheckInformation kingInCheck,
-			PositionInfo boardInfo) {
+			boolean kingInCheck,
+			PositionInfo posnInfo) {
 		List<Move> moves = new ArrayList<>(30);
 
-		for (RayType rayType : new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST }) {
-			moves.addAll(search(posn, RayUtils.getRay(rayType), boardInfo.getSquaresToBlockCheck(), boardInfo.isKingInCheck()));
-		}
+		// search for each piece in all directions (unless pinned, in which case can limit the rays searched)
 
-		// make sure king is not/no longer in check
-		Square myKing = posn.getKingPosition(colour);
-		Colour opponentsColour = Colour.oppositeColour(colour);
-		moves.removeIf(move -> KingCheck.isKingInCheck(posn, move, opponentsColour, myKing, kingInCheck.isCheck()));
+		for (int indexOfPiece = pieces.getBitSet().nextSetBit(0); indexOfPiece >= 0; indexOfPiece = pieces.getBitSet()
+				.nextSetBit(indexOfPiece + 1)) {
+			RayType[] raysToSearch;
+			var pinnedPiece = posnInfo.isPiecePinned(PieceType.ROOK, Square.fromBitIndex(indexOfPiece));
+			if (pinnedPiece.isPresent()) {
+				// if pinned diagonally, can't move
+				if (pinnedPiece.get().getRay().isDiagonal()) {
+					continue;
+				}
+				// search only the pinned ray and its opposite
+				raysToSearch = new RayType[2];
+				raysToSearch[0] = pinnedPiece.get().getRay();
+				raysToSearch[1] = pinnedPiece.get().getRay().getOpposite();
+			} else {
+				raysToSearch = new RayType[] { RayType.NORTH, RayType.EAST, RayType.SOUTH, RayType.WEST };
+			}
+			moves.addAll(searchByPiece(posn, indexOfPiece, posnInfo, raysToSearch));
+		}
 		return moves;
 	}
 
 	@Override
-	public CheckInformation isOpponentsKingInCheckAfterMove(Position posn,
-			Move move,
-			Square opponentsKing,
-			BitSetUnifier emptySquares,
-			PositionCheckState checkCache,
-			SquareCache<Boolean> discoveredCheckCache) {
-
-		if (findRankOrFileCheck(posn, emptySquares, move, opponentsKing, checkCache)) {
-			return new CheckInformation(move.getPiece(), move.to());
-		}
-		// if it's already check, don't need to calculate discovered check
-
-		/*
-		 * most moves have the same starting square. If we've already checked for discovered check for this square, then can use
-		 * the cached result. (Discovered check only looks along one ray from move.from() to the opponent's king.)
-		 */
-		boolean isCheck;
-		Boolean lookup = discoveredCheckCache.lookup(move.from());
-		if (lookup != null) {
-			isCheck = lookup;
-		} else {
-			isCheck = Position.checkForDiscoveredCheck(posn, move, getColour(), opponentsKing);
-			discoveredCheckCache.store(move.from(), isCheck);
-		}
-		if (isCheck) {
-			return new CheckInformation(true);
-		} else {
-			return CheckInformation.NOT_CHECK;
-		}
+	public boolean doesMoveLeaveOpponentInCheck(Move move,
+			@SuppressWarnings("unused") Piece[] pieces,
+			@SuppressWarnings("unused") Square opponentsKing,
+			BitBoard[] checkingBitboards) {
+		return checkingBitboards[0].get(move.to().bitIndex());
 	}
 
 	@Override

@@ -22,14 +22,15 @@ public class Move {
 	private final Colour colour;
 
 	/**
-	 * capture info -- if not null, implies that this move was a capture
+	 * captured piece -- null if non-capture, otherwise implies that this move was a
+	 * capture
 	 */
-	private final CaptureInfo captureInfo;
+	private PieceType capturedPiece;
 
 	/**
 	 * whether this move was a check. Cannot be null.
 	 */
-	private CheckInformation check;
+	private boolean check;
 
 	/**
 	 * castling info -- if not null, implies that this move was 0-0 or 0-0-0
@@ -42,9 +43,10 @@ public class Move {
 	private CastlingRightsInfo castlingRightsInfo;
 
 	/**
-	 * if promotion info -- if not null, implies that this move was a promotion
+	 * if promotion info -- null if non-promotion, otherwise implies that this move
+	 * was a promotion
 	 */
-	private PromotionInfo promotionInfo;
+	private PieceType promotedPiece;
 
 	/**
 	 * true if enpassant move
@@ -52,12 +54,18 @@ public class Move {
 	private boolean enpassant;
 
 	/**
+	 * Set to the square where the pawn was, which has just been captured enpassant.
+	 * See {@link Square#findMoveFromEnpassantSquare(Square)}.
+	 */
+	private Square pawnCapturedEnpassant;
+
+	/**
 	 * Constructor for normal non-capture non-check moves.
 	 *
-	 * @param piece which piece is moving
+	 * @param piece  which piece is moving
 	 * @param colour colour of moving piece
-	 * @param from start square
-	 * @param to destination square
+	 * @param from   start square
+	 * @param to     destination square
 	 */
 	public Move(PieceType piece, Colour colour, Square from, Square to) {
 		this(piece, colour, from, to, null);
@@ -66,10 +74,10 @@ public class Move {
 	/**
 	 * Constructor allowing specification of capture (non-check) moves.
 	 *
-	 * @param piece which piece is moving
-	 * @param colour colour of moving piece
-	 * @param from start square
-	 * @param to destination square
+	 * @param piece         which piece is moving
+	 * @param colour        colour of moving piece
+	 * @param from          start square
+	 * @param to            destination square
 	 * @param capturedPiece the captured piece (null if not a capture)
 	 */
 	public Move(PieceType piece, Colour colour, Square from, Square to, PieceType capturedPiece) {
@@ -79,20 +87,20 @@ public class Move {
 	/**
 	 * Constructor allowing specification of capture and check moves.
 	 *
-	 * @param piece which piece is moving
-	 * @param colour colour of moving piece
-	 * @param from start square
-	 * @param to destination square
+	 * @param piece         which piece is moving
+	 * @param colour        colour of moving piece
+	 * @param from          start square
+	 * @param to            destination square
 	 * @param capturedPiece info about a captured piece (can be null)
-	 * @param check whether this move is a check
+	 * @param check         whether this move is a check
 	 */
 	public Move(PieceType piece, Colour colour, Square from, Square to, PieceType capturedPiece, boolean check) {
 		this.piece = piece;
 		this.colour = colour;
 		this.from = from;
 		this.to = to;
-		this.captureInfo = (capturedPiece != null) ? new CaptureInfo(capturedPiece) : null;
-		this.check = check ? new CheckInformation(piece, to) : CheckInformation.NOT_CHECK;
+		this.capturedPiece = capturedPiece;
+		this.check = check;
 		this.castlingInfo = null;
 		this.enpassant = false;
 		this.castlingRightsInfo = new CastlingRightsInfo();
@@ -101,14 +109,18 @@ public class Move {
 	/**
 	 * Sets the promotion piece i/c of a pawn promotion.
 	 *
-	 * @param type to which piece the pawn gets promoted
+	 * @param promotedPieceType to which piece the pawn gets promoted
 	 */
-	public void setPromotionPiece(PieceType type) {
+	public void setPromotionPiece(PieceType promotedPieceType) {
 		if (piece != PieceType.PAWN) {
 			throw new IllegalArgumentException("can only specify a promotion piece for a pawn move");
 		}
 
-		this.promotionInfo = new PromotionInfo(type);
+		if (promotedPieceType == PieceType.PAWN || promotedPieceType == PieceType.KING) {
+			throw new IllegalArgumentException("cannot promote to a pawn or king!");
+		}
+
+		this.promotedPiece = promotedPieceType;
 	}
 
 	@Override
@@ -125,9 +137,9 @@ public class Move {
 			sb.append(from);
 			sb.append(isCapture() ? "x" : "-");
 			sb.append(to);
-			sb.append(isPromotion() ? "=" + promotionInfo.promotedPiece.getSymbol() : "");
+			sb.append(isPromotion() ? "=" + promotedPiece.getSymbol() : "");
 		}
-		sb.append(check.isCheck() ? "+" : "");
+		sb.append(check ? "+" : "");
 		return sb.toString();
 	}
 
@@ -145,10 +157,12 @@ public class Move {
 		Move move;
 		if (Colour.WHITE == colour) {
 			move = new Move(PieceType.KING, Colour.WHITE, Square.e1, Square.g1);
-			move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(PieceType.ROOK, Colour.WHITE, Square.h1, Square.f1));
+			move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE,
+					new Move(PieceType.ROOK, Colour.WHITE, Square.h1, Square.f1));
 		} else {
 			move = new Move(PieceType.KING, Colour.BLACK, Square.e8, Square.g8);
-			move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE, new Move(PieceType.ROOK, Colour.BLACK, Square.h8, Square.f8));
+			move.castlingInfo = new CastlingInfo(CastlingRights.KINGS_SIDE,
+					new Move(PieceType.ROOK, Colour.BLACK, Square.h8, Square.f8));
 		}
 		return move;
 	}
@@ -157,53 +171,46 @@ public class Move {
 		Move move;
 		if (Colour.WHITE == colour) {
 			move = new Move(PieceType.KING, Colour.WHITE, Square.e1, Square.c1);
-			move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(PieceType.ROOK, Colour.WHITE, Square.a1, Square.d1));
+			move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE,
+					new Move(PieceType.ROOK, Colour.WHITE, Square.a1, Square.d1));
 		} else {
 			move = new Move(PieceType.KING, Colour.BLACK, Square.e8, Square.c8);
-			move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE, new Move(PieceType.ROOK, Colour.BLACK, Square.a8, Square.d8));
+			move.castlingInfo = new CastlingInfo(CastlingRights.QUEENS_SIDE,
+					new Move(PieceType.ROOK, Colour.BLACK, Square.a8, Square.d8));
 		}
 		return move;
 	}
 
-	public static Move enpassant(Colour colour,
-			Square from,
-			Square to) {
+	public static Move enpassant(Colour colour, Square from, Square to) {
 		Move move = new Move(PieceType.PAWN, colour, from, to, PieceType.PAWN);
 		move.enpassant = true;
+		move.pawnCapturedEnpassant = Square.findMoveFromEnpassantSquare(to);
 		return move;
 	}
 
-	public void setCheck(boolean check) {
-		if (check) {
-			setCheck(new CheckInformation(this.piece, this.to));
-		} else {
-			setCheck(CheckInformation.NOT_CHECK);
-		}
-	}
-
-	public CheckInformation getCheckInformation() {
-		return this.check;
-	}
-
-	public void setCheck(CheckInformation checkInfo) {
+	public void setCheck(boolean checkInfo) {
 		this.check = checkInfo;
 	}
 
 	public boolean isCheck() {
-		return this.check.isCheck();
+		return this.check;
 	}
 
 	public boolean isCapture() {
-		return captureInfo != null;
+		return capturedPiece != null;
 	}
 
 	public boolean isEnpassant() {
 		return enpassant;
 	}
 
+	public Square getPawnCapturedEnpassant() {
+		return pawnCapturedEnpassant;
+	}
+
 	public PieceType getCapturedPiece() {
 		if (isCapture()) {
-			return captureInfo.capturedPiece;
+			return capturedPiece;
 		} else {
 			throw new IllegalArgumentException("move was not a capture: " + toString());
 		}
@@ -213,7 +220,11 @@ public class Move {
 	 * true if this move represents a pawn promotion.
 	 */
 	public boolean isPromotion() {
-		return promotionInfo != null;
+		return promotedPiece != null;
+	}
+
+	public PieceType getPromotedPiece() {
+		return promotedPiece;
 	}
 
 	public boolean isCastleKingsSide() {
@@ -246,10 +257,6 @@ public class Move {
 		return colour;
 	}
 
-	public PieceType getPromotedPiece() {
-		return (promotionInfo != null) ? promotionInfo.promotedPiece : null;
-	}
-
 	public Square from() {
 		return from;
 	}
@@ -259,8 +266,8 @@ public class Move {
 	}
 
 	/**
-	 * Set the castling rights previous to this move. This should always be filled for a king or a rook move, and can be
-	 * filled for other moves.
+	 * Set the castling rights previous to this move. This should always be filled
+	 * for a king or a rook move, and can be filled for other moves.
 	 *
 	 * @param previousCastlingRights
 	 */
@@ -273,7 +280,8 @@ public class Move {
 	}
 
 	/**
-	 * Use this to find out if the previousCastlingRights have been set, prior to calling getPreviousCastlingRights.
+	 * Use this to find out if the previousCastlingRights have been set, prior to
+	 * calling getPreviousCastlingRights.
 	 *
 	 * @return
 	 */
@@ -282,8 +290,8 @@ public class Move {
 	}
 
 	/**
-	 * Set the castling rights FOR THE OPPONENT previous to this move. This should be filled for a move which affects a1,
-	 * a8, h1, h8.
+	 * Set the castling rights FOR THE OPPONENT previous to this move. This should
+	 * be filled for a move which affects a1, a8, h1, h8.
 	 *
 	 * @param previousCastlingRights
 	 */
@@ -296,8 +304,8 @@ public class Move {
 	}
 
 	/**
-	 * Use this to find out if the previousCastlingRightsOpponent have been set, prior to calling
-	 * getPreviousCastlingRightsOpponent.
+	 * Use this to find out if the previousCastlingRightsOpponent have been set,
+	 * prior to calling getPreviousCastlingRightsOpponent.
 	 *
 	 * @return
 	 */
@@ -306,8 +314,8 @@ public class Move {
 	}
 
 	/**
-	 * Returns true if this move was a pawn move of two squares forward. This implies a potential enpassant move for the
-	 * opponent.
+	 * Returns true if this move was a pawn move of two squares forward. This
+	 * implies a potential enpassant move for the opponent.
 	 *
 	 * @return true if this move was a pawn move of two squares forward.
 	 */
@@ -333,71 +341,20 @@ public class Move {
 	}
 
 	/**
-	 * information about which piece is checking the king after this move.
-	 */
-	public static class CheckInformation {
-
-		/**
-		 * object used when 'check'.
-		 */
-		public final static CheckInformation CHECK;
-
-		/**
-		 * object used when 'not check'.
-		 */
-		public final static CheckInformation NOT_CHECK;
-
-		static {
-			CHECK = new CheckInformation();
-			CHECK.check = true;
-			NOT_CHECK = new CheckInformation();
-			NOT_CHECK.check = false;
-		}
-
-		private boolean check;
-		private PieceType checkingPiece;
-		private Square checkingSquare;
-		private boolean discoveredCheck;
-
-		private CheckInformation() {
-		}
-
-		public CheckInformation(PieceType piece, Square square) {
-			this.checkingPiece = piece;
-			this.checkingSquare = square;
-			this.check = true;
-		}
-
-		public CheckInformation(boolean discoveredCheck) {
-			this.discoveredCheck = discoveredCheck;
-		}
-
-		public boolean isCheck() {
-			return check || discoveredCheck;
-		}
-
-		public PieceType getCheckingPiece() {
-			return checkingPiece;
-		}
-
-		public Square getCheckingSquare() {
-			return checkingSquare;
-		}
-	}
-
-	/**
 	 * Information about the 'castling rights' for each player before this move.
 	 */
 	private static class CastlingRightsInfo {
 		/**
-		 * Stores castling rights BEFORE this move. To enable unmove. Value gets set for each king and rook move. and for each
-		 * (opponent's) move which has target square a1, a8, h1, or h8.
+		 * Stores castling rights BEFORE this move. To enable unmove. Value gets set for
+		 * each king and rook move. and for each (opponent's) move which has target
+		 * square a1, a8, h1, or h8.
 		 */
 		private CastlingRightsSummary previousCastlingRights;
 
 		/**
-		 * Stores castling rights of the OPPONENT BEFORE this move. To enable unmove. Value gets set for moves such as Nb6xa8
-		 * (target squares a1, a8, h1, or h8), when the opponent can no longer castle on this side.
+		 * Stores castling rights of the OPPONENT BEFORE this move. To enable unmove.
+		 * Value gets set for moves such as Nb6xa8 (target squares a1, a8, h1, or h8),
+		 * when the opponent can no longer castle on this side.
 		 */
 		private CastlingRightsSummary previousCastlingRightsOpponent;
 
@@ -422,25 +379,6 @@ public class Move {
 			return previousCastlingRightsOpponent;
 		}
 
-	}
-
-	private static class CaptureInfo {
-		private PieceType capturedPiece;
-
-		public CaptureInfo(PieceType capturedPiece) {
-			this.capturedPiece = capturedPiece;
-		}
-	}
-
-	private static class PromotionInfo {
-		private PieceType promotedPiece;
-
-		public PromotionInfo(PieceType promotedPiece) {
-			if (promotedPiece == PieceType.PAWN || promotedPiece == PieceType.KING) {
-				throw new IllegalArgumentException("cannot promote to a pawn or king!");
-			}
-			this.promotedPiece = promotedPiece;
-		}
 	}
 
 }
