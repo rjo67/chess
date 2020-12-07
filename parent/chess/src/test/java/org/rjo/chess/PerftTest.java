@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.rjo.chess.base.Colour;
@@ -65,6 +66,7 @@ import org.rjo.chess.position.Game;
  * @see 'http://www.rocechess.ch/perft.html'
  * @see 'https://sites.google.com/site/numptychess/perft'
  */
+@EnabledIfEnvironmentVariable(named = "enablePerft", matches = "true")
 public class PerftTest {
 
 	/**
