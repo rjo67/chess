@@ -8,6 +8,7 @@
 	<modules>
 		<module>base</module>
 		<module>chess</module>
+		<module>newchess</module>
 		<module>eval</module>
 		<module>uci</module>
 	</modules>
