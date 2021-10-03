@@ -2,13 +2,9 @@ package org.rjo.newchess.game;
 
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.piece.Colour;
-import org.rjo.newchess.piece.Piece;
 import org.rjo.newchess.piece.PieceType;
 
 public class Game {
-
-   /** all pieces, keyed by colour and piece-type */
-   private Piece[][] pieces;
 
    private Position posn;
 
@@ -16,31 +12,38 @@ public class Game {
       posn = new Position();
    }
 
-   private void addPiece(Colour colour, PieceType pieceType, int square) {
-      posn.addPiece(colour, pieceType, square);
-
-   }
-
+   /**
+    * creates a new 'game' with the normal starting position.
+    */
    public static Game create() {
       Game g = new Game();
 
-      g.pieces = new Piece[2][PieceType.DIFFERENT_PIECE_TYPES];
-
       // white pieces
       g.posn.addPiece(Colour.WHITE, PieceType.QUEEN, Square.d1);
-
+      g.posn.addPiece(Colour.WHITE, PieceType.KING, Square.e1);
+      g.posn.addPiece(Colour.WHITE, PieceType.BISHOP, Square.c1);
+      g.posn.addPiece(Colour.WHITE, PieceType.BISHOP, Square.f1);
+      g.posn.addPiece(Colour.WHITE, PieceType.KNIGHT, Square.b1);
+      g.posn.addPiece(Colour.WHITE, PieceType.KNIGHT, Square.g1);
+      g.posn.addPiece(Colour.WHITE, PieceType.ROOK, Square.a1);
+      g.posn.addPiece(Colour.WHITE, PieceType.ROOK, Square.h1);
+      for (Square sq : new Square[] { Square.a2, Square.b2, Square.c2, Square.d2, Square.e2, Square.f2, Square.g2, Square.h2 }) {
+         g.posn.addPiece(Colour.WHITE, PieceType.PAWN, sq);
+      }
       // black pieces
       g.posn.addPiece(Colour.BLACK, PieceType.QUEEN, Square.d8);
+      g.posn.addPiece(Colour.BLACK, PieceType.KING, Square.e8);
+      g.posn.addPiece(Colour.BLACK, PieceType.BISHOP, Square.c8);
+      g.posn.addPiece(Colour.BLACK, PieceType.BISHOP, Square.f8);
+      g.posn.addPiece(Colour.BLACK, PieceType.KNIGHT, Square.b8);
+      g.posn.addPiece(Colour.BLACK, PieceType.KNIGHT, Square.g8);
+      g.posn.addPiece(Colour.BLACK, PieceType.ROOK, Square.a8);
+      g.posn.addPiece(Colour.BLACK, PieceType.ROOK, Square.h8);
+      for (Square sq : new Square[] { Square.a7, Square.b7, Square.c7, Square.d7, Square.e7, Square.f7, Square.g7, Square.h7 }) {
+         g.posn.addPiece(Colour.BLACK, PieceType.PAWN, sq);
+      }
 
       return g;
-   }
-
-   public Piece[] getAllPieces(Colour colour) {
-      return pieces[colour.ordinal()];
-   }
-
-   public Piece getQueenInfo(Colour colour) {
-      return pieces[colour.ordinal()][PieceType.QUEEN.ordinal()];
    }
 
    public Position getPosition() {

@@ -13,12 +13,13 @@ public class Position {
 
    /**
     * <ul>
-    * <li>bits 6-7 - colour of occupying piece, see Colour</li>
+    * <li>bits 6-7 - colour of occupying piece, or unoccupied, see Colour</li>
     * <li>bits 1-3 - identifies the piece, see PieceType.</li>
     * </ul>
     */
    int[] board;
    boolean[][] castlingRights; // 1st dimension: W/B, 2nd dimension: 0 - king's side, 1 - queen's side
+   private Square enpassantSquare; // set if previous move was a pawn moving 2 squares forward
 
    public Position() {
       this(new boolean[2][2]);
@@ -26,6 +27,9 @@ public class Position {
 
    public Position(boolean[][] castlingRights) {
       this.board = new int[64];
+      for (int i = 0; i < 64; i++) {
+         board[i] = BIT_6 * Colour.UNOCCUPIED.ordinal();
+      }
       this.castlingRights = castlingRights;
    }
 
@@ -51,19 +55,27 @@ public class Position {
    }
 
    public boolean canCastleKingsside(Colour col) {
-      return castlingRights[col.ordinal() - 1][0];
+      return castlingRights[col.ordinal()][0];
    }
 
    public boolean canCastleQueensside(Colour col) {
-      return castlingRights[col.ordinal() - 1][1];
+      return castlingRights[col.ordinal()][1];
    }
 
    public void castleKingsside(Colour col) {
-      this.castlingRights[col.ordinal() - 1][0] = false;
+      this.castlingRights[col.ordinal()][0] = false;
    }
 
    public void castleQueensside(Colour col) {
-      this.castlingRights[col.ordinal() - 1][1] = false;
+      this.castlingRights[col.ordinal()][1] = false;
+   }
+
+   public void setEnpassantSquare(Square sq) {
+      this.enpassantSquare = sq;
+   }
+
+   public Square getEnpassantSquare() {
+      return enpassantSquare;
    }
 
    // delivers the 'raw' value of the square
@@ -80,4 +92,5 @@ public class Position {
       int val = squareValue & PIECE_MASK;
       return PieceType.convert(val);
    }
+
 }
