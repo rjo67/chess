@@ -20,12 +20,14 @@ public class PositionTest {
    @Test
    public void addPiece() {
       Position posn = new Position();
+      int sq = 0;
       for (Colour col : new Colour[] { Colour.WHITE, Colour.BLACK }) {
          for (PieceType pt : PieceType.values()) {
-            posn.addPiece(col, pt, 0);
-            assertTrue(!posn.isEmpty(0));
-            assertEquals(col, posn.colourOfPieceAt(0));
-            assertEquals(pt, posn.pieceAt(0));
+            posn.addPiece(col, pt, sq);
+            assertTrue(!posn.isEmpty(sq));
+            assertEquals(col, posn.colourOfPieceAt(sq));
+            assertEquals(pt, posn.pieceAt(sq));
+            sq++;
          }
       }
    }

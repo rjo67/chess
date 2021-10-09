@@ -17,6 +17,7 @@ public class Move {
    private int originSquareInfo; // in same format as stored in Position
    private int targetSquareInfo; // used in captures; in same format as stored in Position
    private final PieceType promotedPiece;
+   private boolean check; // whether this move is a check
 
    private Move(int origin, int originSquareInfo, int target, int targetSquareInfo, PieceType promotedPiece, boolean[] castling, boolean enPassant) {
       this.origin = origin;
@@ -67,17 +68,14 @@ public class Move {
          sb.append(Square.toSquare(origin));
          sb.append(isCapture() ? "x" : "-");
          sb.append(Square.toSquare(target));
-         if (isPromotion()) {
-            sb.append("=").append(promotedPiece.symbol(col));
-         }
-         if (isEnPassant()) {
-            sb.append(" ep");
-         }
+         if (promotion) { sb.append("=").append(promotedPiece.symbol(col)); }
+         if (enPassant) { sb.append(" ep"); }
+         if (check) { sb.append("+"); }
          return sb.toString();
       }
    }
 
-   private boolean isCapture() {
+   public boolean isCapture() {
       return capture;
    }
 
@@ -101,6 +99,14 @@ public class Move {
       return Position.decodePieceType(originSquareInfo);
    }
 
+   public int getOrigin() {
+      return origin;
+   }
+
+   public int getTarget() {
+      return target;
+   }
+
    public static Move kingssideCastle(Position posn, int origin) {
       return new Move(origin, posn.raw(origin), -1, -1, null, new boolean[] { true, false }, false);
    }
@@ -111,5 +117,9 @@ public class Move {
 
    public static Move enpassant(Position posn, int origin, int epSquare) {
       return new Move(origin, posn.raw(origin), epSquare, posn.raw(epSquare), null, new boolean[2], true);
+   }
+
+   public void setCheck() {
+      check = true;
    }
 }

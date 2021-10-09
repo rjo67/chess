@@ -7,9 +7,15 @@ import org.rjo.newchess.piece.PieceType;
 public class Game {
 
    private Position posn;
+   private int halfmoveClock;
+   private int moveNumber;
 
    private Game() {
-      posn = new Position();
+      this(new Position());
+   }
+
+   public Game(Position posn) {
+      this.posn = posn;
    }
 
    /**
@@ -43,10 +49,29 @@ public class Game {
          g.posn.addPiece(Colour.BLACK, PieceType.PAWN, sq);
       }
 
+      g.posn.setSideToMove(Colour.WHITE);
+      g.setHalfmoveClock(0);
+      g.setMoveNumber(1);
       return g;
    }
 
    public Position getPosition() {
       return posn;
+   }
+
+   public void setHalfmoveClock(Integer halfmoves) {
+      this.halfmoveClock = halfmoves;
+   }
+
+   public int getHalfmoveClock() {
+      return halfmoveClock;
+   }
+
+   public void setMoveNumber(Integer fullmoves) {
+      this.moveNumber = fullmoves;
+   }
+
+   public int getMoveNumber() {
+      return moveNumber;
    }
 }

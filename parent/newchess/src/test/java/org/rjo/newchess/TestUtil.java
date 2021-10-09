@@ -19,6 +19,9 @@ public class TestUtil {
    public final static Predicate<Move> KING_FILTER = (move -> move.getMovingPiece() == PieceType.KING);
    public final static Predicate<Move> PAWN_FILTER = (move -> move.getMovingPiece() == PieceType.PAWN);
    public final static Predicate<Move> KNIGHT_FILTER = (move -> move.getMovingPiece() == PieceType.KNIGHT);
+   public final static Predicate<Move> BISHOP_FILTER = (move -> move.getMovingPiece() == PieceType.BISHOP);
+   public final static Predicate<Move> ROOK_FILTER = (move -> move.getMovingPiece() == PieceType.ROOK);
+   public final static Predicate<Move> QUEEN_FILTER = (move -> move.getMovingPiece() == PieceType.QUEEN);
 
    private TestUtil() {
    }
@@ -32,15 +35,13 @@ public class TestUtil {
    }
 
    /**
-    * Checks that all <code>moves</code> are present in <code>requiredMoves</code>,
-    * and there aren't any superfluous moves in either collection.
+    * Checks that all <code>moves</code> are present in <code>requiredMoves</code>, and there aren't any superfluous moves
+    * in either collection.
     *
     * @param moves         the moves found
     * @param requiredMoves the required moves
-    * @param moveFilter    an optional predicate to further filter
-    *                      <code>moves</code>, e.g. in order to remove any king
-    *                      moves if we're only interested in pawn moves. Will be
-    *                      negated in use.
+    * @param moveFilter    an optional predicate to further filter <code>moves</code>, e.g. in order to just concentrate on
+    *                      pawn moves
     */
    private static void checkMoves(List<Move> moves, Set<String> requiredMoves, Predicate<Move> moveFilter) {
 
@@ -52,7 +53,7 @@ public class TestUtil {
          if (requiredMoves.contains(m.toString())) {
             requiredMoves.remove(m.toString());
             iter.remove();
-         } else if (moveFilter.negate().test(m)) {
+         } else if (!moveFilter.test(m)) {
             iter.remove();
          }
       }

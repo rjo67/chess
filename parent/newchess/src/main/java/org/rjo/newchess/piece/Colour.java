@@ -3,8 +3,15 @@ package org.rjo.newchess.piece;
 public enum Colour {
    WHITE, BLACK, UNOCCUPIED;
 
+   static {
+      WHITE.opposite = BLACK;
+      BLACK.opposite = WHITE;
+   }
+
+   private Colour opposite;
+
    public boolean opposes(Colour other) {
-      return (this == WHITE && other == BLACK) || (this == BLACK && other == WHITE);
+      return this.opposite == other;
    }
 
    public static Colour convert(int val) {
@@ -18,6 +25,10 @@ public enum Colour {
       default:
          throw new IllegalArgumentException("invalid Colour value: '" + val + "'");
       }
+   }
+
+   public Colour opposite() {
+      return opposite;
    }
 
 }

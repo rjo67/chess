@@ -7,7 +7,7 @@ package org.rjo.newchess.board;
  */
 public class Board {
    /**
-    * The board representation, using sentinel values (-1) to mark 'out-of-bounds'.
+    * The board representation, 12x10, using sentinel values (-1) to mark 'out-of-bounds'.
     */
    private final static int mailbox[] = new int[] {
       //@formatter:off
@@ -30,8 +30,8 @@ public class Board {
    public final static int BOARD_OFFSET = 21;
 
    /**
-    * Stores the offsets of the actual chess board contained in the definition of
-    * 'mailbox' above. i.e. square A8 is represented by mailbox[mailbox64[0]].
+    * Stores the offsets of the actual chess board contained in the definition of 'mailbox' above. i.e. square A8 is
+    * represented by mailbox[mailbox64[0]].
     */
    // TODO rename to 'offsets'?
    private final static int mailbox64[] = new int[] {
@@ -77,14 +77,47 @@ public class Board {
 
       Square(int index) {
          this.index = index;
+         this.rank = index / 8;
+         this.file = index % 8;
       }
 
       public int index() {
          return index;
       }
 
+      public int rank() {
+         return rank;
+      }
+
+      public int file() {
+         return file;
+      }
+
       public static Square toSquare(int index) {
          return indexToSquare[index];
+      }
+
+      /**
+       * Maps a string "a5" to the corresponding enum value.
+       *
+       * @param  coord a string of length 2. Values A..H and 1..8.
+       * @return       a Square or null.
+       */
+      public static Square fromString(String coord) {
+         if (coord.length() != 2) { throw new IllegalArgumentException("expected a string of length 2. Got '" + coord + "'"); }
+         String fileStr = String.valueOf(coord.charAt(0)).toLowerCase();
+         char file = fileStr.charAt(0);
+         int rank = Character.digit(coord.charAt(1), 10);
+         if (file < 'a' || file > 'h') { throw new IllegalArgumentException("bad value for 'file': " + file); }
+         if (rank < 1 || rank > 8) { throw new IllegalArgumentException("bad value for 'rank': " + rank); }
+
+         return Square.fromRankAndFile(rank - 1, file - 'a');
+      }
+
+      public static Square fromRankAndFile(int rank, int file) {
+         if (rank < 0 || rank > 7 || file < 0 || file > 7) { throw new IllegalArgumentException(String.format("invalid values (%d, %d)", rank, file)); }
+         int sq = ((7 - rank) * 8) + file;
+         return Square.indexToSquare[sq];
       }
 
    }
