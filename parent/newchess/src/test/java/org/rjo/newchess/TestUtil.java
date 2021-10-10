@@ -22,6 +22,7 @@ public class TestUtil {
    public final static Predicate<Move> BISHOP_FILTER = (move -> move.getMovingPiece() == PieceType.BISHOP);
    public final static Predicate<Move> ROOK_FILTER = (move -> move.getMovingPiece() == PieceType.ROOK);
    public final static Predicate<Move> QUEEN_FILTER = (move -> move.getMovingPiece() == PieceType.QUEEN);
+   public static final Predicate<Move> ONLY_CHECKS = (move -> move.isCheck());
 
    private TestUtil() {
    }
@@ -53,9 +54,7 @@ public class TestUtil {
          if (requiredMoves.contains(m.toString())) {
             requiredMoves.remove(m.toString());
             iter.remove();
-         } else if (!moveFilter.test(m)) {
-            iter.remove();
-         }
+         } else if (!moveFilter.test(m)) { iter.remove(); }
       }
       assertEquals(0, requiredMoves.size(),
             "not all required moves found, expected: " + requiredMoves + (moveClone.isEmpty() ? "" : ". Input-Moves not processed: " + moveClone));

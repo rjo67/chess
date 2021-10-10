@@ -5,9 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 
 import org.apache.commons.lang3.time.StopWatch;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
+import org.rjo.newchess.game.Fen;
 import org.rjo.newchess.game.Game;
 import org.rjo.newchess.game.Position;
 import org.rjo.newchess.piece.Colour;
@@ -29,26 +31,6 @@ public class MoveGeneratorTest {
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.QUEEN_FILTER, "Qd1-c2", "Qd1-b3", "Qd1-a4+", "Qd1-d2", "Qd1-d3", "Qd1-d4+",
             "Qd1-d5", "Qd1-d6", "Qd1-d7+", "Qd1-d8", "Qd1-e2", "Qd1-f3", "Qd1-g4", "Qd1-h5", "Qd1-c1", "Qd1-b1", "Qd1-a1+", "Qd1-e1", "Qd1-f1", "Qd1-g1",
             "Qd1-h1");
-   }
-
-   @Test
-   public void pinned() {
-      // 5K2/4Q3/8/2b1pQ2/8/8/k4r2/8 w - - 0 0
-      Position p = new Position(Square.f8, Square.a2);
-      p.addPiece(Colour.WHITE, PieceType.QUEEN, Square.e7);
-      p.addPiece(Colour.WHITE, PieceType.QUEEN, Square.f5);
-      p.addPiece(Colour.BLACK, PieceType.ROOK, Square.f2);
-      p.addPiece(Colour.BLACK, PieceType.PAWN, Square.e5);
-      p.addPiece(Colour.BLACK, PieceType.BISHOP, Square.c5);
-      var NBR_ITERS = 100000;
-      var sw = StopWatch.createStarted();
-      for (int i = 0; i < NBR_ITERS; i++) {
-         TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "Kf8-e8", "Kf8-g8", "Kf8-f7", "Kf8-g7", "Qe7-d6", "Qe7xc5", "Qf5-f6", "Qf5-f7+",
-               "Qf5-f4", "Qf5-f3", "Qf5xf2+");
-      }
-      System.out.println("pinned queen: " + sw.getTime());
-      // takes ~2500ms for 100000 times, not evaluating 'pinnedPieces'
-      // takes ~1300ms for 100000 times, evaluating 'pinnedPieces'
    }
 
    @Test
@@ -326,11 +308,11 @@ public class MoveGeneratorTest {
 
    @Test
    public void pawnMovesBlackPromotion() {
-      Position p = new Position(Square.b1, Square.h6);
+      Position p = new Position(Square.b5, Square.h6);
       p.addPiece(Colour.BLACK, PieceType.PAWN, Square.d2);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.PAWN_FILTER, "d2-d1=R", "d2-d1=N", "d2-d1=B", "d2-d1=Q");
 
-      p = new Position(Square.b1, Square.h6);
+      p = new Position(Square.b5, Square.h6);
       p.addPiece(Colour.BLACK, PieceType.PAWN, Square.d2);
       p.addPiece(Colour.WHITE, PieceType.ROOK, Square.c1);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.PAWN_FILTER, "d2-d1=R", "d2-d1=N", "d2-d1=B", "d2-d1=Q",
@@ -380,4 +362,93 @@ public class MoveGeneratorTest {
             "Re4-e3", "Re4-e5", "Re4-e6", "Re4xe7");
    }
 
+   @Test
+   @Disabled("enable when this part has been implemented")
+   public void blockCheck() {
+      Game game = Fen.decode("3r4/4k3/8/R7/4P3/3K4/1BN1P3/8 w - - 10 10");
+      List<Move> moves = new MoveGenerator().findMoves(game.getPosition(), Colour.WHITE);
+      assertEquals(6, moves.size(), "found moves: " + moves);
+   }
+
+   @Test
+   public void pinnedPiece() {
+      Game game = Fen.decode("3r4/4k3/8/8/3RP3/3K4/8/8 w - - 10 10");
+      var NBR_ITERS = 100000;
+      var sw = StopWatch.createStarted();
+      for (int i = 0; i < NBR_ITERS; i++) {
+         List<Move> moves = new MoveGenerator().findMoves(game.getPosition(), Colour.WHITE);
+         assertEquals(11, moves.size(), "found moves: " + moves);
+      }
+      System.out.println("pinnedPiece: " + sw.getTime());
+   }
+
+   @Test
+   public void pinnedQueen() {
+      Game game = Fen.decode("5K2/4Q3/8/2b1pQ2/8/8/k4r2/8 w - - 0 0");
+      var NBR_ITERS = 100000;
+      // make sure correct moves are generated
+      TestUtil.checkMoves(new MoveGenerator().findMoves(game.getPosition(), Colour.WHITE), "Kf8-e8", "Kf8-g8", "Kf8-f7", "Kf8-g7", "Qe7-d6", "Qe7xc5", "Qf5-f6",
+            "Qf5-f7+", "Qf5-f4", "Qf5-f3", "Qf5xf2+");
+      var sw = StopWatch.createStarted();
+      for (int i = 0; i < NBR_ITERS; i++) {
+         List<Move> moves = new MoveGenerator().findMoves(game.getPosition(), Colour.WHITE);
+         assertEquals(11, moves.size(), "found moves: " + moves);
+      }
+      System.out.println("pinnedQueen: " + sw.getTime());
+   }
+
+   // ------------------------------ tests for moves which leave the opponent's king in check
+   @Test
+   public void pawnMoveChecksKing() {
+      Position p = new Position(Square.e1, Square.e8);
+      p.addPiece(Colour.WHITE, PieceType.PAWN, Square.d6);
+      p.addPiece(Colour.BLACK, PieceType.PAWN, Square.f3);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "d6-d7+");
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.ONLY_CHECKS, "f3-f2+");
+   }
+
+   @Test
+   public void pawnPromotionChecksKing() {
+      Position p = new Position(Square.a1, Square.h8);
+      p.addPiece(Colour.WHITE, PieceType.PAWN, Square.c7);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "c7-c8=R+", "c7-c8=Q+");
+      // [c7-c8=R+, c7-c8=N, c7-c8=B, c7-c8=Q+, Ka1-a2, Ka1-b1, Ka1-b2]
+      var sw = StopWatch.createStarted();
+      var NBR_ITERS = 300000;
+      for (int i = 0; i < NBR_ITERS; i++) {
+         List<Move> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
+         assertEquals(7, moves.size(), "found moves: " + moves);
+      }
+      System.out.println("pawnPromotionChecksKing: " + sw.getTime()); // ~ 1160
+   }
+
+   @Test
+   public void knightMoveChecksKing() {
+      Position p = new Position(Square.e1, Square.e8);
+      p.addPiece(Colour.WHITE, PieceType.KNIGHT, Square.b7);
+      p.addPiece(Colour.WHITE, PieceType.KNIGHT, Square.e4);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Nb7-d6+", "Ne4-d6+", "Ne4-f6+");
+   }
+
+   @Test
+   public void bishopMoveChecksKing() {
+      Position p = new Position(Square.e1, Square.e8);
+      p.addPiece(Colour.WHITE, PieceType.BISHOP, Square.e4);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Be4-c6+", "Be4-g6+");
+   }
+
+   @Test
+   public void rookMoveChecksKing() {
+      Position p = new Position(Square.e1, Square.e8);
+      p.addPiece(Colour.WHITE, PieceType.ROOK, Square.a7);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Ra7-a8+", "Ra7-e7+");
+   }
+
+   @Test
+   public void queenMoveChecksKing() {
+      Position p = new Position(Square.e1, Square.e8);
+      p.addPiece(Colour.WHITE, PieceType.QUEEN, Square.b6);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Qb6-b8+", "Qb6-d8+", "Qb6-e6+", "Qb6-g6+", "Qb6-b5+",
+            "Qb6-c6+", "Qb6-e3+");
+   }
 }

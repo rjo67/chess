@@ -6,22 +6,35 @@ import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.PieceType;
 
 public class Move {
-   private final int origin;
-   private final int target;
+   private final int originSq;
+   private final int targetSq;
+   private final PieceType movingPiece;
+   private final Colour colourOfMovingPiece;
 
    private final boolean capture;
    private final boolean promotion;
    private final boolean enPassant;
-   private final boolean[] castling;
+   private final boolean[] castling; // kings-side or queens-side castling
 
    private int originSquareInfo; // in same format as stored in Position
    private int targetSquareInfo; // used in captures; in same format as stored in Position
    private final PieceType promotedPiece;
    private boolean check; // whether this move is a check
 
+   /**
+    * @param origin           origin square
+    * @param originSquareInfo 'raw' info of origin square
+    * @param target           target square
+    * @param targetSquareInfo 'raw' info of target square; -1 if not a capture
+    * @param promotedPiece    promoted piece, set if promotion
+    * @param castling         whether this was O-O or O-O-O
+    * @param enPassant        set if enpassant
+    */
    private Move(int origin, int originSquareInfo, int target, int targetSquareInfo, PieceType promotedPiece, boolean[] castling, boolean enPassant) {
-      this.origin = origin;
-      this.target = target;
+      this.originSq = origin;
+      this.targetSq = target;
+      this.movingPiece = Position.decodePieceType(originSquareInfo);
+      this.colourOfMovingPiece = Position.decodeColour(originSquareInfo);
       this.originSquareInfo = originSquareInfo;
       this.capture = targetSquareInfo != -1;
       this.targetSquareInfo = targetSquareInfo;
@@ -33,25 +46,49 @@ public class Move {
 
    /** normal move */
    public Move(int origin, int originSquareInfo, int target) {
-      this(origin, originSquareInfo, target, -1, null);
+      this(origin, originSquareInfo, target, -1, null, new boolean[2], false);
    }
 
    /** capture */
    public Move(int origin, int originSquareInfo, int target, int targetSquareInfo) {
-      this(origin, originSquareInfo, target, targetSquareInfo, null);
+      this(origin, originSquareInfo, target, targetSquareInfo, null, new boolean[2], false);
    }
 
    /**
-    * Promotion (with optional capture).
+    * Promotion (without capture).
     * 
     * @param origin           origin square
     * @param originSquareInfo info about origin square
     * @param target           target square
-    * @param targetSquareInfo info about target square/captured piece or -1
-    * @param promotedPiece    the promoted piece or null
+    * @param promotedPiece    the promoted piece
     */
-   public Move(int origin, int originSquareInfo, int target, int targetSquareInfo, PieceType promotedPiece) {
-      this(origin, originSquareInfo, target, targetSquareInfo, promotedPiece, new boolean[2], false);
+   public static Move createPromotionMove(int origin, int originSquareInfo, int target, PieceType promotedPiece) {
+      return new Move(origin, originSquareInfo, target, -1, promotedPiece, new boolean[2], false);
+   }
+
+   public static Move kingssideCastle(Position posn, int origin) {
+      return new Move(origin, posn.raw(origin), -1, -1, null, new boolean[] { true, false }, false);
+   }
+
+   public static Move queenssideCastle(Position posn, int origin) {
+      return new Move(origin, posn.raw(origin), -1, -1, null, new boolean[] { false, true }, false);
+   }
+
+   public static Move enpassant(Position posn, int origin, int epSquare) {
+      return new Move(origin, posn.raw(origin), epSquare, posn.raw(epSquare), null, new boolean[2], true);
+   }
+
+   /**
+    * Promotion (with capture).
+    * 
+    * @param origin           origin square
+    * @param originSquareInfo info about origin square
+    * @param target           target square
+    * @param targetSquareInfo info about target square/captured piece
+    * @param promotedPiece    the promoted piece
+    */
+   public static Move createPromotionCaptureMove(int origin, int originSquareInfo, int target, int targetSquareInfo, PieceType promotedPiece) {
+      return new Move(origin, originSquareInfo, target, targetSquareInfo, promotedPiece, new boolean[2], false);
    }
 
    @Override
@@ -62,13 +99,11 @@ public class Move {
          return "O-O-O";
       } else {
          StringBuilder sb = new StringBuilder(10);
-         Colour col = Position.decodeColour(originSquareInfo);
-         PieceType pt = Position.decodePieceType(originSquareInfo);
-         sb.append(pt.symbol(col));
-         sb.append(Square.toSquare(origin));
+         sb.append(movingPiece.symbol(colourOfMovingPiece));
+         sb.append(Square.toSquare(originSq));
          sb.append(isCapture() ? "x" : "-");
-         sb.append(Square.toSquare(target));
-         if (promotion) { sb.append("=").append(promotedPiece.symbol(col)); }
+         sb.append(Square.toSquare(targetSq));
+         if (promotion) { sb.append("=").append(promotedPiece.symbol(colourOfMovingPiece)); }
          if (enPassant) { sb.append(" ep"); }
          if (check) { sb.append("+"); }
          return sb.toString();
@@ -96,30 +131,31 @@ public class Move {
    }
 
    public PieceType getMovingPiece() {
-      return Position.decodePieceType(originSquareInfo);
+      return movingPiece;
+   }
+
+   public Colour getColourOfMovingPiece() {
+      return colourOfMovingPiece;
    }
 
    public int getOrigin() {
-      return origin;
+      return originSq;
    }
 
    public int getTarget() {
-      return target;
-   }
-
-   public static Move kingssideCastle(Position posn, int origin) {
-      return new Move(origin, posn.raw(origin), -1, -1, null, new boolean[] { true, false }, false);
-   }
-
-   public static Move queenssideCastle(Position posn, int origin) {
-      return new Move(origin, posn.raw(origin), -1, -1, null, new boolean[] { false, true }, false);
-   }
-
-   public static Move enpassant(Position posn, int origin, int epSquare) {
-      return new Move(origin, posn.raw(origin), epSquare, posn.raw(epSquare), null, new boolean[2], true);
+      return targetSq;
    }
 
    public void setCheck() {
       check = true;
    }
+
+   public boolean isCheck() {
+      return check;
+   }
+
+   public PieceType getPromotedPiece() {
+      return promotedPiece;
+   }
+
 }
