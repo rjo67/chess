@@ -98,24 +98,36 @@ public class MoveGeneratorTest {
    public void whitekingssideCastlingNotAllowed() {
       Position p = new Position(new boolean[][] { { true, false, }, { true, true } }, Square.e1, Square.b8);
       // no rook on h1
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastle() || move.isQueenssideCastle());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastle());
 
       // no castling rights
       p = new Position(new boolean[][] { { false, false, }, { true, true } }, Square.e1, Square.b8);
       p.addPiece(Colour.WHITE, PieceType.ROOK, Square.h1);
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastle() || move.isQueenssideCastle());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastle());
 
       p = new Position(new boolean[][] { { true, false, }, { true, true } }, Square.e1, Square.b8);
       p.addPiece(Colour.WHITE, PieceType.ROOK, Square.h1);
       // intervening piece
       p.addPiece(Colour.WHITE, PieceType.BISHOP, Square.g1);
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastle() || move.isQueenssideCastle());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastle());
 
       p = new Position(new boolean[][] { { true, false }, { true, true } }, Square.e1, Square.b8);
       p.addPiece(Colour.WHITE, PieceType.ROOK, Square.h1);
       // intervening piece
       p.addPiece(Colour.WHITE, PieceType.BISHOP, Square.f1);
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastle() || move.isQueenssideCastle());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastle());
+
+      // castling through a checked square not allowed
+      p = new Position(new boolean[][] { { true, false }, { true, true } }, Square.e1, Square.b8);
+      p.addPiece(Colour.WHITE, PieceType.ROOK, Square.h1);
+      p.addPiece(Colour.BLACK, PieceType.BISHOP, Square.g2);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastle());
+
+      p = new Position(new boolean[][] { { true, false }, { true, true } }, Square.e1, Square.b8);
+      p.addPiece(Colour.WHITE, PieceType.ROOK, Square.h1);
+      p.addPiece(Colour.BLACK, PieceType.KNIGHT, Square.h3);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastle());
+
    }
 
    @Test
