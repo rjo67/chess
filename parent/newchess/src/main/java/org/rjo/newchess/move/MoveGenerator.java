@@ -24,18 +24,34 @@ public class MoveGenerator {
 
    private boolean verbose;
 
+   // square where the king must be to be able to castle
    private final static int[] kingsCastlingSquareIndex = new int[] { Square.e1.index(), Square.e8.index() };
    // stores the rook's squares for kingsside or queensside castling
    private final static int[][] rooksCastlingSquareIndex = new int[][] { { Square.h1.index(), Square.h8.index() }, { Square.a1.index(), Square.a8.index() } };
-
+   // squares which must be unoccupied in order to castle kingsside
    private final static int[][] unoccupiedSquaresKingssideCastling = new int[][]//
    { { Square.f1.index(), Square.g1.index() }, { Square.f8.index(), Square.g8.index() } };
    // if an enemy knight is on these squares, then cannot castle kingsside
    private final static int[][] knightSquaresKingssideCastling = new int[][]//
    { { Square.d2.index(), Square.e3.index(), Square.g3.index(), Square.h2.index(), Square.e2.index(), Square.f3.index(), Square.h3.index() },
          { Square.d7.index(), Square.e6.index(), Square.g6.index(), Square.h7.index(), Square.e7.index(), Square.f6.index(), Square.h6.index() } };
+   // if an enemy pawn is on these squares, then cannot castle kingsside
+   private final static int[][] pawnSquaresKingssideCastling = new int[][]//
+   { { Square.e2.index(), Square.f2.index(), Square.g2.index(), Square.h2.index() },
+         { Square.e7.index(), Square.f7.index(), Square.g7.index(), Square.h7.index() } };
+   // squares which must be unoccupied in order to castle queensside
    private final static int[][] unoccupiedSquaresQueenssideCastling = new int[][]//
    { { Square.b1.index(), Square.c1.index(), Square.d1.index() }, { Square.b8.index(), Square.c8.index(), Square.d8.index() } };
+   // if an enemy knight is on these squares, then cannot castle queensside
+   private final static int[][] knightSquaresQueenssideCastling = new int[][]//
+   { { Square.a3.index(), Square.c3.index(), Square.d2.index(), Square.a2.index(), Square.b3.index(), //
+         Square.d3.index(), Square.e2.index(), Square.b2.index(), Square.c3.index(), Square.e3.index(), Square.f2.index() },
+         { Square.a6.index(), Square.c6.index(), Square.d7.index(), Square.a7.index(), Square.b6.index(), //
+               Square.d6.index(), Square.e7.index(), Square.b7.index(), Square.c6.index(), Square.e6.index(), Square.f7.index() } };
+   // if an enemy pawn is on these squares, then cannot castle queensside
+   private final static int[][] pawnSquaresQueenssideCastling = new int[][]//
+   { { Square.a2.index(), Square.b2.index(), Square.c2.index(), Square.d2.index(), Square.e2.index() },
+         { Square.a7.index(), Square.b7.index(), Square.c7.index(), Square.d7.index(), Square.e7.index() } };
    // key: the enpassant square; values: the squares where a pawn must be in order to take with e.p.
    private final static Map<Integer, Integer[]>[] enpassantSquares;
    private final static Set<Integer>[] knightMoves; // stores set of possible knight moves for each square
@@ -405,10 +421,14 @@ public class MoveGenerator {
       for (int sq : unoccupiedSquaresKingssideCastling[colour.ordinal()]) {
          if (posn.colourOfPieceAt(sq) != Colour.UNOCCUPIED) { return false; }
       }
-      // cannot castle over a square in check...
-      // TODO Pawns
+      // TODO cannnot castle if king is in check...
+
+      // cannot castle over a square in check
+      for (int sq : pawnSquaresKingssideCastling[colour.ordinal()]) {
+         if ((posn.pieceAt(sq) == PieceType.PAWN) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
+      }
       for (int sq : knightSquaresKingssideCastling[colour.ordinal()]) {
-         if (posn.pieceAt(sq) == PieceType.KNIGHT) { return false; }
+         if ((posn.pieceAt(sq) == PieceType.KNIGHT) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
       }
       for (int sq : unoccupiedSquaresKingssideCastling[colour.ordinal()]) {
          Ray[] raysToCheck = colour == Colour.WHITE ? new Ray[] { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }
@@ -424,13 +444,29 @@ public class MoveGenerator {
    }
 
    private boolean canCastleQueensside(Position posn, int startSq, Colour colour) {
-      // TODO cannot castle over a square in check...
-
-      if (startSq != kingsCastlingSquareIndex[colour.ordinal()]) { return false; }
+      // TODO cannnot castle if king is in check...
       if (!posn.canCastleQueensside(colour)) { return false; }
+      if (startSq != kingsCastlingSquareIndex[colour.ordinal()]) { return false; }
       if (posn.pieceAt(rooksCastlingSquareIndex[1][colour.ordinal()]) != PieceType.ROOK) { return false; }
       for (int sq : unoccupiedSquaresQueenssideCastling[colour.ordinal()]) {
          if (posn.colourOfPieceAt(sq) != Colour.UNOCCUPIED) { return false; }
+      }
+      // cannot castle over a square in check
+      for (int sq : pawnSquaresQueenssideCastling[colour.ordinal()]) {
+         if ((posn.pieceAt(sq) == PieceType.PAWN) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
+      }
+      for (int sq : knightSquaresQueenssideCastling[colour.ordinal()]) {
+         if ((posn.pieceAt(sq) == PieceType.KNIGHT) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
+      }
+      for (int sq : unoccupiedSquaresQueenssideCastling[colour.ordinal()]) {
+         Ray[] raysToCheck = colour == Colour.WHITE ? new Ray[] { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }
+               : new Ray[] { Ray.SOUTHWEST, Ray.SOUTH, Ray.SOUTHEAST };
+         for (Ray ray : raysToCheck) {
+            Pair<PieceType, Integer> enemyPieceInfo = opponentsPieceOnRay(posn, colour, sq, ray);
+            PieceType enemyPiece = enemyPieceInfo.getLeft();
+            // found piece capable of checking the king?
+            if (enemyPiece != null && enemyPiece.canSlideAlongRay(ray)) { return false; }
+         }
       }
       return true;
    }

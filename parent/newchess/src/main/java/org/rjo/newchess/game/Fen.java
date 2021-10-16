@@ -100,11 +100,9 @@ public class Fen {
 
       String fen = fenTokenizer.nextToken();
       Colour sideToMove = parseActiveColour(fenTokenizer.nextToken());
-      /* EnumSet<CastlingRights>[] castlingRights, */
-      fenTokenizer.nextToken();
+      boolean[][] castlingRights = parseCastlingRights(fenTokenizer.nextToken());
       Square enpassantSquare = parseEnpassantSquare(fenTokenizer.nextToken());
-      Position posn = parsePosition(fen, sideToMove, /* parseCastlingRights(fenTokenizer.nextToken()), */
-            enpassantSquare);
+      Position posn = parsePosition(fen, sideToMove, castlingRights, enpassantSquare);
 //      boolean inCheck = posn.squareIsAttacked(posn.getKingPosition(posn.getSideToMove()), posn.getSideToMove().opposite());
 //      posn.setInCheck(inCheck);
 
@@ -151,34 +149,30 @@ public class Fen {
     * queenside).
     *
     * @param  token token representing castling rights
-    * @return       castlingrights array
+    * @return       castlingrights array keyed by colour and kings/queensside
     */
-//   private static EnumSet<CastlingRights>[] parseCastlingRights(String token) {
-//
-//      @SuppressWarnings("unchecked")
-//      EnumSet<CastlingRights>[] rights = new EnumSet[Colour.ALL_COLOURS.length];
-//      rights[Colour.WHITE.ordinal()] = EnumSet.noneOf(CastlingRights.class);
-//      rights[Colour.BLACK.ordinal()] = EnumSet.noneOf(CastlingRights.class);
-//
-//      if (token.contains("K")) { rights[Colour.WHITE.ordinal()].add(CastlingRights.KINGS_SIDE); }
-//      if (token.contains("Q")) { rights[Colour.WHITE.ordinal()].add(CastlingRights.QUEENS_SIDE); }
-//      if (token.contains("k")) { rights[Colour.BLACK.ordinal()].add(CastlingRights.KINGS_SIDE); }
-//      if (token.contains("q")) { rights[Colour.BLACK.ordinal()].add(CastlingRights.QUEENS_SIDE); }
-//      return rights;
-//   }
-//
+   private static boolean[][] parseCastlingRights(String token) {
+
+      boolean[][] castlingRights = new boolean[2][2];
+
+      if (token.contains("K")) { castlingRights[Colour.WHITE.ordinal()][0] = true; }
+      if (token.contains("Q")) { castlingRights[Colour.WHITE.ordinal()][1] = true; }
+      if (token.contains("k")) { castlingRights[Colour.BLACK.ordinal()][0] = true; }
+      if (token.contains("q")) { castlingRights[Colour.BLACK.ordinal()][1] = true; }
+      return castlingRights;
+   }
+
    private static String addCastlingRights(Position posn) {
-      return "KQkq";
-//      StringBuilder sb = new StringBuilder(4);
-//      if (posn.canCastle(Colour.WHITE, CastlingRights.KINGS_SIDE)) { sb.append('K'); }
-//      if (posn.canCastle(Colour.WHITE, CastlingRights.QUEENS_SIDE)) { sb.append('Q'); }
-//      if (posn.canCastle(Colour.BLACK, CastlingRights.KINGS_SIDE)) { sb.append('k'); }
-//      if (posn.canCastle(Colour.BLACK, CastlingRights.QUEENS_SIDE)) { sb.append('q'); }
-//      if (sb.length() == 0) {
-//         return "-";
-//      } else {
-//         return sb.toString();
-//      }
+      StringBuilder sb = new StringBuilder(4);
+      if (posn.canCastleKingsside(Colour.WHITE)) { sb.append('K'); }
+      if (posn.canCastleQueensside(Colour.WHITE)) { sb.append('Q'); }
+      if (posn.canCastleKingsside(Colour.BLACK)) { sb.append('k'); }
+      if (posn.canCastleQueensside(Colour.BLACK)) { sb.append('q'); }
+      if (sb.length() == 0) {
+         return "-";
+      } else {
+         return sb.toString();
+      }
    }
 
    /**
@@ -245,7 +239,7 @@ public class Fen {
       return "" + game.getMoveNumber();
    }
 
-   private static Position parsePosition(String fen, Colour sideToMove, /* EnumSet<CastlingRights>[] castlingRights, */Square enpassantSquare) {
+   private static Position parsePosition(String fen, Colour sideToMove, boolean[][] castlingRights, Square enpassantSquare) {
       StringTokenizer st = new StringTokenizer(fen, "/");
       if (st.countTokens() != 8) { throw new IllegalArgumentException("invalid FEN string: expected 8 delimiters in input '" + fen + "'"); }
 
@@ -297,7 +291,7 @@ public class Fen {
       }
 
       posn.setSideToMove(sideToMove);
-      // castling rights
+      posn.setCastlingsRights(castlingRights);
       posn.setEnpassantSquare(enpassantSquare);
 
       return posn;

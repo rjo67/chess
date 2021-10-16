@@ -3,7 +3,10 @@ package org.rjo.newchess.game;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
+import org.rjo.newchess.board.Board.Square;
+import org.rjo.newchess.game.Position.SquareInfo;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.PieceType;
 
@@ -30,6 +33,31 @@ public class PositionTest {
             sq++;
          }
       }
+   }
+
+   @Test
+   public void speedTest() {
+      Position posn = new Position(Square.e1, Square.e8);
+      StopWatch sw = StopWatch.createStarted();
+      for (int i = 0; i < 1000000; i++) {
+         PieceType pt = posn.pieceAt(Square.e1.index());
+         Colour col = posn.colourOfPieceAt(Square.e1.index());
+         if (pt == PieceType.KING && col == Colour.BLACK) { System.out.println("nein"); }
+      }
+      System.out.println("Position speedTest #1: " + sw.getTime());
+      sw = StopWatch.createStarted();
+      Position.SquareInfo info = new SquareInfo();
+      info.colour = Colour.WHITE;
+      info.piece = PieceType.KING;
+      for (int i = 0; i < 1000000; i++) {
+         PieceType pt = info.getPiece();
+         Colour col = info.getColour();
+         if (pt == PieceType.KING && col == Colour.BLACK) { System.out.println("nein"); }
+      }
+      System.out.println("Position speedTest #2: " + sw.getTime());
+      /*
+       * Position speedTest #1: 11, Position speedTest #2: 4
+       */
    }
 
 }

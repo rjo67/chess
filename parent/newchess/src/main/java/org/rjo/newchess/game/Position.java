@@ -1,6 +1,9 @@
 package org.rjo.newchess.game;
 
+import java.util.List;
+
 import org.rjo.newchess.board.Board.Square;
+import org.rjo.newchess.move.Move;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.PieceType;
 
@@ -10,6 +13,19 @@ public class Position {
    final static int BIT_6 = 0b00100000;
    final static int COLOUR_MASK = 0b01100000;
    final static int PIECE_MASK = 0b00000111;
+
+   static class SquareInfo {
+      PieceType piece;
+      Colour colour;
+
+      public Colour getColour() {
+         return colour;
+      }
+
+      public PieceType getPiece() {
+         return piece;
+      }
+   }
 
    /**
     * <ul>
@@ -127,6 +143,10 @@ public class Position {
       this.sideToMove = sideToMove;
    }
 
+   public void setCastlingsRights(boolean[][] castlingRights) {
+      this.castlingRights = castlingRights;
+   }
+
    // displays the board (always from white POV, a1 in bottom LHS)
    @Override
    public String toString() {
@@ -156,7 +176,7 @@ public class Position {
             sb.append("   ").append(sideToMove).append(" to move");
             break;
          case 6:
-//            sb.append("   castlingRights: ").append(castling[0]).append(", ").append(castling[1]);
+            sb.append("   castlingRights: ").append(castlingRights[0]).append(", ").append(castlingRights[1]);
             break;
          case 5:
             sb.append("   enpassant square: ").append(enpassantSquare);
@@ -170,6 +190,16 @@ public class Position {
          sb.append("\n");
       }
       return sb.toString();
+   }
+
+   public Position move(Move newMove) {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   public List<Move> findMoves(Colour sideToMove) {
+      // TODO Auto-generated method stub
+      return null;
    }
 
 }
