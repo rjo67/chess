@@ -9,32 +9,33 @@ import org.rjo.newchess.piece.PieceType;
 
 public class Position {
 
-   final static int BIT_7 = 0b01000000;
-   final static int BIT_6 = 0b00100000;
-   final static int COLOUR_MASK = 0b01100000;
-   final static int PIECE_MASK = 0b00000111;
+   public final static SquareInfo UNOCCUPIED_SQUARE = SquareInfo.unoccupied();
 
-   static class SquareInfo {
-      PieceType piece;
-      Colour colour;
+   public static class SquareInfo {
+      private PieceType pieceType;
+      private Colour colour;
+
+      SquareInfo(PieceType pieceType, Colour colour) {
+         this.pieceType = pieceType;
+         this.colour = colour;
+      }
 
       public Colour getColour() {
          return colour;
       }
 
-      public PieceType getPiece() {
-         return piece;
+      public PieceType getPieceType() {
+         return pieceType;
       }
+
+      public static SquareInfo unoccupied() {
+         return new SquareInfo(null, Colour.UNOCCUPIED);
+      }
+
    }
 
-   /**
-    * <ul>
-    * <li>bits 6-7 - colour of occupying piece, or unoccupied, see Colour</li>
-    * <li>bits 1-3 - identifies the piece, see PieceType.</li>
-    * </ul>
-    */
-   int[] board;
-   boolean[][] castlingRights; // 1st dimension: W/B, 2nd dimension: 0 - king's side, 1 - queen's side
+   private SquareInfo[] board;
+   private boolean[][] castlingRights; // 1st dimension: W/B, 2nd dimension: 0 - king's side, 1 - queen's side
    private Square enpassantSquare; // set if previous move was a pawn moving 2 squares forward
    private int[] kingsSquare; // keep track of where the kings are
    private Colour sideToMove;
@@ -56,24 +57,23 @@ public class Position {
    }
 
    public Position(boolean[][] castlingRights) {
-      this.board = new int[64];
+      this.board = new SquareInfo[64];
       this.kingsSquare = new int[] { -1, -1 };
       for (int i = 0; i < 64; i++) {
-         board[i] = BIT_6 * Colour.UNOCCUPIED.ordinal();
+         board[i] = UNOCCUPIED_SQUARE;
       }
       this.castlingRights = castlingRights;
    }
 
    public void addPiece(Colour colour, PieceType pieceType, int square) {
       if (!isEmpty(square)) { throw new IllegalStateException("there is already a " + pieceAt(square) + " at square " + Square.toSquare(square)); }
-      int val = BIT_6 * colour.ordinal() + pieceType.ordinal();
-      board[square] = val;
       if (pieceType == PieceType.KING) {
          if (kingsSquare[colour.ordinal()] != -1) {
             throw new IllegalStateException("a " + colour + " king has already been added at square " + Square.toSquare(kingsSquare[colour.ordinal()]));
          }
          kingsSquare[colour.ordinal()] = square;
       }
+      board[square] = new SquareInfo(pieceType, colour);
    }
 
    public void addPiece(Colour colour, PieceType pieceType, Square square) {
@@ -85,11 +85,11 @@ public class Position {
    }
 
    public Colour colourOfPieceAt(int square) {
-      return decodeColour(board[square]);
+      return board[square].getColour();
    }
 
    public PieceType pieceAt(int square) {
-      return decodePieceType(board[square]);
+      return board[square].getPieceType();
    }
 
    public boolean canCastleKingsside(Colour col) {
@@ -121,18 +121,8 @@ public class Position {
    }
 
    // delivers the 'raw' value of the square
-   public int raw(int square) {
+   public SquareInfo raw(int square) {
       return board[square];
-   }
-
-   public static Colour decodeColour(int squareValue) {
-      int val = (squareValue & COLOUR_MASK) >> 5;
-      return Colour.convert(val);
-   }
-
-   public static PieceType decodePieceType(int squareValue) {
-      int val = squareValue & PIECE_MASK;
-      return PieceType.convert(val);
    }
 
    public Colour getSideToMove() {

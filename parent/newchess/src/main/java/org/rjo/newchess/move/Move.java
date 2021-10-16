@@ -2,6 +2,7 @@ package org.rjo.newchess.move;
 
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Position;
+import org.rjo.newchess.game.Position.SquareInfo;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.PieceType;
 
@@ -16,8 +17,8 @@ public class Move {
    private final boolean enPassant;
    private final boolean[] castling; // kings-side or queens-side castling
 
-   private int originSquareInfo; // in same format as stored in Position
-   private int targetSquareInfo; // used in captures; in same format as stored in Position
+   private SquareInfo originSquareInfo;
+   private SquareInfo targetSquareInfo; // used in captures
    private final PieceType promotedPiece;
    private boolean check; // whether this move is a check
 
@@ -30,13 +31,14 @@ public class Move {
     * @param castling         whether this was O-O or O-O-O
     * @param enPassant        set if enpassant
     */
-   private Move(int origin, int originSquareInfo, int target, int targetSquareInfo, PieceType promotedPiece, boolean[] castling, boolean enPassant) {
+   private Move(int origin, SquareInfo originSquareInfo, int target, SquareInfo targetSquareInfo, PieceType promotedPiece, boolean[] castling,
+         boolean enPassant) {
       this.originSq = origin;
       this.targetSq = target;
-      this.movingPiece = Position.decodePieceType(originSquareInfo);
-      this.colourOfMovingPiece = Position.decodeColour(originSquareInfo);
+      this.movingPiece = originSquareInfo.getPieceType(); // TODO not really necessary to store separately from originSquareInfo
+      this.colourOfMovingPiece = originSquareInfo.getColour(); // TODO not really necessary to store separately from originSquareInfo
       this.originSquareInfo = originSquareInfo;
-      this.capture = targetSquareInfo != -1;
+      this.capture = targetSquareInfo != null;
       this.targetSquareInfo = targetSquareInfo;
       this.promotion = promotedPiece != null;
       this.promotedPiece = promotedPiece;
@@ -45,12 +47,12 @@ public class Move {
    }
 
    /** normal move */
-   public Move(int origin, int originSquareInfo, int target) {
-      this(origin, originSquareInfo, target, -1, null, new boolean[2], false);
+   public Move(int origin, SquareInfo originSquareInfo, int target) {
+      this(origin, originSquareInfo, target, null, null, new boolean[2], false);
    }
 
    /** capture */
-   public Move(int origin, int originSquareInfo, int target, int targetSquareInfo) {
+   public Move(int origin, SquareInfo originSquareInfo, int target, SquareInfo targetSquareInfo) {
       this(origin, originSquareInfo, target, targetSquareInfo, null, new boolean[2], false);
    }
 
@@ -62,16 +64,16 @@ public class Move {
     * @param target           target square
     * @param promotedPiece    the promoted piece
     */
-   public static Move createPromotionMove(int origin, int originSquareInfo, int target, PieceType promotedPiece) {
-      return new Move(origin, originSquareInfo, target, -1, promotedPiece, new boolean[2], false);
+   public static Move createPromotionMove(int origin, SquareInfo originSquareInfo, int target, PieceType promotedPiece) {
+      return new Move(origin, originSquareInfo, target, null, promotedPiece, new boolean[2], false);
    }
 
    public static Move kingssideCastle(Position posn, int origin) {
-      return new Move(origin, posn.raw(origin), -1, -1, null, new boolean[] { true, false }, false);
+      return new Move(origin, posn.raw(origin), -1, null, null, new boolean[] { true, false }, false);
    }
 
    public static Move queenssideCastle(Position posn, int origin) {
-      return new Move(origin, posn.raw(origin), -1, -1, null, new boolean[] { false, true }, false);
+      return new Move(origin, posn.raw(origin), -1, null, null, new boolean[] { false, true }, false);
    }
 
    public static Move enpassant(Position posn, int origin, int epSquare) {
@@ -87,7 +89,7 @@ public class Move {
     * @param targetSquareInfo info about target square/captured piece
     * @param promotedPiece    the promoted piece
     */
-   public static Move createPromotionCaptureMove(int origin, int originSquareInfo, int target, int targetSquareInfo, PieceType promotedPiece) {
+   public static Move createPromotionCaptureMove(int origin, SquareInfo originSquareInfo, int target, SquareInfo targetSquareInfo, PieceType promotedPiece) {
       return new Move(origin, originSquareInfo, target, targetSquareInfo, promotedPiece, new boolean[2], false);
    }
 

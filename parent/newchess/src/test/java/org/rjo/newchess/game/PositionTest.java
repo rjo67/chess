@@ -46,11 +46,9 @@ public class PositionTest {
       }
       System.out.println("Position speedTest #1: " + sw.getTime());
       sw = StopWatch.createStarted();
-      Position.SquareInfo info = new SquareInfo();
-      info.colour = Colour.WHITE;
-      info.piece = PieceType.KING;
+      Position.SquareInfo info = new SquareInfo(PieceType.KING, Colour.WHITE);
       for (int i = 0; i < 1000000; i++) {
-         PieceType pt = info.getPiece();
+         PieceType pt = info.getPieceType();
          Colour col = info.getColour();
          if (pt == PieceType.KING && col == Colour.BLACK) { System.out.println("nein"); }
       }
