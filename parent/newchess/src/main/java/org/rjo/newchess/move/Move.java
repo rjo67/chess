@@ -7,20 +7,21 @@ import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.PieceType;
 
 public class Move {
+   // which piece is moving and where it's moving from
    private final int originSq;
+   private SquareInfo originSquareInfo;
+
+   // where piece is moving to
    private final int targetSq;
-   private final PieceType movingPiece;
-   private final Colour colourOfMovingPiece;
+   private SquareInfo targetSquareInfo; // !null for captures
 
    private final boolean capture;
    private final boolean promotion;
    private final boolean enPassant;
    private final boolean[] castling; // kings-side or queens-side castling
-
-   private SquareInfo originSquareInfo;
-   private SquareInfo targetSquareInfo; // used in captures
-   private final PieceType promotedPiece;
    private boolean check; // whether this move is a check
+
+   private final PieceType promotedPiece;
 
    /**
     * @param origin           origin square
@@ -35,8 +36,6 @@ public class Move {
          boolean enPassant) {
       this.originSq = origin;
       this.targetSq = target;
-      this.movingPiece = originSquareInfo.getPieceType(); // TODO not really necessary to store separately from originSquareInfo
-      this.colourOfMovingPiece = originSquareInfo.getColour(); // TODO not really necessary to store separately from originSquareInfo
       this.originSquareInfo = originSquareInfo;
       this.capture = targetSquareInfo != null;
       this.targetSquareInfo = targetSquareInfo;
@@ -101,11 +100,11 @@ public class Move {
          return "O-O-O";
       } else {
          StringBuilder sb = new StringBuilder(10);
-         sb.append(movingPiece.symbol(colourOfMovingPiece));
+         sb.append(originSquareInfo.pieceType().symbol(originSquareInfo.colour()));
          sb.append(Square.toSquare(originSq));
          sb.append(isCapture() ? "x" : "-");
          sb.append(Square.toSquare(targetSq));
-         if (promotion) { sb.append("=").append(promotedPiece.symbol(colourOfMovingPiece)); }
+         if (promotion) { sb.append("=").append(promotedPiece.symbol(originSquareInfo.colour())); }
          if (enPassant) { sb.append(" ep"); }
          if (check) { sb.append("+"); }
          return sb.toString();
@@ -133,11 +132,11 @@ public class Move {
    }
 
    public PieceType getMovingPiece() {
-      return movingPiece;
+      return originSquareInfo.pieceType();
    }
 
    public Colour getColourOfMovingPiece() {
-      return colourOfMovingPiece;
+      return originSquareInfo.colour();
    }
 
    public int getOrigin() {

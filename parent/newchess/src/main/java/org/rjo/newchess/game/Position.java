@@ -11,22 +11,7 @@ public class Position {
 
    public final static SquareInfo UNOCCUPIED_SQUARE = SquareInfo.unoccupied();
 
-   public static class SquareInfo {
-      private PieceType pieceType;
-      private Colour colour;
-
-      SquareInfo(PieceType pieceType, Colour colour) {
-         this.pieceType = pieceType;
-         this.colour = colour;
-      }
-
-      public Colour getColour() {
-         return colour;
-      }
-
-      public PieceType getPieceType() {
-         return pieceType;
-      }
+   public static record SquareInfo(PieceType pieceType, Colour colour) {
 
       public static SquareInfo unoccupied() {
          return new SquareInfo(null, Colour.UNOCCUPIED);
@@ -85,11 +70,11 @@ public class Position {
    }
 
    public Colour colourOfPieceAt(int square) {
-      return board[square].getColour();
+      return board[square].colour();
    }
 
    public PieceType pieceAt(int square) {
-      return board[square].getPieceType();
+      return board[square].pieceType();
    }
 
    public boolean canCastleKingsside(Colour col) {
