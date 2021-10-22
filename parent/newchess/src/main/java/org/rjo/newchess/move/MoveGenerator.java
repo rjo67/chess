@@ -24,10 +24,18 @@ public class MoveGenerator {
 
    private boolean verbose;
 
+   // **** Note
+   // the first dimension of all these arrays is indexed on colour (w/b)
+   // ****
+
    // square where the king must be to be able to castle
    private final static int[] kingsCastlingSquareIndex = new int[] { Square.e1.index(), Square.e8.index() };
-   // stores the rook's squares for kingsside or queensside castling
-   private final static int[][] rooksCastlingSquareIndex = new int[][] { { Square.h1.index(), Square.h8.index() }, { Square.a1.index(), Square.a8.index() } };
+   // square where the king ends up after castling kings or queensside, indexed on colour
+   public final static int[][] kingsSquareAfterCastling = new int[][] { { Square.g1.index(), Square.c1.index() }, { Square.g8.index(), Square.c8.index() } };
+   // square where the rook ends up after castling kings or queensside, indexed on colour and side of board
+   public final static int[][] rooksSquareAfterCastling = new int[][] { { Square.f1.index(), Square.d1.index() }, { Square.f8.index(), Square.d8.index() } };
+   // stores the rook's squares for kingsside or queensside castling, indexed on colour and side of board
+   public final static int[][] rooksCastlingSquareIndex = new int[][] { { Square.h1.index(), Square.a1.index() }, { Square.h8.index(), Square.a8.index() } };
    // squares which must be unoccupied in order to castle kingsside
    private final static int[][] unoccupiedSquaresKingssideCastling = new int[][]//
    { { Square.f1.index(), Square.g1.index() }, { Square.f8.index(), Square.g8.index() } };
@@ -58,25 +66,24 @@ public class MoveGenerator {
    private final static Set<Integer>[][] pawnCaptures; // stores set of possible pawn captures for each square (for w/b)
    static {
       enpassantSquares = new HashMap[2];
-      enpassantSquares[0] = new HashMap<>();
-      enpassantSquares[0].put(Square.a6.index(), new Integer[] { Square.b5.index() });
-      enpassantSquares[0].put(Square.b6.index(), new Integer[] { Square.a5.index(), Square.c5.index() });
-      enpassantSquares[0].put(Square.c6.index(), new Integer[] { Square.b5.index(), Square.d5.index() });
-      enpassantSquares[0].put(Square.d6.index(), new Integer[] { Square.c5.index(), Square.e5.index() });
-      enpassantSquares[0].put(Square.e6.index(), new Integer[] { Square.d5.index(), Square.f5.index() });
-      enpassantSquares[0].put(Square.f6.index(), new Integer[] { Square.e5.index(), Square.g5.index() });
-      enpassantSquares[0].put(Square.g6.index(), new Integer[] { Square.f5.index(), Square.h5.index() });
-      enpassantSquares[0].put(Square.h6.index(), new Integer[] { Square.g5.index() });
-      // black
-      enpassantSquares[1] = new HashMap<>();
-      enpassantSquares[1].put(Square.a3.index(), new Integer[] { Square.b4.index() });
-      enpassantSquares[1].put(Square.b3.index(), new Integer[] { Square.a4.index(), Square.c4.index() });
-      enpassantSquares[1].put(Square.c3.index(), new Integer[] { Square.b4.index(), Square.d4.index() });
-      enpassantSquares[1].put(Square.d3.index(), new Integer[] { Square.c4.index(), Square.e4.index() });
-      enpassantSquares[1].put(Square.e3.index(), new Integer[] { Square.d4.index(), Square.f4.index() });
-      enpassantSquares[1].put(Square.f3.index(), new Integer[] { Square.e4.index(), Square.g4.index() });
-      enpassantSquares[1].put(Square.g3.index(), new Integer[] { Square.f4.index(), Square.h4.index() });
-      enpassantSquares[1].put(Square.h3.index(), new Integer[] { Square.g4.index() });
+      enpassantSquares[Colour.WHITE.ordinal()] = new HashMap<>();
+      enpassantSquares[Colour.WHITE.ordinal()].put(Square.a6.index(), new Integer[] { Square.b5.index() });
+      enpassantSquares[Colour.WHITE.ordinal()].put(Square.b6.index(), new Integer[] { Square.a5.index(), Square.c5.index() });
+      enpassantSquares[Colour.WHITE.ordinal()].put(Square.c6.index(), new Integer[] { Square.b5.index(), Square.d5.index() });
+      enpassantSquares[Colour.WHITE.ordinal()].put(Square.d6.index(), new Integer[] { Square.c5.index(), Square.e5.index() });
+      enpassantSquares[Colour.WHITE.ordinal()].put(Square.e6.index(), new Integer[] { Square.d5.index(), Square.f5.index() });
+      enpassantSquares[Colour.WHITE.ordinal()].put(Square.f6.index(), new Integer[] { Square.e5.index(), Square.g5.index() });
+      enpassantSquares[Colour.WHITE.ordinal()].put(Square.g6.index(), new Integer[] { Square.f5.index(), Square.h5.index() });
+      enpassantSquares[Colour.WHITE.ordinal()].put(Square.h6.index(), new Integer[] { Square.g5.index() });
+      enpassantSquares[Colour.BLACK.ordinal()] = new HashMap<>();
+      enpassantSquares[Colour.BLACK.ordinal()].put(Square.a3.index(), new Integer[] { Square.b4.index() });
+      enpassantSquares[Colour.BLACK.ordinal()].put(Square.b3.index(), new Integer[] { Square.a4.index(), Square.c4.index() });
+      enpassantSquares[Colour.BLACK.ordinal()].put(Square.c3.index(), new Integer[] { Square.b4.index(), Square.d4.index() });
+      enpassantSquares[Colour.BLACK.ordinal()].put(Square.d3.index(), new Integer[] { Square.c4.index(), Square.e4.index() });
+      enpassantSquares[Colour.BLACK.ordinal()].put(Square.e3.index(), new Integer[] { Square.d4.index(), Square.f4.index() });
+      enpassantSquares[Colour.BLACK.ordinal()].put(Square.f3.index(), new Integer[] { Square.e4.index(), Square.g4.index() });
+      enpassantSquares[Colour.BLACK.ordinal()].put(Square.g3.index(), new Integer[] { Square.f4.index(), Square.h4.index() });
+      enpassantSquares[Colour.BLACK.ordinal()].put(Square.h3.index(), new Integer[] { Square.g4.index() });
 
       knightMoves = new Set[64];
       for (int sq = 0; sq < 64; sq++) {
@@ -234,8 +241,8 @@ public class MoveGenerator {
                }
             }
             if (pt == PieceType.KING) {
-               if (canCastleKingsside(posn, startSq, colour)) { moves.add(Move.kingssideCastle(posn, startSq)); }
-               if (canCastleQueensside(posn, startSq, colour)) { moves.add(Move.queenssideCastle(posn, startSq)); }
+               if (canCastleKingsside(posn, startSq, colour)) { moves.add(Move.createKingssideCastlingMove(startSq, posn.raw(startSq), colour)); }
+               if (canCastleQueensside(posn, startSq, colour)) { moves.add(Move.createQueenssideCastlingMove(startSq, posn.raw(startSq), colour)); }
             }
          }
       }
@@ -416,21 +423,22 @@ public class MoveGenerator {
 
    private boolean canCastleKingsside(Position posn, int startSq, Colour colour) {
       if (!posn.canCastleKingsside(colour)) { return false; }
-      if (startSq != kingsCastlingSquareIndex[colour.ordinal()]) { return false; }
-      if (posn.pieceAt(rooksCastlingSquareIndex[0][colour.ordinal()]) != PieceType.ROOK) { return false; }
-      for (int sq : unoccupiedSquaresKingssideCastling[colour.ordinal()]) {
+      int colourOrd = colour.ordinal();
+      if (startSq != kingsCastlingSquareIndex[colourOrd]) { return false; }
+      if (posn.pieceAt(rooksCastlingSquareIndex[colourOrd][0]) != PieceType.ROOK) { return false; }
+      for (int sq : unoccupiedSquaresKingssideCastling[colourOrd]) {
          if (posn.colourOfPieceAt(sq) != Colour.UNOCCUPIED) { return false; }
       }
       // TODO cannnot castle if king is in check...
 
       // cannot castle over a square in check
-      for (int sq : pawnSquaresKingssideCastling[colour.ordinal()]) {
+      for (int sq : pawnSquaresKingssideCastling[colourOrd]) {
          if ((posn.pieceAt(sq) == PieceType.PAWN) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
       }
-      for (int sq : knightSquaresKingssideCastling[colour.ordinal()]) {
+      for (int sq : knightSquaresKingssideCastling[colourOrd]) {
          if ((posn.pieceAt(sq) == PieceType.KNIGHT) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
       }
-      for (int sq : unoccupiedSquaresKingssideCastling[colour.ordinal()]) {
+      for (int sq : unoccupiedSquaresKingssideCastling[colourOrd]) {
          Ray[] raysToCheck = colour == Colour.WHITE ? new Ray[] { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }
                : new Ray[] { Ray.SOUTHWEST, Ray.SOUTH, Ray.SOUTHEAST };
          for (Ray ray : raysToCheck) {
@@ -446,19 +454,20 @@ public class MoveGenerator {
    private boolean canCastleQueensside(Position posn, int startSq, Colour colour) {
       // TODO cannnot castle if king is in check...
       if (!posn.canCastleQueensside(colour)) { return false; }
-      if (startSq != kingsCastlingSquareIndex[colour.ordinal()]) { return false; }
-      if (posn.pieceAt(rooksCastlingSquareIndex[1][colour.ordinal()]) != PieceType.ROOK) { return false; }
-      for (int sq : unoccupiedSquaresQueenssideCastling[colour.ordinal()]) {
+      int colourOrd = colour.ordinal();
+      if (startSq != kingsCastlingSquareIndex[colourOrd]) { return false; }
+      if (posn.pieceAt(rooksCastlingSquareIndex[colourOrd][1]) != PieceType.ROOK) { return false; }
+      for (int sq : unoccupiedSquaresQueenssideCastling[colourOrd]) {
          if (posn.colourOfPieceAt(sq) != Colour.UNOCCUPIED) { return false; }
       }
       // cannot castle over a square in check
-      for (int sq : pawnSquaresQueenssideCastling[colour.ordinal()]) {
+      for (int sq : pawnSquaresQueenssideCastling[colourOrd]) {
          if ((posn.pieceAt(sq) == PieceType.PAWN) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
       }
-      for (int sq : knightSquaresQueenssideCastling[colour.ordinal()]) {
+      for (int sq : knightSquaresQueenssideCastling[colourOrd]) {
          if ((posn.pieceAt(sq) == PieceType.KNIGHT) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
       }
-      for (int sq : unoccupiedSquaresQueenssideCastling[colour.ordinal()]) {
+      for (int sq : unoccupiedSquaresQueenssideCastling[colourOrd]) {
          Ray[] raysToCheck = colour == Colour.WHITE ? new Ray[] { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }
                : new Ray[] { Ray.SOUTHWEST, Ray.SOUTH, Ray.SOUTHEAST };
          for (Ray ray : raysToCheck) {
@@ -504,7 +513,7 @@ public class MoveGenerator {
             moves.add(generateMove(posn, startSq, nextSq));
             if (onPawnStartRank(startSq, colour)) {
                nextSq = getMailboxSquare(nextSq, forwardOffset); // cannot be outside of the board
-               if (posn.colourOfPieceAt(nextSq) == Colour.UNOCCUPIED) { moves.add(generateMove(posn, startSq, nextSq)); }
+               if (posn.colourOfPieceAt(nextSq) == Colour.UNOCCUPIED) { moves.add(Move.createPawnTwoSquaresForwardMove(startSq, posn.raw(startSq), nextSq)); }
             }
          }
          // captures
@@ -515,7 +524,7 @@ public class MoveGenerator {
       if (posn.getEnpassantSquare() != null) {
          int epSquare = posn.getEnpassantSquare().index();
          for (int sq : enpassantSquares[colour.ordinal()].get(epSquare)) {
-            if (startSq == sq) { moves.add(Move.enpassant(posn, startSq, epSquare)); }
+            if (startSq == sq) { moves.add(Move.createEnpassantMove(startSq, posn.raw(startSq), epSquare, posn.raw(epSquare))); }
          }
       }
       return moves;
@@ -566,11 +575,11 @@ public class MoveGenerator {
    }
 
    private Move generateMove(Position posn, int from, int to) {
-      return new Move(from, posn.raw(from), to);
+      return Move.createMove(from, posn.raw(from), to);
    }
 
    private Move generateCapture(Position posn, int from, int to) {
-      return new Move(from, posn.raw(from), to, posn.raw(to));
+      return Move.createCapture(from, posn.raw(from), to, posn.raw(to));
    }
 
    // stores info about a square in relation to a particular target square (often, the opposing king's square)

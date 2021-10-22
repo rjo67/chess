@@ -77,7 +77,7 @@ public class Board {
 
       Square(int index) {
          this.index = index;
-         this.rank = index / 8;
+         this.rank = 7 - index / 8;
          this.file = index % 8;
       }
 
@@ -118,6 +118,22 @@ public class Board {
          if (rank < 0 || rank > 7 || file < 0 || file > 7) { throw new IllegalArgumentException(String.format("invalid values (%d, %d)", rank, file)); }
          int sq = ((7 - rank) * 8) + file;
          return Square.indexToSquare[sq];
+      }
+
+      /**
+       * Returns the enpassant square, assuming a pawn move to the given square e.g. given b5, returns b6. Or a4, returns a3.
+       *
+       * @param  sq the square where the pawn moved to (on the 5th rank for black or the 4th rank for white).
+       * @return    enpassant square. Must be either on the 6th rank (for a black move) or on the 3rd rank (for a white move).
+       */
+      public static Square findEnpassantSquareFromMove(Square sq) {
+         if (sq.rank() == 4) {
+            return Square.fromRankAndFile(5, sq.file());
+         } else if (sq.rank() == 3) {
+            return Square.fromRankAndFile(2, sq.file());
+         } else {
+            throw new IllegalArgumentException("must specify a square on the 4th or 5th rank, but got: " + sq);
+         }
       }
 
    }

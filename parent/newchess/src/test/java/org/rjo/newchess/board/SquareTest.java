@@ -42,4 +42,9 @@ public class SquareTest {
       assertThrows(IllegalArgumentException.class, () -> Square.valueOf("t2"));
    }
 
+   @Test
+   public void enpassantSquare() {
+      assertEquals(Square.findEnpassantSquareFromMove(Square.b4), Square.b3);
+      assertEquals(Square.findEnpassantSquareFromMove(Square.c5), Square.c6);
+   }
 }
