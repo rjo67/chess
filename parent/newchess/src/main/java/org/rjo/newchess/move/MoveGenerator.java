@@ -29,7 +29,7 @@ public class MoveGenerator {
    // ****
 
    // square where the king must be to be able to castle
-   private final static int[] kingsCastlingSquareIndex = new int[] { Square.e1.index(), Square.e8.index() };
+   public final static int[] kingsCastlingSquareIndex = new int[] { Square.e1.index(), Square.e8.index() };
    // square where the king ends up after castling kings or queensside, indexed on colour
    public final static int[][] kingsSquareAfterCastling = new int[][] { { Square.g1.index(), Square.c1.index() }, { Square.g8.index(), Square.c8.index() } };
    // square where the rook ends up after castling kings or queensside, indexed on colour and side of board
@@ -240,9 +240,9 @@ public class MoveGenerator {
                   }
                }
             }
-            if (pt == PieceType.KING) {
-               if (canCastleKingsside(posn, startSq, colour)) { moves.add(Move.createKingssideCastlingMove(startSq, posn.raw(startSq), colour)); }
-               if (canCastleQueensside(posn, startSq, colour)) { moves.add(Move.createQueenssideCastlingMove(startSq, posn.raw(startSq), colour)); }
+            if (pt == PieceType.KING && !posn.isKingInCheck()) {
+               if (canCastleKingsside(posn, startSq, colour)) { moves.add(Move.createKingssideCastlingMove(colour)); }
+               if (canCastleQueensside(posn, startSq, colour)) { moves.add(Move.createQueenssideCastlingMove(colour)); }
             }
          }
       }
@@ -256,10 +256,16 @@ public class MoveGenerator {
     * @param  targetSq targetSq. If empty, the object generated will be a plain move. If contains an enemy piece, the move
     *                  will be a capture. If contains a friendly piece, no move object will be generated.
     * @param  colour
-    * @return          a move object or null if the targetSq contains a piece of our colour
+    * @return          a move object or null if the targetSq contains a piece of our colour or the king would move adjacent
+    *                  to enemy king
     */
    private Move potentiallyGenerateMoveOrCapture(Position posn, int startSq, int targetSq, Colour colour) {
       Move move = null;
+      // king would move adjacent to opponent's king?
+      if (posn.pieceAt(startSq) == PieceType.KING
+            && Square.toSquare(targetSq).adjacentTo(Square.toSquare(posn.getKingsSquare(posn.getSideToMove().opposite())))) {
+         return null;
+      }
       final Colour colourOfTargetSq = posn.colourOfPieceAt(targetSq);
       if (colourOfTargetSq != Colour.UNOCCUPIED) {
          // either capture, or we've hit one of our own pieces
@@ -421,6 +427,7 @@ public class MoveGenerator {
       return ray.onSameRay(m.getOrigin(), m.getTarget()) || ray.getOpposite().onSameRay(m.getOrigin(), m.getTarget());
    }
 
+   // if the king is in check is not verified by this method
    private boolean canCastleKingsside(Position posn, int startSq, Colour colour) {
       if (!posn.canCastleKingsside(colour)) { return false; }
       int colourOrd = colour.ordinal();
@@ -429,7 +436,6 @@ public class MoveGenerator {
       for (int sq : unoccupiedSquaresKingssideCastling[colourOrd]) {
          if (posn.colourOfPieceAt(sq) != Colour.UNOCCUPIED) { return false; }
       }
-      // TODO cannnot castle if king is in check...
 
       // cannot castle over a square in check
       for (int sq : pawnSquaresKingssideCastling[colourOrd]) {
@@ -451,8 +457,8 @@ public class MoveGenerator {
       return true;
    }
 
+   // if the king is in check is not verified by this method
    private boolean canCastleQueensside(Position posn, int startSq, Colour colour) {
-      // TODO cannnot castle if king is in check...
       if (!posn.canCastleQueensside(colour)) { return false; }
       int colourOrd = colour.ordinal();
       if (startSq != kingsCastlingSquareIndex[colourOrd]) { return false; }
