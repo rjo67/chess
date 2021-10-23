@@ -291,7 +291,7 @@ public class Fen {
       }
 
       posn.setSideToMove(sideToMove);
-      posn.setCastlingsRights(castlingRights);
+      posn.setCastlingRights(castlingRights);
       posn.setEnpassantSquare(enpassantSquare);
 
       return posn;

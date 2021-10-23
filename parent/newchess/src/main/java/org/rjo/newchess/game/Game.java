@@ -50,7 +50,7 @@ public class Game {
       }
 
       g.posn.setSideToMove(Colour.WHITE);
-      g.posn.setCastlingsRights(new boolean[][] { { true, true }, { true, true } });
+      g.posn.setCastlingRights(new boolean[][] { { true, true }, { true, true } });
       g.setHalfmoveClock(0);
       g.setMoveNumber(1);
       return g;

@@ -136,6 +136,15 @@ public class Board {
          }
       }
 
+      /**
+       * Is this square adjacent to the given square?
+       * 
+       * @param  other the other square
+       * @return       true when adjacent
+       */
+      public boolean adjacentTo(Square other) {
+         return Math.abs(this.rank - other.rank) <= 1 && Math.abs(this.file - other.file) <= 1;
+      }
    }
 
    public static int mailbox(int offset) {

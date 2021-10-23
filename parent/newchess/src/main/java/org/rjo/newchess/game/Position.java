@@ -30,8 +30,9 @@ public class Position {
    boolean[][] castlingRights; // package protected for tests
 
    private Square enpassantSquare; // set if previous move was a pawn moving 2 squares forward
-   int[] kingsSquare; // keep track of where the kings are ( package protected for tests)
+   int[] kingsSquare; // keep track of where the kings are (package protected for tests)
    private Colour sideToMove;
+   private boolean kingInCheck; // TRUE if the move leading to this posn checks their king
 
    // mainly for tests
    public Position(Square whiteKingsSquare, Square blackKingsSquare) {
@@ -71,6 +72,7 @@ public class Position {
       this.enpassantSquare = prevPosn.enpassantSquare;
       this.kingsSquare = prevPosn.kingsSquare;
       this.sideToMove = prevPosn.sideToMove;
+      this.kingInCheck = prevPosn.kingInCheck;
       this.board = prevPosn.board.clone();
    }
 
@@ -151,7 +153,7 @@ public class Position {
       this.sideToMove = sideToMove;
    }
 
-   public void setCastlingsRights(boolean[][] castlingRights) {
+   public void setCastlingRights(boolean[][] castlingRights) {
       this.castlingRights = castlingRights;
    }
 
@@ -296,11 +298,20 @@ public class Position {
       }
 
       this.sideToMove = this.sideToMove.opposite();
+      this.kingInCheck = move.isCheck();
    }
 
    public List<Move> findMoves(Colour sideToMove) {
-      // TODO Auto-generated method stub
-      return null;
+      return new MoveGenerator().findMoves(this, sideToMove);
+   }
+
+   public boolean isKingInCheck() {
+      return kingInCheck;
+   }
+
+   // for tests
+   public void setKingInCheck(boolean kingInCheck) {
+      this.kingInCheck = kingInCheck;
    }
 
    /**

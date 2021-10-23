@@ -140,41 +140,29 @@ public class Move {
    }
 
    /**
-    * Kingsside castling.
+    * Kingsside castling. Origin and target squares are set to those of the king.
     * 
-    * @param  origin           origin square (of king)
-    * @param  originSquareInfo info about origin square
-    * @param  colour           colour of moving side
-    * @return                  the new move object
+    * @param  colour colour of moving side
+    * @return        the new move object
     */
-   public static Move createKingssideCastlingMove(int origin, SquareInfo originSquareInfo, Colour colour) {
-      // origin and target are start and end square of the king
-      Move move = new Move(origin, originSquareInfo, MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][0], null, null);
+   public static Move createKingssideCastlingMove(Colour colour) {
+      Move move = new Move(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], new SquareInfo(PieceType.KING, colour),
+            MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][0], null, null);
       move.kingsSideCastling = true;
       return move;
    }
 
-   public static Move createKingssideCastlingMove(Square origin, SquareInfo originSquareInfo, Colour colour) {
-      return createKingssideCastlingMove(origin.index(), originSquareInfo, colour);
-   }
-
    /**
-    * Queensside castling.
+    * Queensside castling. Origin and target squares are set to those of the king.
     * 
-    * @param  origin           origin square (of king)
-    * @param  originSquareInfo info about origin square
-    * @param  colour           colour of moving side
-    * @return                  the new move object
+    * @param  colour colour of moving side
+    * @return        the new move object
     */
-   public static Move createQueenssideCastlingMove(int origin, SquareInfo originSquareInfo, Colour colour) {
-      // origin and target are start and end square of the king
-      Move move = new Move(origin, originSquareInfo, MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][1], null, null);
+   public static Move createQueenssideCastlingMove(Colour colour) {
+      Move move = new Move(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], new SquareInfo(PieceType.KING, colour),
+            MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][1], null, null);
       move.queensSideCastling = true;
       return move;
-   }
-
-   public static Move createQueenssideCastlingMove(Square origin, SquareInfo originSquareInfo, Colour colour) {
-      return createQueenssideCastlingMove(origin.index(), originSquareInfo, colour);
    }
 
    /**

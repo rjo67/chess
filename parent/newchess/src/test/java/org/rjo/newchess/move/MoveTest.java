@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Position.SquareInfo;
 import org.rjo.newchess.piece.Colour;
@@ -13,7 +15,6 @@ import org.rjo.newchess.piece.PieceType;
 public class MoveTest {
 
    private static final SquareInfo WHITE_PAWN = new SquareInfo(PieceType.PAWN, Colour.WHITE);
-   private static final SquareInfo WHITE_KING = new SquareInfo(PieceType.KING, Colour.WHITE);
    private static final SquareInfo BLACK_PAWN = new SquareInfo(PieceType.PAWN, Colour.BLACK);
 
    @Test
@@ -61,27 +62,24 @@ public class MoveTest {
       assertEquals(Square.a4.index(), m.getSquareOfPawnCapturedEnpassant());
    }
 
-   @Test
-   public void kingssideCastling() {
-      Move m = Move.createKingssideCastlingMove(Square.e1, WHITE_KING, Colour.WHITE);
-      assertFalse(m.isCapture());
-      assertFalse(m.isEnpassant());
-      assertFalse(m.isPromotion());
-      assertFalse(m.isPawnTwoSquaresForward());
-      assertTrue(m.isKingssideCastling());
-      assertFalse(m.isQueenssideCastling());
-      assertEquals(0, m.getSquareOfPawnCapturedEnpassant());
-   }
+   @ParameterizedTest
+   @CsvSource({ "WHITE,e1,g1,true,false", "BLACK,e8,g8,true,false", "WHITE,e1,c1,false,true", "BLACK,e8,c8,false,true" })
+   public void castling(String colourStr, String originStr, String targetStr, String kingsside, String queensside) {
+      Colour col = Colour.valueOf(colourStr);
+      Square originSq = Square.fromString(originStr);
+      Square targetSq = Square.fromString(targetStr);
+      boolean kingsCastling = Boolean.parseBoolean(kingsside);
+      boolean queensCastling = Boolean.parseBoolean(queensside);
 
-   @Test
-   public void queenssideCastling() {
-      Move m = Move.createQueenssideCastlingMove(Square.e1, WHITE_KING, Colour.WHITE);
+      Move m = kingsCastling ? Move.createKingssideCastlingMove(col) : Move.createQueenssideCastlingMove(col);
+      assertEquals(originSq.index(), m.getOrigin());
+      assertEquals(targetSq.index(), m.getTarget());
       assertFalse(m.isCapture());
       assertFalse(m.isEnpassant());
       assertFalse(m.isPromotion());
       assertFalse(m.isPawnTwoSquaresForward());
-      assertFalse(m.isKingssideCastling());
-      assertTrue(m.isQueenssideCastling());
+      assertEquals(kingsCastling, m.isKingssideCastling());
+      assertEquals(queensCastling, m.isQueenssideCastling());
       assertEquals(0, m.getSquareOfPawnCapturedEnpassant());
    }
 
