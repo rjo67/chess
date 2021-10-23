@@ -218,8 +218,16 @@ public class Position {
             throw new IllegalStateException(String.format("invalid move %s, piece at %s is %s %s", move, Square.toSquare(move.getOrigin()),
                   colourOfPieceAt(move.getOrigin()), pieceAt(move.getOrigin())));
          }
-         if (move.isCapture() && isEmpty(move.getTarget())) {
-            throw new IllegalStateException(String.format("invalid capture move %s, target square is empty", move));
+         if (move.isCapture()) {
+            if (move.isEnpassant()) {
+               if (!isEmpty(move.getTarget())) {
+                  throw new IllegalStateException(String.format("invalid enpassant move %s, target square is not empty", move));
+               } else if (isEmpty(move.getSquareOfPawnCapturedEnpassant())) {
+                  throw new IllegalStateException(
+                        String.format("invalid enpassant move %s, square %s is empty", move, Square.toSquare(move.getSquareOfPawnCapturedEnpassant())));
+               }
+            } else if (isEmpty(move.getTarget()))
+               throw new IllegalStateException(String.format("invalid capture move %s, target square is empty", move));
          }
          if (!move.isCapture() && !isEmpty(move.getTarget())) {
             throw new IllegalStateException(String.format("invalid non-capture move %s, target square is occupied with: %s %s", move,
@@ -231,9 +239,8 @@ public class Position {
       }
       // remove piece at move.origin, place piece at move.target (implicitly removing piece at move.target)
       board[move.getOrigin()] = UNOCCUPIED_SQUARE;
-      board[move.getTarget()] = new SquareInfo(move.getMovingPiece(), move.getColourOfMovingPiece());
-
-      // TODO promotion
+      board[move.getTarget()] = new SquareInfo((move.isPromotion() ? move.getPromotedPiece() : move.getMovingPiece()), move.getColourOfMovingPiece());
+      if (move.isEnpassant()) { board[move.getSquareOfPawnCapturedEnpassant()] = UNOCCUPIED_SQUARE; }
 
       // move rook too if castling
       if (move.isKingssideCastling() || move.isQueenssideCastling()) {

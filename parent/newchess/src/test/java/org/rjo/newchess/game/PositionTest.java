@@ -217,7 +217,7 @@ public class PositionTest {
       posn.addPiece(Colour.BLACK, PieceType.PAWN, Square.c4);
       assertEquals("4k3/8/8/8/2p5/8/1P6/4K3 w - -", posn.getFen());
 
-      // make pawn move, which sets the enapassant square in the position
+      // make pawn move, which sets the enpassant square in the position
       Position posn2 = posn.move(Move.createPawnTwoSquaresForwardMove(Square.b2, posn.raw(Square.b2), Square.b4));
       assertEquals("4k3/8/8/8/1Pp5/8/8/4K3 b - b3", posn2.getFen());
       assertEquals(PieceType.PAWN, posn2.pieceAt(Square.b4));
@@ -226,15 +226,52 @@ public class PositionTest {
       assertSame(posn.castlingRights, posn2.castlingRights);
       assertEquals(Square.b3, posn2.getEnpassantSquare());
 
-      Position posn3 = posn2.move(Move.createEnpassantMove(Square.c4, posn.raw(Square.c4), Square.b3, posn.raw(Square.b3)));
-      assertEquals("4k3/8/8/8/1Pp5/8/8/4K3 b - b3", posn3.getFen());
-      assertTrue(posn2.isEmpty(Square.b4));
-      assertTrue(posn2.isEmpty(Square.b3));
-      assertEquals(PieceType.PAWN, posn3.pieceAt(Square.b3));
+      Move epMove = Move.createEnpassantMove(Square.c4, posn2.raw(Square.c4), Square.b3, posn2.raw(Square.b3));
+      assertEquals(Square.b4.index(), epMove.getSquareOfPawnCapturedEnpassant());
+      Position posn3 = posn2.move(epMove);
       assertBoardClonedCorrectly(posn2, posn3, Square.b3, Square.b4, Square.c4);
-      assertSame(posn.kingsSquare, posn3.kingsSquare);
-      assertSame(posn.castlingRights, posn3.castlingRights);
-      assertNull(posn3.getEnpassantSquare());
+      posn2 = null; // avoid typos referencing the wrong posn
+      assertEquals("4k3/8/8/8/8/1p6/8/4K3 w - -", posn3.getFen());
+      assertTrue(posn3.isEmpty(Square.b4));
+      assertFalse(posn3.isEmpty(Square.b3));
+      assertEquals(PieceType.PAWN, posn3.pieceAt(Square.b3));
+      assertEquals(Colour.BLACK, posn3.colourOfPieceAt(Square.b3));
+      assertNull(posn3.getEnpassantSquare()); // after move, the ep square should be null again
+      assertSame(posn3.kingsSquare, posn3.kingsSquare);
+      assertSame(posn3.castlingRights, posn3.castlingRights);
+   }
+
+   @Test
+   public void promotionNonCapture() {
+      Position posn = new Position(Square.e1, Square.e8);
+      posn.addPiece(Colour.WHITE, PieceType.PAWN, Square.c7);
+      assertEquals("4k3/2P5/8/8/8/8/8/4K3 w - -", posn.getFen());
+
+      Position posn2 = posn.move(Move.createPromotionMove(Square.c7, posn.raw(Square.c7), Square.c8, PieceType.QUEEN));
+      assertEquals("2Q1k3/8/8/8/8/8/8/4K3 b - -", posn2.getFen());
+      assertEquals(PieceType.QUEEN, posn2.pieceAt(Square.c8));
+      assertEquals(Colour.WHITE, posn2.colourOfPieceAt(Square.c8));
+      assertTrue(posn2.isEmpty(Square.c7));
+      assertBoardClonedCorrectly(posn, posn2, Square.c7, Square.c8);
+      assertSame(posn.kingsSquare, posn2.kingsSquare);
+      assertSame(posn.castlingRights, posn2.castlingRights);
+   }
+
+   @Test
+   public void promotionCapture() {
+      Position posn = new Position(Square.e1, Square.e8);
+      posn.addPiece(Colour.WHITE, PieceType.PAWN, Square.c7);
+      posn.addPiece(Colour.BLACK, PieceType.BISHOP, Square.b8);
+      assertEquals("1b2k3/2P5/8/8/8/8/8/4K3 w - -", posn.getFen());
+
+      Position posn2 = posn.move(Move.createPromotionCaptureMove(Square.c7, posn.raw(Square.c7), Square.b8, posn.raw(Square.b8), PieceType.KNIGHT));
+      assertEquals("1N2k3/8/8/8/8/8/8/4K3 b - -", posn2.getFen());
+      assertEquals(PieceType.KNIGHT, posn2.pieceAt(Square.b8));
+      assertEquals(Colour.WHITE, posn2.colourOfPieceAt(Square.b8));
+      assertTrue(posn2.isEmpty(Square.c7));
+      assertBoardClonedCorrectly(posn, posn2, Square.c7, Square.b8);
+      assertSame(posn.kingsSquare, posn2.kingsSquare);
+      assertSame(posn.castlingRights, posn2.castlingRights);
    }
 
    private void assertBoardClonedCorrectly(Position oldPosn, Position newPosn, Square... squaresToCheck) {
