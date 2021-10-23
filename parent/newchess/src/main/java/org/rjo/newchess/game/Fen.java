@@ -185,7 +185,7 @@ public class Fen {
     */
    private static Square parseEnpassantSquare(String token) {
       if (!token.equals("-")) {
-         return Square.fromString(token);
+         return Square.valueOf(token);
       } else {
          return null;
       }

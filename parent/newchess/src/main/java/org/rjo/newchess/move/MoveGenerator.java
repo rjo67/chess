@@ -50,16 +50,16 @@ public class MoveGenerator {
    // squares which must be unoccupied in order to castle queensside
    private final static int[][] unoccupiedSquaresQueenssideCastling = new int[][]//
    { { Square.b1.index(), Square.c1.index(), Square.d1.index() }, { Square.b8.index(), Square.c8.index(), Square.d8.index() } };
-   // if an enemy knight is on these squares, then cannot castle queensside
+   // if an enemy knight is on these squares, then cannot castle queensside (not including c2/c7, since a knight on that
+   // square checks the king)
    private final static int[][] knightSquaresQueenssideCastling = new int[][]//
-   { { Square.a3.index(), Square.c3.index(), Square.d2.index(), Square.a2.index(), Square.b3.index(), //
-         Square.d3.index(), Square.e2.index(), Square.b2.index(), Square.c3.index(), Square.e3.index(), Square.f2.index() },
-         { Square.a6.index(), Square.c6.index(), Square.d7.index(), Square.a7.index(), Square.b6.index(), //
-               Square.d6.index(), Square.e7.index(), Square.b7.index(), Square.c6.index(), Square.e6.index(), Square.f7.index() } };
+   { { Square.b3.index(), Square.c3.index(), Square.d3.index(), Square.e3.index(), Square.a2.index(), Square.b2.index(), Square.e2.index(), Square.f2.index() },
+         { Square.b6.index(), Square.c6.index(), Square.d6.index(), Square.e6.index(), Square.a7.index(), Square.b7.index(), Square.e7.index(),
+               Square.f7.index() } };
    // if an enemy pawn is on these squares, then cannot castle queensside
    private final static int[][] pawnSquaresQueenssideCastling = new int[][]//
-   { { Square.a2.index(), Square.b2.index(), Square.c2.index(), Square.d2.index(), Square.e2.index() },
-         { Square.a7.index(), Square.b7.index(), Square.c7.index(), Square.d7.index(), Square.e7.index() } };
+   { { Square.b2.index(), Square.c2.index(), Square.d2.index(), Square.e2.index() },
+         { Square.b7.index(), Square.c7.index(), Square.d7.index(), Square.e7.index() } };
    // key: the enpassant square; values: the squares where a pawn must be in order to take with e.p.
    private final static Map<Integer, Integer[]>[] enpassantSquares;
    private final static Set<Integer>[] knightMoves; // stores set of possible knight moves for each square
@@ -97,8 +97,8 @@ public class MoveGenerator {
       pawnCaptures = new Set[2][64];
       int[][] captureOffset = new int[][] { { -9, -11 }, { 9, 11 } };
       for (Colour col : new Colour[] { Colour.WHITE, Colour.BLACK }) {
-         // skip first and last rank
-         for (int sq = 8; sq < 56; sq++) {
+         // process first and last rank as well, need this squares defined for kingIsInCheckAfterMove()
+         for (int sq = 0; sq < 64; sq++) {
             pawnCaptures[col.ordinal()][sq] = new HashSet<>();
             for (int offset : captureOffset[col.ordinal()]) {
                int targetSq = getMailboxSquare(sq, offset);
@@ -120,8 +120,8 @@ public class MoveGenerator {
       /*
        * Instead of looking at all the squares from 0..63, starts at the kingsSquare and proceeds in ray order first. Then all
        * other squares are processed. This is done to reduce / simplify the amount of work needed later to see if a move left
-       * the king in check. 'squaresProcessed' is used to keep track of which squares have been processed during the 'rays'
-       * loop.
+       * the king in check. The 'squaresProcessed' array is used to keep track of which squares have been processed during the
+       * 'rays' loop.
        */
       boolean[] squaresProcessed = new boolean[64]; // false - not processed
       // stores moves in the ray directions. Moves are stored in the direction of the
@@ -143,8 +143,15 @@ public class MoveGenerator {
       }
 
       // only moves in 'movesWithStartSqOnRay' are relevant here,
-      // 'otherMoves' cannot leave king in check by definition
+      // 'otherMoves' cannot leave king in check by definition (**APART FROM moves involving our king itself**)
       removeMovesLeavingKingInCheck(posn, posn.getKingsSquare(colour), colour, movesWithStartSqOnRay);
+
+      // for any king moves, need to make sure we're not moving into check
+      Iterator<Move> moveIter = otherMoves.iterator();
+      while (moveIter.hasNext()) {
+         Move move = moveIter.next();
+         if (move.getMovingPiece() == PieceType.KING) { if (kingIsInCheckAfterMove(posn, move, colour)) { moveIter.remove(); } }
+      }
 
       // collect all the moves
       List<Move> allMoves = new ArrayList<>(64);
@@ -162,12 +169,45 @@ public class MoveGenerator {
    }
 
    /**
+    * Returns true if the king (colour 'colour') would be in check if it made the given 'move'. Should only be called for
+    * king moves.
+    * 
+    * @param  posn
+    * @param  move   the move to inspect
+    * @param  colour colour of moving king
+    * @return        true if the king would be in check
+    */
+   private boolean kingIsInCheckAfterMove(Position posn, Move move, Colour colour) {
+      int newKingsSq = move.getTarget();
+      Colour opponentsColour = colour.opposite();
+
+      // *our* colour used as index for pawnCaptures, we want the 'inverse', i.e. squares which attack the given square
+      for (int sq : pawnCaptures[colour.ordinal()][newKingsSq]) {
+         if (posn.pieceAt(sq) == PieceType.PAWN && posn.colourOfPieceAt(sq) == opponentsColour) { return true; }
+      }
+
+      for (int sq : knightMoves[newKingsSq]) {
+         if (posn.pieceAt(sq) == PieceType.KNIGHT && posn.colourOfPieceAt(sq) == opponentsColour) { return true; }
+      }
+
+      Ray excludedRay = Ray.findRayBetween(newKingsSq, move.getOrigin()); // the ray the king has moved along
+      for (Ray ray : Ray.values()) {
+         if (ray == excludedRay && !posn.isKingInCheck()) { continue; } // don't search this ray if king wasn't in check previously
+         Pair<PieceType, Integer> enemyPieceInfo = opponentsPieceOnRay(posn, colour, newKingsSq, ray);
+         PieceType enemyPiece = enemyPieceInfo.getLeft();
+         if (enemyPiece != null && enemyPiece.canSlideAlongRay(ray)) { return true; }
+      }
+
+      return false;
+   }
+
+   /**
     * Returns true if the given move would attack the given square. Can be used e.g. to see if a move will check the
     * opponent's king.
     * 
-    * @param  posn
-    * @param  move
-    * @param  targetSq
+    * @param  posn                     current position
+    * @param  move                     the move to test
+    * @param  targetSq                 square which might be attacked by the move
     * @param  squaresWhichAttackTarget stores the result of processed squares (for sliding pieces)
     * @return                          true if the given move attacks the given square
     */
@@ -186,21 +226,21 @@ public class MoveGenerator {
    }
 
    /**
-    * whether a (possibly hypothetical) piece 'movingPiece' at 'origin' attacks 'target'. Should not be called for kings or
+    * whether a (possibly hypothetical) piece 'piece' at 'origin' attacks 'target'. Should not be called for kings or
     * pawns.
     */
-   private boolean pieceAttacksSquare(Position posn, PieceType movingPiece, int origin, int target, RayCacheInfo[] squaresWhichAttackTarget) {
-      if (movingPiece == PieceType.KNIGHT) { return knightMoves[origin].contains(target); }
+   private boolean pieceAttacksSquare(Position posn, PieceType piece, int origin, int target, RayCacheInfo[] squaresWhichAttackTarget) {
+      if (piece == PieceType.KNIGHT) { return knightMoves[origin].contains(target); }
 
       // see if result has already been calculated
       RayCacheInfo cacheInfo = squaresWhichAttackTarget[origin];
       if (cacheInfo != null) {
          if (!cacheInfo.clearPathToTarget) { return false; }
-         return movingPiece.canSlideAlongRay(cacheInfo.rayBetween);
+         return piece.canSlideAlongRay(cacheInfo.rayBetween);
       }
 
       Ray rayBetween = Ray.findRayBetween(origin, target);
-      if (rayBetween == null || !movingPiece.canSlideAlongRay(rayBetween)) { return false; }
+      if (rayBetween == null || !piece.canSlideAlongRay(rayBetween)) { return false; }
       // now know that the piece at 'origin' could attack the targetSq, if there is a clear path
       boolean clearPathToTarget = interveningSquaresAreEmpty(posn, origin, target, rayBetween);
       if (clearPathToTarget) {
@@ -290,8 +330,8 @@ public class MoveGenerator {
     * ray.
     * 
     * @param  posn
-    * @param  m
-    * @param  ray
+    * @param  m                      the move to check
+    * @param  ray                    the ray to check
     * @param  kingsSquare
     * @param  colour
     * @param  pinnedPieces           stores the squares of pinned pieces; use new int[] { -1, -1, -1, -1, -1, -1, -1, -1 }
@@ -474,6 +514,8 @@ public class MoveGenerator {
          if ((posn.pieceAt(sq) == PieceType.KNIGHT) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
       }
       for (int sq : unoccupiedSquaresQueenssideCastling[colourOrd]) {
+         // we misuse this array for the 'square in check' calculation: the b1/b8 squares don't need to be inspected
+         if (sq == Square.b1.index() || sq == Square.b8.index()) { continue; }
          Ray[] raysToCheck = colour == Colour.WHITE ? new Ray[] { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }
                : new Ray[] { Ray.SOUTHWEST, Ray.SOUTH, Ray.SOUTHEAST };
          for (Ray ray : raysToCheck) {

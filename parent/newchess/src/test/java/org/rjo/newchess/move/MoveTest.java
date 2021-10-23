@@ -66,8 +66,8 @@ public class MoveTest {
    @CsvSource({ "WHITE,e1,g1,true,false", "BLACK,e8,g8,true,false", "WHITE,e1,c1,false,true", "BLACK,e8,c8,false,true" })
    public void castling(String colourStr, String originStr, String targetStr, String kingsside, String queensside) {
       Colour col = Colour.valueOf(colourStr);
-      Square originSq = Square.fromString(originStr);
-      Square targetSq = Square.fromString(targetStr);
+      Square originSq = Square.valueOf(originStr);
+      Square targetSq = Square.valueOf(targetStr);
       boolean kingsCastling = Boolean.parseBoolean(kingsside);
       boolean queensCastling = Boolean.parseBoolean(queensside);
 

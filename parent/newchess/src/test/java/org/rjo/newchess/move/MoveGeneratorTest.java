@@ -7,6 +7,8 @@ import java.util.List;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Fen;
@@ -70,6 +72,29 @@ public class MoveGeneratorTest {
       p = new Position(Square.b1, Square.b8);
       p.addPiece(Colour.WHITE, PieceType.KNIGHT, Square.a1);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.KNIGHT_FILTER, "Na1-b3", "Na1-c2");
+   }
+
+   @ParameterizedTest
+   @CsvSource({ "BISHOP,d8", "ROOK,d5", "KNIGHT,b3", "PAWN,b6" })
+   public void whiteKingCannotMoveIntoCheck(String piece, String square) {
+      PieceType pt = PieceType.valueOf(piece);
+      Square sq = Square.valueOf(square);
+
+      Position p = new Position(Square.a4, Square.c4);
+      p.addPiece(Colour.BLACK, pt, sq);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "Ka4-a3");
+   }
+
+   @ParameterizedTest
+   @CsvSource({ "PAWN,c7" })
+   public void blackKingCannotMoveIntoCheck(String piece, String square) {
+      PieceType pt = PieceType.valueOf(piece);
+      Square sq = Square.valueOf(square);
+
+      Position p = new Position(Square.e2, Square.e7);
+      p.setSideToMove(Colour.BLACK);
+      p.addPiece(Colour.WHITE, pt, sq);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), "Ke7-e8", "Ke7-f8", "Ke7-f7", "Ke7-f6", "Ke7-e6", "Ke7-d6", "Ke7-d7");
    }
 
    @Test

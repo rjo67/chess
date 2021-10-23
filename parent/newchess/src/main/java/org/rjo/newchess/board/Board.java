@@ -97,23 +97,6 @@ public class Board {
          return indexToSquare[index];
       }
 
-      /**
-       * Maps a string "a5" to the corresponding enum value.
-       *
-       * @param  coord a string of length 2. Values A..H and 1..8.
-       * @return       a Square or null.
-       */
-      public static Square fromString(String coord) {
-         if (coord.length() != 2) { throw new IllegalArgumentException("expected a string of length 2. Got '" + coord + "'"); }
-         String fileStr = String.valueOf(coord.charAt(0)).toLowerCase();
-         char file = fileStr.charAt(0);
-         int rank = Character.digit(coord.charAt(1), 10);
-         if (file < 'a' || file > 'h') { throw new IllegalArgumentException("bad value for 'file': " + file); }
-         if (rank < 1 || rank > 8) { throw new IllegalArgumentException("bad value for 'rank': " + rank); }
-
-         return Square.fromRankAndFile(rank - 1, file - 'a');
-      }
-
       public static Square fromRankAndFile(int rank, int file) {
          if (rank < 0 || rank > 7 || file < 0 || file > 7) { throw new IllegalArgumentException(String.format("invalid values (%d, %d)", rank, file)); }
          int sq = ((7 - rank) * 8) + file;
