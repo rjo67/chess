@@ -133,6 +133,22 @@ public enum Ray {
    }
 
    /**
+    * Does 'square' lie on this ray, between the 'originSq' and 'targetSq' squares?
+    * 
+    * @param  square   square to check
+    * @param  originSq
+    * @param  targetSq
+    * @return          true if the square lies between start and end on this ray.
+    */
+   public boolean squareBetween(int square, int originSq, int targetSq) {
+      for (int sq : raysList[originSq][this.ordinal()]) {
+         if (sq == square) { return true; }
+         if (sq == targetSq) { return false; }
+      }
+      return false;
+   }
+
+   /**
     * Returns the ray connecting two given squares.
     * 
     * @param  originSq
@@ -141,10 +157,9 @@ public enum Ray {
     */
    public static Ray findRayBetween(int originSq, int targetSq) {
       for (Ray ray : Ray.values()) {
-         if (ray.onSameRay(originSq, targetSq)) {
-            return ray;
-         }
+         if (ray.onSameRay(originSq, targetSq)) { return ray; }
       }
       return null;
    }
+
 }

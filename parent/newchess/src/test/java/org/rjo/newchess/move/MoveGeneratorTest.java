@@ -1,6 +1,7 @@
 package org.rjo.newchess.move;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -80,7 +81,7 @@ public class MoveGeneratorTest {
       PieceType pt = PieceType.valueOf(piece);
       Square sq = Square.valueOf(square);
 
-      Position p = new Position(Square.a4, Square.c4);
+      Position p = Fen.decode("8/8/8/8/K1k5/8/8/8 w - - 0 1").getPosition();
       p.addPiece(Colour.BLACK, pt, sq);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "Ka4-a3");
    }
@@ -95,6 +96,24 @@ public class MoveGeneratorTest {
       p.setSideToMove(Colour.BLACK);
       p.addPiece(Colour.WHITE, pt, sq);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), "Ke7-e8", "Ke7-f8", "Ke7-f7", "Ke7-f6", "Ke7-e6", "Ke7-d6", "Ke7-d7");
+   }
+
+   @Test
+   public void kingInCheckEnpassantPossible() {
+      // taken from numpty4, after black's move f7-f5. Prior: 8/5p2/8/2k3P1/p3K3/8/1P6/8 b - - 0 10
+      Position p = Fen.decode("8/8/8/2k2pP1/4K3/8/8/8 w - f6 0 10").getPosition();
+      assertTrue(p.isKingInCheck());
+      assertEquals(Square.f6, p.getEnpassantSquare());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "g5xf6 ep", "Ke4-e5", "Ke4xf5", "Ke4-f4", "Ke4-f3", "Ke4-e3", "Ke4-d3");
+   }
+
+   @Test
+   public void kingInDiscoveredCheckEnpassantPossible() {
+      // taken from "posn3", after white's move g2-g3. 8/8/8/KP5r/1R3p1k/6P1/8/8 b - - 0 0
+      Position p = Fen.decode("8/8/8/KP5r/1R3p1k/6P1/8/8 b - - 0 0").getPosition();
+      assertTrue(p.isKingInCheck());
+      // TODO fix this test when the concept of discovered check is stored in a Move
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), "Kh4-g4", "Kh4-h3", "Kh4-g5", "Kh4xg3");
    }
 
    @Test
@@ -171,7 +190,7 @@ public class MoveGeneratorTest {
       // castling when in check is not allowed
       p = new Position(new boolean[][] { { true, false }, { true, true } }, Square.e1, Square.b8);
       p.addPiece(Colour.WHITE, PieceType.ROOK, Square.h1);
-      p.setKingInCheck(true);
+      p.setKingInCheck(Square.h1.index());
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), move -> move.isKingssideCastling());
    }
 
@@ -528,5 +547,46 @@ public class MoveGeneratorTest {
       p.addPiece(Colour.WHITE, PieceType.QUEEN, Square.b6);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Qb6-b8+", "Qb6-d8+", "Qb6-e6+", "Qb6-g6+", "Qb6-b5+",
             "Qb6-c6+", "Qb6-e3+");
+   }
+
+   @ParameterizedTest
+   @CsvSource({ "3r4/4k3/8/8/3RP3/3K4/8/8 w - - 10 10,d4,d7", // rook
+         "3r4/8/5k2/8/3RP3/3K4/8/8 w - - 10 10,e4,e5", // pawn
+         "3r4/8/5k2/8/3RP3/3K4/7B/8 w - - 10 10,h2,e5", // bishop
+         "3r4/8/5k2/1Q6/3RP3/3K4/7B/8 w - - 10 10,b5,g5", // queen
+         "3r4/2N5/5k2/1Q6/3RP3/3K4/7B/8 w - - 10 10,c7,e8", // knight
+   })
+   public void kingInDirectCheckAfterMove(String fen, String moveOrigin, String moveTarget) {
+      Position posn = Fen.decode(fen).getPosition();
+      Move move = Move.createMove(Square.valueOf(moveOrigin), posn.raw(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
+      List<Integer> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
+      assertEquals(1, checkSquares.size());
+      assertEquals(Square.valueOf(moveTarget).index(), checkSquares.get(0));
+   }
+
+   @ParameterizedTest
+   @CsvSource({ "4RK2/4B3/1Q5B/2N5/5P2/1p2k3/8/8 w - - 0 1,e7,d8,e8", // discovered check from rook
+         "4RK2/4B3/1Q5B/2N5/5P2/1p2k3/8/8 w - - 0 1,f4,f5,h6", // discovered check from bishop
+         "4RK2/4B3/1Q5B/2N5/5P2/1p2k3/8/8 w - - 0 1,c5,b7,b6", // discovered check from queen
+   })
+   public void kingInDiscoveredCheckAfterMove(String fen, String moveOrigin, String moveTarget, String checkSquare) {
+      Position posn = Fen.decode(fen).getPosition();
+      Move move = Move.createMove(Square.valueOf(moveOrigin), posn.raw(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
+      List<Integer> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
+      assertEquals(1, checkSquares.size());
+      assertEquals(Square.valueOf(checkSquare).index(), checkSquares.get(0));
+   }
+
+   @ParameterizedTest
+   @CsvSource({ "5K2/8/1Q5B/2N5/5P2/8/RB3k2/8 w - - 0 1,b2,d4,a2", // check from bishop, discovered check from rook
+         "5K2/8/1Q5B/2N5/5P2/8/RB3k2/8 w - - 0 1,c5,d3,b6", // discovered check from knight
+   })
+   public void kingInDirectAndDiscoveredCheckAfterMove(String fen, String moveOrigin, String moveTarget, String discoverdCheckSquare) {
+      Position posn = Fen.decode(fen).getPosition();
+      Move move = Move.createMove(Square.valueOf(moveOrigin), posn.raw(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
+      List<Integer> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
+      assertEquals(2, checkSquares.size());
+      assertTrue(checkSquares.contains(Square.valueOf(moveTarget).index()));
+      assertTrue(checkSquares.contains(Square.valueOf(discoverdCheckSquare).index()));
    }
 }

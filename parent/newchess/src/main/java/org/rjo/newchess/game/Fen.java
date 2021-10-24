@@ -103,8 +103,7 @@ public class Fen {
       boolean[][] castlingRights = parseCastlingRights(fenTokenizer.nextToken());
       Square enpassantSquare = parseEnpassantSquare(fenTokenizer.nextToken());
       Position posn = parsePosition(fen, sideToMove, castlingRights, enpassantSquare);
-//      boolean inCheck = posn.squareIsAttacked(posn.getKingPosition(posn.getSideToMove()), posn.getSideToMove().opposite());
-//      posn.setInCheck(inCheck);
+      posn.setKingInCheck(posn.isKingInCheck(posn.getKingsSquare(sideToMove), sideToMove, -1));
 
       Game game = new Game(posn);
       if (fenTokenizer.hasMoreTokens()) {

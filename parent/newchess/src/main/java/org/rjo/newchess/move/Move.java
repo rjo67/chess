@@ -1,27 +1,27 @@
 package org.rjo.newchess.move;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Position.SquareInfo;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.PieceType;
 
 public class Move {
-   // which piece is moving...
-   private final SquareInfo originSquareInfo;
-   // ... and where it's moving from
-   private final int originSq;
-
-   // where piece is moving to
-   private final int targetSq;
+   private final SquareInfo originSquareInfo; // which piece is moving...
+   private final int originSq; // ... and where it's moving from
+   private final int targetSq; // where piece is moving to
    private final SquareInfo targetSquareInfo; // !null for captures
-
    private final boolean capture;
    private final boolean promotion;
    private final PieceType promotedPiece;
+
    // following fields are set after constructor call
    private boolean kingsSideCastling;
    private boolean queensSideCastling;
    private boolean check; // whether this move is a check
+   private List<Integer> checkSquares; // set to the square(s) of the piece(s) delivering a check
    private boolean enpassant; // whether this move is an enpassant capture
    private int squareOfPawnCapturedEnpassant; // the square of the pawn which was captured enpassant, **defaults to 0**
    private boolean pawnTwoSquaresForward; // marker field to indicate a pawn move of two squares (used in Position when performing a move)
@@ -236,7 +236,7 @@ public class Move {
          sb.append(Square.toSquare(targetSq));
          if (promotion) { sb.append("=").append(promotedPiece.symbol(originSquareInfo.colour())); }
          if (enpassant) { sb.append(" ep"); }
-         if (check) { sb.append("+"); }
+         if (isCheck()) { sb.append("+"); }
          return sb.toString();
       }
    }
@@ -281,12 +281,22 @@ public class Move {
       return targetSq;
    }
 
-   public void setCheck() {
+   public void setCheck(List<Integer> checkSquares) {
       check = true;
+      this.checkSquares = checkSquares;
+   }
+
+   public void setCheck(Integer... checkSquares) {
+      check = true;
+      this.checkSquares = Arrays.asList(checkSquares);
    }
 
    public boolean isCheck() {
       return check;
+   }
+
+   public List<Integer> getCheckSquares() {
+      return checkSquares;
    }
 
    public boolean isPawnTwoSquaresForward() {

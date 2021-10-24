@@ -2,6 +2,7 @@ package org.rjo.newchess.game;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.move.Move;
+import org.rjo.newchess.move.MoveGenerator;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.PieceType;
 
@@ -84,13 +86,13 @@ public class PositionTest {
    }
 
    @Test
-   public void checkMove() {
+   public void processCheckMove() {
       Position posn = new Position(Square.e1, Square.e8);
       posn.addPiece(Colour.WHITE, PieceType.ROOK, Square.b3);
       assertEquals("4k3/8/8/8/8/1R6/8/4K3 w - -", posn.getFen());
 
       Move m = Move.createMove(Square.b3, posn.raw(Square.b3), Square.b8);
-      m.setCheck();
+      m.setCheck(Square.b8.index());
       Position posn2 = posn.move(m);
       assertEquals("1R2k3/8/8/8/8/8/8/4K3 b - -", posn2.getFen());
       assertEquals(PieceType.ROOK, posn2.pieceAt(Square.b8));
@@ -289,6 +291,26 @@ public class PositionTest {
       assertBoardClonedCorrectly(posn, posn2, Square.c7, Square.b8);
       assertSame(posn.kingsSquare, posn2.kingsSquare);
       assertSame(posn.castlingRights, posn2.castlingRights);
+   }
+
+   @Test
+   public void directAndDiscoveredCheck() {
+      // 2 check moves in this position: one is a discovered check from the bishop
+      Move moveC6 = null, moveF6 = null;
+      Position p = Fen.decode("8/1k6/3P4/2P3P1/KP2N2r/2P2BP1/3P1P2/8 w - - 0 0").getPosition();
+      for (Move m : new MoveGenerator().findMoves(p, Colour.WHITE)) {
+         if (m.isCheck()) {
+            if (m.toString().equals("c5-c6+")) { moveC6 = m; }
+            if (m.toString().equals("Ne4-f6+")) { moveF6 = m; }
+         }
+      }
+      assertNotNull(moveC6);
+      assertNotNull(moveF6);
+
+      // after one of the moves, the "discovered check" should be stored in the position
+      Position p2 = p.move(moveF6);
+      assertEquals(1, p2.getCheckSquares().size());
+      assertTrue(p2.getCheckSquares().contains(Square.f3.index()));
    }
 
    private void assertBoardClonedCorrectly(Position oldPosn, Position newPosn, Square... squaresToCheck) {

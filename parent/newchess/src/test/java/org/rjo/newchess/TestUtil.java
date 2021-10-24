@@ -1,6 +1,6 @@
 package org.rjo.newchess;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,9 +56,10 @@ public class TestUtil {
             iter.remove();
          } else if (!moveFilter.test(m)) { iter.remove(); }
       }
-      assertEquals(0, requiredMoves.size(),
-            "not all required moves found, expected: " + requiredMoves + (moveClone.isEmpty() ? "" : ". Input-Moves not processed: " + moveClone));
+      if (!requiredMoves.isEmpty()) {
+         fail("not all required moves found, expected: " + requiredMoves + (moveClone.isEmpty() ? "" : ". Input-Moves not processed: " + moveClone));
+      }
       // all required moves found but still some input moves left over?
-      assertEquals(0, moveClone.size(), "following unexpected moves found: " + moveClone);
+      if (!moveClone.isEmpty()) { fail("found these unexpected moves: " + moveClone); }
    }
 }
