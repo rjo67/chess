@@ -31,6 +31,50 @@ public class Position {
    private static final boolean TEST_IF_VALID = true;
 
    /**
+    * Stores information about a piece which is checking the king.
+    * 
+    * The 'rayToKing' gets set during move processing.
+    */
+   public static class CheckInfo {
+      private PieceType pieceType;
+      private int square;
+      private Ray rayToKing;
+
+      public CheckInfo(PieceType pieceType, int square) {
+         this.pieceType = pieceType;
+         this.square = square;
+      }
+
+      /**
+       * Set the ray to the king along which we're are checking.
+       * 
+       * <B>Do not call for knight checks</B>, since there is no ray in this case.
+       */
+      public void setRayToKing(Ray rayToKing) {
+         if (rayToKing == null) { throw new IllegalArgumentException("rayToKing cannot be null if the king is in check"); }
+
+         this.rayToKing = rayToKing;
+      }
+
+      public Ray rayToKing() {
+         return rayToKing;
+      }
+
+      public int square() {
+         return square;
+      }
+
+      public PieceType pieceType() {
+         return pieceType;
+      }
+
+      @Override
+      public String toString() {
+         return pieceType + "@" + Square.toSquare(square) + rayToKing == null ? "" : " on ray " + rayToKing;
+      }
+   }
+
+   /**
     * Stores information about a particular square.
     */
    public static record SquareInfo(PieceType pieceType, Colour colour) {
@@ -47,7 +91,7 @@ public class Position {
    private Colour sideToMove;
    // if kingInCheck==TRUE, then either directCheckSquare or discoveredCheckSquare (or both) will be set
    private boolean kingInCheck; // TRUE if the king is now in check (i.e. the move leading to this posn has checked the king)
-   private List<Integer> checkSquares; // set to the square(s) of the piece(s) delivering a check
+   private List<CheckInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
 
    // mainly for tests
    public Position(Square whiteKingsSquare, Square blackKingsSquare) {
@@ -330,13 +374,13 @@ public class Position {
     * @param  captureSquare if the move was a capture, this is the square where a piece was captured. Otherwise -1
     * @return               an empty list if king is not in check; otherwise, the squares with pieces which give check
     */
-   public List<Integer> isKingInCheck(int kingsSquare, Colour colour, int captureSquare) {
+   public List<CheckInfo> isKingInCheck(int kingsSquare, Colour colour, int captureSquare) {
       Colour opponentsColour = colour.opposite();
-      List<Integer> checkSquares = new ArrayList<>(2);
+      List<CheckInfo> checkSquares = new ArrayList<>(2);
       // *our* colour used to index pawnCaptures, because we want the 'inverse', i.e. squares which attack the given square
       for (int sq : MoveGenerator.pawnCaptures[colour.ordinal()][kingsSquare]) {
          if (sq != captureSquare && pieceAt(sq) == PieceType.PAWN && colourOfPieceAt(sq) == opponentsColour) {
-            checkSquares.add(sq);
+            checkSquares.add(new CheckInfo(PieceType.PAWN, sq));
             break;
          }
       }
@@ -345,7 +389,7 @@ public class Position {
       if (checkSquares.isEmpty()) {
          for (int sq : MoveGenerator.knightMoves[kingsSquare]) {
             if (sq != captureSquare && pieceAt(sq) == PieceType.KNIGHT && colourOfPieceAt(sq) == opponentsColour) {
-               checkSquares.add(sq);
+               checkSquares.add(new CheckInfo(PieceType.KNIGHT, sq));
                break;
             }
          }
@@ -356,7 +400,7 @@ public class Position {
          PieceType enemyPiece = enemyPieceInfo.getLeft();
          int enemySquare = enemyPieceInfo.getRight();
          if (enemyPiece != null && enemySquare != captureSquare && enemyPiece.canSlideAlongRay(ray)) {
-            checkSquares.add(enemySquare);
+            checkSquares.add(new CheckInfo(enemyPiece, enemySquare));
             if (checkSquares.size() == 2) { break; }
          }
       }
@@ -397,7 +441,7 @@ public class Position {
       return kingInCheck;
    }
 
-   public void setKingInCheck(List<Integer> checkSquares) {
+   public void setKingInCheck(List<CheckInfo> checkSquares) {
       if (checkSquares == null || checkSquares.isEmpty()) {
          this.kingInCheck = false;
          this.checkSquares = null;
@@ -407,8 +451,12 @@ public class Position {
       }
    }
 
-   public void setKingInCheck(Integer... checkSquares) {
+   public void setKingInCheck(CheckInfo... checkSquares) {
       setKingInCheck(Arrays.asList(checkSquares));
+   }
+
+   public List<CheckInfo> getCheckSquares() {
+      return checkSquares;
    }
 
    /**
@@ -417,10 +465,6 @@ public class Position {
     */
    public String getFen() {
       return Fen.encode(this);
-   }
-
-   public List<Integer> getCheckSquares() {
-      return checkSquares;
    }
 
 }

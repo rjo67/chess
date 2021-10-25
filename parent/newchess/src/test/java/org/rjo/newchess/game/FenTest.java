@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
 
 public class FenTest {
@@ -41,13 +42,13 @@ public class FenTest {
       Position posn = Fen.decode("2k1r3/p1p1p1p1/B7/8/8/8/2K5/4n3 w - - 0 1").getPosition();
       assertTrue(posn.isKingInCheck());
       assertEquals(1, posn.getCheckSquares().size());
-      assertTrue(posn.getCheckSquares().contains(Square.e1.index()));
+      assertTrue(TestUtil.squareIsCheckSquare(Square.e1, posn.getCheckSquares()));
 
       // same again with black to move
       posn = Fen.decode("2k1r3/p1p1p1p1/B7/8/8/8/2K5/4n3 b - - 0 1").getPosition();
       assertTrue(posn.isKingInCheck());
       assertEquals(1, posn.getCheckSquares().size());
-      assertTrue(posn.getCheckSquares().contains(Square.a6.index()));
+      assertTrue(TestUtil.squareIsCheckSquare(Square.a6, posn.getCheckSquares()));
    }
 
    @Test
@@ -56,15 +57,15 @@ public class FenTest {
       assertTrue(posn.isKingInCheck());
       // black pieces checking
       assertEquals(2, posn.getCheckSquares().size());
-      assertTrue(posn.getCheckSquares().contains(Square.c6.index()));
-      assertTrue(posn.getCheckSquares().contains(Square.e3.index()));
+      assertTrue(TestUtil.squareIsCheckSquare(Square.c6, posn.getCheckSquares()));
+      assertTrue(TestUtil.squareIsCheckSquare(Square.e3, posn.getCheckSquares()));
 
       // same again with black to move
       posn = Fen.decode("2k1r3/p1p1N1p1/2q5/8/6B1/4n3/2K5/8 b - - 0 1").getPosition();
       assertTrue(posn.isKingInCheck());
       assertEquals(2, posn.getCheckSquares().size());
-      assertTrue(posn.getCheckSquares().contains(Square.e7.index()));
-      assertTrue(posn.getCheckSquares().contains(Square.g4.index()));
+      assertTrue(TestUtil.squareIsCheckSquare(Square.e7, posn.getCheckSquares()));
+      assertTrue(TestUtil.squareIsCheckSquare(Square.g4, posn.getCheckSquares()));
    }
 
    @Test
@@ -75,8 +76,8 @@ public class FenTest {
       assertTrue(posn.isKingInCheck());
       // white pieces checking
       assertEquals(2, posn.getCheckSquares().size());
-      assertTrue(posn.getCheckSquares().contains(Square.c7.index()));
-      assertTrue(posn.getCheckSquares().contains(Square.d3.index()));
+      assertTrue(TestUtil.squareIsCheckSquare(Square.c7, posn.getCheckSquares()));
+      assertTrue(TestUtil.squareIsCheckSquare(Square.d3, posn.getCheckSquares()));
    }
 
 }

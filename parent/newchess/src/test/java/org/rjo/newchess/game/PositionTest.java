@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
+import org.rjo.newchess.game.Position.CheckInfo;
 import org.rjo.newchess.move.Move;
 import org.rjo.newchess.move.MoveGenerator;
 import org.rjo.newchess.piece.Colour;
@@ -92,7 +94,7 @@ public class PositionTest {
       assertEquals("4k3/8/8/8/8/1R6/8/4K3 w - -", posn.getFen());
 
       Move m = Move.createMove(Square.b3, posn.raw(Square.b3), Square.b8);
-      m.setCheck(Square.b8.index());
+      m.setCheck(new CheckInfo(PieceType.ROOK, Square.b8.index()));
       Position posn2 = posn.move(m);
       assertEquals("1R2k3/8/8/8/8/8/8/4K3 b - -", posn2.getFen());
       assertEquals(PieceType.ROOK, posn2.pieceAt(Square.b8));
@@ -310,7 +312,7 @@ public class PositionTest {
       // after one of the moves, the "discovered check" should be stored in the position
       Position p2 = p.move(moveF6);
       assertEquals(1, p2.getCheckSquares().size());
-      assertTrue(p2.getCheckSquares().contains(Square.f3.index()));
+      assertTrue(TestUtil.squareIsCheckSquare(Square.f3, p2.getCheckSquares()));
    }
 
    private void assertBoardClonedCorrectly(Position oldPosn, Position newPosn, Square... squaresToCheck) {

@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import org.rjo.newchess.board.Board.Square;
+import org.rjo.newchess.game.Position.CheckInfo;
 import org.rjo.newchess.move.Move;
 import org.rjo.newchess.piece.PieceType;
 
@@ -25,6 +27,13 @@ public class TestUtil {
    public static final Predicate<Move> ONLY_CHECKS = (move -> move.isCheck());
 
    private TestUtil() {
+   }
+
+   public static boolean squareIsCheckSquare(Square square, List<CheckInfo> checkSquares) {
+      for (CheckInfo ci : checkSquares) {
+         if (ci.square() == square.index()) { return true; }
+      }
+      return false;
    }
 
    public static void checkMoves(List<Move> moves, String... requiredMoves) {
