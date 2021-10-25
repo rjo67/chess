@@ -4,7 +4,7 @@ import java.util.StringTokenizer;
 
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.piece.Colour;
-import org.rjo.newchess.piece.PieceType;
+import org.rjo.newchess.piece.Piece;
 
 /**
  * Implementation of the Forsyth-Edwards Notation to record a game's position.
@@ -256,9 +256,9 @@ public class Fen {
                index += (ch - '0');
             } else {
                // find appropriate piece
-               PieceType pieceType = null;
+               Piece pieceType = null;
                Colour pieceColour = null;
-               for (PieceType piece : PieceType.values()) {
+               for (Piece piece : Piece.values()) {
                   if (ch == piece.fenSymbol(Colour.WHITE).charAt(0)) {
                      pieceType = piece;
                      pieceColour = Colour.WHITE;

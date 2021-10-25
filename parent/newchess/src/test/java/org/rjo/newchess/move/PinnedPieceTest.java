@@ -13,7 +13,7 @@ import org.rjo.newchess.game.Fen;
 import org.rjo.newchess.game.Game;
 import org.rjo.newchess.game.Position;
 import org.rjo.newchess.piece.Colour;
-import org.rjo.newchess.piece.PieceType;
+import org.rjo.newchess.piece.Piece;
 
 public class PinnedPieceTest {
 
@@ -21,8 +21,8 @@ public class PinnedPieceTest {
    public void simplePin() {
       Position p = new Position(Square.e2, Square.g8);
       // d2 pawn is pinned
-      p.addPiece(Colour.WHITE, PieceType.PAWN, Square.d2);
-      p.addPiece(Colour.BLACK, PieceType.ROOK, Square.b2);
+      p.addPiece(Colour.WHITE, Piece.PAWN, Square.d2);
+      p.addPiece(Colour.BLACK, Piece.ROOK, Square.b2);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "Ke2-d1", "Ke2-d3", "Ke2-e1", "Ke2-e3", "Ke2-f1", "Ke2-f2", "Ke2-f3");
 
    }
@@ -31,16 +31,16 @@ public class PinnedPieceTest {
    public void pinnedPieceCanMoveAlongRay() {
       // a 'pinned' piece along ray N can still move in direction N
       Position p = new Position(Square.e2, Square.g8);
-      p.addPiece(Colour.WHITE, PieceType.PAWN, Square.e3);
-      p.addPiece(Colour.BLACK, PieceType.ROOK, Square.e7);
+      p.addPiece(Colour.WHITE, Piece.PAWN, Square.e3);
+      p.addPiece(Colour.BLACK, Piece.ROOK, Square.e7);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "Ke2-d1", "Ke2-d2", "Ke2-d3", "Ke2-e1", "Ke2-f1", "Ke2-f2", "Ke2-f3", "e3-e4");
 
       p = new Position(Square.e2, Square.h8);
       // d3 bishop is pinned apart from NW/SE ray
-      p.addPiece(Colour.WHITE, PieceType.BISHOP, Square.d3);
-      p.addPiece(Colour.WHITE, PieceType.PAWN, Square.b5); // pawn is not pinned
-      p.addPiece(Colour.BLACK, PieceType.QUEEN, Square.c4);
-      p.addPiece(Colour.BLACK, PieceType.BISHOP, Square.a6);
+      p.addPiece(Colour.WHITE, Piece.BISHOP, Square.d3);
+      p.addPiece(Colour.WHITE, Piece.PAWN, Square.b5); // pawn is not pinned
+      p.addPiece(Colour.BLACK, Piece.QUEEN, Square.c4);
+      p.addPiece(Colour.BLACK, Piece.BISHOP, Square.a6);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "Ke2-d1", "Ke2-d2", "Ke2-e1", "Ke2-e3", "Ke2-f1", "Ke2-f2", "Ke2-f3", "b5-b6",
             "b5xa6", "Bd3xc4");
    }
@@ -50,8 +50,8 @@ public class PinnedPieceTest {
       // a 'pinned' piece along ray N can still move in direction N or in direction S
       // but in this case not along ray W or E
       Position p = new Position(Square.e2, Square.g8);
-      p.addPiece(Colour.WHITE, PieceType.ROOK, Square.e4);
-      p.addPiece(Colour.BLACK, PieceType.ROOK, Square.e7);
+      p.addPiece(Colour.WHITE, Piece.ROOK, Square.e4);
+      p.addPiece(Colour.BLACK, Piece.ROOK, Square.e7);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "Ke2-d1", "Ke2-d2", "Ke2-d3", "Ke2-e1", "Ke2-e3", "Ke2-f1", "Ke2-f2", "Ke2-f3",
             // along pin ray
             "Re4-e3", "Re4-e5", "Re4-e6", "Re4xe7");

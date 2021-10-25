@@ -7,7 +7,7 @@ import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Position.CheckInfo;
 import org.rjo.newchess.game.Position.SquareInfo;
 import org.rjo.newchess.piece.Colour;
-import org.rjo.newchess.piece.PieceType;
+import org.rjo.newchess.piece.Piece;
 
 public class Move {
    private final SquareInfo originSquareInfo; // which piece is moving...
@@ -16,7 +16,7 @@ public class Move {
    private final SquareInfo targetSquareInfo; // !null for captures
    private final boolean capture;
    private final boolean promotion;
-   private final PieceType promotedPiece;
+   private final Piece promotedPiece;
 
    // following fields are set after constructor call
    private boolean kingsSideCastling;
@@ -35,7 +35,7 @@ public class Move {
     * @param promotedPiece    promoted piece, set if promotion
     * @param castling         set if a castling move (kings/queensside)
     */
-   private Move(int origin, SquareInfo originSquareInfo, int target, SquareInfo targetSquareInfo, PieceType promotedPiece) {
+   private Move(int origin, SquareInfo originSquareInfo, int target, SquareInfo targetSquareInfo, Piece promotedPiece) {
       this.originSq = origin;
       this.targetSq = target;
       this.originSquareInfo = originSquareInfo;
@@ -104,7 +104,7 @@ public class Move {
     * @param  promotedPiece    the promoted piece
     * @return                  the new move object
     */
-   public static Move createPromotionMove(int origin, SquareInfo originSquareInfo, int target, PieceType promotedPiece) {
+   public static Move createPromotionMove(int origin, SquareInfo originSquareInfo, int target, Piece promotedPiece) {
       return new Move(origin, originSquareInfo, target, null, promotedPiece);
    }
 
@@ -117,7 +117,7 @@ public class Move {
     * @param  promotedPiece    the promoted piece
     * @return                  the new move object
     */
-   public static Move createPromotionMove(Square origin, SquareInfo originSquareInfo, Square target, PieceType promotedPiece) {
+   public static Move createPromotionMove(Square origin, SquareInfo originSquareInfo, Square target, Piece promotedPiece) {
       return createPromotionMove(origin.index(), originSquareInfo, target.index(), promotedPiece);
    }
 
@@ -131,12 +131,12 @@ public class Move {
     * @param  promotedPiece    the promoted piece
     * @return                  the new move object
     */
-   public static Move createPromotionCaptureMove(int origin, SquareInfo originSquareInfo, int target, SquareInfo targetSquareInfo, PieceType promotedPiece) {
+   public static Move createPromotionCaptureMove(int origin, SquareInfo originSquareInfo, int target, SquareInfo targetSquareInfo, Piece promotedPiece) {
       return new Move(origin, originSquareInfo, target, targetSquareInfo, promotedPiece);
    }
 
    public static Move createPromotionCaptureMove(Square origin, SquareInfo originSquareInfo, Square target, SquareInfo targetSquareInfo,
-         PieceType promotedPiece) {
+         Piece promotedPiece) {
       return createPromotionCaptureMove(origin.index(), originSquareInfo, target.index(), targetSquareInfo, promotedPiece);
    }
 
@@ -147,7 +147,7 @@ public class Move {
     * @return        the new move object
     */
    public static Move createKingssideCastlingMove(Colour colour) {
-      Move move = new Move(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], new SquareInfo(PieceType.KING, colour),
+      Move move = new Move(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], new SquareInfo(Piece.KING, colour),
             MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][0], null, null);
       move.kingsSideCastling = true;
       return move;
@@ -160,7 +160,7 @@ public class Move {
     * @return        the new move object
     */
    public static Move createQueenssideCastlingMove(Colour colour) {
-      Move move = new Move(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], new SquareInfo(PieceType.KING, colour),
+      Move move = new Move(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], new SquareInfo(Piece.KING, colour),
             MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][1], null, null);
       move.queensSideCastling = true;
       return move;
@@ -231,7 +231,7 @@ public class Move {
          return "O-O-O";
       } else {
          StringBuilder sb = new StringBuilder(10);
-         sb.append(originSquareInfo.pieceType().symbol(originSquareInfo.colour()));
+         sb.append(originSquareInfo.piece().symbol(originSquareInfo.colour()));
          sb.append(Square.toSquare(originSq));
          sb.append(isCapture() ? "x" : "-");
          sb.append(Square.toSquare(targetSq));
@@ -266,8 +266,8 @@ public class Move {
       return queensSideCastling;
    }
 
-   public PieceType getMovingPiece() {
-      return originSquareInfo.pieceType();
+   public Piece getMovingPiece() {
+      return originSquareInfo.piece();
    }
 
    public Colour getColourOfMovingPiece() {
@@ -304,7 +304,7 @@ public class Move {
       return pawnTwoSquaresForward;
    }
 
-   public PieceType getPromotedPiece() {
+   public Piece getPromotedPiece() {
       return promotedPiece;
    }
 

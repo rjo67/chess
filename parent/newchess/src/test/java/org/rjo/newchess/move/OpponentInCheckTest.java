@@ -15,15 +15,15 @@ import org.rjo.newchess.game.Fen;
 import org.rjo.newchess.game.Position;
 import org.rjo.newchess.game.Position.CheckInfo;
 import org.rjo.newchess.piece.Colour;
-import org.rjo.newchess.piece.PieceType;
+import org.rjo.newchess.piece.Piece;
 
 public class OpponentInCheckTest {
 
    @Test
    public void pawnMoveChecksKing() {
       Position p = new Position(Square.e1, Square.e8);
-      p.addPiece(Colour.WHITE, PieceType.PAWN, Square.d6);
-      p.addPiece(Colour.BLACK, PieceType.PAWN, Square.f3);
+      p.addPiece(Colour.WHITE, Piece.PAWN, Square.d6);
+      p.addPiece(Colour.BLACK, Piece.PAWN, Square.f3);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "d6-d7+");
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.ONLY_CHECKS, "f3-f2+");
    }
@@ -31,7 +31,7 @@ public class OpponentInCheckTest {
    @Test
    public void pawnPromotionChecksKing() {
       Position p = new Position(Square.a1, Square.h8);
-      p.addPiece(Colour.WHITE, PieceType.PAWN, Square.c7);
+      p.addPiece(Colour.WHITE, Piece.PAWN, Square.c7);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "c7-c8=R+", "c7-c8=Q+");
       // [c7-c8=R+, c7-c8=N, c7-c8=B, c7-c8=Q+, Ka1-a2, Ka1-b1, Ka1-b2]
       var sw = StopWatch.createStarted();
@@ -46,29 +46,29 @@ public class OpponentInCheckTest {
    @Test
    public void knightMoveChecksKing() {
       Position p = new Position(Square.e1, Square.e8);
-      p.addPiece(Colour.WHITE, PieceType.KNIGHT, Square.b7);
-      p.addPiece(Colour.WHITE, PieceType.KNIGHT, Square.e4);
+      p.addPiece(Colour.WHITE, Piece.KNIGHT, Square.b7);
+      p.addPiece(Colour.WHITE, Piece.KNIGHT, Square.e4);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Nb7-d6+", "Ne4-d6+", "Ne4-f6+");
    }
 
    @Test
    public void bishopMoveChecksKing() {
       Position p = new Position(Square.e1, Square.e8);
-      p.addPiece(Colour.WHITE, PieceType.BISHOP, Square.e4);
+      p.addPiece(Colour.WHITE, Piece.BISHOP, Square.e4);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Be4-c6+", "Be4-g6+");
    }
 
    @Test
    public void rookMoveChecksKing() {
       Position p = new Position(Square.e1, Square.e8);
-      p.addPiece(Colour.WHITE, PieceType.ROOK, Square.a7);
+      p.addPiece(Colour.WHITE, Piece.ROOK, Square.a7);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Ra7-a8+", "Ra7-e7+");
    }
 
    @Test
    public void queenMoveChecksKing() {
       Position p = new Position(Square.e1, Square.e8);
-      p.addPiece(Colour.WHITE, PieceType.QUEEN, Square.b6);
+      p.addPiece(Colour.WHITE, Piece.QUEEN, Square.b6);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Qb6-b8+", "Qb6-d8+", "Qb6-e6+", "Qb6-g6+", "Qb6-b5+",
             "Qb6-c6+", "Qb6-e3+");
    }

@@ -13,17 +13,17 @@ import java.util.function.Predicate;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Position.CheckInfo;
 import org.rjo.newchess.move.Move;
-import org.rjo.newchess.piece.PieceType;
+import org.rjo.newchess.piece.Piece;
 
 public class TestUtil {
 
    public final static Predicate<Move> NOOP_FILTER = (move -> true);
-   public final static Predicate<Move> KING_FILTER = (move -> move.getMovingPiece() == PieceType.KING);
-   public final static Predicate<Move> PAWN_FILTER = (move -> move.getMovingPiece() == PieceType.PAWN);
-   public final static Predicate<Move> KNIGHT_FILTER = (move -> move.getMovingPiece() == PieceType.KNIGHT);
-   public final static Predicate<Move> BISHOP_FILTER = (move -> move.getMovingPiece() == PieceType.BISHOP);
-   public final static Predicate<Move> ROOK_FILTER = (move -> move.getMovingPiece() == PieceType.ROOK);
-   public final static Predicate<Move> QUEEN_FILTER = (move -> move.getMovingPiece() == PieceType.QUEEN);
+   public final static Predicate<Move> KING_FILTER = (move -> move.getMovingPiece() == Piece.KING);
+   public final static Predicate<Move> PAWN_FILTER = (move -> move.getMovingPiece() == Piece.PAWN);
+   public final static Predicate<Move> KNIGHT_FILTER = (move -> move.getMovingPiece() == Piece.KNIGHT);
+   public final static Predicate<Move> BISHOP_FILTER = (move -> move.getMovingPiece() == Piece.BISHOP);
+   public final static Predicate<Move> ROOK_FILTER = (move -> move.getMovingPiece() == Piece.ROOK);
+   public final static Predicate<Move> QUEEN_FILTER = (move -> move.getMovingPiece() == Piece.QUEEN);
    public static final Predicate<Move> ONLY_CHECKS = (move -> move.isCheck());
 
    private TestUtil() {

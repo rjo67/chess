@@ -11,14 +11,14 @@ import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Fen;
 import org.rjo.newchess.game.Position;
 import org.rjo.newchess.piece.Colour;
-import org.rjo.newchess.piece.PieceType;
+import org.rjo.newchess.piece.Piece;
 
 public class CheckTest {
 
    @ParameterizedTest
    @CsvSource({ "BISHOP,d8", "ROOK,d5", "KNIGHT,b3", "PAWN,b6" })
    public void whiteKingCannotMoveIntoCheck(String piece, String square) {
-      PieceType pt = PieceType.valueOf(piece);
+      Piece pt = Piece.valueOf(piece);
       Square sq = Square.valueOf(square);
 
       Position p = Fen.decode("8/8/8/8/K1k5/8/8/8 w - - 0 1").getPosition();
@@ -29,7 +29,7 @@ public class CheckTest {
    @ParameterizedTest
    @CsvSource({ "PAWN,c7" })
    public void blackKingCannotMoveIntoCheck(String piece, String square) {
-      PieceType pt = PieceType.valueOf(piece);
+      Piece pt = Piece.valueOf(piece);
       Square sq = Square.valueOf(square);
 
       Position p = new Position(Square.e2, Square.e7);

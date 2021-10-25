@@ -15,7 +15,7 @@ import org.rjo.newchess.board.Ray;
  * @author rich
  * @see    "https://www.chessprogramming.org/10x12_Board#Square_Mapping"
  */
-public enum PieceType {
+public enum Piece {
 
    PAWN(false, "", false, false, new int[] {}) // offsets not used for pawns
    {
@@ -33,7 +33,7 @@ public enum PieceType {
    /**
     * number of different piece types in the game.
     */
-   public final static int DIFFERENT_PIECE_TYPES = PieceType.values().length;
+   public final static int DIFFERENT_PIECE_TYPES = Piece.values().length;
 
    private boolean slidingPiece;
    private String symbol;
@@ -43,7 +43,7 @@ public enum PieceType {
    private boolean slidesHorizontallyOrVertically;
    private boolean slidesDiagonally;
 
-   private PieceType(boolean slidingPiece, String symbol, boolean movesHorizontallyOrVertically, boolean movesDiagonally, int[] moveOffsets) {
+   private Piece(boolean slidingPiece, String symbol, boolean movesHorizontallyOrVertically, boolean movesDiagonally, int[] moveOffsets) {
       this.slidingPiece = slidingPiece;
       this.symbol = symbol;
       this.slidesHorizontallyOrVertically = movesHorizontallyOrVertically;
@@ -51,7 +51,7 @@ public enum PieceType {
       this.moveOffsets = moveOffsets;
    }
 
-   public static PieceType convert(int val) {
+   public static Piece convert(int val) {
       switch (val) {
       case 0:
          return PAWN;
@@ -66,7 +66,7 @@ public enum PieceType {
       case 5:
          return KING;
       default:
-         throw new IllegalArgumentException("illegal PieceType value: '" + val + "'");
+         throw new IllegalArgumentException("illegal Piece value: '" + val + "'");
       }
    }
 

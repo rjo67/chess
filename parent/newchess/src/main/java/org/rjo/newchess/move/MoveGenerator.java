@@ -15,7 +15,7 @@ import org.rjo.newchess.board.Ray;
 import org.rjo.newchess.game.Position;
 import org.rjo.newchess.game.Position.CheckInfo;
 import org.rjo.newchess.piece.Colour;
-import org.rjo.newchess.piece.PieceType;
+import org.rjo.newchess.piece.Piece;
 
 /**
  * @author rich
@@ -93,7 +93,7 @@ public class MoveGenerator {
       knightMoves = new Set[64];
       for (int sq = 0; sq < 64; sq++) {
          knightMoves[sq] = new HashSet<>();
-         for (int offset : PieceType.KNIGHT.getMoveOffsets()) {
+         for (int offset : Piece.KNIGHT.getMoveOffsets()) {
             int targetSq = getMailboxSquare(sq, offset);
             if (targetSq != -1) { knightMoves[sq].add(targetSq); }
          }
@@ -228,10 +228,10 @@ public class MoveGenerator {
          // can the checking piece be captured?
          if (move.getTarget() == checkSquare) { return true; }
          // enpassant
-         if (move.getMovingPiece() == PieceType.PAWN && move.isEnpassant() && move.getSquareOfPawnCapturedEnpassant() == checkSquare) { return true; }
+         if (move.getMovingPiece() == Piece.PAWN && move.isEnpassant() && move.getSquareOfPawnCapturedEnpassant() == checkSquare) { return true; }
       }
       // (2) does the move block the check?
-      if (checkInfo.pieceType() == PieceType.PAWN || checkInfo.pieceType() == PieceType.KNIGHT) { return false; } // cannot block these checks
+      if (checkInfo.piece() == Piece.PAWN || checkInfo.piece() == Piece.KNIGHT) { return false; } // cannot block these checks
       Ray moveRay = Ray.findRayBetween(kingsSquare, move.getTarget());
       if (moveRay == null) { return false; } // can't block a check if there's no ray between the moved piece and the king
       if (checkInfo.rayToKing() == null) { checkInfo.setRayToKing(Ray.findRayBetween(kingsSquare, checkSquare)); }
@@ -255,7 +255,7 @@ public class MoveGenerator {
          List<CheckInfo> checkSquares = posn.getCheckSquares();
          for (CheckInfo checkInfo : checkSquares) {
             // ignore if a pawn (can move away from pawn on the same ray w/o any problem)
-            if (checkInfo.pieceType() == PieceType.PAWN) { continue; }
+            if (checkInfo.piece() == Piece.PAWN) { continue; }
             Ray rayBeforeMove = Ray.findRayBetween(kingsMove.getOrigin(), checkInfo.square());
             // ignore if not on ray (==> knight check)
             if (rayBeforeMove != null) {
@@ -267,19 +267,19 @@ public class MoveGenerator {
       }
 
       for (int sq : pawnCaptures[colour.ordinal()][kingsMove.getTarget()]) {
-         if (sq != captureSquare && posn.pieceAt(sq) == PieceType.PAWN && posn.colourOfPieceAt(sq) == opponentsColour) { return true; }
+         if (sq != captureSquare && posn.pieceAt(sq) == Piece.PAWN && posn.colourOfPieceAt(sq) == opponentsColour) { return true; }
       }
 
       for (int sq : knightMoves[kingsMove.getTarget()]) {
-         if (sq != captureSquare && posn.pieceAt(sq) == PieceType.KNIGHT && posn.colourOfPieceAt(sq) == opponentsColour) { return true; }
+         if (sq != captureSquare && posn.pieceAt(sq) == Piece.KNIGHT && posn.colourOfPieceAt(sq) == opponentsColour) { return true; }
       }
 
       // now need to process all rays from the new king's square.
       // *** Careful, the position still stores the _old_ king's position.
 
       for (Ray ray : Ray.values()) {
-         Pair<PieceType, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, kingsMove.getTarget(), ray);
-         PieceType enemyPiece = enemyPieceInfo.getLeft();
+         Pair<Piece, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, kingsMove.getTarget(), ray);
+         Piece enemyPiece = enemyPieceInfo.getLeft();
          int enemySquare = enemyPieceInfo.getRight();
          if (enemyPiece != null && enemySquare != captureSquare && enemyPiece.canSlideAlongRay(ray)) { return true; }
       }
@@ -305,8 +305,8 @@ public class MoveGenerator {
       if (rayToSearch != null) {
          if (interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), rayToSearch)) {
             // squares from origin to king are empty, so see if there's an opponent's piece on this ray
-            Pair<PieceType, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, m.getOrigin(), rayToSearch);
-            PieceType enemyPiece = enemyPieceInfo.getLeft();
+            Pair<Piece, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, m.getOrigin(), rayToSearch);
+            Piece enemyPiece = enemyPieceInfo.getLeft();
             if (enemyPiece != null) {
                int enemySq = enemyPieceInfo.getRight();
                // capable of checking the king?
@@ -331,7 +331,7 @@ public class MoveGenerator {
    private List<CheckInfo> kingIsInCheckAfterMove(Position posn, Move move, int kingsSquare, Colour colour) {
       int newKingsSq;
       int captureSquare = -1;
-      if (move.getMovingPiece() == PieceType.KING) {
+      if (move.getMovingPiece() == Piece.KING) {
          newKingsSq = move.getTarget();
       } else {
          newKingsSq = kingsSquare;
@@ -354,10 +354,10 @@ public class MoveGenerator {
     * @return                          true if the given move attacks the given square
     */
    private boolean moveAttacksSquare(Position posn, Move move, int targetSq, RayCacheInfo[] squaresWhichAttackTarget) {
-      PieceType movingPiece = move.getMovingPiece();
-      if (movingPiece == PieceType.KING) {
+      Piece movingPiece = move.getMovingPiece();
+      if (movingPiece == Piece.KING) {
          return false;
-      } else if (movingPiece == PieceType.PAWN) {
+      } else if (movingPiece == Piece.PAWN) {
          if (move.isPromotion()) {
             return pieceAttacksSquare(posn, move.getPromotedPiece(), move.getTarget(), targetSq, squaresWhichAttackTarget);
          } else {
@@ -371,8 +371,8 @@ public class MoveGenerator {
     * whether a (possibly hypothetical) piece 'piece' at 'origin' attacks 'target'. Should not be called for kings or
     * pawns.
     */
-   private boolean pieceAttacksSquare(Position posn, PieceType piece, int origin, int target, RayCacheInfo[] squaresWhichAttackTarget) {
-      if (piece == PieceType.KNIGHT) { return knightMoves[origin].contains(target); }
+   private boolean pieceAttacksSquare(Position posn, Piece piece, int origin, int target, RayCacheInfo[] squaresWhichAttackTarget) {
+      if (piece == Piece.KNIGHT) { return knightMoves[origin].contains(target); }
 
       // see if result has already been calculated
       RayCacheInfo cacheInfo = squaresWhichAttackTarget != null ? squaresWhichAttackTarget[origin] : null;
@@ -404,10 +404,10 @@ public class MoveGenerator {
     */
    private void processSquare(Position posn, int startSq, Colour colour, List<Move> moves, List<Move> kingMoves) {
       if (posn.colourOfPieceAt(startSq) == colour) {
-         PieceType pt = posn.pieceAt(startSq);
-         if (pt == PieceType.PAWN) {
+         Piece pt = posn.pieceAt(startSq);
+         if (pt == Piece.PAWN) {
             moves.addAll(generatePawnMoves(posn, startSq, colour));
-         } else if (pt == PieceType.KNIGHT) {
+         } else if (pt == Piece.KNIGHT) {
             moves.addAll(generateKnightMoves(posn, startSq, colour));
          } else {
             for (int offset : pt.getMoveOffsets()) { // process each square along the ray
@@ -420,7 +420,7 @@ public class MoveGenerator {
                   Move move = potentiallyGenerateMoveOrCapture(posn, startSq, nextSq, colour);
                   // stop processing ray if null move (a friendly piece is occupying this ray) or a capture
                   if (move != null) {
-                     if (pt == PieceType.KING) {
+                     if (pt == Piece.KING) {
                         kingMoves.add(move);
                      } else {
                         moves.add(move);
@@ -453,7 +453,7 @@ public class MoveGenerator {
    private Move potentiallyGenerateMoveOrCapture(Position posn, int startSq, int targetSq, Colour colour) {
       Move move = null;
       // king would move adjacent to opponent's king?
-      if (posn.pieceAt(startSq) == PieceType.KING
+      if (posn.pieceAt(startSq) == Piece.KING
             && Square.toSquare(targetSq).adjacentTo(Square.toSquare(posn.getKingsSquare(posn.getSideToMove().opposite())))) {
          return null;
       }
@@ -520,8 +520,8 @@ public class MoveGenerator {
       // TODO could optimize here and store the result of this analysis
       if (!interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), ray)) { return false; }
       // .. otherwise see if there's an enemy piece on this ray
-      Pair<PieceType, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, m.getOrigin(), ray);
-      PieceType enemyPiece = enemyPieceInfo.getLeft();
+      Pair<Piece, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, m.getOrigin(), ray);
+      Piece enemyPiece = enemyPieceInfo.getLeft();
       if (enemyPiece != null) {
          int enemySq = enemyPieceInfo.getRight();
          if (verbose) {
@@ -597,24 +597,24 @@ public class MoveGenerator {
    private boolean canCastleKingsside(Position posn, Colour colour) {
       if (!posn.canCastleKingsside(colour)) { return false; }
       int colourOrd = colour.ordinal();
-      if (posn.pieceAt(rooksCastlingSquareIndex[colourOrd][0]) != PieceType.ROOK) { return false; }
+      if (posn.pieceAt(rooksCastlingSquareIndex[colourOrd][0]) != Piece.ROOK) { return false; }
       for (int sq : unoccupiedSquaresKingssideCastling[colourOrd]) {
          if (posn.colourOfPieceAt(sq) != Colour.UNOCCUPIED) { return false; }
       }
 
       // cannot castle over a square in check
       for (int sq : pawnSquaresKingssideCastling[colourOrd]) {
-         if ((posn.pieceAt(sq) == PieceType.PAWN) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
+         if ((posn.pieceAt(sq) == Piece.PAWN) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
       }
       for (int sq : knightSquaresKingssideCastling[colourOrd]) {
-         if ((posn.pieceAt(sq) == PieceType.KNIGHT) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
+         if ((posn.pieceAt(sq) == Piece.KNIGHT) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
       }
       for (int sq : unoccupiedSquaresKingssideCastling[colourOrd]) {
          Ray[] raysToCheck = colour == Colour.WHITE ? new Ray[] { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }
                : new Ray[] { Ray.SOUTHWEST, Ray.SOUTH, Ray.SOUTHEAST };
          for (Ray ray : raysToCheck) {
-            Pair<PieceType, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, sq, ray);
-            PieceType enemyPiece = enemyPieceInfo.getLeft();
+            Pair<Piece, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, sq, ray);
+            Piece enemyPiece = enemyPieceInfo.getLeft();
             // found piece capable of checking the king?
             if (enemyPiece != null && enemyPiece.canSlideAlongRay(ray)) { return false; }
          }
@@ -626,16 +626,16 @@ public class MoveGenerator {
    private boolean canCastleQueensside(Position posn, Colour colour) {
       if (!posn.canCastleQueensside(colour)) { return false; }
       int colourOrd = colour.ordinal();
-      if (posn.pieceAt(rooksCastlingSquareIndex[colourOrd][1]) != PieceType.ROOK) { return false; }
+      if (posn.pieceAt(rooksCastlingSquareIndex[colourOrd][1]) != Piece.ROOK) { return false; }
       for (int sq : unoccupiedSquaresQueenssideCastling[colourOrd]) {
          if (posn.colourOfPieceAt(sq) != Colour.UNOCCUPIED) { return false; }
       }
       // cannot castle over a square in check
       for (int sq : pawnSquaresQueenssideCastling[colourOrd]) {
-         if ((posn.pieceAt(sq) == PieceType.PAWN) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
+         if ((posn.pieceAt(sq) == Piece.PAWN) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
       }
       for (int sq : knightSquaresQueenssideCastling[colourOrd]) {
-         if ((posn.pieceAt(sq) == PieceType.KNIGHT) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
+         if ((posn.pieceAt(sq) == Piece.KNIGHT) && (posn.colourOfPieceAt(sq) == colour.opposite())) { return false; }
       }
       for (int sq : unoccupiedSquaresQueenssideCastling[colourOrd]) {
          // we misuse this array for the 'square in check' calculation: the b1/b8 squares don't need to be inspected
@@ -643,8 +643,8 @@ public class MoveGenerator {
          Ray[] raysToCheck = colour == Colour.WHITE ? new Ray[] { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }
                : new Ray[] { Ray.SOUTHWEST, Ray.SOUTH, Ray.SOUTHEAST };
          for (Ray ray : raysToCheck) {
-            Pair<PieceType, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, sq, ray);
-            PieceType enemyPiece = enemyPieceInfo.getLeft();
+            Pair<Piece, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, sq, ray);
+            Piece enemyPiece = enemyPieceInfo.getLeft();
             // found piece capable of checking the king?
             if (enemyPiece != null && enemyPiece.canSlideAlongRay(ray)) { return false; }
          }
@@ -707,7 +707,7 @@ public class MoveGenerator {
    private List<Move> generatePossibleNormalPromotionMoves(Position posn, int origin, int target, Colour myColour, Colour colourOfTargetSq) {
       List<Move> moves = new ArrayList<>();
       if (colourOfTargetSq == Colour.UNOCCUPIED) {
-         for (PieceType pt : new PieceType[] { PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP, PieceType.QUEEN }) {
+         for (Piece pt : new Piece[] { Piece.ROOK, Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
             moves.add(Move.createPromotionMove(origin, posn.raw(origin), target, pt));
          }
       }
@@ -718,7 +718,7 @@ public class MoveGenerator {
    private List<Move> generatePossibleCapturePromotionMoves(Position posn, int origin, int target, Colour myColour, Colour colourOfTargetSq) {
       List<Move> moves = new ArrayList<>();
       if (myColour.opposes(colourOfTargetSq)) {
-         for (PieceType pt : new PieceType[] { PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP, PieceType.QUEEN }) {
+         for (Piece pt : new Piece[] { Piece.ROOK, Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
             moves.add(Move.createPromotionCaptureMove(origin, posn.raw(origin), target, posn.raw(target), pt));
          }
       }
