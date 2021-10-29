@@ -48,7 +48,7 @@ public class PositionTest {
       oldPosn.setEnpassantSquare(Square.e6);
       oldPosn.setSideToMove(Colour.BLACK);
 
-      Position newPosn = new Position(oldPosn);
+      Position newPosn = new Position(oldPosn, null);
       assertEquals(Square.e6, newPosn.getEnpassantSquare());
       assertEquals(Colour.BLACK, newPosn.getSideToMove());
       assertTrue(newPosn.canCastleKingsside(Colour.WHITE));
@@ -151,13 +151,13 @@ public class PositionTest {
       assertEquals("4k3/8/8/8/8/8/8/4K2R w KQ -", posn.getFen());
 
       Position posn2 = posn.move(Move.createKingssideCastlingMove(Colour.WHITE));
-      assertEquals("4k3/8/8/8/8/8/8/5RK1 b Q -", posn2.getFen());
+      assertEquals("4k3/8/8/8/8/8/8/5RK1 b - -", posn2.getFen());
       assertEquals(Piece.KING, posn2.pieceAt(Square.g1));
       assertEquals(Piece.ROOK, posn2.pieceAt(Square.f1));
       assertTrue(posn2.isEmpty(Square.e1));
       assertTrue(posn2.isEmpty(Square.h1));
       assertFalse(posn2.canCastleKingsside(Colour.WHITE));
-      assertTrue(posn2.canCastleQueensside(Colour.WHITE));
+      assertFalse(posn2.canCastleQueensside(Colour.WHITE));
       assertBoardClonedCorrectly(posn, posn2, Square.e1, Square.f1, Square.g1, Square.h1);
       assertCastlingrightsClonedCorrectly(posn, posn2);
       assertKingsSquareClonedCorrectly(posn, posn2);
@@ -173,12 +173,12 @@ public class PositionTest {
 
       Position posn2 = posn.move(Move.createQueenssideCastlingMove(Colour.WHITE));
       assertCastlingrightsClonedCorrectly(posn, posn2);
-      assertEquals("4k3/8/8/8/8/8/8/2KR4 b K -", posn2.getFen());
+      assertEquals("4k3/8/8/8/8/8/8/2KR4 b - -", posn2.getFen());
       assertEquals(Piece.KING, posn2.pieceAt(Square.c1));
       assertEquals(Piece.ROOK, posn2.pieceAt(Square.d1));
       assertTrue(posn2.isEmpty(Square.e1));
       assertTrue(posn2.isEmpty(Square.a1));
-      assertTrue(posn2.canCastleKingsside(Colour.WHITE));
+      assertFalse(posn2.canCastleKingsside(Colour.WHITE));
       assertFalse(posn2.canCastleQueensside(Colour.WHITE));
       assertBoardClonedCorrectly(posn, posn2, Square.e1, Square.d1, Square.c1, Square.a1);
       assertCastlingrightsClonedCorrectly(posn, posn2);
@@ -195,13 +195,13 @@ public class PositionTest {
       assertEquals("4k2r/8/8/8/8/8/8/4K3 b kq -", posn.getFen());
 
       Position posn2 = posn.move(Move.createKingssideCastlingMove(Colour.BLACK));
-      assertEquals("5rk1/8/8/8/8/8/8/4K3 w q -", posn2.getFen());
+      assertEquals("5rk1/8/8/8/8/8/8/4K3 w - -", posn2.getFen());
       assertEquals(Piece.KING, posn2.pieceAt(Square.g8));
       assertEquals(Piece.ROOK, posn2.pieceAt(Square.f8));
       assertTrue(posn2.isEmpty(Square.e8));
       assertTrue(posn2.isEmpty(Square.h8));
       assertFalse(posn2.canCastleKingsside(Colour.BLACK));
-      assertTrue(posn2.canCastleQueensside(Colour.BLACK));
+      assertFalse(posn2.canCastleQueensside(Colour.BLACK));
       assertBoardClonedCorrectly(posn, posn2, Square.e8, Square.f8, Square.g8, Square.h8);
       assertCastlingrightsClonedCorrectly(posn, posn2);
       assertKingsSquareClonedCorrectly(posn, posn2);
@@ -217,12 +217,12 @@ public class PositionTest {
       assertEquals("r3k3/8/8/8/8/8/8/4K3 b kq -", posn.getFen());
 
       Position posn2 = posn.move(Move.createQueenssideCastlingMove(Colour.BLACK));
-      assertEquals("2kr4/8/8/8/8/8/8/4K3 w k -", posn2.getFen());
+      assertEquals("2kr4/8/8/8/8/8/8/4K3 w - -", posn2.getFen());
       assertEquals(Piece.KING, posn2.pieceAt(Square.c8));
       assertEquals(Piece.ROOK, posn2.pieceAt(Square.d8));
       assertTrue(posn2.isEmpty(Square.e8));
       assertTrue(posn2.isEmpty(Square.a8));
-      assertTrue(posn2.canCastleKingsside(Colour.BLACK));
+      assertFalse(posn2.canCastleKingsside(Colour.BLACK));
       assertFalse(posn2.canCastleQueensside(Colour.BLACK));
       assertBoardClonedCorrectly(posn, posn2, Square.e8, Square.d8, Square.c8, Square.a8);
       assertCastlingrightsClonedCorrectly(posn, posn2);

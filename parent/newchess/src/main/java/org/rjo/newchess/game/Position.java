@@ -45,6 +45,10 @@ public class Position {
          this.square = square;
       }
 
+      public CheckInfo(Piece piece, Square square) {
+         this(piece, square.index());
+      }
+
       /**
        * Set the ray to the king along which we're are checking.
        * 
@@ -69,7 +73,7 @@ public class Position {
 
       @Override
       public String toString() {
-         return piece + "@" + Square.toSquare(square) + rayToKing == null ? "" : " on ray " + rayToKing;
+         return piece + "@" + Square.toSquare(square) + (rayToKing == null ? "" : " on ray " + rayToKing);
       }
    }
 
@@ -91,6 +95,9 @@ public class Position {
    // if kingInCheck==TRUE, then either directCheckSquare or discoveredCheckSquare (or both) will be set
    private boolean kingInCheck; // TRUE if the king is now in check (i.e. the move leading to this posn has checked the king)
    private List<CheckInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
+   // debugging info
+   private Position previousPosn; // stores the previous position
+   private Move currentMove; // stores the move made from the previous position to get to this position
 
    // mainly for tests
    public Position(Square whiteKingsSquare, Square blackKingsSquare) {
@@ -124,14 +131,18 @@ public class Position {
     * All information is "shallow" cloned. If it gets changed later the appropriate data structures must be fully cloned.
     * 
     * @param prevPosn position to copy
+    * @param move     move just been played in "prevPosn"
     */
-   public Position(Position prevPosn) {
+   public Position(Position prevPosn, Move move) {
       this.castlingRights = prevPosn.castlingRights;
       this.enpassantSquare = prevPosn.enpassantSquare;
       this.kingsSquare = prevPosn.kingsSquare;
       this.sideToMove = prevPosn.sideToMove;
       this.kingInCheck = prevPosn.kingInCheck;
+      this.checkSquares = prevPosn.checkSquares;
       this.board = prevPosn.board.clone();
+      this.previousPosn = prevPosn;
+      this.currentMove = move;
    }
 
    public void addPiece(Colour colour, Piece piece, int square) {
@@ -240,20 +251,12 @@ public class Position {
             sb.append(board[rank][file]);
          }
          switch (rank) {
-         case 7:
-            sb.append("   ").append(sideToMove).append(" to move");
-            break;
-         case 6:
-            sb.append("   castlingRights: ").append(castlingRights[0]).append(", ").append(castlingRights[1]);
-            break;
-         case 5:
-            sb.append("   enpassant square: ").append(enpassantSquare);
-            break;
-         case 4:
-            sb.append("   hash (zobrist): ").append(hashCode());
-            break;
-         default:
-            break;
+         case 7 -> sb.append("   ").append(sideToMove).append(" to move");
+         case 6 -> sb.append("   castlingRights: ").append(castlingRightsToString());
+         case 5 -> sb.append("   enpassant square: ").append(enpassantSquare);
+         case 4 -> sb.append("   hash (zobrist): ").append(hashCode());
+         case 3 -> sb.append("   king in check? ").append(kingInCheck).append(": ").append(checkSquares);
+         case 1 -> sb.append("   fen ").append(Fen.encode(this));
          }
          sb.append("\n");
       }
@@ -261,14 +264,13 @@ public class Position {
    }
 
    public Position move(Move move) {
-      Position newPosn = new Position(this); // clone current position
+      Position newPosn = new Position(this, move); // clone current position
       newPosn.processMove(move);
       return newPosn;
    }
 
    // process the given move, updating internal structures
    private void processMove(Move move) {
-
       int sideToMoveOrdinal = this.sideToMove.ordinal();
       // gets set to the new castling rights if they change with this move
       boolean[] newCastlingRights = null;
@@ -321,10 +323,6 @@ public class Position {
          }
          board[rookOriginSq] = UNOCCUPIED_SQUARE;
          board[rookTargetSq] = new SquareInfo(Piece.ROOK, move.getColourOfMovingPiece());
-
-         // update castlingrights
-         newCastlingRights = move.isKingssideCastling() ? new boolean[] { false, this.castlingRights[sideToMoveOrdinal][1] }
-               : new boolean[] { this.castlingRights[sideToMoveOrdinal][0], false };
       }
 
       // update enpassantSquare if pawn moved
@@ -334,10 +332,11 @@ public class Position {
          this.enpassantSquare = null;
       }
 
-      // update kingsSquare if king moved
+      // update kingsSquare && castling rights if king moved
       if (Piece.KING == move.getMovingPiece()) {
          this.kingsSquare = this.kingsSquare.clone();
          this.kingsSquare[sideToMoveOrdinal] = move.getTarget();
+         newCastlingRights = new boolean[] { false, false };
       }
 
       // check if a rook moved from its starting square, therefore invalidating castling rights
@@ -356,7 +355,7 @@ public class Position {
       }
 
       this.sideToMove = this.sideToMove.opposite();
-      if (move.isCheck()) { this.setKingInCheck(move.getCheckSquares()); }
+      this.setKingInCheck(move.getCheckSquares());
    }
 
    /**
@@ -416,11 +415,30 @@ public class Position {
     * @param  ray      direction
     * @return          the piece-type and square of the enemy piece, if found. If no piece or one of my pieces was found,
     *                  returns (null, -1)
+    * @see             #opponentsPieceOnRay(Colour, int, Ray, int)
     */
    public Pair<Piece, Integer> opponentsPieceOnRay(Colour myColour, int startSq, Ray ray) {
+      return opponentsPieceOnRay(myColour, startSq, ray, -1);
+   }
+
+   /**
+    * Returns the square and type of an opponent's piece on the given ray, starting from (but not including) startSq. If an
+    * intervening piece of my colour is found first, returns (null, -1).
+    * 
+    * The 'squareToIgnore' will be ignored, if set.
+    * 
+    * @param  myColour       my colour
+    * @param  startSq        where to start
+    * @param  ray            direction
+    * @param  squareToIgnore square to ignore (used in enpassant calculations). Set to -1 if not required.
+    * @return                the piece-type and square of the enemy piece, if found. If no piece or one of my pieces was
+    *                        found, returns (null, -1)
+    */
+   public Pair<Piece, Integer> opponentsPieceOnRay(Colour myColour, int startSq, Ray ray, int squareToIgnore) {
       int enemySq = -1;
       Piece enemyPiece = null;
       for (int potentialEnemySq : Ray.raysList[startSq][ray.ordinal()]) {
+         if (potentialEnemySq == squareToIgnore) { continue; }
          Colour colourOfSq = colourOfPieceAt(potentialEnemySq);
          if (colourOfSq == Colour.UNOCCUPIED) { continue; }
          if (myColour.opposes(colourOfSq)) {
@@ -466,4 +484,17 @@ public class Position {
       return Fen.encode(this);
    }
 
+   /** returns the FEN representation of the current castling rights */
+   public String castlingRightsToString() {
+      StringBuilder sb = new StringBuilder(4);
+      if (this.canCastleKingsside(Colour.WHITE)) { sb.append('K'); }
+      if (this.canCastleQueensside(Colour.WHITE)) { sb.append('Q'); }
+      if (this.canCastleKingsside(Colour.BLACK)) { sb.append('k'); }
+      if (this.canCastleQueensside(Colour.BLACK)) { sb.append('q'); }
+      if (sb.length() == 0) {
+         return "-";
+      } else {
+         return sb.toString();
+      }
+   }
 }

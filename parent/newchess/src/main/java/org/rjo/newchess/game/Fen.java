@@ -76,7 +76,7 @@ public class Fen {
       }
 
       fen.append(" ").append(addActiveColour(posn));
-      fen.append(" ").append(addCastlingRights(posn));
+      fen.append(" ").append(posn.castlingRightsToString());
       fen.append(" ").append(addEnpassantSquare(posn));
 
       return fen.toString();
@@ -159,19 +159,6 @@ public class Fen {
       if (token.contains("k")) { castlingRights[Colour.BLACK.ordinal()][0] = true; }
       if (token.contains("q")) { castlingRights[Colour.BLACK.ordinal()][1] = true; }
       return castlingRights;
-   }
-
-   private static String addCastlingRights(Position posn) {
-      StringBuilder sb = new StringBuilder(4);
-      if (posn.canCastleKingsside(Colour.WHITE)) { sb.append('K'); }
-      if (posn.canCastleQueensside(Colour.WHITE)) { sb.append('Q'); }
-      if (posn.canCastleKingsside(Colour.BLACK)) { sb.append('k'); }
-      if (posn.canCastleQueensside(Colour.BLACK)) { sb.append('q'); }
-      if (sb.length() == 0) {
-         return "-";
-      } else {
-         return sb.toString();
-      }
    }
 
    /**

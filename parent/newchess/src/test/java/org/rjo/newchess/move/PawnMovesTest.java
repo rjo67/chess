@@ -1,8 +1,12 @@
 package org.rjo.newchess.move;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import org.junit.jupiter.api.Test;
 import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
+import org.rjo.newchess.game.Fen;
 import org.rjo.newchess.game.Position;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
@@ -55,6 +59,8 @@ public class PawnMovesTest {
       p.addPiece(Colour.BLACK, Piece.PAWN, Square.d5);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.PAWN_FILTER, "d5-d4");
    }
+
+   // ----------------------------------------------- promotion --------------------------------
 
    @Test
    public void pawnMovesWhitePromotion() {
@@ -113,4 +119,29 @@ public class PawnMovesTest {
       p.addPiece(Colour.BLACK, Piece.PAWN, Square.g4);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.PAWN_FILTER, "e4-e3", "e4xf3 ep", "g4-g3", "g4xf3 ep");
    }
+
+   @Test
+   public void enpassantPossibleButPawnPinned() {
+      // taken from "posn3", after white's move g2-g4 (enpassant at g3 but black pawn is pinned)
+      // this tests that the pawn move f4-f3 is ok, but f4xg3 ep is not allowed due to well-concealed pin.
+      // (Need to ignore square g4 in the empty square calculation (movingpiece-->king))
+      Position p = Fen.decode("8/8/8/KP5r/1R3pPk/8/8/8 b - g3 0 0").getPosition();
+      assertFalse(p.isKingInCheck());
+      assertEquals(Square.g3, p.getEnpassantSquare());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), "Kh4-g5", "Kh4xg4", "Kh4-g3", "Kh4-h3", "Rh5-h6", "Rh5-h7", "Rh5-h8", "Rh5-g5",
+            "Rh5-f5", "Rh5-e5", "Rh5-d5", "Rh5-c5", "Rh5xb5+", "f4-f3");
+   }
+
+   @Test
+   public void enpassantPossibleButPawnPinned2() {
+      // taken from "posn3", after white's move e2-e4 (enpassant at e3 but black pawn is pinned)
+      // this tests that the pawn move f4-f3 is ok, but f4xe3 ep is not allowed due to well-concealed pin
+      // (Need to ignore square e4 in the empty square calculation (ray-->movingpiece))
+      Position p = Fen.decode("8/8/8/KP5r/1R2Pp1k/8/6P1/8 b - e3 0 0").getPosition();
+      assertFalse(p.isKingInCheck());
+      assertEquals(Square.e3, p.getEnpassantSquare());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), "Kh4-g5", "Kh4-g4", "Kh4-g3", "Rh5-h6", "Rh5-h7", "Rh5-h8", "Rh5-g5", "Rh5-f5",
+            "Rh5-e5", "Rh5-d5", "Rh5-c5", "Rh5xb5+", "f4-f3");
+   }
+
 }

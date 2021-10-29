@@ -24,7 +24,6 @@ public class PinnedPieceTest {
       p.addPiece(Colour.WHITE, Piece.PAWN, Square.d2);
       p.addPiece(Colour.BLACK, Piece.ROOK, Square.b2);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "Ke2-d1", "Ke2-d3", "Ke2-e1", "Ke2-e3", "Ke2-f1", "Ke2-f2", "Ke2-f3");
-
    }
 
    @Test
@@ -58,7 +57,6 @@ public class PinnedPieceTest {
    }
 
    @Test
-   // @Disabled("enable when this part has been implemented")
    public void blockCheck() {
       Position p = Fen.decode("3r4/4k3/8/R7/4P3/3K4/1BN1P3/8 w - - 10 10").getPosition();
       assertTrue(p.isKingInCheck());

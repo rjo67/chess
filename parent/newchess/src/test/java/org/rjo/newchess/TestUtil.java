@@ -69,6 +69,6 @@ public class TestUtil {
          fail("not all required moves found, expected: " + requiredMoves + (moveClone.isEmpty() ? "" : ". Input-Moves not processed: " + moveClone));
       }
       // all required moves found but still some input moves left over?
-      if (!moveClone.isEmpty()) { fail("found these unexpected moves: " + moveClone); }
+      if (!moveClone.isEmpty()) { fail("found unexpected moves: " + moveClone); }
    }
 }

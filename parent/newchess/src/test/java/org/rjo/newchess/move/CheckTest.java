@@ -48,11 +48,10 @@ public class CheckTest {
    }
 
    @Test
-   public void kingInDiscoveredCheckEnpassantPossible() {
+   public void kingInCheckPawnPinned() {
       // taken from "posn3", after white's move g2-g3. 8/8/8/KP5r/1R3p1k/6P1/8/8 b - - 0 0
       Position p = Fen.decode("8/8/8/KP5r/1R3p1k/6P1/8/8 b - - 0 0").getPosition();
       assertTrue(p.isKingInCheck());
-      // TODO fix this test when the concept of discovered check is stored in a Move
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), "Kh4-g4", "Kh4-h3", "Kh4-g5", "Kh4xg3");
    }
 
