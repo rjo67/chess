@@ -121,6 +121,10 @@ public enum Ray {
       return opposite;
    }
 
+   public boolean isOpposite(Ray other) {
+      return this.opposite == other;
+   }
+
    /**
     * Are two given squares on the same ray?
     * 

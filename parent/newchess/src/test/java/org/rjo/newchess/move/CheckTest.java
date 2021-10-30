@@ -1,6 +1,7 @@
 package org.rjo.newchess.move;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -55,4 +56,38 @@ public class CheckTest {
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), "Kh4-g4", "Kh4-h3", "Kh4-g5", "Kh4xg3");
    }
 
+   @Test
+   public void pawnMoveAlongSameRayTowardsKingNoCheck() {
+      // pawn move d7-d6 should not be check
+      Position p = Fen.decode("3qk3/3p4/8/8/8/8/3K4/3Q4 b - - 0 6").getPosition();
+      assertFalse(p.isKingInCheck());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.PAWN_FILTER, "d7-d6", "d7-d5");
+   }
+
+   @Test
+   public void pawnMoveAlongSameRayAwayFromKingNoCheck() {
+      // pawn move d4-d3 should not be check
+      Position p = Fen.decode("4k3/8/8/3K4/3p4/8/8/3r4 b - - 0 6").getPosition();
+      assertFalse(p.isKingInCheck());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.PAWN_FILTER, "d4-d3");
+   }
+
+   // see pawnMoveAlongSameRayTowardsKingNoCheck, but b/c of the capture it's not quite the same logic in
+   // isKingInCheckAfterMove
+   @Test
+   public void pawnCaptureAlongSameRayNoCheck() {
+      // capture d7xc6 should not be check
+      Position p = Fen.decode("3kq3/3p4/2P5/8/K7/8/8/8 b - - 0 6").getPosition();
+      assertFalse(p.isKingInCheck());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.PAWN_FILTER, "d7xc6", "d7-d6", "d7-d5");
+   }
+
+   @Test
+   public void pawnPromotionCheck() {
+      // capture b7xa8=B+ is check
+      Position p = Fen.decode("n1n5/PPP5/2k5/8/8/8/4Kppp/5N1N w - -").getPosition();
+      assertFalse(p.isKingInCheck());
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.PAWN_FILTER, "b7-b8=N+", "b7-b8=R", "b7-b8=B", "b7-b8=Q", "b7xc8=N",
+            "b7xc8=B", "b7xc8=R", "b7xc8=Q", "b7xa8=N", "b7xa8=B+", "b7xa8=R", "b7xa8=Q+");
+   }
 }

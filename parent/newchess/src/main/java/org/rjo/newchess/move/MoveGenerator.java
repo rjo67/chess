@@ -257,9 +257,10 @@ public class MoveGenerator {
          for (CheckInfo checkInfo : checkSquares) {
             // ignore if a pawn (can move away from pawn on the same ray w/o any problem)
             if (checkInfo.piece() == Piece.PAWN) { continue; }
-            Ray rayBeforeMove = Ray.findRayBetween(kingsMove.getOrigin(), checkInfo.square()); // TODO store in CheckInfo
+            Ray rayBeforeMove = checkInfo.rayToKing() != null ? checkInfo.rayToKing() : Ray.findRayBetween(kingsMove.getOrigin(), checkInfo.square());
             // ignore if not on ray (==> knight check)
             if (rayBeforeMove != null) {
+               if (checkInfo.rayToKing() == null) { checkInfo.setRayToKing(rayBeforeMove); }
                Ray rayAfterMove = Ray.findRayBetween(kingsMove.getTarget(), checkInfo.square());
                if (rayBeforeMove == rayAfterMove && captureSquare != checkInfo.square()) { return true; }
                if (rayAfterMove != null && rayBeforeMove == rayAfterMove.getOpposite()) { return true; }
@@ -303,44 +304,24 @@ public class MoveGenerator {
       CheckInfo checkInfo = moveAttacksSquare(posn, m, kingsSquare, null);
       if (checkInfo != null) { checkSquares.add(checkInfo); }
       // (2) is there a piece on the ray origin..kingssquare which _now_ attacks the king (i.e. discovered check)?
-      Ray rayToSearch = Ray.findRayBetween(kingsSquare, m.getOrigin());
-      if (rayToSearch != null) {
-         if (interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), rayToSearch)) {
-            // squares from origin to king are empty, so see if there's an opponent's piece on this ray
-            Pair<Piece, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, m.getOrigin(), rayToSearch);
-            Piece enemyPiece = enemyPieceInfo.getLeft();
-            if (enemyPiece != null) {
-               int enemySq = enemyPieceInfo.getRight();
-               // capable of checking the king?
-               if (enemyPiece.canSlideAlongRay(rayToSearch)) { checkSquares.add(new CheckInfo(enemyPiece, enemySq)); }
+      Ray rayFromKingToOrigin = Ray.findRayBetween(kingsSquare, m.getOrigin());
+      if (rayFromKingToOrigin != null) {
+         Ray rayFromKingToTarget = Ray.findRayBetween(kingsSquare, m.getTarget()); // could be null
+         // don't search if the move is to a square on the same to the king's ray (pawn move)
+         if (!(rayFromKingToOrigin == rayFromKingToTarget /* || rayFromKingToOrigin.isOpposite(rayFromKingToTarget) */)) {
+            if (interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), -1, rayFromKingToOrigin)) {
+               // squares from origin to king are empty, so see if there's an opponent's piece on this ray
+               Pair<Piece, Integer> enemyPieceInfo = posn.opponentsPieceOnRay(colour, m.getOrigin(), rayFromKingToOrigin);
+               Piece enemyPiece = enemyPieceInfo.getLeft();
+               if (enemyPiece != null) {
+                  int enemySq = enemyPieceInfo.getRight();
+                  // capable of checking the king?
+                  if (enemyPiece.canSlideAlongRay(rayFromKingToOrigin)) { checkSquares.add(new CheckInfo(enemyPiece, enemySq)); }
+               }
             }
          }
       }
       return checkSquares;
-   }
-
-   /**
-    * Returns true if the king (colour 'colour') would be in check after the given 'move'.
-    * 
-    * @param  posn
-    * @param  move        the move to inspect
-    * @param  kingsSquare the current king's square
-    * @param  colour      colour of moving king
-    * @return             an empty list if king is not in check; otherwise, the squares with pieces which give check
-    * 
-    */
-   // TODO for non-king moves, should use cache built up from previous call of removeMovesLeavingKingInCheck
-   private List<CheckInfo> kingIsInCheckAfterMove(Position posn, Move move, int kingsSquare, Colour colour) {
-      int newKingsSq;
-      int captureSquare = -1;
-      if (move.getMovingPiece() == Piece.KING) {
-         newKingsSq = move.getTarget();
-      } else {
-         newKingsSq = kingsSquare;
-      }
-      if (move.isCapture()) { captureSquare = move.isEnpassant() ? move.getSquareOfPawnCapturedEnpassant() : move.getTarget(); }
-
-      return posn.isKingInCheck(newKingsSq, colour, captureSquare);
    }
 
    /**
@@ -360,29 +341,35 @@ public class MoveGenerator {
       if (movingPiece == Piece.KING) {
          int slot = move.isKingssideCastling() ? 0 : move.isQueenssideCastling() ? 1 : -1;
          if (slot != -1) {
-            return pieceAttacksSquare(posn, Piece.ROOK, rooksSquareAfterCastling[move.getColourOfMovingPiece().ordinal()][slot], targetSq,
+            return pieceAttacksSquare(posn, Piece.ROOK, rooksSquareAfterCastling[move.getColourOfMovingPiece().ordinal()][slot], targetSq, -1,
                   squaresWhichAttackTarget);
          } else {
             return null;
          }
       } else if (movingPiece == Piece.PAWN) {
          if (move.isPromotion()) {
-            return pieceAttacksSquare(posn, move.getPromotedPiece(), move.getTarget(), targetSq, squaresWhichAttackTarget);
+            return pieceAttacksSquare(posn, move.getPromotedPiece(), move.getTarget(), targetSq, move.getOrigin(), squaresWhichAttackTarget);
          } else {
             return pawnCaptures[move.getColourOfMovingPiece().ordinal()][move.getTarget()].contains(targetSq) ? new CheckInfo(Piece.PAWN, move.getTarget())
                   : null;
          }
       }
-      return pieceAttacksSquare(posn, move.getMovingPiece(), move.getTarget(), targetSq, squaresWhichAttackTarget);
+      return pieceAttacksSquare(posn, move.getMovingPiece(), move.getTarget(), targetSq, move.getOrigin(), squaresWhichAttackTarget);
    }
 
    /**
     * whether a (possibly hypothetical) piece 'piece' at 'origin' attacks 'target'. Should not be called for kings or
     * pawns.
     * 
-    * @return either null (does not attack square) or an object detailing the piece and checking square
+    * @param  posn
+    * @param  piece
+    * @param  origin
+    * @param  target
+    * @param  squareToIgnore           if set,this square will be treated as 'empty'. Useful for pawn promotions.
+    * @param  squaresWhichAttackTarget stores the result of processed squares (for sliding pieces). Can be null.
+    * @return                          either null (does not attack square) or the piece / checking square info
     */
-   private CheckInfo pieceAttacksSquare(Position posn, Piece piece, int origin, int target, RayCacheInfo[] squaresWhichAttackTarget) {
+   private CheckInfo pieceAttacksSquare(Position posn, Piece piece, int origin, int target, int squareToIgnore, RayCacheInfo[] squaresWhichAttackTarget) {
       if (piece == Piece.KNIGHT) { return knightMoves[origin].contains(target) ? new CheckInfo(Piece.KNIGHT, origin) : null; }
 
       // see if result has already been calculated
@@ -395,7 +382,7 @@ public class MoveGenerator {
       Ray rayBetween = Ray.findRayBetween(origin, target);
       if (rayBetween == null || !piece.canSlideAlongRay(rayBetween)) { return null; }
       // now know that the piece at 'origin' could attack the targetSq, if there is a clear path
-      boolean clearPathToTarget = interveningSquaresAreEmpty(posn, origin, target, rayBetween);
+      boolean clearPathToTarget = interveningSquaresAreEmpty(posn, origin, target, squareToIgnore, rayBetween);
       if (clearPathToTarget) {
          if (squaresWhichAttackTarget != null) { squaresWhichAttackTarget[origin] = new RayCacheInfo(rayBetween); } // update 'cache'
          return new CheckInfo(piece, origin);
@@ -529,10 +516,10 @@ public class MoveGenerator {
       // If there's a piece between the moving piece and the king, then the king cannot be
       // left in check, so don't process this move anymore
       if (m.isEnpassant()) {
-         if (!interveningSquaresAreEmptyWithEnpassantPawnRemoved(posn, kingsSquare, m.getOrigin(), ray, m.getSquareOfPawnCapturedEnpassant())) { return false; }
+         if (!interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), m.getSquareOfPawnCapturedEnpassant(), ray)) { return false; }
       } else {
          // TODO could optimize here and store the result of this analysis
-         if (!interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), ray)) { return false; }
+         if (!interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), -1, ray)) { return false; }
       }
 
       // .. otherwise see if there's an enemy piece on this ray
@@ -559,37 +546,23 @@ public class MoveGenerator {
             }
          }
       } else {
-         // TODO store info that no enemypiece on ray
+         // TODO store info that no enemy piece on ray
       }
       return false;
    }
 
    /**
-    * Are all squares between origin and target empty? Version for enpassant moves.
-    * 
-    * @param  posn
-    * @param  origin              start square (e.g. kings square)
-    * @param  target              target square (e.g. move's origin square)
-    * @param  ray                 the required ray to check
-    * @param  enpassantPawnSquare this square will be treated as being empty (contains a pawn, which could be taken
-    *                             enpassant)
-    * @return                     true if all squares between origin and target along the given ray are empty
-    */
-   private boolean interveningSquaresAreEmptyWithEnpassantPawnRemoved(Position posn, int origin, int target, Ray ray, int enpassantPawnSquare) {
-      IntFunction<Boolean> isEmptySquareWithEnpassant = sq -> { return sq == enpassantPawnSquare || posn.isEmpty(sq); };
-      return interveningSquaresAreEmpty(isEmptySquareWithEnpassant, origin, target, ray);
-   }
-
-   /**
     * Are all squares between origin and target empty?
     * 
-    * @param  origin start square (e.g. kings square)
-    * @param  target target square (e.g. move's origin square)
-    * @param  ray    the required ray to check
-    * @return        true if all squares between origin and target along the given ray are empty
+    * @param  origin         start square (e.g. kings square)
+    * @param  target         target square (e.g. move's origin square)
+    * @param  squareToIgnore optional square to ignore, i.e. this square will be treated as being empty. E.g. contains a
+    *                        pawn, which could be taken enpassant
+    * @param  ray            the required ray to check
+    * @return                true if all squares between origin and target along the given ray are empty
     */
-   private boolean interveningSquaresAreEmpty(Position posn, int origin, int target, Ray ray) {
-      IntFunction<Boolean> isEmptySquare = sq -> { return posn.isEmpty(sq); };
+   private boolean interveningSquaresAreEmpty(Position posn, int origin, int target, int squareToIgnore, Ray ray) {
+      IntFunction<Boolean> isEmptySquare = sq -> { return sq == squareToIgnore || posn.isEmpty(sq); };
       return interveningSquaresAreEmpty(isEmptySquare, origin, target, ray);
    }
 
