@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -89,5 +92,22 @@ public class CheckTest {
       assertFalse(p.isKingInCheck());
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.PAWN_FILTER, "b7-b8=N+", "b7-b8=R", "b7-b8=B", "b7-b8=Q", "b7xc8=N",
             "b7xc8=B", "b7xc8=R", "b7xc8=Q", "b7xa8=N", "b7xa8=B+", "b7xa8=R", "b7xa8=Q+");
+   }
+
+   // our king is in check, which moves block?
+   @Test
+   public void kingInCheckMovesBlock() {
+      Position p = Fen.decode("3r4/B3k3/R7/8/Q7/3K4/4N3/8 w - -").getPosition();
+      assertTrue(p.isKingInCheck());
+      // make sure correct moves are generated
+      TestUtil.checkMoves(new MoveGenerator(true).findMoves(p, Colour.WHITE), "Ba7-d4", "Ra6-d6", "Qa4-d7+", "Qa4-d4", "Ne2-d4", "Kd3-c4", "Kd3-c3", "Kd3-c2",
+            "Kd3-e4", "Kd3-e3");
+      var NBR_ITERS = 500_000;
+      var sw = StopWatch.createStarted();
+      for (int i = 0; i < NBR_ITERS; i++) {
+         List<Move> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
+         assertEquals(10, moves.size(), "found moves: " + moves);
+      }
+      System.out.println("kingInCheckMovesBlock: " + sw.getTime());
    }
 }
