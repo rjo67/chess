@@ -27,6 +27,8 @@ import org.rjo.newchess.piece.Piece;
 public class Position {
 
    private final static SquareInfo UNOCCUPIED_SQUARE = new SquareInfo(null, Colour.UNOCCUPIED);
+   private final static MoveGenerator moveGenerator = new MoveGenerator();
+
    /** enables sanity checks during move processing */
    private static final boolean TEST_IF_VALID = true;
 
@@ -131,7 +133,7 @@ public class Position {
     * All information is "shallow" cloned. If it gets changed later the appropriate data structures must be fully cloned.
     * 
     * @param prevPosn position to copy
-    * @param move     move just been played in "prevPosn"
+    * @param move     move just been played in "prevPosn". Can be null.
     */
    public Position(Position prevPosn, Move move) {
       this.castlingRights = prevPosn.castlingRights;
@@ -255,7 +257,13 @@ public class Position {
          case 6 -> sb.append("   castlingRights: ").append(castlingRightsToString());
          case 5 -> sb.append("   enpassant square: ").append(enpassantSquare);
          case 4 -> sb.append("   hash (zobrist): ").append(hashCode());
-         case 3 -> sb.append("   king in check? ").append(kingInCheck).append(": ").append(checkSquares);
+         case 3 -> {
+            if (kingInCheck) {
+               sb.append("   king in check: ").append(checkSquares);
+            } else {
+               sb.append("   king not in check");
+            }
+         }
          case 1 -> sb.append("   fen ").append(Fen.encode(this));
          }
          sb.append("\n");
@@ -451,7 +459,7 @@ public class Position {
    }
 
    public List<Move> findMoves(Colour sideToMove) {
-      return new MoveGenerator().findMoves(this, sideToMove);
+      return moveGenerator.findMoves(this, sideToMove);
    }
 
    public boolean isKingInCheck() {
