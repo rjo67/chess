@@ -135,8 +135,7 @@ public class Move {
       return new Move(origin, originSquareInfo, target, targetSquareInfo, promotedPiece);
    }
 
-   public static Move createPromotionCaptureMove(Square origin, SquareInfo originSquareInfo, Square target, SquareInfo targetSquareInfo,
-         Piece promotedPiece) {
+   public static Move createPromotionCaptureMove(Square origin, SquareInfo originSquareInfo, Square target, SquareInfo targetSquareInfo, Piece promotedPiece) {
       return createPromotionCaptureMove(origin.index(), originSquareInfo, target.index(), targetSquareInfo, promotedPiece);
    }
 
@@ -288,8 +287,7 @@ public class Move {
    }
 
    public void setCheck(PieceSquareInfo... checkSquares) {
-      check = true;
-      this.checkSquares = Arrays.asList(checkSquares);
+      setCheck(Arrays.asList(checkSquares));
    }
 
    public boolean isCheck() {

@@ -102,7 +102,7 @@ public class CheckTest {
       // make sure correct moves are generated
       TestUtil.checkMoves(new MoveGenerator(true).findMoves(p, Colour.WHITE), "Ba7-d4", "Ra6-d6", "Qa4-d7+", "Qa4-d4", "Ne2-d4", "Kd3-c4", "Kd3-c3", "Kd3-c2",
             "Kd3-e4", "Kd3-e3");
-      var NBR_ITERS = 500_000;
+      var NBR_ITERS = 300_000;
       var sw = StopWatch.createStarted();
       for (int i = 0; i < NBR_ITERS; i++) {
          List<Move> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
