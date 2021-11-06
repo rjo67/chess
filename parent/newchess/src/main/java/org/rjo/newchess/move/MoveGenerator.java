@@ -1,11 +1,10 @@
 package org.rjo.newchess.move;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.IntFunction;
 
@@ -62,30 +61,28 @@ public class MoveGenerator {
    private final static int[][] pawnSquaresQueenssideCastling = new int[][]//
    { { Square.b2.index(), Square.c2.index(), Square.d2.index(), Square.e2.index() },
          { Square.b7.index(), Square.c7.index(), Square.d7.index(), Square.e7.index() } };
-   // key: the enpassant square; values: the squares where a pawn must be in order to take with e.p.
-   private final static Map<Integer, Integer[]>[] enpassantSquares;
+   // Stores (for both colours) the squares (dim1) where a pawn must be in order to take a pawn on dim0 with e.p.
+   private final static int[][] enpassantSquares = new int[64][];
    public final static Set<Integer>[] knightMoves; // stores set of possible knight moves for each square
    public final static Set<Integer>[][] pawnCaptures; // stores set of possible pawn captures for each square (for w/b)
    static {
-      enpassantSquares = new HashMap[2];
-      enpassantSquares[Colour.WHITE.ordinal()] = new HashMap<>();
-      enpassantSquares[Colour.WHITE.ordinal()].put(Square.a6.index(), new Integer[] { Square.b5.index() });
-      enpassantSquares[Colour.WHITE.ordinal()].put(Square.b6.index(), new Integer[] { Square.a5.index(), Square.c5.index() });
-      enpassantSquares[Colour.WHITE.ordinal()].put(Square.c6.index(), new Integer[] { Square.b5.index(), Square.d5.index() });
-      enpassantSquares[Colour.WHITE.ordinal()].put(Square.d6.index(), new Integer[] { Square.c5.index(), Square.e5.index() });
-      enpassantSquares[Colour.WHITE.ordinal()].put(Square.e6.index(), new Integer[] { Square.d5.index(), Square.f5.index() });
-      enpassantSquares[Colour.WHITE.ordinal()].put(Square.f6.index(), new Integer[] { Square.e5.index(), Square.g5.index() });
-      enpassantSquares[Colour.WHITE.ordinal()].put(Square.g6.index(), new Integer[] { Square.f5.index(), Square.h5.index() });
-      enpassantSquares[Colour.WHITE.ordinal()].put(Square.h6.index(), new Integer[] { Square.g5.index() });
-      enpassantSquares[Colour.BLACK.ordinal()] = new HashMap<>();
-      enpassantSquares[Colour.BLACK.ordinal()].put(Square.a3.index(), new Integer[] { Square.b4.index() });
-      enpassantSquares[Colour.BLACK.ordinal()].put(Square.b3.index(), new Integer[] { Square.a4.index(), Square.c4.index() });
-      enpassantSquares[Colour.BLACK.ordinal()].put(Square.c3.index(), new Integer[] { Square.b4.index(), Square.d4.index() });
-      enpassantSquares[Colour.BLACK.ordinal()].put(Square.d3.index(), new Integer[] { Square.c4.index(), Square.e4.index() });
-      enpassantSquares[Colour.BLACK.ordinal()].put(Square.e3.index(), new Integer[] { Square.d4.index(), Square.f4.index() });
-      enpassantSquares[Colour.BLACK.ordinal()].put(Square.f3.index(), new Integer[] { Square.e4.index(), Square.g4.index() });
-      enpassantSquares[Colour.BLACK.ordinal()].put(Square.g3.index(), new Integer[] { Square.f4.index(), Square.h4.index() });
-      enpassantSquares[Colour.BLACK.ordinal()].put(Square.h3.index(), new Integer[] { Square.g4.index() });
+      enpassantSquares[Square.a6.index()] = new int[] { Square.b5.index() };
+      enpassantSquares[Square.b6.index()] = new int[] { Square.a5.index(), Square.c5.index() };
+      enpassantSquares[Square.c6.index()] = new int[] { Square.b5.index(), Square.d5.index() };
+      enpassantSquares[Square.d6.index()] = new int[] { Square.c5.index(), Square.e5.index() };
+      enpassantSquares[Square.e6.index()] = new int[] { Square.d5.index(), Square.f5.index() };
+      enpassantSquares[Square.f6.index()] = new int[] { Square.e5.index(), Square.g5.index() };
+      enpassantSquares[Square.g6.index()] = new int[] { Square.f5.index(), Square.h5.index() };
+      enpassantSquares[Square.h6.index()] = new int[] { Square.g5.index() };
+
+      enpassantSquares[Square.a3.index()] = new int[] { Square.b4.index() };
+      enpassantSquares[Square.b3.index()] = new int[] { Square.a4.index(), Square.c4.index() };
+      enpassantSquares[Square.c3.index()] = new int[] { Square.b4.index(), Square.d4.index() };
+      enpassantSquares[Square.d3.index()] = new int[] { Square.c4.index(), Square.e4.index() };
+      enpassantSquares[Square.e3.index()] = new int[] { Square.d4.index(), Square.f4.index() };
+      enpassantSquares[Square.f3.index()] = new int[] { Square.e4.index(), Square.g4.index() };
+      enpassantSquares[Square.g3.index()] = new int[] { Square.f4.index(), Square.h4.index() };
+      enpassantSquares[Square.h3.index()] = new int[] { Square.g4.index() };
 
       knightMoves = new Set[64];
       for (int sq = 0; sq < 64; sq++) {
@@ -896,7 +893,7 @@ public class MoveGenerator {
       }
       if (posn.getEnpassantSquare() != null) {
          int epSquare = posn.getEnpassantSquare().index();
-         for (int sq : enpassantSquares[colour.ordinal()].get(epSquare)) {
+         for (int sq : enpassantSquares[epSquare]) {
             if (startSq == sq) {
                Move move = Move.createEnpassantMove(startSq, posn.raw(startSq), epSquare, posn.raw(epSquare));
                if (checkInfo != null && !moveBlocksCheck(posn, move, kingsSquare, blocksCheck)) { continue; }
