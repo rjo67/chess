@@ -1,9 +1,7 @@
 package org.rjo.newchess.board;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -45,18 +43,23 @@ public enum Ray {
       setOpposites(WEST, EAST);
    }
 
+   /**
+    * Stores for each square on the board a set of squares emenating from this square in all directions. The set is ordered
+    * so that the squares closest to the origin are first. (This ordering is not necessary for the set, but it is used when
+    * creating 'raysList'.)
+    */
    public static final Set<Integer>[][] raysSet;
-   public static final List<Integer>[][] raysList;
+   /**
+    * Duplicates the info in 'raysSet', i.e. stores for each square on the board a list of squares emenating from this
+    * square in all directions.
+    * 
+    * e.g. Ray.raysList[startSq][ray.ordinal()] is a List where the first element is the square closest to startSq in the
+    * given direction.
+    */
+   public static final int[][][] raysList;
    static {
-      // raysSet: stores for each square on the board a set of squares emenating from
-      // this square in all directions. The set is ordered so that the squares closest
-      // to the origin are first. Not strictly necessary for the set, but useful for
-      // creating 'raysList'.
-      // This info is duplicated in the 'raysList' structure,
-      // e.g. Ray.raysList[startSq][ray.ordinal()] is a List where the first
-      // element is the sq closest to startSq in the given direction.
       raysSet = new Set[64][8];
-      raysList = new List[64][8];
+      raysList = new int[64][8][];
       int[] offset = new int[] { -10, -9, 1, 11, 10, 9, -1, -11 };
       for (int sq = 0; sq < 64; sq++) {
          for (Ray ray : Ray.values()) {
@@ -67,11 +70,11 @@ public enum Ray {
                raysSet[sq][ray.ordinal()].add(Board.mailbox(raySq));
             }
             raysSet[sq][ray.ordinal()] = Collections.unmodifiableSet(raysSet[sq][ray.ordinal()]);
-            raysList[sq][ray.ordinal()] = new ArrayList<>();
+            raysList[sq][ray.ordinal()] = new int[raysSet[sq][ray.ordinal()].size()];
+            var slot = 0;
             for (Integer raySq : raysSet[sq][ray.ordinal()]) {
-               raysList[sq][ray.ordinal()].add(raySq);
+               raysList[sq][ray.ordinal()][slot++] = raySq;
             }
-            raysList[sq][ray.ordinal()] = Collections.unmodifiableList(raysList[sq][ray.ordinal()]);
          }
       }
    }
