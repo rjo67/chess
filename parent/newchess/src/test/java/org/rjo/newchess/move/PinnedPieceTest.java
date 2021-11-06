@@ -17,6 +17,22 @@ import org.rjo.newchess.piece.Piece;
 
 public class PinnedPieceTest {
 
+   // test exists in order to optimize the move generator removeMovesLeavingKingInCheckAlongRay
+   @Test
+   public void noPin() {
+      Position p = Fen.decode("4k3/4r3/4R3/4P3/8/8/8/4K3 w - - 0 0").getPosition();
+      TestUtil.checkMoves(new MoveGenerator(true).findMoves(p, Colour.WHITE), "Ke1-d1", "Ke1-d2", "Ke1-e2", "Ke1-f1", "Ke1-f2", "Re6-d6", "Re6-c6", "Re6-b6",
+            "Re6-a6", "Re6-f6", "Re6-g6", "Re6-h6", "Re6xe7+");
+
+      var NBR_ITERS = 500_000;
+      var sw = StopWatch.createStarted();
+      for (int i = 0; i < NBR_ITERS; i++) {
+         List<Move> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
+         assertEquals(13, moves.size(), "found moves: " + moves);
+      }
+      System.out.println("noPin: " + sw.getTime());
+   }
+
    @Test
    public void simplePin() {
       Position p = new Position(Square.e2, Square.g8);
@@ -54,6 +70,12 @@ public class PinnedPieceTest {
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "Ke2-d1", "Ke2-d2", "Ke2-d3", "Ke2-e1", "Ke2-e3", "Ke2-f1", "Ke2-f2", "Ke2-f3",
             // along pin ray
             "Re4-e3", "Re4-e5", "Re4-e6", "Re4xe7");
+   }
+
+   @Test
+   public void pawnMoveAlongRay() {
+      Position p = Fen.decode("4k3/4r3/8/8/8/8/4P3/4K3 w - - 0 0").getPosition();
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), "Ke1-d1", "Ke1-d2", "Ke1-f1", "Ke1-f2", "e2-e3", "e2-e4");
    }
 
    @Test

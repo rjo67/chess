@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.board.Ray;
 import org.rjo.newchess.move.Move;
@@ -33,21 +32,21 @@ public class Position {
    private static final boolean TEST_IF_VALID = true;
 
    /**
-    * Stores information about a piece which is checking the king.
+    * Stores information about a piece on a square.
     * 
-    * The 'rayToKing' gets set during move processing.
+    * The 'rayToKing' gets set during move processing, if the piece is checking the king.
     */
-   public static class CheckInfo {
+   public static class PieceSquareInfo {
       private Piece piece;
       private int square;
       private Ray rayToKing;
 
-      public CheckInfo(Piece piece, int square) {
+      public PieceSquareInfo(Piece piece, int square) {
          this.piece = piece;
          this.square = square;
       }
 
-      public CheckInfo(Piece piece, Square square) {
+      public PieceSquareInfo(Piece piece, Square square) {
          this(piece, square.index());
       }
 
@@ -96,7 +95,7 @@ public class Position {
    private Colour sideToMove;
    // if kingInCheck==TRUE, then either directCheckSquare or discoveredCheckSquare (or both) will be set
    private boolean kingInCheck; // TRUE if the king is now in check (i.e. the move leading to this posn has checked the king)
-   private List<CheckInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
+   private List<PieceSquareInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
    // debugging info
    private Position previousPosn; // stores the previous position
    private Move currentMove; // stores the move made from the previous position to get to this position
@@ -280,8 +279,6 @@ public class Position {
    // process the given move, updating internal structures
    private void processMove(Move move) {
       int sideToMoveOrdinal = this.sideToMove.ordinal();
-      // gets set to the new castling rights if they change with this move
-      boolean[] newCastlingRights = null;
 
       if (TEST_IF_VALID) {
          if (move.getMovingPiece() != pieceAt(move.getOrigin())) {
@@ -340,26 +337,48 @@ public class Position {
          this.enpassantSquare = null;
       }
 
+      int opponentsSideOrdinal = this.sideToMove.opposite().ordinal();
+      boolean castlingRightsChanged = false;
+      boolean opponentsCastlingRightsChanged = false;
+      boolean kingsCastling = this.castlingRights[sideToMoveOrdinal][0];
+      boolean queensCastling = this.castlingRights[sideToMoveOrdinal][1];
+      boolean opponentsKingsCastling = this.castlingRights[opponentsSideOrdinal][0];
+      boolean opponentsQueensCastling = this.castlingRights[opponentsSideOrdinal][1];
+
       // update kingsSquare && castling rights if king moved
       if (Piece.KING == move.getMovingPiece()) {
          this.kingsSquare = this.kingsSquare.clone();
          this.kingsSquare[sideToMoveOrdinal] = move.getTarget();
-         newCastlingRights = new boolean[] { false, false };
+         castlingRightsChanged = true;
+         kingsCastling = false;
+         queensCastling = false;
       }
 
       // check if a rook moved from its starting square, therefore invalidating castling rights
       if (Piece.ROOK == move.getMovingPiece()) {
-         if (move.getOrigin() == MoveGenerator.rooksCastlingSquareIndex[sideToMoveOrdinal][0]) {
-            newCastlingRights = new boolean[] { false, this.castlingRights[sideToMoveOrdinal][1] };
-         } else if (move.getOrigin() == MoveGenerator.rooksCastlingSquareIndex[sideToMoveOrdinal][1]) {
-            newCastlingRights = new boolean[] { this.castlingRights[sideToMoveOrdinal][0], false };
+         if (move.getOrigin() == MoveGenerator.rooksCastlingSquareIndex[sideToMoveOrdinal][0] && canCastleKingsside(sideToMove)) {
+            castlingRightsChanged = true;
+            kingsCastling = false;
+         } else if (move.getOrigin() == MoveGenerator.rooksCastlingSquareIndex[sideToMoveOrdinal][1] && canCastleQueensside(sideToMove)) {
+            castlingRightsChanged = true;
+            queensCastling = false;
          }
       }
 
-      // set new castling rights
-      if (newCastlingRights != null) {
+      // if a piece captured something on a1/h1 or a8/h8, then opponent can't castle anymore
+      if (move.getTarget() == MoveGenerator.rooksCastlingSquareIndex[opponentsSideOrdinal][0] && canCastleKingsside(sideToMove.opposite())) {
+         opponentsCastlingRightsChanged = true;
+         opponentsKingsCastling = false;
+      } else if (move.getTarget() == MoveGenerator.rooksCastlingSquareIndex[opponentsSideOrdinal][1] && canCastleQueensside(sideToMove.opposite())) {
+         opponentsCastlingRightsChanged = true;
+         opponentsQueensCastling = false;
+      }
+
+      // clone and set new castling rights
+      if (castlingRightsChanged || opponentsCastlingRightsChanged) {
          this.castlingRights = this.castlingRights.clone();
-         this.castlingRights[sideToMoveOrdinal] = newCastlingRights;
+         if (castlingRightsChanged) { this.castlingRights[sideToMoveOrdinal] = new boolean[] { kingsCastling, queensCastling }; }
+         if (opponentsCastlingRightsChanged) { this.castlingRights[opponentsSideOrdinal] = new boolean[] { opponentsKingsCastling, opponentsQueensCastling }; }
       }
 
       this.sideToMove = this.sideToMove.opposite();
@@ -380,13 +399,13 @@ public class Position {
     * @param  captureSquare if the move was a capture, this is the square where a piece was captured. Otherwise -1
     * @return               an empty list if king is not in check; otherwise, the squares with pieces which give check
     */
-   public List<CheckInfo> isKingInCheck(int kingsSquare, Colour colour, int captureSquare) {
+   public List<PieceSquareInfo> isKingInCheck(int kingsSquare, Colour colour, int captureSquare) {
       Colour opponentsColour = colour.opposite();
-      List<CheckInfo> checkSquares = new ArrayList<>(2);
+      List<PieceSquareInfo> checkSquares = new ArrayList<>(2);
       // *our* colour used to index pawnCaptures, because we want the 'inverse', i.e. squares which attack the given square
       for (int sq : MoveGenerator.pawnCaptures[colour.ordinal()][kingsSquare]) {
          if (sq != captureSquare && pieceAt(sq) == Piece.PAWN && colourOfPieceAt(sq) == opponentsColour) {
-            checkSquares.add(new CheckInfo(Piece.PAWN, sq));
+            checkSquares.add(new PieceSquareInfo(Piece.PAWN, sq));
             break;
          }
       }
@@ -395,18 +414,16 @@ public class Position {
       if (checkSquares.isEmpty()) {
          for (int sq : MoveGenerator.knightMoves[kingsSquare]) {
             if (sq != captureSquare && pieceAt(sq) == Piece.KNIGHT && colourOfPieceAt(sq) == opponentsColour) {
-               checkSquares.add(new CheckInfo(Piece.KNIGHT, sq));
+               checkSquares.add(new PieceSquareInfo(Piece.KNIGHT, sq));
                break;
             }
          }
       }
 
       for (Ray ray : Ray.values()) {
-         Pair<Piece, Integer> enemyPieceInfo = opponentsPieceOnRay(colour, kingsSquare, ray);
-         Piece enemyPiece = enemyPieceInfo.getLeft();
-         int enemySquare = enemyPieceInfo.getRight();
-         if (enemyPiece != null && enemySquare != captureSquare && enemyPiece.canSlideAlongRay(ray)) {
-            checkSquares.add(new CheckInfo(enemyPiece, enemySquare));
+         PieceSquareInfo enemyPieceInfo = opponentsPieceOnRay(colour, kingsSquare, ray);
+         if (enemyPieceInfo.piece() != null && enemyPieceInfo.square() != captureSquare && enemyPieceInfo.piece().canSlideAlongRay(ray)) {
+            checkSquares.add(enemyPieceInfo);
             if (checkSquares.size() == 2) { break; }
          }
       }
@@ -422,10 +439,10 @@ public class Position {
     * @param  startSq  where to start
     * @param  ray      direction
     * @return          the piece-type and square of the enemy piece, if found. If no piece or one of my pieces was found,
-    *                  returns (null, -1)
+    *                  returns PieceSquareInfo(null,-1)
     * @see             #opponentsPieceOnRay(Colour, int, Ray, int)
     */
-   public Pair<Piece, Integer> opponentsPieceOnRay(Colour myColour, int startSq, Ray ray) {
+   public PieceSquareInfo opponentsPieceOnRay(Colour myColour, int startSq, Ray ray) {
       return opponentsPieceOnRay(myColour, startSq, ray, -1);
    }
 
@@ -440,9 +457,9 @@ public class Position {
     * @param  ray            direction
     * @param  squareToIgnore square to ignore (used in enpassant calculations). Set to -1 if not required.
     * @return                the piece-type and square of the enemy piece, if found. If no piece or one of my pieces was
-    *                        found, returns (null, -1)
+    *                        found, returns PieceSquareInfo(null,-1)
     */
-   public Pair<Piece, Integer> opponentsPieceOnRay(Colour myColour, int startSq, Ray ray, int squareToIgnore) {
+   public PieceSquareInfo opponentsPieceOnRay(Colour myColour, int startSq, Ray ray, int squareToIgnore) {
       int enemySq = -1;
       Piece enemyPiece = null;
       for (int potentialEnemySq : Ray.raysList[startSq][ray.ordinal()]) {
@@ -455,7 +472,7 @@ public class Position {
          }
          break; // can stop in any case, having found a piece
       }
-      return Pair.of(enemyPiece, enemySq);
+      return new PieceSquareInfo(enemyPiece, enemySq);
    }
 
    public List<Move> findMoves(Colour sideToMove) {
@@ -466,7 +483,7 @@ public class Position {
       return kingInCheck;
    }
 
-   public void setKingInCheck(List<CheckInfo> checkSquares) {
+   public void setKingInCheck(List<PieceSquareInfo> checkSquares) {
       if (checkSquares == null || checkSquares.isEmpty()) {
          this.kingInCheck = false;
          this.checkSquares = null;
@@ -476,11 +493,11 @@ public class Position {
       }
    }
 
-   public void setKingInCheck(CheckInfo... checkSquares) {
+   public void setKingInCheck(PieceSquareInfo... checkSquares) {
       setKingInCheck(Arrays.asList(checkSquares));
    }
 
-   public List<CheckInfo> getCheckSquares() {
+   public List<PieceSquareInfo> getCheckSquares() {
       return checkSquares;
    }
 

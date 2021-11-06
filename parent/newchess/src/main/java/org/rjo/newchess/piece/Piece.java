@@ -3,14 +3,6 @@ package org.rjo.newchess.piece;
 import org.rjo.newchess.board.Ray;
 
 /**
- * <ul>
- * <li>000 pawn</li>
- * <li>001 rook</li>
- * <li>010 knight</li>
- * <li>011 bishop</li>
- * <li>100 queen</li>
- * <li>101 king</li>
- * </ul>
  * 
  * @author rich
  * @see    "https://www.chessprogramming.org/10x12_Board#Square_Mapping"

@@ -126,8 +126,10 @@ public class Board {
        * @return       true when adjacent
        */
       public boolean adjacentTo(Square other) {
-         return Math.abs(this.rank - other.rank) <= 1 && Math.abs(this.file - other.file) <= 1;
+         // Chebyshev distance
+         return Math.max(Math.abs(this.rank - other.rank), Math.abs(this.file - other.file)) == 1;
       }
+
    }
 
    public static int mailbox(int offset) {

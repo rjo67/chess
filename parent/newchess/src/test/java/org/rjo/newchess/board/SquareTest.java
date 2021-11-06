@@ -1,7 +1,9 @@
 package org.rjo.newchess.board;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import org.rjo.newchess.board.Board.Square;
@@ -46,5 +48,11 @@ public class SquareTest {
    public void enpassantSquare() {
       assertEquals(Square.findEnpassantSquareFromMove(Square.b4), Square.b3);
       assertEquals(Square.findEnpassantSquareFromMove(Square.c5), Square.c6);
+   }
+
+   @Test
+   public void adjacent() {
+      assertTrue(Square.b6.adjacentTo(Square.c5));
+      assertFalse(Square.d6.adjacentTo(Square.g5));
    }
 }

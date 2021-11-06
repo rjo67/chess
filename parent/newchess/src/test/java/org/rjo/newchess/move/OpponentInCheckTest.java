@@ -13,7 +13,7 @@ import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Fen;
 import org.rjo.newchess.game.Position;
-import org.rjo.newchess.game.Position.CheckInfo;
+import org.rjo.newchess.game.Position.PieceSquareInfo;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
 
@@ -83,7 +83,7 @@ public class OpponentInCheckTest {
    public void kingInDirectCheckAfterMove(String fen, String moveOrigin, String moveTarget) {
       Position posn = Fen.decode(fen).getPosition();
       Move move = Move.createMove(Square.valueOf(moveOrigin), posn.raw(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
-      List<CheckInfo> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
+      List<PieceSquareInfo> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
       assertEquals(1, checkSquares.size());
       assertTrue(TestUtil.squareIsCheckSquare(Square.valueOf(moveTarget), checkSquares));
    }
@@ -96,7 +96,7 @@ public class OpponentInCheckTest {
    public void kingInDiscoveredCheckAfterMove(String fen, String moveOrigin, String moveTarget, String checkSquare) {
       Position posn = Fen.decode(fen).getPosition();
       Move move = Move.createMove(Square.valueOf(moveOrigin), posn.raw(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
-      List<CheckInfo> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
+      List<PieceSquareInfo> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
       assertEquals(1, checkSquares.size());
       assertTrue(TestUtil.squareIsCheckSquare(Square.valueOf(checkSquare), checkSquares));
    }
@@ -108,7 +108,7 @@ public class OpponentInCheckTest {
    public void kingInDirectAndDiscoveredCheckAfterMove(String fen, String moveOrigin, String moveTarget, String discoverdCheckSquare) {
       Position posn = Fen.decode(fen).getPosition();
       Move move = Move.createMove(Square.valueOf(moveOrigin), posn.raw(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
-      List<CheckInfo> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
+      List<PieceSquareInfo> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
       assertEquals(2, checkSquares.size());
       assertTrue(TestUtil.squareIsCheckSquare(Square.valueOf(moveTarget), checkSquares));
       assertTrue(TestUtil.squareIsCheckSquare(Square.valueOf(discoverdCheckSquare), checkSquares));

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
-import org.rjo.newchess.game.Position.CheckInfo;
+import org.rjo.newchess.game.Position.PieceSquareInfo;
 import org.rjo.newchess.move.Move;
 import org.rjo.newchess.move.MoveGenerator;
 import org.rjo.newchess.piece.Colour;
@@ -94,7 +94,7 @@ public class PositionTest {
       assertEquals("4k3/8/8/8/8/1R6/8/4K3 w - -", posn.getFen());
 
       Move m = Move.createMove(Square.b3, posn.raw(Square.b3), Square.b8);
-      m.setCheck(new CheckInfo(Piece.ROOK, Square.b8.index()));
+      m.setCheck(new PieceSquareInfo(Piece.ROOK, Square.b8.index()));
       Position posn2 = posn.move(m);
       assertEquals("1R2k3/8/8/8/8/8/8/4K3 b - -", posn2.getFen());
       assertEquals(Piece.ROOK, posn2.pieceAt(Square.b8));

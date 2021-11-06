@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import org.rjo.newchess.board.Board.Square;
-import org.rjo.newchess.game.Position.CheckInfo;
+import org.rjo.newchess.game.Position.PieceSquareInfo;
 import org.rjo.newchess.move.Move;
 import org.rjo.newchess.piece.Piece;
 
@@ -29,8 +29,8 @@ public class TestUtil {
    private TestUtil() {
    }
 
-   public static boolean squareIsCheckSquare(Square square, List<CheckInfo> checkSquares) {
-      for (CheckInfo ci : checkSquares) {
+   public static boolean squareIsCheckSquare(Square square, List<PieceSquareInfo> checkSquares) {
+      for (PieceSquareInfo ci : checkSquares) {
          if (ci.square() == square.index()) { return true; }
       }
       return false;

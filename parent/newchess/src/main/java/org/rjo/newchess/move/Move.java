@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.rjo.newchess.board.Board.Square;
-import org.rjo.newchess.game.Position.CheckInfo;
+import org.rjo.newchess.game.Position.PieceSquareInfo;
 import org.rjo.newchess.game.Position.SquareInfo;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
@@ -22,7 +22,7 @@ public class Move {
    private boolean kingsSideCastling;
    private boolean queensSideCastling;
    private boolean check; // whether this move is a check
-   private List<CheckInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
+   private List<PieceSquareInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
    private boolean enpassant; // whether this move is an enpassant capture
    private int squareOfPawnCapturedEnpassant; // the square of the pawn which was captured enpassant, **defaults to 0**
    private boolean pawnTwoSquaresForward; // marker field to indicate a pawn move of two squares (used in Position when performing a move)
@@ -282,12 +282,12 @@ public class Move {
       return targetSq;
    }
 
-   public void setCheck(List<CheckInfo> checkSquares) {
+   public void setCheck(List<PieceSquareInfo> checkSquares) {
       check = true;
       this.checkSquares = checkSquares;
    }
 
-   public void setCheck(CheckInfo... checkSquares) {
+   public void setCheck(PieceSquareInfo... checkSquares) {
       check = true;
       this.checkSquares = Arrays.asList(checkSquares);
    }
@@ -296,7 +296,7 @@ public class Move {
       return check;
    }
 
-   public List<CheckInfo> getCheckSquares() {
+   public List<PieceSquareInfo> getCheckSquares() {
       return checkSquares;
    }
 
