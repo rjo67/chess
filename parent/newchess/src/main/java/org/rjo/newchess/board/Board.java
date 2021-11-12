@@ -140,4 +140,12 @@ public class Board {
       return mailbox64[offset];
    }
 
+   // given a square e.g. 0, corresponding to a8, and an offset, e.g. +10, returns
+   // the corresponding square in the mailbox data type:
+   // : 0 in mailbox64 == 21
+   // : 21 + offset +10 == 31
+   // : 31 in mailbox == 8 -- corresponds to a7
+   public static int getMailboxSquare(int square, int offset) {
+      return Board.mailbox(Board.mailbox64(square) + offset);
+   }
 }

@@ -24,7 +24,7 @@ public class PinnedPieceTest {
       TestUtil.checkMoves(new MoveGenerator(true).findMoves(p, Colour.WHITE), "Ke1-d1", "Ke1-d2", "Ke1-e2", "Ke1-f1", "Ke1-f2", "Re6-d6", "Re6-c6", "Re6-b6",
             "Re6-a6", "Re6-f6", "Re6-g6", "Re6-h6", "Re6xe7+");
 
-      var NBR_ITERS = 300_000;
+      var NBR_ITERS = 100_000;
       var sw = StopWatch.createStarted();
       for (int i = 0; i < NBR_ITERS; i++) {
          List<Move> moves = new MoveGenerator().findMoves(p, Colour.WHITE);

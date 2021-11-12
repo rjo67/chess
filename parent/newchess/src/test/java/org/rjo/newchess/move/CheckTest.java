@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
@@ -13,7 +15,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Fen;
+import org.rjo.newchess.game.Perft;
 import org.rjo.newchess.game.Position;
+import org.rjo.newchess.game.Position.PieceSquareInfo;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
 
@@ -102,7 +106,7 @@ public class CheckTest {
       // make sure correct moves are generated
       TestUtil.checkMoves(new MoveGenerator(true).findMoves(p, Colour.WHITE), "Ba7-d4", "Ra6-d6", "Qa4-d7+", "Qa4-d4", "Ne2-d4", "Kd3-c4", "Kd3-c3", "Kd3-c2",
             "Kd3-e4", "Kd3-e3");
-      var NBR_ITERS = 300_000;
+      var NBR_ITERS = 100_000;
       var sw = StopWatch.createStarted();
       for (int i = 0; i < NBR_ITERS; i++) {
          List<Move> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
@@ -110,4 +114,39 @@ public class CheckTest {
       }
       System.out.println("kingInCheckMovesBlock: " + sw.getTime());
    }
+
+   @Test
+   public void doubleCheckCache() {
+      // taken from doubleCheckB, original: 8/8/2k5/5q2/5n2/8/5K2/8 b - - 0 1
+      // after black's move ne4-d2: -
+      Position p = Fen.decode("8/8/2k5/5q2/5n2/8/5K2/8 b - - 0 1").getPosition();
+      assertFalse(p.isKingInCheck());
+      Move m = Move.createMove(Square.f4, p.raw(Square.f4), Square.e2);
+      List<PieceSquareInfo> lsi = new ArrayList<>();
+      lsi.add(new PieceSquareInfo(Piece.QUEEN, Square.f5));
+      m.setCheck(lsi);
+      Position p2 = p.move(m);
+      Map<String, Integer> moveMap = Perft.findMoves(p2, Colour.WHITE, 3, 1);
+      int moves = Perft.countMoves(moveMap);
+      // should be 544, was 545: Kf2-g2=143 should be 142
+//      assertEquals(544, moves, String.format("wrong nbr of moves at depth 3\nmoveMap: %s\n", moveMap));
+      Position p3 = p2.move(Move.createMove(Square.f2, p2.raw(Square.f2), Square.g2));
+      System.out.println(p3);
+      System.out.println(p3);
+      moveMap = Perft.findMoves(p3, Colour.BLACK, 2, 1);
+      moves = Perft.countMoves(moveMap);
+      // should be 142, was 143.
+//      assertEquals(142, moves, String.format("wrong nbr of moves at depth 2\nmoveMap: %s\n", moveMap));
+      m = Move.createMove(Square.f5, p3.raw(Square.f5), Square.f2);
+      lsi = new ArrayList<>();
+      lsi.add(new PieceSquareInfo(Piece.QUEEN, Square.f2));
+      m.setCheck(lsi);
+      Position p4 = p3.move(m);
+      System.out.println(p4);
+      // fen 8/8/2k5/8/8/8/4nqK1/8 w - -
+      moveMap = Perft.findMoves(p4, Colour.WHITE, 1, 1);
+      moves = Perft.countMoves(moveMap);
+      assertEquals(3, moves, String.format("wrong nbr of moves at depth 1\nmoveMap: %s\n", moveMap));
+   }
+
 }

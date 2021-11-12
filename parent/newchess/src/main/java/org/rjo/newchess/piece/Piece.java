@@ -43,25 +43,6 @@ public enum Piece {
       this.moveOffsets = moveOffsets;
    }
 
-   public static Piece convert(int val) {
-      switch (val) {
-      case 0:
-         return PAWN;
-      case 1:
-         return ROOK;
-      case 2:
-         return KNIGHT;
-      case 3:
-         return BISHOP;
-      case 4:
-         return QUEEN;
-      case 5:
-         return KING;
-      default:
-         throw new IllegalArgumentException("illegal Piece value: '" + val + "'");
-      }
-   }
-
    public boolean isSlidingPiece() {
       return slidingPiece;
    }

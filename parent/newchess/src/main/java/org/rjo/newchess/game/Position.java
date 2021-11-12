@@ -438,8 +438,8 @@ public class Position {
     * @param  myColour my colour
     * @param  startSq  where to start
     * @param  ray      direction
-    * @return          the piece-type and square of the enemy piece, if found. If no piece or one of my pieces was found,
-    *                  returns PieceSquareInfo(null,-1)
+    * @return          the piece-type and square of the enemy piece, if found. If no piece was found, returns
+    *                  PieceSquareInfo(null,-1). If piece of my colour was found, returns PieceSquareInfo(null,square).
     * @see             #opponentsPieceOnRay(Colour, int, Ray, int)
     */
    public PieceSquareInfo opponentsPieceOnRay(Colour myColour, int startSq, Ray ray) {
@@ -448,7 +448,7 @@ public class Position {
 
    /**
     * Returns the square and type of an opponent's piece on the given ray, starting from (but not including) startSq. If an
-    * intervening piece of my colour is found first, returns (null, -1).
+    * intervening piece of my colour is found first, returns (null, square).
     * 
     * The 'squareToIgnore' will be ignored, if set.
     * 
@@ -456,23 +456,22 @@ public class Position {
     * @param  startSq        where to start
     * @param  ray            direction
     * @param  squareToIgnore square to ignore (used in enpassant calculations). Set to -1 if not required.
-    * @return                the piece-type and square of the enemy piece, if found. If no piece or one of my pieces was
-    *                        found, returns PieceSquareInfo(null,-1)
+    * @return                the piece-type and square of the enemy piece, if found. If no piece was found, returns
+    *                        PieceSquareInfo(null,-1). If piece of my colour was found, returns
+    *                        PieceSquareInfo(null,square).
     */
    public PieceSquareInfo opponentsPieceOnRay(Colour myColour, int startSq, Ray ray, int squareToIgnore) {
-      int enemySq = -1;
+      int squareOfInterest = -1;
       Piece enemyPiece = null;
       for (int potentialEnemySq : Ray.raysList[startSq][ray.ordinal()]) {
          if (potentialEnemySq == squareToIgnore) { continue; }
          Colour colourOfSq = colourOfPieceAt(potentialEnemySq);
          if (colourOfSq == Colour.UNOCCUPIED) { continue; }
-         if (myColour.opposes(colourOfSq)) {
-            enemyPiece = pieceAt(potentialEnemySq);
-            enemySq = potentialEnemySq;
-         }
+         squareOfInterest = potentialEnemySq;
+         if (myColour.opposes(colourOfSq)) { enemyPiece = pieceAt(potentialEnemySq); }
          break; // can stop in any case, having found a piece
       }
-      return new PieceSquareInfo(enemyPiece, enemySq);
+      return new PieceSquareInfo(enemyPiece, squareOfInterest);
    }
 
    public List<Move> findMoves(Colour sideToMove) {

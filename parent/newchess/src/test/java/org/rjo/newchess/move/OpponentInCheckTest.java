@@ -1,6 +1,7 @@
 package org.rjo.newchess.move;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -11,9 +12,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
+import org.rjo.newchess.board.Ray;
 import org.rjo.newchess.game.Fen;
 import org.rjo.newchess.game.Position;
 import org.rjo.newchess.game.Position.PieceSquareInfo;
+import org.rjo.newchess.move.MoveGenerator.RayCacheInfo;
+import org.rjo.newchess.move.MoveGenerator.RayCacheInfo.RayCacheState;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
 
@@ -83,7 +87,8 @@ public class OpponentInCheckTest {
    public void kingInDirectCheckAfterMove(String fen, String moveOrigin, String moveTarget) {
       Position posn = Fen.decode(fen).getPosition();
       Move move = Move.createMove(Square.valueOf(moveOrigin), posn.raw(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
-      List<PieceSquareInfo> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
+      List<PieceSquareInfo> checkSquares = new MoveGenerator().isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
+            null);
       assertEquals(1, checkSquares.size());
       assertTrue(TestUtil.squareIsCheckSquare(Square.valueOf(moveTarget), checkSquares));
    }
@@ -96,7 +101,9 @@ public class OpponentInCheckTest {
    public void kingInDiscoveredCheckAfterMove(String fen, String moveOrigin, String moveTarget, String checkSquare) {
       Position posn = Fen.decode(fen).getPosition();
       Move move = Move.createMove(Square.valueOf(moveOrigin), posn.raw(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
-      List<PieceSquareInfo> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
+
+      List<PieceSquareInfo> checkSquares = new MoveGenerator().isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
+            null);
       assertEquals(1, checkSquares.size());
       assertTrue(TestUtil.squareIsCheckSquare(Square.valueOf(checkSquare), checkSquares));
    }
@@ -108,9 +115,35 @@ public class OpponentInCheckTest {
    public void kingInDirectAndDiscoveredCheckAfterMove(String fen, String moveOrigin, String moveTarget, String discoverdCheckSquare) {
       Position posn = Fen.decode(fen).getPosition();
       Move move = Move.createMove(Square.valueOf(moveOrigin), posn.raw(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
-      List<PieceSquareInfo> checkSquares = new MoveGenerator().isKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK);
+      List<PieceSquareInfo> checkSquares = new MoveGenerator().isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
+            null);
       assertEquals(2, checkSquares.size());
       assertTrue(TestUtil.squareIsCheckSquare(Square.valueOf(moveTarget), checkSquares));
       assertTrue(TestUtil.squareIsCheckSquare(Square.valueOf(discoverdCheckSquare), checkSquares));
+   }
+
+   // inspects the cache after the move
+   @Test
+   public void kingInDirectAndDiscoveredCheckAfterMoveCache() {
+      Position posn = Fen.decode("5K2/8/1Q5B/2N5/5P2/8/RB3k2/8 w - - 0 1").getPosition();
+      Move move = Move.createMove(Square.b2, posn.raw(Square.b2), Square.d4);
+      RayCacheInfo[] cache = new RayCacheInfo[64];
+      List<PieceSquareInfo> checkSquares = new MoveGenerator(true).isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
+            cache);
+      assertEquals(2, checkSquares.size());
+      assertTrue(TestUtil.squareIsCheckSquare(Square.d4, checkSquares));
+      assertTrue(TestUtil.squareIsCheckSquare(Square.a2, checkSquares));
+      // are discovered check squares set?
+      for (Square sq : new Square[] { Square.e2, Square.d2, Square.c2 }) {
+         assertNotNull(cache[sq.ordinal()], "cache was null for Square " + sq);
+         assertEquals(Ray.EAST, cache[sq.ordinal()].rayBetween);
+         assertEquals(RayCacheState.CLEAR_PATH_TO_KING, cache[sq.ordinal()].state);
+      }
+      // are direct check squares set?
+      for (Square sq : new Square[] { Square.e3 }) {
+         assertNotNull(cache[sq.ordinal()], "cache was null for Square " + sq);
+         assertEquals(Ray.SOUTHEAST, cache[sq.ordinal()].rayBetween);
+         assertEquals(RayCacheState.CLEAR_PATH_TO_KING, cache[sq.ordinal()].state);
+      }
    }
 }
