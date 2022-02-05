@@ -33,7 +33,6 @@ public class Board {
     * Stores the offsets of the actual chess board contained in the definition of 'mailbox' above. i.e. square A8 is
     * represented by mailbox[mailbox64[0]].
     */
-   // TODO rename to 'offsets'?
    private final static int mailbox64[] = new int[] {
       //@formatter:off
 		    21, 22, 23, 24, 25, 26, 27, 28,

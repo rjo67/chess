@@ -392,19 +392,16 @@ public class Position {
     * This method is required when setting up a new position (e.g. from {@link Fen#decode(String)} where we don't have any
     * previous move info.
     * 
-    * TODO remove 'captureSquare'
-    * 
-    * @param  kingsSquare   king's square
-    * @param  colour        king's colour
-    * @param  captureSquare if the move was a capture, this is the square where a piece was captured. Otherwise -1
-    * @return               an empty list if king is not in check; otherwise, the squares with pieces which give check
+    * @param  kingsSquare king's square
+    * @param  colour      king's colour
+    * @return             an empty list if king is not in check; otherwise, the squares with pieces which give check
     */
-   public List<PieceSquareInfo> isKingInCheck(int kingsSquare, Colour colour, int captureSquare) {
+   public List<PieceSquareInfo> isKingInCheck(int kingsSquare, Colour colour) {
       Colour opponentsColour = colour.opposite();
       List<PieceSquareInfo> checkSquares = new ArrayList<>(2);
       // *our* colour used to index pawnCaptures, because we want the 'inverse', i.e. squares which attack the given square
       for (int sq : MoveGenerator.pawnCaptures[colour.ordinal()][kingsSquare]) {
-         if (sq != captureSquare && pieceAt(sq) == Piece.PAWN && colourOfPieceAt(sq) == opponentsColour) {
+         if (pieceAt(sq) == Piece.PAWN && colourOfPieceAt(sq) == opponentsColour) {
             checkSquares.add(new PieceSquareInfo(Piece.PAWN, sq));
             break;
          }
@@ -413,7 +410,7 @@ public class Position {
       // a pawn giving check ==> a knight cannot also be giving check
       if (checkSquares.isEmpty()) {
          for (int sq : MoveGenerator.knightMoves[kingsSquare]) {
-            if (sq != captureSquare && pieceAt(sq) == Piece.KNIGHT && colourOfPieceAt(sq) == opponentsColour) {
+            if (pieceAt(sq) == Piece.KNIGHT && colourOfPieceAt(sq) == opponentsColour) {
                checkSquares.add(new PieceSquareInfo(Piece.KNIGHT, sq));
                break;
             }
@@ -422,7 +419,7 @@ public class Position {
 
       for (Ray ray : Ray.values()) {
          PieceSquareInfo enemyPieceInfo = opponentsPieceOnRay(colour, kingsSquare, ray);
-         if (enemyPieceInfo.piece() != null && enemyPieceInfo.square() != captureSquare && enemyPieceInfo.piece().canSlideAlongRay(ray)) {
+         if (enemyPieceInfo.piece() != null && enemyPieceInfo.piece().canSlideAlongRay(ray)) {
             checkSquares.add(enemyPieceInfo);
             if (checkSquares.size() == 2) { break; }
          }
