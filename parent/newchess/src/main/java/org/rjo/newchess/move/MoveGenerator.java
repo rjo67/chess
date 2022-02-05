@@ -224,6 +224,15 @@ public class MoveGenerator {
    }
 
    /**
+    * If the king is already in check, this enum details the possiblities after a certain move.
+    */
+   enum BlockedCheckPossibility {
+      NOT_BLOCKED, // move has not blocked the check
+      CHECKING_PIECE_CAPTURED, // move has captured the checking piece
+      RAY_BLOCKED; // move has blocked the ray along which the check was being made
+   }
+
+   /**
     * Only called when the king is already in check. The given move must therefore either capture the checking piece or
     * block the check.
     * 
@@ -235,15 +244,16 @@ public class MoveGenerator {
     * @param  blocksCheck a cache of already processed squares, 1 if a sq blocks the check, 0 if not yet calculated
     * @return             true if the move sucessfully blocks the check (or captures the checking piece)
     */
-   private boolean moveBlocksCheck(Position posn, Move move, int kingsSquare, int[] blocksCheck) {
+   private BlockedCheckPossibility moveBlocksCheck(Position posn, Move move, int kingsSquare, int[] blocksCheck) {
       List<PieceSquareInfo> checkSquares = posn.getCheckSquares();
       if (checkSquares.isEmpty()) { throw new IllegalStateException("no check squares specified, move " + move + ", posn: " + posn); }
-      if (checkSquares.size() == 2) { return false; } // a double check cannot be blocked
+      if (checkSquares.size() == 2) { return BlockedCheckPossibility.NOT_BLOCKED; } // a double check cannot be blocked
       PieceSquareInfo checkInfo = checkSquares.get(0);
       // (1) does the move capture the piece?
-      if (moveCapturesPiece(move, checkInfo.square())) { return true; }
+      if (moveCapturesPiece(move, checkInfo.square())) { return BlockedCheckPossibility.CHECKING_PIECE_CAPTURED; }
       // (2) does the move block the check?
-      return moveToSquareBlocksCheck(checkInfo, move.getTarget(), kingsSquare, blocksCheck);
+      return moveToSquareBlocksCheck(checkInfo, move.getTarget(), kingsSquare, blocksCheck) ? BlockedCheckPossibility.RAY_BLOCKED
+            : BlockedCheckPossibility.NOT_BLOCKED;
    }
 
    /**
@@ -562,7 +572,7 @@ public class MoveGenerator {
                   Move move = potentiallyGenerateMoveOrCapture(posn, startSq, nextSq, colour);
                   // stop processing ray if a friendly piece is occupying this ray (move==null) or a capture
                   if (move != null) {
-                     if (checkInfo != null && !moveBlocksCheck(posn, move, kingsSquare, blocksCheck)) {
+                     if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) {
                         // ignore move since did not block the check
                      } else {
                         moves.add(move);
@@ -579,7 +589,7 @@ public class MoveGenerator {
    }
 
    /**
-    * Potentially generates a move object from originSq to targetSq.
+    * Generates either a move or a capture from originSq to targetSq. Null if the targetSq contains a piece of our colour.
     * 
     * NB: does not check for king adjacent to opponent king.
     * 
@@ -618,7 +628,7 @@ public class MoveGenerator {
       for (int targetSq : knightMoves[startSq]) {
          Move move = potentiallyGenerateMoveOrCapture(posn, startSq, targetSq, colour);
          if (move != null) {
-            if (kingInCheck && !moveBlocksCheck(posn, move, kingsSquare, blocksCheck)) { continue; }
+            if (kingInCheck && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) { continue; }
             moves.add(move);
          }
       }
@@ -936,7 +946,7 @@ public class MoveGenerator {
          for (int targetSq : pawnCaptures[colour.ordinal()][startSq]) {
             Move move = generatePawnCaptureMoveIfPossible(posn, startSq, targetSq, colour);
             if (move != null) {
-               if (checkInfo != null && !moveBlocksCheck(posn, move, kingsSquare, blocksCheck)) { continue; }
+               if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) { continue; }
                moves.add(move);
             }
          }
@@ -946,7 +956,7 @@ public class MoveGenerator {
          for (int sq : enpassantSquares[epSquare]) {
             if (startSq == sq) {
                Move move = Move.createEnpassantMove(startSq, posn.raw(startSq), epSquare, posn.raw(epSquare));
-               if (checkInfo != null && !moveBlocksCheck(posn, move, kingsSquare, blocksCheck)) { continue; }
+               if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) { continue; }
                moves.add(move);
             }
          }
@@ -973,11 +983,18 @@ public class MoveGenerator {
          Colour colourOfTargetSq, int[] blocksCheck) {
       List<Move> moves = new ArrayList<>();
       if (myColour.opposes(colourOfTargetSq)) {
-         for (Piece pt : new Piece[] { Piece.ROOK, Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
-            Move move = Move.createPromotionCaptureMove(origin, posn.raw(origin), target, posn.raw(target), pt);
-            // TODO optimize by only checking for a block _once_
-            if (checkInfo != null && !moveBlocksCheck(posn, move, kingsSquare, blocksCheck)) { continue; }
-            moves.add(move);
+         BlockedCheckPossibility checkBlockedAfterMove = null;
+         // If the check still exists after this first promotion move, then it will for the other moves too and therefore we
+         // don't need to evaluate them
+         Move move = Move.createPromotionCaptureMove(origin, posn.raw(origin), target, posn.raw(target), Piece.ROOK);
+         if (checkInfo != null) {
+            checkBlockedAfterMove = moveBlocksCheck(posn, move, kingsSquare, blocksCheck);
+            if (checkBlockedAfterMove == BlockedCheckPossibility.NOT_BLOCKED) { return moves; }
+         }
+         moves.add(move);
+         // now process the other promotion moves without regarding any existing check
+         for (Piece pt : new Piece[] { Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
+            moves.add(Move.createPromotionCaptureMove(origin, posn.raw(origin), target, posn.raw(target), pt));
          }
       }
       return moves;
