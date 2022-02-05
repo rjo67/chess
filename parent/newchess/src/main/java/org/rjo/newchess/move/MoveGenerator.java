@@ -528,7 +528,7 @@ public class MoveGenerator {
             int nextSq = Board.getMailboxSquare(startSq, offset);
             if (nextSq != -1) {
                if (!Square.toSquare(nextSq).adjacentTo(opponentsKing)) { // king would move adjacent to opponent's king?
-                  addIfNotNull(moves, potentiallyGenerateMoveOrCapture(posn, startSq, nextSq, colour));
+                  addIfNotNull(moves, generateEitherMoveOrCapture(posn, startSq, nextSq, colour));
                }
             }
          }
@@ -569,7 +569,7 @@ public class MoveGenerator {
                   if (nextSq == -1) {
                      break; // outside board
                   }
-                  Move move = potentiallyGenerateMoveOrCapture(posn, startSq, nextSq, colour);
+                  Move move = generateEitherMoveOrCapture(posn, startSq, nextSq, colour);
                   // stop processing ray if a friendly piece is occupying this ray (move==null) or a capture
                   if (move != null) {
                      if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) {
@@ -600,7 +600,7 @@ public class MoveGenerator {
     * @param  colour
     * @return          a move object or null if the targetSq contains a piece of our colour
     */
-   private Move potentiallyGenerateMoveOrCapture(Position posn, int startSq, int targetSq, Colour colour) {
+   private Move generateEitherMoveOrCapture(Position posn, int startSq, int targetSq, Colour colour) {
       Move move = null;
       final Colour colourOfTargetSq = posn.colourOfPieceAt(targetSq);
       if (colourOfTargetSq != Colour.UNOCCUPIED) {
@@ -626,7 +626,7 @@ public class MoveGenerator {
    private List<Move> generateKnightMoves(Position posn, int startSq, int kingsSquare, Colour colour, boolean kingInCheck, int[] blocksCheck) {
       List<Move> moves = new ArrayList<>();
       for (int targetSq : knightMoves[startSq]) {
-         Move move = potentiallyGenerateMoveOrCapture(posn, startSq, targetSq, colour);
+         Move move = generateEitherMoveOrCapture(posn, startSq, targetSq, colour);
          if (move != null) {
             if (kingInCheck && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) { continue; }
             moves.add(move);
@@ -715,6 +715,10 @@ public class MoveGenerator {
       if (m.isEnpassant()) {
          if (interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), m.getSquareOfPawnCapturedEnpassant(), ray) != -1) { return false; }
       } else {
+         if (moveOnSameRayOrOpposite(m, ray)) {
+            if (verbose) { System.out.println(String.format("move %s cannot leave king in check because moving along same ray", m)); }
+            return false;
+         }
          if (interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), -1, ray) != -1) {
             squareInfo[ray.ordinal()] = new SquareInfo(State.PATH_TO_KING_BLOCKED, m.getOrigin());
             if (verbose) { System.out.println(String.format("stored PATH_TO_KING_BLOCKED for square %s", Square.toSquare(m.getOrigin()))); }
