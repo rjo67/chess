@@ -149,10 +149,4 @@ public class CheckTest {
       assertEquals(3, moves, String.format("wrong nbr of moves at depth 1\nmoveMap: %s\n", moveMap));
    }
 
-   @Test
-   public void optimizingCheckingForCheck() {
-      Position p = Fen.decode("4k2r/8/8/7p/1p1PPB2/6P1/P2N1PBP/R3K2R b - - 0 10").getPosition();
-      assertFalse(p.isKingInCheck());
-      p.findMoves(Colour.BLACK);
-   }
 }

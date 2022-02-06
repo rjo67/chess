@@ -336,6 +336,9 @@ public class MoveGenerator {
          }
       }
 
+      // having reached this point, the king has successfully moved out of an existing check
+      // now check if it's moved into a check
+
       for (int sq : pawnCaptures[colour.ordinal()][kingsMove.getTarget()]) {
          if (sq != captureSquare && posn.pieceAt(sq) == Piece.PAWN && posn.colourOfPieceAt(sq) == opponentsColour) { return true; }
       }
@@ -347,7 +350,18 @@ public class MoveGenerator {
       // now need to process all rays from the new king's square.
       // TODO *** Careful, the position still stores the _old_ king's position.
 
+      Ray ignoreRay1 = null, ignoreRay2 = null;
+      // if the king was _not in check_ before, we don't need to check the direction of travel (or the opposite direction)
+      // e.g. if moving Kg1-f1 (west), then don't need to check west or east ray
+      // For a capture: Kg1xf1 (west), we _must_ still check the west ray; but can safely ignore the east ray
+      if (!posn.isKingInCheck()) {
+         Ray moveDirection = Ray.findRayBetween(kingsMove.getOrigin(), kingsMove.getTarget());
+         if (!kingsMove.isCapture()) { ignoreRay1 = moveDirection; }
+         ignoreRay2 = moveDirection.getOpposite();
+      }
+
       for (Ray ray : Ray.values()) {
+         if (ray == ignoreRay1 || ray == ignoreRay2) { continue; }
          PieceSquareInfo enemyPieceInfo = posn.opponentsPieceOnRay(colour, kingsMove.getTarget(), ray);
          if (enemyPieceInfo.piece() != null && enemyPieceInfo.square() != captureSquare && enemyPieceInfo.piece().canSlideAlongRay(ray)) { return true; }
       }
@@ -688,7 +702,6 @@ public class MoveGenerator {
             return false;
          } else {
             if (verbose) { System.out.println(String.format("move %s illegal b/c piece at %s is pinned", m, Square.toSquare(rayInfo.square))); }
-            squareInfo[ray.ordinal()] = new SquareInfo(State.PINNED, m.getOrigin());
             return true;
          }
       }

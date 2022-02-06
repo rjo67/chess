@@ -104,8 +104,8 @@ public class PinnedPieceTest {
       Game game = Fen.decode("5K2/4Q3/8/2b1pQ2/8/8/k4r2/8 w - - 0 0");
       var NBR_ITERS = 100000;
       // make sure correct moves are generated
-      TestUtil.checkMoves(new MoveGenerator().findMoves(game.getPosition(), Colour.WHITE), "Kf8-e8", "Kf8-g8", "Kf8-f7", "Kf8-g7", "Qe7-d6", "Qe7xc5", "Qf5-f6",
-            "Qf5-f7+", "Qf5-f4", "Qf5-f3", "Qf5xf2+");
+      TestUtil.checkMoves(new MoveGenerator(true).findMoves(game.getPosition(), Colour.WHITE), "Kf8-e8", "Kf8-g8", "Kf8-f7", "Kf8-g7", "Qe7-d6", "Qe7xc5",
+            "Qf5-f6", "Qf5-f7+", "Qf5-f4", "Qf5-f3", "Qf5xf2+");
       var sw = StopWatch.createStarted();
       for (int i = 0; i < NBR_ITERS; i++) {
          List<Move> moves = new MoveGenerator().findMoves(game.getPosition(), Colour.WHITE);
