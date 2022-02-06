@@ -676,6 +676,7 @@ public class MoveGenerator {
       SquareInfo rayInfo;
       if (squareInfo[ray.ordinal()] == null) {
          rayInfo = new SquareInfo(SquareInfo.State.UNKNOWN, -1);
+         squareInfo[ray.ordinal()] = rayInfo;
       } else {
          rayInfo = squareInfo[ray.ordinal()];
       }
@@ -710,23 +711,24 @@ public class MoveGenerator {
          System.out.println(String.format("processing move %s: sq %s is on ray %s from King (%s)", m, Square.toSquare(m.getOrigin()), ray.getAbbreviation(),
                Square.toSquare(kingsSquare)));
       }
-      // If there's a piece between the moving piece and the king, then the king cannot be
-      // left in check, so don't process this move anymore
+
       if (m.isEnpassant()) {
          if (interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), m.getSquareOfPawnCapturedEnpassant(), ray) != -1) { return false; }
       } else {
+         // has the ray already been analysed? Again, the cache must be ignored for enpassant
+         if (rayInfo.state == State.ENEMY_PIECE_NOT_FOUND || rayInfo.state == State.ENEMY_PIECE_FOUND_CANNOT_CHECK) {
+            if (verbose) { System.out.println(String.format("not further checking move %s for enemy pieces since state is %s", m, rayInfo.state)); }
+            return false;
+         }
          if (moveOnSameRayOrOpposite(m, ray)) {
             if (verbose) { System.out.println(String.format("move %s cannot leave king in check because moving along same ray", m)); }
             return false;
          }
+         // If there's a piece between the moving piece and the king, then the king cannot be
+         // left in check, so don't process this move anymore
          if (interveningSquaresAreEmpty(posn, kingsSquare, m.getOrigin(), -1, ray) != -1) {
             squareInfo[ray.ordinal()] = new SquareInfo(State.PATH_TO_KING_BLOCKED, m.getOrigin());
             if (verbose) { System.out.println(String.format("stored PATH_TO_KING_BLOCKED for square %s", Square.toSquare(m.getOrigin()))); }
-            return false;
-         }
-         // has the ray already been analysed? Again, the cache must be ignored for enpassant
-         if (rayInfo.state == State.ENEMY_PIECE_NOT_FOUND || rayInfo.state == State.ENEMY_PIECE_FOUND_CANNOT_CHECK) {
-            if (verbose) { System.out.println(String.format("not further checking move %s for enemy pieces since state is %s", m, rayInfo.state)); }
             return false;
          }
       }

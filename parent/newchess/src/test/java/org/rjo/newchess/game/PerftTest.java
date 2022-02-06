@@ -72,6 +72,7 @@ public class PerftTest {
    @MethodSource("data")
    public void test(String testname, String fenString, Colour sideToMove, int[] expectedNbrOfMoves) {
       final int depthLimit = 5;
+//      if (testname.equals("numpty5")) {
       for (int depth = 0; depth < Math.min(depthLimit, expectedNbrOfMoves.length); depth++) {
          if (expectedNbrOfMoves[depth] != -1) {
             Game game = Fen.decode(fenString);
@@ -87,6 +88,7 @@ public class PerftTest {
                   String.format("error in test '%s': wrong nbr of moves at depth %s\nfen: %s\nmoveMap: %s\n", testname, +depth + 1, fenString, moveMap));
          }
       }
+//      }
    }
 
    /**
