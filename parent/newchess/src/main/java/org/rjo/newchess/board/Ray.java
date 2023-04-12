@@ -49,17 +49,26 @@ public enum Ray {
     * creating 'raysList'.)
     */
    public static final Set<Integer>[][] raysSet;
+
    /**
-    * Duplicates the info in 'raysSet', i.e. stores for each square on the board a list of squares emenating from this
-    * square in all directions.
+    * Duplicates the info in 'raysSet', i.e. stores for each square on the board a list of squares emenating from this square in all
+    * directions.
     * 
-    * e.g. Ray.raysList[startSq][ray.ordinal()] is a List where the first element is the square closest to startSq in the
-    * given direction.
+    * e.g. Ray.raysList[startSq][ray.ordinal()] is a List where the first element is the square closest to startSq in the given direction.
     */
    public static final int[][][] raysList;
+
+   /**
+    * For each square s, stores information about all other squares which are on rays from s.
+    * 
+    * e.g. Ray.raysBetweenSquares[s][t] returns the ray between s and t, or null if there is no ray.
+    */
+   public static final Ray[][] rayBetweenSquares;
+
    static {
       raysSet = new Set[64][8];
       raysList = new int[64][8][];
+      rayBetweenSquares = new Ray[64][64];
       int[] offset = new int[] { -10, -9, 1, 11, 10, 9, -1, -11 };
       for (int sq = 0; sq < 64; sq++) {
          for (Ray ray : Ray.values()) {
@@ -68,6 +77,7 @@ public enum Ray {
             for (int raySq = Board.mailbox64(sq) + offset[ray.ordinal()]; //
                   raySq >= 0 && raySq < 120 && Board.mailbox(raySq) != -1; raySq += offset[ray.ordinal()]) {
                raysSet[sq][ray.ordinal()].add(Board.mailbox(raySq));
+               rayBetweenSquares[sq][Board.mailbox(raySq)] = ray;
             }
             raysSet[sq][ray.ordinal()] = Collections.unmodifiableSet(raysSet[sq][ray.ordinal()]);
             raysList[sq][ray.ordinal()] = new int[raysSet[sq][ray.ordinal()].size()];
@@ -129,14 +139,14 @@ public enum Ray {
    }
 
    /**
-    * Are two given squares on the same ray?
-    * 
-    * @param  originSq
-    * @param  targetSq
-    * @return          true if origin and target are on this ray
-    */
+	 * Are two given squares on the same ray?
+	 * 
+	 * @param originSq
+	 * @param targetSq
+	 * @return true if origin and target are on this ray
+	 */
    public boolean onSameRay(int originSq, int targetSq) {
-      return raysSet[originSq][this.ordinal()].contains(targetSq);
+      return rayBetweenSquares[originSq][targetSq] == this;
    }
 
    /**
@@ -163,10 +173,7 @@ public enum Ray {
     * @return          the ray between the two squares, or null if not on the same ray
     */
    public static Ray findRayBetween(int originSq, int targetSq) {
-      for (Ray ray : Ray.values()) {
-         if (ray.onSameRay(originSq, targetSq)) { return ray; }
-      }
-      return null;
+      return rayBetweenSquares[originSq][targetSq];
    }
 
 }
