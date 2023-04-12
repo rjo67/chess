@@ -32,7 +32,7 @@ public class Perft {
    /** flag to make sure logging is switched off when starting from main */
    private static boolean LOG_MOVES = true;
 
-   public static final int DEFAULT_NBR_THREADS = 3;
+   public static final int DEFAULT_NBR_THREADS = 6;
 
    // see PerftTest::posn6ply5
    // 5ply: 164.075.551 moves
@@ -67,7 +67,7 @@ public class Perft {
             e.printStackTrace();
          }
       }
-      System.out.println(String.format("Perft::posn6ply%d starting (%d threads)...", REQD_DEPTH, nbrThreads));
+		System.out.println(String.format("%s::posn6ply%d starting (%d threads)...", Perft.class.getCanonicalName(), REQD_DEPTH, nbrThreads));
       StopWatch sw = new StopWatch();
       sw.start();
       int moves = Perft.findAndCountMoves(game.getPosition(), Colour.WHITE, REQD_DEPTH, nbrThreads);

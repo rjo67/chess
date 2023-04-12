@@ -8,6 +8,7 @@ import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.board.Ray;
 import org.rjo.newchess.move.Move;
 import org.rjo.newchess.move.MoveGenerator;
+import org.rjo.newchess.move.MoveGeneratorI;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
 
@@ -26,7 +27,7 @@ import org.rjo.newchess.piece.Piece;
 public class Position {
 
    private final static SquareInfo UNOCCUPIED_SQUARE = new SquareInfo(null, Colour.UNOCCUPIED);
-   private final static MoveGenerator moveGenerator = new MoveGenerator();
+   private final static MoveGeneratorI moveGenerator = new MoveGenerator();
 
    /** enables sanity checks during move processing */
    private static final boolean TEST_IF_VALID = true;

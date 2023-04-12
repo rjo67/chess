@@ -35,7 +35,7 @@ public class Perft {
 	/** flag to make sure logging is switched off when starting from main */
 	private static boolean LOG_MOVES = true;
 
-	public static final int DEFAULT_NBR_THREADS = 3;
+	public static final int DEFAULT_NBR_THREADS = 6;
 
 	// see PerftTest::posn6ply5
 	// 5ply: 164.075.551 moves
