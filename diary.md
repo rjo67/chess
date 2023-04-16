@@ -3,6 +3,8 @@
 ## Overview of commits and performance
 date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 ---- | ----------- | ------ | -----
+16.04.23 | Ray and pawn move optimizations (precaching various values which were previously being calculated) | | average of 10 iterations: 6021,40 ms (27248,7 moves/ms)
+12.04.23 | Now on faster PC, perft will now run with 6 threads per default. |  | For comparison: Perft from old design: 13.718 ms, 11960,6 moves/ms, 83,6 nanos/move. From "newchess" design: 7.299 ms, 22804,2 moves/ms, 43,9 nanos/move.
 14.09.17 | SlidingPiece::searchNew uses bitmaps for all ray directions. | ?? | 2503,0 moves/ms; 399,5 nanos/move
 06.09.17 | SlidingPiece::searchNew uses bitmaps for sliding-pieces. Added ChessBitSet (bitset optimized for 64 bits | ?? | 2302,3 moves/ms, 434,4 nanos/move
 26.08.17 | check-cache deactivated. Many other changes, especially limiting move-generation if in-check. | 9c688f9 | 2019,9 moves/ms
@@ -15,6 +17,10 @@ date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 06.04.15 | using rays, caching discovered check | | 1522,4 moves/ms
 03.04.15 | | | 1148,7 moves/ms
 
+
+## 12.04.23
+
+Update (since Nov 2021): the 'newchess' project contains a new start using a mailbox representation of the board. No bitboards in sight.
 
 ## 26.08.17
 

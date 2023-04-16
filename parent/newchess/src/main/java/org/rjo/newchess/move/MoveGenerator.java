@@ -66,7 +66,7 @@ public class MoveGenerator implements MoveGeneratorI {
 	// take a pawn on dim0 with e.p.
 	private final static int[][] enpassantSquares = new int[64][];
 	public final static Set<Integer>[] knightMoves; // stores set of possible knight moves for each square
-	public final static Set<Integer>[][] pawnCaptures; // stores set of possible pawn captures for each square (for w/b)
+	public final static int[][][] pawnCaptures = new int[2][64][]; // dim0: w/b; dim1: squares; dim2: possible pawn captures (max 2)
 	static {
 		enpassantSquares[Square.a6.index()] = new int[] { Square.b5.index() };
 		enpassantSquares[Square.b6.index()] = new int[] { Square.a5.index(), Square.c5.index() };
@@ -95,15 +95,20 @@ public class MoveGenerator implements MoveGeneratorI {
 			}
 		}
 
-		pawnCaptures = new Set[2][64];
 		int[][] captureOffset = new int[][] { { -9, -11 }, { 9, 11 } };
 		for (Colour col : new Colour[] { Colour.WHITE, Colour.BLACK }) {
-			// process first and last rank as well, need this squares defined for kingIsInCheckAfterMove()
+			// process first and last rank as well, need these squares defined for kingIsInCheckAfterMove()
 			for (int sq = 0; sq < 64; sq++) {
-				pawnCaptures[col.ordinal()][sq] = new HashSet<>();
+				var tmpPawnCaptures = new ArrayList<Integer>();
 				for (int offset : captureOffset[col.ordinal()]) {
 					int targetSq = Board.getMailboxSquare(sq, offset);
-					if (targetSq != -1) { pawnCaptures[col.ordinal()][sq].add(targetSq); }
+					if (targetSq != -1) { tmpPawnCaptures.add(targetSq); }
+				}
+				pawnCaptures[col.ordinal()][sq] = new int[tmpPawnCaptures.size()];
+				var slot = 0;
+				for (int i : tmpPawnCaptures) {
+					pawnCaptures[col.ordinal()][sq][slot] = i;
+					slot++;
 				}
 			}
 		}
@@ -340,8 +345,7 @@ public class MoveGenerator implements MoveGeneratorI {
 			}
 		}
 
-		// having reached this point, the king has successfully moved out of an existing
-		// check
+		// having reached this point, the king has successfully moved out of an existing check
 		// now check if it's moved into a check
 
 		for (int sq : pawnCaptures[colour.ordinal()][kingsMove.getTarget()]) {
@@ -441,7 +445,7 @@ public class MoveGenerator implements MoveGeneratorI {
 	/**
 	 * Returns true if the given move would attack the given square. Can be used e.g. to see if a move will check the opponent's king.
 	 * 
-	 * NB if a king move, always returns false.
+	 * NB if a king move, always returns null.
 	 * 
 	 * @param posn                     current position
 	 * @param move                     the move to test
@@ -451,7 +455,8 @@ public class MoveGenerator implements MoveGeneratorI {
 	 */
 	private PieceSquareInfo moveAttacksSquare(Position posn, Move move, int targetSq, RayCacheInfo[] squaresWhichAttackTarget) {
 		Piece movingPiece = move.getMovingPiece();
-		if (movingPiece == Piece.KING) {
+		switch (movingPiece) {
+		case KING:
 			int slot = move.isKingssideCastling() ? 0 : move.isQueenssideCastling() ? 1 : -1;
 			if (slot != -1) {
 				return pieceAttacksSquare(posn, Piece.ROOK, rooksSquareAfterCastling[move.getColourOfMovingPiece().ordinal()][slot], targetSq, -1, -1,
@@ -459,22 +464,24 @@ public class MoveGenerator implements MoveGeneratorI {
 			} else {
 				return null;
 			}
-		} else if (movingPiece == Piece.PAWN) {
+		case PAWN:
 			if (move.isPromotion()) {
 				// TODO for now, don't use cache
 				return pieceAttacksSquare(posn, move.getPromotedPiece(), move.getTarget(), targetSq, move.getOrigin(), -1, null);
 			} else {
-				return pawnCaptures[move.getColourOfMovingPiece().ordinal()][move.getTarget()].contains(targetSq)
-						? new PieceSquareInfo(Piece.PAWN, move.getTarget())
-						: null;
+				for (int sq : pawnCaptures[move.getColourOfMovingPiece().ordinal()][move.getTarget()]) {
+					if (sq == targetSq) { return new PieceSquareInfo(Piece.PAWN, move.getTarget()); }
+				}
+				return null;
 			}
+		default:
+			return pieceAttacksSquare(posn, move.getMovingPiece(), move.getTarget(), targetSq, move.getOrigin(), move.isCapture() ? move.getTarget() : -1,
+					squaresWhichAttackTarget);
 		}
-		return pieceAttacksSquare(posn, move.getMovingPiece(), move.getTarget(), targetSq, move.getOrigin(), move.isCapture() ? move.getTarget() : -1,
-				squaresWhichAttackTarget);
 	}
 
 	/**
-	 * whether a (possibly hypothetical) piece 'piece' at 'origin' attacks 'target'. Should not be called for kings or pawns.
+	 * Whether a (possibly hypothetical) piece 'piece' at 'origin' attacks 'target'. Should not be called for kings or pawns.
 	 * 
 	 * @param posn
 	 * @param piece
@@ -576,13 +583,16 @@ public class MoveGenerator implements MoveGeneratorI {
 	private void processSquare(Position posn, int startSq, Colour colour, List<Move> moves, PieceSquareInfo checkInfo, int kingsSquare, int[] blocksCheck) {
 		if (posn.colourOfPieceAt(startSq) == colour) {
 			Piece pt = posn.pieceAt(startSq);
-			if (pt == Piece.PAWN) {
+			switch (pt) {
+			case PAWN:
 				moves.addAll(generatePawnMoves(posn, startSq, colour, checkInfo, kingsSquare, blocksCheck));
-			} else if (pt == Piece.KNIGHT) {
+				break;
+			case KNIGHT:
 				moves.addAll(generateKnightMoves(posn, startSq, kingsSquare, colour, checkInfo != null, blocksCheck));
-			} else if (pt == Piece.KING) {
+				break;
+			case KING:
 				throw new IllegalStateException(String.format("called processSquare with King, posn: %s", posn));
-			} else {
+			default:
 				// process sliding pieces ...
 				for (int offset : pt.getMoveOffsets()) { // process each square along the ray
 					int nextSq = startSq;
@@ -939,19 +949,23 @@ public class MoveGenerator implements MoveGeneratorI {
 		// - pawn capture (including promotion capture or enpassant): captures checking
 		// piece or blocks ray
 
-		int forwardOffset = colour == Colour.WHITE ? -10 : 10;
+		// get the next square forward: returns -1 if then will be on the promotion rank
+		int nextSq = colour == Colour.WHITE ? Board.getMailboxSquareForWhitePawnsOneSquareForward(startSq)
+				: Board.getMailboxSquareForBlackPawnsOneSquareForward(startSq);
 		// promotion
-		if (onPawnPromotionRank(startSq, colour)) {
-			int nextSq = Board.getMailboxSquare(startSq, forwardOffset);
+		if (nextSq == -1) {
+			// Need to get the nextSq again (the previous call just returned -1 for "promotion" rank)
+			// However, promotion does not occur very often, therefore better to optimize the normal case
+			int forwardOffset = colour == Colour.WHITE ? -10 : 10;
+			nextSq = Board.getMailboxSquare(startSq, forwardOffset);
 			moves.addAll(generatePossibleNormalPromotionMoves(posn, startSq, nextSq, kingsSquare, checkInfo, colour, posn.colourOfPieceAt(nextSq), blocksCheck));
 			for (int targetSq : pawnCaptures[colour.ordinal()][startSq]) {
 				moves.addAll(
 						generatePossibleCapturePromotionMoves(posn, startSq, targetSq, kingsSquare, checkInfo, colour, posn.colourOfPieceAt(targetSq), blocksCheck));
 			}
 		} else {
-			// 1 square forward, optionally followed by 2 squares forward
-			int nextSq = Board.getMailboxSquare(startSq, forwardOffset);
-			// NB this square cannot be outside of the board, we've already checked for the 'promotion' rank
+			// process 1 square forward, and then optionally followed by 2 squares forward
+			// NB 'nextSq' square cannot be outside of the board, we've already checked for the 'promotion' rank
 			if (posn.colourOfPieceAt(nextSq) == Colour.UNOCCUPIED) {
 				if (checkInfo != null && !moveToSquareBlocksCheck(checkInfo, nextSq, kingsSquare, blocksCheck)) {
 					// ignore, since move does not block the check
@@ -959,7 +973,8 @@ public class MoveGenerator implements MoveGeneratorI {
 					moves.add(generateMove(posn, startSq, nextSq));
 				}
 				if (onPawnStartRank(startSq, colour)) {
-					nextSq = Board.getMailboxSquare(nextSq, forwardOffset); // cannot be outside of the board
+					nextSq = colour == Colour.WHITE ? Board.getMailboxSquareForWhitePawnsOneSquareForward(nextSq)
+							: Board.getMailboxSquareForBlackPawnsOneSquareForward(nextSq);
 					if (posn.colourOfPieceAt(nextSq) == Colour.UNOCCUPIED) {
 						if (checkInfo != null && !moveToSquareBlocksCheck(checkInfo, nextSq, kingsSquare, blocksCheck)) {
 							// ignore, since move does not block the check
