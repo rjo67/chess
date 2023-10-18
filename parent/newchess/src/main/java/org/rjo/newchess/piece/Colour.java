@@ -1,7 +1,7 @@
 package org.rjo.newchess.piece;
 
 public enum Colour {
-   WHITE, BLACK, UNOCCUPIED;
+   WHITE, BLACK;
 
    static {
       WHITE.opposite = BLACK;

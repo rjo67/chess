@@ -11,22 +11,23 @@ import org.rjo.newchess.move.MoveGenerator;
 import org.rjo.newchess.move.MoveGeneratorI;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
+import org.rjo.newchess.piece.Pieces;
 
 /**
  * Stores information about a position.
  * 
- * <h2>Checks</h2> Using {@link #isKingInCheck(int, Colour, boolean, int, int)} the squares of enemy pieces attacking
- * the king will be found and stored in the position.
+ * <h2>Checks</h2> Using {@link #isKingInCheck(int, Colour, boolean, int, int)} the squares of enemy pieces attacking the king will be found
+ * and stored in the position.
  * 
- * If a position is 'cloned' using {@link Position#Position(Position)} objects will only be shallow copied, and must
- * therefore be copied on write.
+ * If a position is 'cloned' using {@link Position#Position(Position)} objects will only be shallow copied, and must therefore be copied on
+ * write.
  * 
  * @author rich
- * @since  2021
+ * @since 2021
  */
 public class Position {
 
-   private final static SquareInfo UNOCCUPIED_SQUARE = new SquareInfo(null, Colour.UNOCCUPIED);
+   private final static SquareInfo UNOCCUPIED_SQUARE = new SquareInfo((byte) 0);
    private final static MoveGeneratorI moveGenerator = new MoveGenerator();
 
    /** enables sanity checks during move processing */
@@ -38,17 +39,27 @@ public class Position {
     * The 'rayToKing' gets set during move processing, if the piece is checking the king.
     */
    public static class PieceSquareInfo {
-      private Piece piece;
+      private byte piece;
       private int square;
       private Ray rayToKing;
 
-      public PieceSquareInfo(Piece piece, int square) {
+      public PieceSquareInfo(byte piece, int square) {
          this.piece = piece;
          this.square = square;
       }
 
-      public PieceSquareInfo(Piece piece, Square square) {
+      public PieceSquareInfo(byte piece, Square square) {
          this(piece, square.index());
+      }
+
+      // mainly for tests
+      public PieceSquareInfo(Piece piece, int square) {
+         this(Pieces.fromPiece(piece, null), square);
+      }
+
+      // mainly for tests
+      public PieceSquareInfo(Piece piece, Square square) {
+         this(Pieces.fromPiece(piece, null), square);
       }
 
       /**
@@ -69,7 +80,7 @@ public class Position {
          return square;
       }
 
-      public Piece piece() {
+      public byte piece() {
          return piece;
       }
 
@@ -80,9 +91,9 @@ public class Position {
    }
 
    /**
-    * Stores information about a particular square.
+    * Stores information about a piece (type, colour) on a particular square.
     */
-   public static record SquareInfo(Piece piece, Colour colour) {
+   public static record SquareInfo(byte piece) {
    }
 
    SquareInfo[] board;// package protected for tests
@@ -109,8 +120,8 @@ public class Position {
    // mainly for tests
    public Position(boolean[][] castlingRights, Square whiteKingsSquare, Square blackKingsSquare) {
       this(castlingRights);
-      addPiece(Colour.WHITE, Piece.KING, whiteKingsSquare);
-      addPiece(Colour.BLACK, Piece.KING, blackKingsSquare);
+      addPiece(Pieces.generateKing(Colour.WHITE), whiteKingsSquare);
+      addPiece(Pieces.generateKing(Colour.BLACK), blackKingsSquare);
    }
 
    public Position() {
@@ -147,23 +158,34 @@ public class Position {
       this.currentMove = move;
    }
 
-   public void addPiece(Colour colour, Piece piece, int square) {
+   public void addPiece(byte piece, int square) {
+      Colour colour = Pieces.isWhitePiece(piece) ? Colour.WHITE : Colour.BLACK;
       if (!isEmpty(square)) { throw new IllegalStateException("there is already a " + pieceAt(square) + " at square " + Square.toSquare(square)); }
-      if (piece == Piece.KING) {
+      if (Pieces.isKing(piece)) {
          if (kingsSquare[colour.ordinal()] != -1) {
             throw new IllegalStateException("a " + colour + " king has already been added at square " + Square.toSquare(kingsSquare[colour.ordinal()]));
          }
          kingsSquare[colour.ordinal()] = square;
       }
-      board[square] = new SquareInfo(piece, colour);
+      board[square] = new SquareInfo(piece);
    }
 
-   public void addPiece(Colour colour, Piece piece, Square square) {
-      this.addPiece(colour, piece, square.index());
+   // convert from Piece to byte
+   public void addPiece(Colour col, Piece pt, int sq) {
+      this.addPiece(Pieces.generatePiece(pt, col), sq);
+   }
+
+   public void addPiece(byte piece, Square square) {
+      this.addPiece(piece, square.index());
+   }
+
+   // convert from Piece to byte
+   public void addPiece(Colour col, Piece pt, Square square) {
+      this.addPiece(Pieces.generatePiece(pt, col), square.index());
    }
 
    public boolean isEmpty(int square) {
-      return colourOfPieceAt(square) == Colour.UNOCCUPIED;
+      return board[square].piece == 0;
    }
 
    public boolean isEmpty(Square sq) {
@@ -171,19 +193,23 @@ public class Position {
    }
 
    public Colour colourOfPieceAt(int square) {
-      return board[square].colour();
+      return Pieces.colourOf(board[square].piece);
    }
 
-   public Object colourOfPieceAt(Square square) {
+   public Colour colourOfPieceAt(Square square) {
       return colourOfPieceAt(square.index());
    }
 
-   public Piece pieceAt(int square) {
-      return board[square].piece();
+   public byte pieceAt(int square) {
+      return board[square].piece;
    }
 
-   public Piece pieceAt(Square square) {
+   public byte pieceAt(Square square) {
       return pieceAt(square.index());
+   }
+
+   public boolean matchPieceTypeAndColour(int sq, byte piece, Colour colour) { // TODO piece specifies colour as well
+      return pieceAt(sq) == piece && colourOfPieceAt(sq) == colour;
    }
 
    public boolean canCastleKingsside(Colour col) {
@@ -194,13 +220,9 @@ public class Position {
       return castlingRights[col.ordinal()][1];
    }
 
-   public void setEnpassantSquare(Square sq) {
-      this.enpassantSquare = sq;
-   }
+   public void setEnpassantSquare(Square sq) { this.enpassantSquare = sq; }
 
-   public Square getEnpassantSquare() {
-      return enpassantSquare;
-   }
+   public Square getEnpassantSquare() { return enpassantSquare; }
 
    public int getKingsSquare(Colour col) {
       return kingsSquare[col.ordinal()];
@@ -216,17 +238,11 @@ public class Position {
       return this.raw(square.index());
    }
 
-   public Colour getSideToMove() {
-      return sideToMove;
-   }
+   public Colour getSideToMove() { return sideToMove; }
 
-   public void setSideToMove(Colour sideToMove) {
-      this.sideToMove = sideToMove;
-   }
+   public void setSideToMove(Colour sideToMove) { this.sideToMove = sideToMove; }
 
-   public void setCastlingRights(boolean[][] castlingRights) {
-      this.castlingRights = castlingRights;
-   }
+   public void setCastlingRights(boolean[][] castlingRights) { this.castlingRights = castlingRights; }
 
    // displays the board (always from white POV, a1 in bottom LHS)
    @Override
@@ -240,9 +256,8 @@ public class Position {
             if (this.isEmpty(sq)) {
                board[rank][file] = ".";
             } else {
-               Piece pt = this.pieceAt(sq);
-               Colour col = this.colourOfPieceAt(sq);
-               board[rank][file] = pt.fenSymbol(col);
+               byte pt = this.pieceAt(sq);
+               board[rank][file] = Pieces.fenSymbol(pt);
             }
          }
       }
@@ -307,7 +322,7 @@ public class Position {
       }
       // remove piece at move.origin, place piece at move.target (implicitly removing piece at move.target)
       board[move.getOrigin()] = UNOCCUPIED_SQUARE;
-      board[move.getTarget()] = new SquareInfo((move.isPromotion() ? move.getPromotedPiece() : move.getMovingPiece()), move.getColourOfMovingPiece());
+      board[move.getTarget()] = new SquareInfo((move.isPromotion() ? move.getPromotedPiece() : move.getMovingPiece()));
       if (move.isEnpassant()) { board[move.getSquareOfPawnCapturedEnpassant()] = UNOCCUPIED_SQUARE; }
 
       // move rook too if castling
@@ -316,7 +331,7 @@ public class Position {
          int rookOriginSq = MoveGenerator.rooksCastlingSquareIndex[sideToMove.ordinal()][sideOfBoard];
          int rookTargetSq = MoveGenerator.rooksSquareAfterCastling[sideToMove.ordinal()][sideOfBoard];
          if (TEST_IF_VALID) {
-            if (Piece.ROOK != pieceAt(rookOriginSq)) {
+            if (!Pieces.isRook(pieceAt(rookOriginSq))) {
                throw new IllegalStateException(String.format("invalid castling move %s, no rook at %s", move, Square.toSquare(rookOriginSq)));
             }
             if (!isEmpty(rookTargetSq)) {
@@ -328,11 +343,11 @@ public class Position {
             }
          }
          board[rookOriginSq] = UNOCCUPIED_SQUARE;
-         board[rookTargetSq] = new SquareInfo(Piece.ROOK, move.getColourOfMovingPiece());
+         board[rookTargetSq] = new SquareInfo(Pieces.generateRook(move.getColourOfMovingPiece()));
       }
 
       // update enpassantSquare if pawn moved
-      if (Piece.PAWN == move.getMovingPiece() && move.isPawnTwoSquaresForward()) {
+      if (Pieces.isPawn(move.getMovingPiece()) && move.isPawnTwoSquaresForward()) {
          this.enpassantSquare = Square.findEnpassantSquareFromMove(Square.toSquare(move.getTarget()));
       } else {
          this.enpassantSquare = null;
@@ -347,7 +362,7 @@ public class Position {
       boolean opponentsQueensCastling = this.castlingRights[opponentsSideOrdinal][1];
 
       // update kingsSquare && castling rights if king moved
-      if (Piece.KING == move.getMovingPiece()) {
+      if (Pieces.isKing(move.getMovingPiece())) {
          this.kingsSquare = this.kingsSquare.clone();
          this.kingsSquare[sideToMoveOrdinal] = move.getTarget();
          castlingRightsChanged = true;
@@ -356,7 +371,7 @@ public class Position {
       }
 
       // check if a rook moved from its starting square, therefore invalidating castling rights
-      if (Piece.ROOK == move.getMovingPiece()) {
+      if (Pieces.isRook(move.getMovingPiece())) {
          if (move.getOrigin() == MoveGenerator.rooksCastlingSquareIndex[sideToMoveOrdinal][0] && canCastleKingsside(sideToMove)) {
             castlingRightsChanged = true;
             kingsCastling = false;
@@ -387,23 +402,21 @@ public class Position {
    }
 
    /**
-    * Determines whether in <b>this position</b> the king of side 'colour' is currently in check. Does not take move info
-    * into account.
+    * Determines whether in <b>this position</b> the king of side 'colour' is currently in check. Does not take move info into account.
     * 
-    * This method is required when setting up a new position (e.g. from {@link Fen#decode(String)} where we don't have any
-    * previous move info.
+    * This method is required when setting up a new position (e.g. from {@link Fen#decode(String)} where we don't have any previous move info.
     * 
-    * @param  kingsSquare king's square
-    * @param  colour      king's colour
-    * @return             an empty list if king is not in check; otherwise, the squares with pieces which give check
+    * @param kingsSquare king's square
+    * @param colour      king's colour
+    * @return an empty list if king is not in check; otherwise, the squares with pieces which give check
     */
    public List<PieceSquareInfo> isKingInCheck(int kingsSquare, Colour colour) {
       Colour opponentsColour = colour.opposite();
       List<PieceSquareInfo> checkSquares = new ArrayList<>(2);
       // *our* colour used to index pawnCaptures, because we want the 'inverse', i.e. squares which attack the given square
       for (int sq : MoveGenerator.pawnCaptures[colour.ordinal()][kingsSquare]) {
-         if (pieceAt(sq) == Piece.PAWN && colourOfPieceAt(sq) == opponentsColour) {
-            checkSquares.add(new PieceSquareInfo(Piece.PAWN, sq));
+         if (Pieces.isPawn(pieceAt(sq)) && colourOfPieceAt(sq) == opponentsColour) {
+            checkSquares.add(new PieceSquareInfo(Pieces.generatePawn(opponentsColour), sq));
             break;
          }
       }
@@ -411,8 +424,8 @@ public class Position {
       // a pawn giving check ==> a knight cannot also be giving check
       if (checkSquares.isEmpty()) {
          for (int sq : MoveGenerator.knightMoves[kingsSquare]) {
-            if (pieceAt(sq) == Piece.KNIGHT && colourOfPieceAt(sq) == opponentsColour) {
-               checkSquares.add(new PieceSquareInfo(Piece.KNIGHT, sq));
+            if (Pieces.isKnight(pieceAt(sq)) && colourOfPieceAt(sq) == opponentsColour) {
+               checkSquares.add(new PieceSquareInfo(Pieces.generateKnight(opponentsColour), sq));
                break;
             }
          }
@@ -420,7 +433,7 @@ public class Position {
 
       for (Ray ray : Ray.values()) {
          PieceSquareInfo enemyPieceInfo = opponentsPieceOnRay(colour, kingsSquare, ray);
-         if (enemyPieceInfo.piece() != null && enemyPieceInfo.piece().canSlideAlongRay(ray)) {
+         if (enemyPieceInfo.piece() != 0 && Pieces.canSlideAlongRay(enemyPieceInfo.piece, ray)) {
             checkSquares.add(enemyPieceInfo);
             if (checkSquares.size() == 2) { break; }
          }
@@ -430,41 +443,39 @@ public class Position {
    }
 
    /**
-    * Returns the square and type of an opponent's piece on the given ray, starting from (but not including) startSq. If an
-    * intervening piece of my colour is found first, returns (null, -1).
+    * Returns the square and type of an opponent's piece on the given ray, starting from (but not including) startSq. If an intervening piece
+    * of my colour is found first, returns (null, -1).
     * 
-    * @param  myColour my colour
-    * @param  startSq  where to start
-    * @param  ray      direction
-    * @return          the piece-type and square of the enemy piece, if found. If no piece was found, returns
-    *                  PieceSquareInfo(null,-1). If piece of my colour was found, returns PieceSquareInfo(null,square).
-    * @see             #opponentsPieceOnRay(Colour, int, Ray, int)
+    * @param myColour my colour
+    * @param startSq  where to start
+    * @param ray      direction
+    * @return the piece-type and square of the enemy piece, if found. If no piece was found, returns PieceSquareInfo(null,-1). If piece of my
+    *         colour was found, returns PieceSquareInfo(null,square).
+    * @see #opponentsPieceOnRay(Colour, int, Ray, int)
     */
    public PieceSquareInfo opponentsPieceOnRay(Colour myColour, int startSq, Ray ray) {
       return opponentsPieceOnRay(myColour, startSq, ray, -1);
    }
 
    /**
-    * Returns the square and type of an opponent's piece on the given ray, starting from (but not including) startSq. If an
-    * intervening piece of my colour is found first, returns (null, square).
+    * Returns the square and type of an opponent's piece on the given ray, starting from (but not including) startSq. If an intervening piece
+    * of my colour is found first, returns (null, square).
     * 
     * The 'squareToIgnore' will be ignored, if set.
     * 
-    * @param  myColour       my colour
-    * @param  startSq        where to start
-    * @param  ray            direction
-    * @param  squareToIgnore square to ignore (used in enpassant calculations). Set to -1 if not required.
-    * @return                the piece-type and square of the enemy piece, if found. If no piece was found, returns
-    *                        PieceSquareInfo(null,-1). If piece of my colour was found, returns
-    *                        PieceSquareInfo(null,square).
+    * @param myColour       my colour
+    * @param startSq        where to start
+    * @param ray            direction
+    * @param squareToIgnore square to ignore (used in enpassant calculations). Set to -1 if not required.
+    * @return the piece-type and square of the enemy piece, if found. If no piece was found, returns PieceSquareInfo(null,-1). If piece of my
+    *         colour was found, returns PieceSquareInfo(null,square).
     */
    public PieceSquareInfo opponentsPieceOnRay(Colour myColour, int startSq, Ray ray, int squareToIgnore) {
       int squareOfInterest = -1;
-      Piece enemyPiece = null;
+      byte enemyPiece = (byte) 0;
       for (int potentialEnemySq : Ray.raysList[startSq][ray.ordinal()]) {
-         if (potentialEnemySq == squareToIgnore) { continue; }
+         if (potentialEnemySq == squareToIgnore || isEmpty(potentialEnemySq)) { continue; }
          Colour colourOfSq = colourOfPieceAt(potentialEnemySq);
-         if (colourOfSq == Colour.UNOCCUPIED) { continue; }
          squareOfInterest = potentialEnemySq;
          if (myColour.opposes(colourOfSq)) { enemyPiece = pieceAt(potentialEnemySq); }
          break; // can stop in any case, having found a piece
@@ -476,9 +487,7 @@ public class Position {
       return moveGenerator.findMoves(this, sideToMove);
    }
 
-   public boolean isKingInCheck() {
-      return kingInCheck;
-   }
+   public boolean isKingInCheck() { return kingInCheck; }
 
    public void setKingInCheck(List<PieceSquareInfo> checkSquares) {
       if (checkSquares == null || checkSquares.isEmpty()) {
@@ -494,17 +503,13 @@ public class Position {
       setKingInCheck(Arrays.asList(checkSquares));
    }
 
-   public List<PieceSquareInfo> getCheckSquares() {
-      return checkSquares;
-   }
+   public List<PieceSquareInfo> getCheckSquares() { return checkSquares; }
 
    /**
     * @return a FEN string for this position (FEN is incomplete, missing half moves and clock info).
-    * @see    {@link Game#getFen()}.
+    * @see {@link Game#getFen()}.
     */
-   public String getFen() {
-      return Fen.encode(this);
-   }
+   public String getFen() { return Fen.encode(this); }
 
    /** returns the FEN representation of the current castling rights */
    public String castlingRightsToString() {
@@ -519,4 +524,5 @@ public class Position {
          return sb.toString();
       }
    }
+
 }

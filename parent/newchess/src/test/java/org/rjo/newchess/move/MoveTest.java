@@ -11,11 +11,12 @@ import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Position.SquareInfo;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
+import org.rjo.newchess.piece.Pieces;
 
 public class MoveTest {
 
-   private static final SquareInfo WHITE_PAWN = new SquareInfo(Piece.PAWN, Colour.WHITE);
-   private static final SquareInfo BLACK_PAWN = new SquareInfo(Piece.PAWN, Colour.BLACK);
+   private static final SquareInfo WHITE_PAWN = new SquareInfo(Pieces.generatePawn(Colour.WHITE));
+   private static final SquareInfo BLACK_PAWN = new SquareInfo(Pieces.generatePawn(Colour.BLACK));
 
    @Test
    public void move() {
@@ -85,11 +86,11 @@ public class MoveTest {
 
    @Test
    public void promotion() {
-      Move m = Move.createPromotionMove(Square.e7, WHITE_PAWN, Square.e8, Piece.QUEEN);
+      Move m = Move.createPromotionMove(Square.e7, WHITE_PAWN, Square.e8, Pieces.generateQueen(null));
       assertFalse(m.isCapture());
       assertFalse(m.isEnpassant());
       assertTrue(m.isPromotion());
-      assertEquals(Piece.QUEEN, m.getPromotedPiece());
+      assertEquals(Piece.QUEEN, Pieces.toPiece(m.getPromotedPiece()));
       assertFalse(m.isPawnTwoSquaresForward());
       assertFalse(m.isKingssideCastling());
       assertFalse(m.isQueenssideCastling());
@@ -98,11 +99,11 @@ public class MoveTest {
 
    @Test
    public void promotionCapture() {
-      Move m = Move.createPromotionCaptureMove(Square.e7, WHITE_PAWN, Square.d8, BLACK_PAWN, Piece.ROOK);
+      Move m = Move.createPromotionCaptureMove(Square.e7, WHITE_PAWN, Square.d8, BLACK_PAWN, Pieces.generateRook(null));
       assertTrue(m.isCapture());
       assertFalse(m.isEnpassant());
       assertTrue(m.isPromotion());
-      assertEquals(Piece.ROOK, m.getPromotedPiece());
+      assertEquals(Piece.ROOK, Pieces.toPiece(m.getPromotedPiece()));
       assertFalse(m.isPawnTwoSquaresForward());
       assertFalse(m.isKingssideCastling());
       assertFalse(m.isQueenssideCastling());

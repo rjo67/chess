@@ -11,6 +11,7 @@ import org.rjo.newchess.game.Game;
 import org.rjo.newchess.game.Position;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
+import org.rjo.newchess.piece.Pieces;
 
 public class StandardMovesTest {
 
@@ -85,13 +86,13 @@ public class StandardMovesTest {
       p = new Position(new boolean[][] { { true, false, }, { true, true } }, Square.e1, Square.b8);
       p.addPiece(Colour.WHITE, Piece.ROOK, Square.h1);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE),
-            move -> move.getMovingPiece() == Piece.KING || move.isKingssideCastling() || move.isQueenssideCastling(), //
+            move -> Pieces.isKing(move.getMovingPiece()) || move.isKingssideCastling() || move.isQueenssideCastling(), //
             "Ke1-d1", "Ke1-f1", "Ke1-d2", "Ke1-e2", "Ke1-f2", "O-O");
       // castling Q-side
       p = new Position(new boolean[][] { { false, true, }, { true, true } }, Square.e1, Square.b8);
       p.addPiece(Colour.WHITE, Piece.ROOK, Square.a1);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE),
-            move -> move.getMovingPiece() == Piece.KING || move.isKingssideCastling() || move.isQueenssideCastling(), //
+            move -> Pieces.isKing(move.getMovingPiece()) || move.isKingssideCastling() || move.isQueenssideCastling(), //
             "Ke1-d1", "Ke1-f1", "Ke1-d2", "Ke1-e2", "Ke1-f2", "O-O-O");
    }
 

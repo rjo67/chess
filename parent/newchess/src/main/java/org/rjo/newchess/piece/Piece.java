@@ -27,13 +27,13 @@ public enum Piece {
     */
    public final static int DIFFERENT_PIECE_TYPES = Piece.values().length;
 
-   private boolean slidingPiece;
-   private String symbol;
+   private final boolean slidingPiece;
+   private final String symbol;
    // offsets refer to the Board.mailbox structure
-   private int[] moveOffsets;
-   // following not relevant (i.e. false) for pawns or knights; or Kings
-   private boolean slidesHorizontallyOrVertically;
-   private boolean slidesDiagonally;
+   private final int[] moveOffsets;
+   // following not relevant (i.e. false) for pawns / knights / kings
+   private final boolean slidesHorizontallyOrVertically;
+   private final boolean slidesDiagonally;
 
    private Piece(boolean slidingPiece, String symbol, boolean movesHorizontallyOrVertically, boolean movesDiagonally, int[] moveOffsets) {
       this.slidingPiece = slidingPiece;
