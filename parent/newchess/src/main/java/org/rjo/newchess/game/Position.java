@@ -213,8 +213,8 @@ public class Position {
     * @param colour
     * @return true if matches
     */
-   public boolean matchPieceTypeAndColour(int sq, byte piece, Colour colour) { // TODO piece specifies colour as well
-      return pieceAt(sq) == piece && colourOfPieceAt(sq) == colour; // pieceAt(sq) == piece;
+   public boolean matchesPieceTypeAndColour(int sq, byte piece) {
+      return pieceAt(sq) == piece;
    }
 
    public boolean canCastleKingsside(Colour col) {
@@ -418,9 +418,10 @@ public class Position {
    public List<PieceSquareInfo> isKingInCheck(int kingsSquare, Colour colour) {
       Colour opponentsColour = colour.opposite();
       List<PieceSquareInfo> checkSquares = new ArrayList<>(2);
+      final byte opponentsColorPawn = Pieces.generatePawn(opponentsColour);
       // *our* colour used to index pawnCaptures, because we want the 'inverse', i.e. squares which attack the given square
       for (int sq : MoveGenerator.pawnCaptures[colour.ordinal()][kingsSquare]) {
-         if (Pieces.isPawn(pieceAt(sq)) && colourOfPieceAt(sq) == opponentsColour) {
+         if (matchesPieceTypeAndColour(sq, opponentsColorPawn)) {
             checkSquares.add(new PieceSquareInfo(Pieces.generatePawn(opponentsColour), sq));
             break;
          }
@@ -428,8 +429,9 @@ public class Position {
 
       // a pawn giving check ==> a knight cannot also be giving check
       if (checkSquares.isEmpty()) {
+         final byte opponentsColorKnight = Pieces.generateKnight(opponentsColour);
          for (int sq : MoveGenerator.knightMoves[kingsSquare]) {
-            if (Pieces.isKnight(pieceAt(sq)) && colourOfPieceAt(sq) == opponentsColour) {
+            if (matchesPieceTypeAndColour(sq, opponentsColorKnight)) {
                checkSquares.add(new PieceSquareInfo(Pieces.generateKnight(opponentsColour), sq));
                break;
             }

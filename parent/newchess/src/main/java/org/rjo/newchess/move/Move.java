@@ -239,6 +239,22 @@ public class Move {
       return createPawnTwoSquaresForwardMove(origin.index(), originPiece, target.index());
    }
 
+   /**
+    * Does this move instance represent a capture of a piece at 'captureSquare'? Also copes with enpassant, where the pawn taken e.p. is on
+    * 'captureSquare'.
+    * 
+    * @param captureSquare the square to inspect
+    * @return true if piece captured.on 'captureSquare'
+    */
+   public boolean moveCapturesPiece(int captureSquare) {
+      if (isCapture()) {
+         if (getTarget() == captureSquare) { return true; }
+         // enpassant
+         if (isEnpassant() && getSquareOfPawnCapturedEnpassant() == captureSquare) { return true; }
+      }
+      return false;
+   }
+
    @Override
    public String toString() {
       if (isKingssideCastling()) {

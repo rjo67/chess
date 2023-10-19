@@ -23,6 +23,7 @@ public class Pieces {
    private final static byte SLIDING_PIECE_MASK = BITMASK_7;
    private final static byte BISHOP_OR_QUEEN_MASK = BISHOP_MASK | QUEEN_MASK;
    private final static byte ROOK_OR_QUEEN_MASK = ROOK_MASK | QUEEN_MASK;
+   private final static byte PAWN_OR_KNIGHT_MASK = PAWN_MASK | KNIGHT_MASK;
 
    // bit 0 (right): reserved for colour, not set here
    // bits 1-6: piece info
@@ -95,6 +96,10 @@ public class Pieces {
 
    public static boolean isBishopOrQueen(byte piece) {
       return (piece & BISHOP_OR_QUEEN_MASK) != 0;
+   }
+
+   public static boolean isPawnOrKnight(byte piece) {
+      return (piece & PAWN_OR_KNIGHT_MASK) != 0;
    }
 
    public static byte generatePawn(Colour colour) {
