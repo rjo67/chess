@@ -248,7 +248,7 @@ public class PositionTest {
       assertSame(posn.castlingRights, posn2.castlingRights);
       assertEquals(Square.b3, posn2.getEnpassantSquare());
 
-      Move epMove = Move.createEnpassantMove(Square.c4, posn2.raw(Square.c4), Square.b3, posn2.raw(Square.b3));
+      Move epMove = Move.createEnpassantMove(Square.c4, posn2.raw(Square.c4), Square.b3);
       assertEquals(Square.b4.index(), epMove.getSquareOfPawnCapturedEnpassant());
       Position posn3 = posn2.move(epMove);
       assertBoardClonedCorrectly(posn2, posn3, Square.b3, Square.b4, Square.c4);

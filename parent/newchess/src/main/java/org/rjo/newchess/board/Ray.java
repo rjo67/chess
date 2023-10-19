@@ -44,9 +44,8 @@ public enum Ray {
    }
 
    /**
-    * Stores for each square on the board a set of squares emenating from this square in all directions. The set is ordered
-    * so that the squares closest to the origin are first. (This ordering is not necessary for the set, but it is used when
-    * creating 'raysList'.)
+    * Stores for each square on the board a set of squares emenating from this square in all directions. The set is ordered so that the squares
+    * closest to the origin are first. (This ordering is not necessary for the set, but it is used when creating 'raysList'.)
     */
    public static final Set<Integer>[][] raysSet;
 
@@ -110,41 +109,29 @@ public enum Ray {
       ray2.opposite = ray1;
    }
 
-   public int getIndex() {
-      return index;
-   }
+   public int getIndex() { return index; }
 
-   public String getAbbreviation() {
-      return abbreviation;
-   }
+   public String getAbbreviation() { return abbreviation; }
 
-   public boolean isHorizontal() {
-      return horizontal;
-   }
+   public boolean isHorizontal() { return horizontal; }
 
-   public boolean isVertical() {
-      return vertical;
-   }
+   public boolean isVertical() { return vertical; }
 
-   public boolean isDiagonal() {
-      return !vertical && !horizontal;
-   }
+   public boolean isDiagonal() { return !vertical && !horizontal; }
 
-   public Ray getOpposite() {
-      return opposite;
-   }
+   public Ray getOpposite() { return opposite; }
 
    public boolean isOpposite(Ray other) {
       return this.opposite == other;
    }
 
    /**
-	 * Are two given squares on the same ray?
-	 * 
-	 * @param originSq
-	 * @param targetSq
-	 * @return true if origin and target are on this ray
-	 */
+    * Are two given squares on the same ray?
+    * 
+    * @param originSq
+    * @param targetSq
+    * @return true if origin and target are on this ray
+    */
    public boolean onSameRay(int originSq, int targetSq) {
       return rayBetweenSquares[originSq][targetSq] == this;
    }
@@ -152,10 +139,10 @@ public enum Ray {
    /**
     * Does 'square' lie on this ray, between the 'originSq' and 'targetSq' squares?
     * 
-    * @param  square   square to check
-    * @param  originSq
-    * @param  targetSq
-    * @return          true if the square lies between start and end on this ray.
+    * @param square   square to check
+    * @param originSq
+    * @param targetSq
+    * @return true if the square lies between start and end on this ray.
     */
    public boolean squareBetween(int square, int originSq, int targetSq) {
       for (int sq : raysList[originSq][this.ordinal()]) {
@@ -168,9 +155,9 @@ public enum Ray {
    /**
     * Returns the ray connecting two given squares.
     * 
-    * @param  originSq
-    * @param  targetSq
-    * @return          the ray between the two squares, or null if not on the same ray
+    * @param originSq
+    * @param targetSq
+    * @return the ray between the two squares, or null if not on the same ray
     */
    public static Ray findRayBetween(int originSq, int targetSq) {
       return rayBetweenSquares[originSq][targetSq];

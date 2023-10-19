@@ -27,7 +27,7 @@ import org.rjo.newchess.piece.Pieces;
  */
 public class Position {
 
-   private final static SquareInfo UNOCCUPIED_SQUARE = new SquareInfo((byte) 0);
+   private final static byte UNOCCUPIED_SQUARE = (byte) 0;
    private final static MoveGeneratorI moveGenerator = new MoveGenerator();
 
    /** enables sanity checks during move processing */
@@ -93,10 +93,7 @@ public class Position {
    /**
     * Stores information about a piece (type, colour) on a particular square.
     */
-   public static record SquareInfo(byte piece) {
-   }
-
-   SquareInfo[] board;// package protected for tests
+   byte[] board;// package protected for tests
 
    // keeps track on who can still castle
    // 1st dimension: W/B, 2nd dimension: 0 - king's side, 1 - queen's side
@@ -129,7 +126,7 @@ public class Position {
    }
 
    public Position(boolean[][] castlingRights) {
-      this.board = new SquareInfo[64];
+      this.board = new byte[64];
       this.kingsSquare = new int[] { -1, -1 };
       for (int i = 0; i < 64; i++) {
          board[i] = UNOCCUPIED_SQUARE;
@@ -167,7 +164,7 @@ public class Position {
          }
          kingsSquare[colour.ordinal()] = square;
       }
-      board[square] = new SquareInfo(piece);
+      board[square] = piece;
    }
 
    // convert from Piece to byte
@@ -185,7 +182,7 @@ public class Position {
    }
 
    public boolean isEmpty(int square) {
-      return board[square].piece == 0;
+      return board[square] == UNOCCUPIED_SQUARE;
    }
 
    public boolean isEmpty(Square sq) {
@@ -193,7 +190,7 @@ public class Position {
    }
 
    public Colour colourOfPieceAt(int square) {
-      return Pieces.colourOf(board[square].piece);
+      return Pieces.colourOf(board[square]);
    }
 
    public Colour colourOfPieceAt(Square square) {
@@ -201,15 +198,23 @@ public class Position {
    }
 
    public byte pieceAt(int square) {
-      return board[square].piece;
+      return board[square];
    }
 
    public byte pieceAt(Square square) {
       return pieceAt(square.index());
    }
 
+   /**
+    * Does the piece at square 'sq' match the supplied piece (same piece type and same colour)?
+    * 
+    * @param sq     square to check
+    * @param piece  required piece
+    * @param colour
+    * @return true if matches
+    */
    public boolean matchPieceTypeAndColour(int sq, byte piece, Colour colour) { // TODO piece specifies colour as well
-      return pieceAt(sq) == piece && colourOfPieceAt(sq) == colour;
+      return pieceAt(sq) == piece && colourOfPieceAt(sq) == colour; // pieceAt(sq) == piece;
    }
 
    public boolean canCastleKingsside(Colour col) {
@@ -229,12 +234,12 @@ public class Position {
    }
 
    // delivers the 'raw' value of the square
-   public SquareInfo raw(int square) {
+   public byte raw(int square) {
       return board[square];
    }
 
    // delivers the 'raw' value of the square
-   public SquareInfo raw(Square square) {
+   public byte raw(Square square) {
       return this.raw(square.index());
    }
 
@@ -322,7 +327,7 @@ public class Position {
       }
       // remove piece at move.origin, place piece at move.target (implicitly removing piece at move.target)
       board[move.getOrigin()] = UNOCCUPIED_SQUARE;
-      board[move.getTarget()] = new SquareInfo((move.isPromotion() ? move.getPromotedPiece() : move.getMovingPiece()));
+      board[move.getTarget()] = move.isPromotion() ? move.getPromotedPiece() : move.getMovingPiece();
       if (move.isEnpassant()) { board[move.getSquareOfPawnCapturedEnpassant()] = UNOCCUPIED_SQUARE; }
 
       // move rook too if castling
@@ -343,7 +348,7 @@ public class Position {
             }
          }
          board[rookOriginSq] = UNOCCUPIED_SQUARE;
-         board[rookTargetSq] = new SquareInfo(Pieces.generateRook(move.getColourOfMovingPiece()));
+         board[rookTargetSq] = Pieces.generateRook(move.getColourOfMovingPiece());
       }
 
       // update enpassantSquare if pawn moved

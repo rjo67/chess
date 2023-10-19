@@ -973,10 +973,8 @@ public class MoveGenerator implements MoveGeneratorI {
             : Board.getMailboxSquareForBlackPawnsOneSquareForward(startSq);
       // promotion
       if (nextSq == -1) {
-         // Need to get the nextSq again (the previous call just returned -1 for
-         // "promotion" rank)
-         // However, promotion does not occur very often, therefore better to optimize
-         // the normal case
+         // Need to get the nextSq again (the previous call just returned -1 for "promotion" rank)
+         // However, promotion does not occur very often, therefore better to optimise the normal case
          int forwardOffset = colour == Colour.WHITE ? -10 : 10;
          nextSq = Board.getMailboxSquare(startSq, forwardOffset);
          moves.addAll(generatePossibleNormalPromotionMoves(posn, startSq, nextSq, kingsSquare, checkInfo, colour, blocksCheck));
@@ -1018,7 +1016,7 @@ public class MoveGenerator implements MoveGeneratorI {
          int epSquare = posn.getEnpassantSquare().index();
          for (int sq : enpassantSquares[epSquare]) {
             if (startSq == sq) {
-               Move move = Move.createEnpassantMove(startSq, posn.raw(startSq), epSquare, posn.raw(epSquare));
+               Move move = Move.createEnpassantMove(startSq, posn.raw(startSq), epSquare);
                if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) { continue; }
                moves.add(move);
             }
