@@ -17,10 +17,8 @@ public class Move {
    private final byte originPiece; // which piece is moving...
    private final int originSq; // ... and where it's moving from
    private final int targetSq; // where piece is moving to
-   private final byte targetPiece; // !=0 for captures
    private final boolean capture;
-   private final boolean promotion;
-   private final byte promotedPiece;
+   private final byte promotedPiece; // !=0 if a promotion
    private final boolean enpassant; // whether this move is an enpassant capture
    private final int squareOfPawnCapturedEnpassant; // the square of the pawn which was captured enpassant, **defaults to 0**
    private final boolean kingsSideCastling;
@@ -32,76 +30,65 @@ public class Move {
    private List<PieceSquareInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
 
    /**
+    * Base Constructor.
+    * 
+    * @param originSq                      origin square
+    * @param originPiece                   info about piece on origin square
+    * @param targetSq                      target square
+    * @param capture                       true if capture
+    * @param enpassant                     true if enpassant
+    * @param squareOfPawnCapturedEnpassant enpassant square (only set if enpassant=true)
+    * @param kingsSideCastling             true if king's-side castling
+    * @param queensSideCastling            true if queen's-side castling
+    * @param pawnTwoSquaresForward         true if pawn move two-squares forward
+    */
+   private Move(int originSq, byte originPiece, int targetSq, boolean capture, byte promotedPiece, boolean enpassant, int squareOfPawnCapturedEnpassant,
+         boolean kingsSideCastling, boolean queensSideCastling, boolean pawnTwoSquaresForward) {
+      this.originSq = originSq;
+      this.originPiece = originPiece;
+      this.targetSq = targetSq;
+      this.capture = capture;
+      this.promotedPiece = promotedPiece;
+      this.enpassant = enpassant;
+      this.squareOfPawnCapturedEnpassant = squareOfPawnCapturedEnpassant;
+      this.kingsSideCastling = kingsSideCastling;
+      this.queensSideCastling = queensSideCastling;
+      this.pawnTwoSquaresForward = pawnTwoSquaresForward;
+   }
+
+   /**
     * Constructor for most moves (but NOT enpassant). A 'capture' will be automatically recognised.
     * 
-    * @param origin        origin square
+    * @param originSq      origin square
     * @param originPiece   info about piece on origin square
-    * @param target        target square
+    * @param targetSq      target square
     * @param targetPiece   info about piece on target square; 0 (empty square) == no piece == not a capture
-    * @param promotedPiece promoted piece, set if promotion
+    * @param promotedPiece promoted piece, !=0 if promotion
     */
-   private Move(int origin, byte originPiece, int target, byte targetPiece, byte promotedPiece) {
-      this.originSq = origin;
-      this.targetSq = target;
-      this.originPiece = originPiece;
-      this.capture = targetPiece != 0;
-      this.targetPiece = targetPiece;
-      this.promotion = promotedPiece != 0;
-      this.promotedPiece = promotedPiece;
-      this.enpassant = false;
-      this.squareOfPawnCapturedEnpassant = 0;
-      this.kingsSideCastling = false;
-      this.queensSideCastling = false;
-      this.pawnTwoSquaresForward = false;
+   private Move(int originSq, byte originPiece, int targetSq, byte targetPiece, byte promotedPiece) {
+      this(originSq, originPiece, targetSq, targetPiece != 0, promotedPiece, false, (byte) 0, false, false, false);
    }
 
    /**
     * Constructor for special moves like castling or enpassant.
     * <p>
-    * For enpassant, explicitly sets 'capture' (required since e.p. moves are captures but the target square is 'empty').
     * 
-    * @param origin      origin square
+    * @param originSq    origin square
     * @param originPiece info about piece on origin square
-    * @param target      target square
+    * @param targetSq    target square
+    * @param specialMove determines the type of special move
     */
-   private Move(int origin, byte originPiece, int target, SpecialMove specialMove) {
-      this.originSq = origin;
-      this.targetSq = target;
-      this.originPiece = originPiece;
-      this.targetPiece = 0;
-      this.promotion = false;
-      this.promotedPiece = 0;
+   private static Move createMove(int originSq, byte originPiece, int targetSq, SpecialMove specialMove) {
       switch (specialMove) {
       case KINGS_SIDE_CASTLING:
       case QUEENS_SIDE_CASTLING:
-         this.squareOfPawnCapturedEnpassant = 0;
-         this.enpassant = false;
-         this.capture = false;
-         this.pawnTwoSquaresForward = false;
-         if (specialMove == SpecialMove.KINGS_SIDE_CASTLING) {
-            this.kingsSideCastling = true;
-            this.queensSideCastling = false;
-         } else {
-            this.kingsSideCastling = false;
-            this.queensSideCastling = true;
-         }
-         break;
+         return new Move(originSq, originPiece, targetSq, false, (byte) 0, false, (byte) 0, specialMove == SpecialMove.KINGS_SIDE_CASTLING,
+               specialMove == SpecialMove.QUEENS_SIDE_CASTLING, false);
       case ENPASSANT:
-         this.enpassant = true;
-         this.capture = true;
-         this.pawnTwoSquaresForward = false;
-         this.squareOfPawnCapturedEnpassant = targetSq + (Pieces.isWhitePiece(originPiece) ? 8 : -8);
-         this.kingsSideCastling = false;
-         this.queensSideCastling = false;
-         break;
+         // explicitly set 'capture', since e.p. moves are captures although the target square is 'empty'
+         return new Move(originSq, originPiece, targetSq, true, (byte) 0, true, targetSq + (Pieces.isWhitePiece(originPiece) ? 8 : -8), false, false, false);
       case PAWN_TWO_SQUARES_FORWARD:
-         this.pawnTwoSquaresForward = true;
-         this.squareOfPawnCapturedEnpassant = 0;
-         this.enpassant = false;
-         this.capture = false;
-         this.kingsSideCastling = false;
-         this.queensSideCastling = false;
-         break;
+         return new Move(originSq, originPiece, targetSq, false, (byte) 0, false, 0, false, false, true);
       default:
          throw new IllegalStateException("unhandled value of specialMove: " + specialMove);
       }
@@ -211,7 +198,7 @@ public class Move {
     * @return the new move object
     */
    public static Move createKingssideCastlingMove(Colour colour) {
-      return new Move(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], Pieces.generateKing(colour),
+      return createMove(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], Pieces.generateKing(colour),
             MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][0], SpecialMove.KINGS_SIDE_CASTLING);
    }
 
@@ -222,20 +209,20 @@ public class Move {
     * @return the new move object
     */
    public static Move createQueenssideCastlingMove(Colour colour) {
-      return new Move(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], Pieces.generateKing(colour),
+      return createMove(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], Pieces.generateKing(colour),
             MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][1], SpecialMove.QUEENS_SIDE_CASTLING);
    }
 
    /**
     * Enpassant.
     * 
-    * @param origin      origin square
+    * @param originSq    origin square
     * @param originPiece info about piece on origin square
-    * @param target      target square
+    * @param epSquare    e.p. square
     * @return the new move object
     */
-   public static Move createEnpassantMove(int origin, byte originPiece, int epSquare) {
-      return new Move(origin, originPiece, epSquare, SpecialMove.ENPASSANT);
+   public static Move createEnpassantMove(int originSq, byte originPiece, int epSquare) {
+      return createMove(originSq, originPiece, epSquare, SpecialMove.ENPASSANT);
    }
 
    /**
@@ -247,7 +234,7 @@ public class Move {
     * @return the new move object
     */
    public static Move createEnpassantMove(Square origin, byte originPiece, Square epSquare) {
-      return new Move(origin.index(), originPiece, epSquare.index(), SpecialMove.ENPASSANT);
+      return createMove(origin.index(), originPiece, epSquare.index(), SpecialMove.ENPASSANT);
    }
 
    /**
@@ -259,7 +246,7 @@ public class Move {
     * @return the new move object
     */
    public static Move createPawnTwoSquaresForwardMove(int origin, byte originPiece, int target) {
-      return new Move(origin, originPiece, target, SpecialMove.PAWN_TWO_SQUARES_FORWARD);
+      return createMove(origin, originPiece, target, SpecialMove.PAWN_TWO_SQUARES_FORWARD);
    }
 
    /**
@@ -273,7 +260,7 @@ public class Move {
     * @return the new move object
     */
    public static Move createPawnTwoSquaresForwardMove(Square origin, byte originPiece, Square target) {
-      return new Move(origin.index(), originPiece, target.index(), SpecialMove.PAWN_TWO_SQUARES_FORWARD);
+      return createMove(origin.index(), originPiece, target.index(), SpecialMove.PAWN_TWO_SQUARES_FORWARD);
    }
 
    /**
@@ -304,7 +291,7 @@ public class Move {
          sb.append(Square.toSquare(originSq));
          sb.append(isCapture() ? "x" : "-");
          sb.append(Square.toSquare(targetSq));
-         if (promotion) { sb.append("=").append(Pieces.symbol(promotedPiece)); }
+         if (promotedPiece != 0) { sb.append("=").append(Pieces.symbol(promotedPiece)); }
          if (enpassant) { sb.append(" ep"); }
          if (isCheck()) { sb.append("+"); }
          return sb.toString();
@@ -313,7 +300,7 @@ public class Move {
 
    public boolean isCapture() { return capture; }
 
-   public boolean isPromotion() { return promotion; }
+   public boolean isPromotion() { return promotedPiece != 0; }
 
    public boolean isEnpassant() { return enpassant; }
 

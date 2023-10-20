@@ -482,9 +482,9 @@ public class Position {
       byte enemyPiece = (byte) 0;
       for (int potentialEnemySq : Ray.raysList[startSq][ray.ordinal()]) {
          if (potentialEnemySq == squareToIgnore || isEmpty(potentialEnemySq)) { continue; }
-         Colour colourOfSq = colourOfPieceAt(potentialEnemySq);
+         byte pieceAtSquare = pieceAt(potentialEnemySq);
          squareOfInterest = potentialEnemySq;
-         if (myColour.opposes(colourOfSq)) { enemyPiece = pieceAt(potentialEnemySq); }
+         if (myColour.opposes(Pieces.colourOf(pieceAtSquare))) { enemyPiece = pieceAtSquare; }
          break; // can stop in any case, having found a piece
       }
       return new PieceSquareInfo(enemyPiece, squareOfInterest);

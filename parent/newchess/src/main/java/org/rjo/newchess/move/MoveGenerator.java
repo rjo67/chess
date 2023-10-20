@@ -859,41 +859,52 @@ public class MoveGenerator implements MoveGeneratorI {
    }
 
    // if the king is in check is not verified by this method
-   private boolean canCastleKingsside(Position posn, Colour colour) {
+   /* package */ boolean canCastleKingsside(Position posn, Colour colour) {
       if (!posn.canCastleKingsside(colour)) { return false; }
       int colourOrd = colour.ordinal();
       final Colour oppositeColour = colour.opposite();
-      // TODO this is not really essential
       if (!Pieces.isRook(posn.pieceAt(rooksCastlingSquareIndex[colourOrd][0]))) {
          throw new IllegalStateException("rook not present for " + colour + " castling king's side? posn:\n" + posn);
       }
+
       for (int sq : unoccupiedSquaresKingssideCastling[colourOrd]) {
          if (!posn.isEmpty(sq)) { return false; }
       }
 
-      // cannot castle over a square in check
-      final byte oppositeColourPawn = Pieces.generatePawn(oppositeColour);
-      for (int sq : pawnSquaresKingssideCastling[colourOrd]) {
-         if (posn.matchesPieceTypeAndColour(sq, oppositeColourPawn)) { return false; }
-      }
+      /*
+       * @formatter:off
+       *  
+       * Cannot castle over a square in check.
+       *
+       * From White's POV:
+       *   Previous algorithm looked for opponent's pawns on the 2nd rank, then knights, and then inspected the rays NW, N, NE from the two intervening squares f1, g1 for 'sliding pieces'.
+       *   Now checks the knights and then just checks the rays, and if a pawn is found make sure it's on the 2nd rank.
+       *   Still checks the knights first, since this is probably cheaper then checking the rays.
+       *
+       * @formatter:on
+       */
+
       final byte oppositeColourKnight = Pieces.generateKnight(oppositeColour);
       for (int sq : knightSquaresKingssideCastling[colourOrd]) {
          if (posn.matchesPieceTypeAndColour(sq, oppositeColourKnight)) { return false; }
       }
+      final int requiredPawnRank = colour == Colour.WHITE ? 1 : 6; // pawn must be on this rank to prevent castling
       for (int sq : unoccupiedSquaresKingssideCastling[colourOrd]) {
-         Ray[] raysToCheck = colour == Colour.WHITE ? new Ray[] { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }
-               : new Ray[] { Ray.SOUTHWEST, Ray.SOUTH, Ray.SOUTHEAST };
-         for (Ray ray : raysToCheck) {
+         for (Ray ray : Ray.RAYS_TO_CHECK_KINGSSIDE_CASTLING[colourOrd]) {
             PieceSquareInfo enemyPieceInfo = posn.opponentsPieceOnRay(colour, sq, ray);
-            // found piece capable of checking the king?
-            if (enemyPieceInfo.piece() != 0 && Pieces.canSlideAlongRay(enemyPieceInfo.piece(), ray)) { return false; }
+            // found piece capable of checking the king? (sliding piece on the ray, or a pawn one rank away)
+            if (enemyPieceInfo.piece() != 0 && //
+                  ((Pieces.isPawn(enemyPieceInfo.piece()) && Square.toSquare(enemyPieceInfo.square()).rank() == requiredPawnRank)
+                        || Pieces.canSlideAlongRay(enemyPieceInfo.piece(), ray))) {
+               return false;
+            }
          }
       }
       return true;
    }
 
    // if the king is in check is not verified by this method
-   private boolean canCastleQueensside(Position posn, Colour colour) {
+   /* package */ boolean canCastleQueensside(Position posn, Colour colour) {
       if (!posn.canCastleQueensside(colour)) { return false; }
       int colourOrd = colour.ordinal();
       if (!Pieces.isRook(posn.pieceAt(rooksCastlingSquareIndex[colourOrd][1]))) {
@@ -902,25 +913,25 @@ public class MoveGenerator implements MoveGeneratorI {
       for (int sq : unoccupiedSquaresQueenssideCastling[colourOrd]) {
          if (!posn.isEmpty(sq)) { return false; }
       }
+
       // cannot castle over a square in check
-      final byte oppositeColourPawn = Pieces.generatePawn(colour.opposite());
-      for (int sq : pawnSquaresQueenssideCastling[colourOrd]) {
-         if (posn.matchesPieceTypeAndColour(sq, oppositeColourPawn)) { return false; }
-      }
+      // (see description in canCastleKingsside)
       final byte oppositeColourKnight = Pieces.generateKnight(colour.opposite());
       for (int sq : knightSquaresQueenssideCastling[colourOrd]) {
          if (posn.matchesPieceTypeAndColour(sq, oppositeColourKnight)) { return false; }
       }
+      final int requiredPawnRank = colour == Colour.WHITE ? 1 : 6; // pawn must be on this rank to prevent castling
       for (int sq : unoccupiedSquaresQueenssideCastling[colourOrd]) {
-         // we misuse this array for the 'square in check' calculation: the b1/b8 squares
-         // don't need to be inspected
+         // the b1/b8 squares don't need to be inspected for the 'square in check' calculation:
          if (sq == Square.b1.index() || sq == Square.b8.index()) { continue; }
-         Ray[] raysToCheck = colour == Colour.WHITE ? new Ray[] { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }
-               : new Ray[] { Ray.SOUTHWEST, Ray.SOUTH, Ray.SOUTHEAST };
-         for (Ray ray : raysToCheck) {
+         for (Ray ray : Ray.RAYS_TO_CHECK_QUEENSSIDE_CASTLING[colourOrd]) {
             PieceSquareInfo enemyPieceInfo = posn.opponentsPieceOnRay(colour, sq, ray);
-            // found piece capable of checking the king?
-            if (enemyPieceInfo.piece() != 0 && Pieces.canSlideAlongRay(enemyPieceInfo.piece(), ray)) { return false; }
+            // found piece capable of checking the king? (sliding piece on the ray, or a pawn one rank away)
+            if (enemyPieceInfo.piece() != 0 && //
+                  ((Pieces.isPawn(enemyPieceInfo.piece()) && Square.toSquare(enemyPieceInfo.square()).rank() == requiredPawnRank)
+                        || Pieces.canSlideAlongRay(enemyPieceInfo.piece(), ray))) {
+               return false;
+            }
          }
       }
       return true;

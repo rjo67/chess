@@ -19,9 +19,12 @@ public enum Ray {
    WEST(6, true, false, "W"), //
    NORTHWEST(7, false, false, "NW");
 
-   public static final Ray[] RAY_TYPES_DIAGONAL = new Ray[] { Ray.SOUTHEAST, Ray.SOUTHWEST, Ray.NORTHEAST, Ray.NORTHWEST };
-   public static final Ray[] RAY_TYPES_VERTICAL = new Ray[] { Ray.NORTH, Ray.SOUTH };
-   public static final Ray[] RAY_TYPES_HORIZONTAL = new Ray[] { Ray.WEST, Ray.EAST };
+   public static final Ray[] RAY_TYPES_DIAGONAL = { Ray.SOUTHEAST, Ray.SOUTHWEST, Ray.NORTHEAST, Ray.NORTHWEST };
+   public static final Ray[] RAY_TYPES_VERTICAL = { Ray.NORTH, Ray.SOUTH };
+   public static final Ray[] RAY_TYPES_HORIZONTAL = { Ray.WEST, Ray.EAST };
+
+   public static final Ray[][] RAYS_TO_CHECK_KINGSSIDE_CASTLING = { { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }, { Ray.SOUTHWEST, Ray.SOUTH, Ray.SOUTHEAST } };
+   public static final Ray[][] RAYS_TO_CHECK_QUEENSSIDE_CASTLING = { { Ray.NORTHWEST, Ray.NORTH, Ray.NORTHEAST }, { Ray.SOUTHWEST, Ray.SOUTH, Ray.SOUTHEAST } };
 
    private final static Comparator<Integer> ASCENDING_COMPARATOR = new Comparator<Integer>() {
       @Override

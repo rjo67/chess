@@ -1,8 +1,15 @@
 # Diary #
 
+## TODOs ?
+
+- store Rays in a byte?
+- Move as int?
+
+
 ## Overview of commits and performance
 date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 ---- | ----------- | ------ | -----
+20.10.23 | Piece and Colour information stored in one byte, which allows bit operations and reduces object creation. | | average of 10 iterations: 3920,60 ms (41849,6 moves/ms)
 16.04.23 | Ray and pawn move optimizations (precaching various values which were previously being calculated) | | average of 10 iterations: 6021,40 ms (27248,7 moves/ms)
 12.04.23 | Now on faster PC, perft will now run with 6 threads per default. |  | For comparison: Perft from old design: 13.718 ms, 11960,6 moves/ms, 83,6 nanos/move. From "newchess" design: 7.299 ms, 22804,2 moves/ms, 43,9 nanos/move.
 14.09.17 | SlidingPiece::searchNew uses bitmaps for all ray directions. | ?? | 2503,0 moves/ms; 399,5 nanos/move
