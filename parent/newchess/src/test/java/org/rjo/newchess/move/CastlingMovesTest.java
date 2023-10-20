@@ -1,5 +1,6 @@
 package org.rjo.newchess.move;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,8 +13,61 @@ import org.rjo.newchess.game.Position;
 import org.rjo.newchess.game.Position.PieceSquareInfo;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
+import org.rjo.newchess.piece.Pieces;
 
 public class CastlingMovesTest {
+
+   @Test
+   public void kingsCastlingMoveWhite() {
+      Move m = Move.createKingssideCastlingMove(Colour.WHITE);
+      assertTrue(m.isKingssideCastling());
+      assertFalse(m.isQueenssideCastling());
+      assertEquals(Square.e1, Square.toSquare(m.getOrigin()));
+      assertEquals(Square.g1, Square.toSquare(m.getTarget()));
+      assertTrue(Pieces.isKing(m.getMovingPiece()));
+      assertEquals(Colour.WHITE, Pieces.colourOf(m.getMovingPiece()));
+      assertFalse(m.isCapture());
+      assertFalse(m.isEnpassant());
+   }
+
+   @Test
+   public void kingsCastlingMoveBlack() {
+      Move m = Move.createKingssideCastlingMove(Colour.BLACK);
+      assertTrue(m.isKingssideCastling());
+      assertFalse(m.isQueenssideCastling());
+      assertEquals(Square.e8, Square.toSquare(m.getOrigin()));
+      assertEquals(Square.g8, Square.toSquare(m.getTarget()));
+      assertTrue(Pieces.isKing(m.getMovingPiece()));
+      assertEquals(Colour.BLACK, Pieces.colourOf(m.getMovingPiece()));
+      assertFalse(m.isCapture());
+      assertFalse(m.isEnpassant());
+   }
+
+   @Test
+   public void queensCastlingMoveWhite() {
+      Move m = Move.createQueenssideCastlingMove(Colour.WHITE);
+      assertFalse(m.isKingssideCastling());
+      assertTrue(m.isQueenssideCastling());
+      assertEquals(Square.e1, Square.toSquare(m.getOrigin()));
+      assertEquals(Square.c1, Square.toSquare(m.getTarget()));
+      assertTrue(Pieces.isKing(m.getMovingPiece()));
+      assertEquals(Colour.WHITE, Pieces.colourOf(m.getMovingPiece()));
+      assertFalse(m.isCapture());
+      assertFalse(m.isEnpassant());
+   }
+
+   @Test
+   public void queensCastlingMoveBlack() {
+      Move m = Move.createQueenssideCastlingMove(Colour.BLACK);
+      assertFalse(m.isKingssideCastling());
+      assertTrue(m.isQueenssideCastling());
+      assertEquals(Square.e8, Square.toSquare(m.getOrigin()));
+      assertEquals(Square.c8, Square.toSquare(m.getTarget()));
+      assertTrue(Pieces.isKing(m.getMovingPiece()));
+      assertEquals(Colour.BLACK, Pieces.colourOf(m.getMovingPiece()));
+      assertFalse(m.isCapture());
+      assertFalse(m.isEnpassant());
+   }
 
    @Test
    public void capturingRookDisallowsCastling() {
