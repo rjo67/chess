@@ -157,7 +157,7 @@ public class Position {
 
    public void addPiece(byte piece, int square) {
       Colour colour = Pieces.isWhitePiece(piece) ? Colour.WHITE : Colour.BLACK;
-      if (!isEmpty(square)) { throw new IllegalStateException("there is already a " + pieceAt(square) + " at square " + Square.toSquare(square)); }
+      if (!squareIsEmpty(square)) { throw new IllegalStateException("there is already a " + pieceAt(square) + " at square " + Square.toSquare(square)); }
       if (Pieces.isKing(piece)) {
          if (kingsSquare[colour.ordinal()] != -1) {
             throw new IllegalStateException("a " + colour + " king has already been added at square " + Square.toSquare(kingsSquare[colour.ordinal()]));
@@ -181,12 +181,12 @@ public class Position {
       this.addPiece(Pieces.generatePiece(pt, col), square.index());
    }
 
-   public boolean isEmpty(int square) {
+   public boolean squareIsEmpty(int square) {
       return board[square] == UNOCCUPIED_SQUARE;
    }
 
-   public boolean isEmpty(Square sq) {
-      return isEmpty(sq.index());
+   public boolean squareIsEmpty(Square sq) {
+      return squareIsEmpty(sq.index());
    }
 
    public Colour colourOfPieceAt(int square) {
@@ -233,16 +233,6 @@ public class Position {
       return kingsSquare[col.ordinal()];
    }
 
-   // delivers the 'raw' value of the square
-   public byte raw(int square) {
-      return board[square];
-   }
-
-   // delivers the 'raw' value of the square
-   public byte raw(Square square) {
-      return this.raw(square.index());
-   }
-
    public Colour getSideToMove() { return sideToMove; }
 
    public void setSideToMove(Colour sideToMove) { this.sideToMove = sideToMove; }
@@ -258,7 +248,7 @@ public class Position {
       for (int rank = 7; rank >= 0; rank--) {
          for (int file = 0; file < 8; file++) {
             int sq = ((7 - rank) * 8) + file;
-            if (this.isEmpty(sq)) {
+            if (this.squareIsEmpty(sq)) {
                board[rank][file] = ".";
             } else {
                byte pt = this.pieceAt(sq);
@@ -308,16 +298,16 @@ public class Position {
          }
          if (move.isCapture()) {
             if (move.isEnpassant()) {
-               if (!isEmpty(move.getTarget())) {
+               if (!squareIsEmpty(move.getTarget())) {
                   throw new IllegalStateException(String.format("invalid enpassant move %s, target square is not empty", move));
-               } else if (isEmpty(move.getSquareOfPawnCapturedEnpassant())) {
+               } else if (squareIsEmpty(move.getSquareOfPawnCapturedEnpassant())) {
                   throw new IllegalStateException(
                         String.format("invalid enpassant move %s, square %s is empty", move, Square.toSquare(move.getSquareOfPawnCapturedEnpassant())));
                }
-            } else if (isEmpty(move.getTarget()))
+            } else if (squareIsEmpty(move.getTarget()))
                throw new IllegalStateException(String.format("invalid capture move %s, target square is empty", move));
          }
-         if (!move.isCapture() && !isEmpty(move.getTarget())) {
+         if (!move.isCapture() && !squareIsEmpty(move.getTarget())) {
             throw new IllegalStateException(String.format("invalid non-capture move %s, target square is occupied with: %s %s", move,
                   colourOfPieceAt(move.getTarget()), pieceAt(move.getTarget())));
          }
@@ -339,7 +329,7 @@ public class Position {
             if (!Pieces.isRook(pieceAt(rookOriginSq))) {
                throw new IllegalStateException(String.format("invalid castling move %s, no rook at %s", move, Square.toSquare(rookOriginSq)));
             }
-            if (!isEmpty(rookTargetSq)) {
+            if (!squareIsEmpty(rookTargetSq)) {
                throw new IllegalStateException(
                      String.format("invalid castling move %s, rook's target sq %s is not empty", move, Square.toSquare(rookTargetSq)));
             }
@@ -481,7 +471,7 @@ public class Position {
       int squareOfInterest = -1;
       byte enemyPiece = (byte) 0;
       for (int potentialEnemySq : Ray.raysList[startSq][ray.ordinal()]) {
-         if (potentialEnemySq == squareToIgnore || isEmpty(potentialEnemySq)) { continue; }
+         if (potentialEnemySq == squareToIgnore || squareIsEmpty(potentialEnemySq)) { continue; }
          byte pieceAtSquare = pieceAt(potentialEnemySq);
          squareOfInterest = potentialEnemySq;
          if (myColour.opposes(Pieces.colourOf(pieceAtSquare))) { enemyPiece = pieceAtSquare; }

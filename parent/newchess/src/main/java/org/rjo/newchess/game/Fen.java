@@ -59,7 +59,7 @@ public class Fen {
          int emptySquares = 0;
          for (int file = 0; file < 8; file++) {
             int sq = ((7 - rank) * 8) + file;
-            if (posn.isEmpty(sq)) {
+            if (posn.squareIsEmpty(sq)) {
                emptySquares++;
             } else {
                // print empty squares if any

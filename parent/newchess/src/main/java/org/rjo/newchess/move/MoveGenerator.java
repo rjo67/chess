@@ -145,8 +145,7 @@ public class MoveGenerator implements MoveGeneratorI {
       var kingInDoubleCheck = kingInCheck && posn.getCheckSquares().size() == 2;
 
       int kingsSquare = posn.getKingsSquare(colour);
-      // does not include checking to see if the king is still in check after this
-      // move (happens later)
+      // does not include checking to see if the king is still in check after this move (happens later)
       processKingsSquare(posn, kingsSquare, colour, kingMoves);
       squaresProcessed[kingsSquare] = true;
 
@@ -540,7 +539,7 @@ public class MoveGenerator implements MoveGeneratorI {
     * @param colour
     * @param moves   king moves will be added to this list
     */
-   private void processKingsSquare(Position posn, int startSq, Colour colour, List<Move> moves) {
+   /* package */ void processKingsSquare(Position posn, int startSq, Colour colour, List<Move> moves) {
       if (posn.colourOfPieceAt(startSq) == colour) {
          if (!Pieces.isKing(posn.pieceAt(startSq))) {
             throw new IllegalStateException(String.format("called processKingsSquare with piece %s, posn: %s", posn.pieceAt(startSq), posn));
@@ -574,7 +573,7 @@ public class MoveGenerator implements MoveGeneratorI {
     *                    yet calculated
     */
    private void processSquare(Position posn, int startSq, Colour colour, List<Move> moves, PieceSquareInfo checkInfo, int kingsSquare, int[] blocksCheck) {
-      if (!posn.isEmpty(startSq) && posn.colourOfPieceAt(startSq) == colour) {
+      if (!posn.squareIsEmpty(startSq) && posn.colourOfPieceAt(startSq) == colour) {
          byte pt = posn.pieceAt(startSq);
          if (Pieces.isPawn(pt)) {
             moves.addAll(generatePawnMoves(posn, startSq, colour, checkInfo, kingsSquare, blocksCheck));
@@ -624,14 +623,10 @@ public class MoveGenerator implements MoveGeneratorI {
     * @return a move object or null if the targetSq contains a piece of our colour
     */
    private Move generateEitherMoveOrCapture(Position posn, int startSq, int targetSq, Colour colour) {
-      Move move = null;
-      if (!posn.isEmpty(targetSq)) {
-         // either capture, or we've hit one of our own pieces
-         if (colour.opposes(posn.colourOfPieceAt(targetSq))) { move = generateCapture(posn, startSq, targetSq); }
-      } else {
-         move = generateMove(posn, startSq, targetSq);
-      }
-      return move;
+      if (!posn.squareIsEmpty(targetSq) && colour == posn.colourOfPieceAt(targetSq)) { return null; }
+
+      // the Move constructor will identify a capture if there's a piece on the targetSq
+      return new Move(startSq, posn.pieceAt(startSq), targetSq, posn.pieceAt(targetSq), (byte) 0);
    }
 
    /**
@@ -803,7 +798,7 @@ public class MoveGenerator implements MoveGeneratorI {
     * @return -1 if all squares between origin and target along the given ray are empty, otherwise the square which is not empty
     */
    private int interveningSquaresAreEmpty(Position posn, int origin, int target, int squareToIgnore, Ray ray) {
-      IntFunction<Boolean> isEmptySquare = sq -> { return sq == squareToIgnore || posn.isEmpty(sq); };
+      IntFunction<Boolean> isEmptySquare = sq -> { return sq == squareToIgnore || posn.squareIsEmpty(sq); };
       return interveningSquaresAreEmpty(isEmptySquare, origin, target, ray);
    }
 
@@ -868,7 +863,7 @@ public class MoveGenerator implements MoveGeneratorI {
       }
 
       for (int sq : unoccupiedSquaresKingssideCastling[colourOrd]) {
-         if (!posn.isEmpty(sq)) { return false; }
+         if (!posn.squareIsEmpty(sq)) { return false; }
       }
 
       /*
@@ -911,7 +906,7 @@ public class MoveGenerator implements MoveGeneratorI {
          throw new IllegalStateException("rook not present for " + colour + " castling queen's side? posn:\n" + posn);
       }
       for (int sq : unoccupiedSquaresQueenssideCastling[colourOrd]) {
-         if (!posn.isEmpty(sq)) { return false; }
+         if (!posn.squareIsEmpty(sq)) { return false; }
       }
 
       // cannot castle over a square in check
@@ -958,8 +953,7 @@ public class MoveGenerator implements MoveGeneratorI {
 
       // if king already in check, then a move has to block or capture:
       // - normal pawn move: must block ray
-      // - pawn capture (including promotion capture or enpassant): captures checking
-      // piece or blocks ray
+      // - pawn capture (including promotion capture or enpassant): captures checking piece or blocks ray
 
       // get the next square forward: returns -1 if then will be on the promotion rank
       int nextSq = colour == Colour.WHITE ? Board.getMailboxSquareForWhitePawnsOneSquareForward(startSq)
@@ -978,7 +972,7 @@ public class MoveGenerator implements MoveGeneratorI {
          // process 1 square forward, and then optionally followed by 2 squares forward
          // NB 'nextSq' square cannot be outside of the board, we've already checked for
          // the 'promotion' rank
-         if (posn.isEmpty(nextSq)) {
+         if (posn.squareIsEmpty(nextSq)) {
             if (checkInfo != null && !moveToSquareBlocksCheck(checkInfo, nextSq, kingsSquare, blocksCheck)) {
                // ignore, since move does not block the check
             } else {
@@ -987,11 +981,11 @@ public class MoveGenerator implements MoveGeneratorI {
             if (onPawnStartRank(startSq, colour)) {
                nextSq = colour == Colour.WHITE ? Board.getMailboxSquareForWhitePawnsOneSquareForward(nextSq)
                      : Board.getMailboxSquareForBlackPawnsOneSquareForward(nextSq);
-               if (posn.isEmpty(nextSq)) {
+               if (posn.squareIsEmpty(nextSq)) {
                   if (checkInfo != null && !moveToSquareBlocksCheck(checkInfo, nextSq, kingsSquare, blocksCheck)) {
                      // ignore, since move does not block the check
                   } else {
-                     moves.add(Move.createPawnTwoSquaresForwardMove(startSq, posn.raw(startSq), nextSq));
+                     moves.add(Move.createPawnTwoSquaresForwardMove(startSq, posn.pieceAt(startSq), nextSq));
                   }
                }
             }
@@ -1009,7 +1003,7 @@ public class MoveGenerator implements MoveGeneratorI {
          int epSquare = posn.getEnpassantSquare().index();
          for (int sq : enpassantSquares[epSquare]) {
             if (startSq == sq) {
-               Move move = Move.createEnpassantMove(startSq, posn.raw(startSq), epSquare);
+               Move move = Move.createEnpassantMove(startSq, posn.pieceAt(startSq), epSquare);
                if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) { continue; }
                moves.add(move);
             }
@@ -1022,11 +1016,11 @@ public class MoveGenerator implements MoveGeneratorI {
    private List<Move> generatePossibleNormalPromotionMoves(Position posn, int origin, int target, int kingsSquare, PieceSquareInfo checkInfo, Colour myColour,
          int[] blocksCheck) {
       List<Move> moves = new ArrayList<>();
-      if (posn.isEmpty(target)) {
+      if (posn.squareIsEmpty(target)) {
          // ignore all promotion move candidates if they don't block the check
          if (checkInfo != null && !moveToSquareBlocksCheck(checkInfo, target, kingsSquare, blocksCheck)) { return moves; }
          for (Piece pt : new Piece[] { Piece.ROOK, Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
-            moves.add(Move.createPromotionMove(origin, posn.raw(origin), target, Pieces.generatePiece(pt, myColour)));
+            moves.add(Move.createPromotionMove(origin, posn.pieceAt(origin), target, Pieces.generatePiece(pt, myColour)));
          }
       }
       return moves;
@@ -1036,11 +1030,11 @@ public class MoveGenerator implements MoveGeneratorI {
    private List<Move> generatePossibleCapturePromotionMoves(Position posn, int origin, int target, int kingsSquare, PieceSquareInfo checkInfo, Colour myColour,
          int[] blocksCheck) {
       List<Move> moves = new ArrayList<>();
-      if (!posn.isEmpty(target) && myColour.opposes(posn.colourOfPieceAt(target))) {
+      if (!posn.squareIsEmpty(target) && myColour.opposes(posn.colourOfPieceAt(target))) {
          BlockedCheckPossibility checkBlockedAfterMove = null;
          // If the check still exists after this first promotion move, then it will for
          // the other moves too and therefore we don't need to evaluate them
-         Move move = Move.createPromotionCaptureMove(origin, posn.raw(origin), target, posn.raw(target), Pieces.generateRook(myColour));
+         Move move = Move.createPromotionCaptureMove(origin, posn.pieceAt(origin), target, posn.pieceAt(target), Pieces.generateRook(myColour));
          if (checkInfo != null) {
             checkBlockedAfterMove = moveBlocksCheck(posn, move, kingsSquare, blocksCheck);
             if (checkBlockedAfterMove == BlockedCheckPossibility.NOT_BLOCKED) { return moves; }
@@ -1048,18 +1042,19 @@ public class MoveGenerator implements MoveGeneratorI {
          moves.add(move);
          // now process the other promotion moves without regarding any existing check
          for (Piece pt : new Piece[] { Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
-            moves.add(Move.createPromotionCaptureMove(origin, posn.raw(origin), target, posn.raw(target), Pieces.generatePiece(pt, myColour)));
+            moves.add(Move.createPromotionCaptureMove(origin, posn.pieceAt(origin), target, posn.pieceAt(target), Pieces.generatePiece(pt, myColour)));
          }
       }
       return moves;
    }
 
-   private Move generatePawnCaptureMoveIfPossible(Position posn, int origin, int target, Colour colour) {
-      if (!posn.isEmpty(target) && colour.opposes(posn.colourOfPieceAt(target))) {
-         return generateCapture(posn, origin, target);
-      } else {
-         return null;
+   private Move generatePawnCaptureMoveIfPossible(Position posn, int from, int to, Colour colour) {
+      if (!posn.squareIsEmpty(to)) {
+         byte pieceAtTarget = posn.pieceAt(to);
+         if (colour.opposes(Pieces.colourOf(pieceAtTarget))) { return Move.createCapture(from, posn.pieceAt(from), to, pieceAtTarget); }
+         // TODO posn.pieceAt(from) never changes, pass in as parameter?
       }
+      return null;
    }
 
    private boolean onPawnStartRank(int startSq, Colour colour) {
@@ -1079,11 +1074,11 @@ public class MoveGenerator implements MoveGeneratorI {
    }
 
    private Move generateMove(Position posn, int from, int to) {
-      return Move.createMove(from, posn.raw(from), to);
+      return Move.createMove(from, posn.pieceAt(from), to);
    }
 
    private Move generateCapture(Position posn, int from, int to) {
-      return Move.createCapture(from, posn.raw(from), to, posn.raw(to));
+      return Move.createCapture(from, posn.pieceAt(from), to, posn.pieceAt(to));
    }
 
    /**

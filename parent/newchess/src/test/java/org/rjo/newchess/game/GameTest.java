@@ -17,13 +17,13 @@ public class GameTest {
       Position posn = g.getPosition();
       int sqIndex = Square.d1.index();
 
-      assertTrue(!posn.isEmpty(sqIndex));
+      assertTrue(!posn.squareIsEmpty(sqIndex));
       assertEquals(Colour.WHITE, posn.colourOfPieceAt(sqIndex));
       assertEquals(Piece.QUEEN, Pieces.toPiece(posn.pieceAt(sqIndex)));
 
       sqIndex = Square.d8.index();
 
-      assertTrue(!posn.isEmpty(sqIndex));
+      assertTrue(!posn.squareIsEmpty(sqIndex));
       assertEquals(Colour.BLACK, posn.colourOfPieceAt(sqIndex));
       assertEquals(Piece.QUEEN, Pieces.toPiece(posn.pieceAt(sqIndex)));
    }

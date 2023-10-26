@@ -73,23 +73,23 @@ public class CastlingMovesTest {
    public void capturingRookDisallowsCastling() {
       // black to move, should change white's castling rights
       Position p = Fen.decode("r3k2r/1B6/8/4B3/3b4/6n1/8/R3K2R b KQkq - 0 0").getPosition();
-      Position p2 = p.move(Move.createCapture(Square.g3, p.raw(Square.g3), Square.h1, p.raw(Square.h1)));
+      Position p2 = p.move(Move.createCapture(Square.g3, p.pieceAt(Square.g3), Square.h1, p.pieceAt(Square.h1)));
       assertFalse(p2.canCastleKingsside(Colour.WHITE));
       assertTrue(p2.canCastleQueensside(Colour.WHITE));
 
       p = Fen.decode("r3k2r/1B6/8/4B3/3b4/6n1/8/R3K2R b KQkq - 0 0").getPosition();
-      p2 = p.move(Move.createCapture(Square.d4, p.raw(Square.d4), Square.a1, p.raw(Square.a1)));
+      p2 = p.move(Move.createCapture(Square.d4, p.pieceAt(Square.d4), Square.a1, p.pieceAt(Square.a1)));
       assertTrue(p2.canCastleKingsside(Colour.WHITE));
       assertFalse(p2.canCastleQueensside(Colour.WHITE));
 
       // white to move, should change blacks's castling rights
       p = Fen.decode("r3k2r/1B6/8/4B3/3b4/6n1/8/R3K2R w KQkq - 0 0").getPosition();
-      p2 = p.move(Move.createCapture(Square.e5, p.raw(Square.e5), Square.h8, p.raw(Square.h8)));
+      p2 = p.move(Move.createCapture(Square.e5, p.pieceAt(Square.e5), Square.h8, p.pieceAt(Square.h8)));
       assertFalse(p2.canCastleKingsside(Colour.BLACK));
       assertTrue(p2.canCastleQueensside(Colour.BLACK));
 
       p = Fen.decode("r3k2r/1B6/8/4B3/3b4/6n1/8/R3K2R w KQkq - 0 0").getPosition();
-      p2 = p.move(Move.createCapture(Square.b7, p.raw(Square.b7), Square.a8, p.raw(Square.a8)));
+      p2 = p.move(Move.createCapture(Square.b7, p.pieceAt(Square.b7), Square.a8, p.pieceAt(Square.a8)));
       assertTrue(p2.canCastleKingsside(Colour.BLACK));
       assertFalse(p2.canCastleQueensside(Colour.BLACK));
 

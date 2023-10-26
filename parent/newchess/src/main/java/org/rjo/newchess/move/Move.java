@@ -57,7 +57,7 @@ public class Move {
    }
 
    /**
-    * Constructor for most moves (but NOT enpassant). A 'capture' will be automatically recognised.
+    * Constructor for most moves (but NOT enpassant). A 'capture' is recognised when targetPiece!=0.
     * 
     * @param originSq      origin square
     * @param originPiece   info about piece on origin square
@@ -65,7 +65,7 @@ public class Move {
     * @param targetPiece   info about piece on target square; 0 (empty square) == no piece == not a capture
     * @param promotedPiece promoted piece, !=0 if promotion
     */
-   private Move(int originSq, byte originPiece, int targetSq, byte targetPiece, byte promotedPiece) {
+   public Move(int originSq, byte originPiece, int targetSq, byte targetPiece, byte promotedPiece) {
       this(originSq, originPiece, targetSq, targetPiece != 0, promotedPiece, false, (byte) 0, false, false, false);
    }
 
