@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Position.PieceSquareInfo;
+import org.rjo.newchess.move.CheckMove;
+import org.rjo.newchess.move.IMove;
 import org.rjo.newchess.move.Move;
 import org.rjo.newchess.move.MoveGenerator;
 import org.rjo.newchess.piece.Colour;
@@ -94,8 +96,7 @@ public class PositionTest {
       posn.addPiece(Colour.WHITE, Piece.ROOK, Square.b3);
       assertEquals("4k3/8/8/8/8/1R6/8/4K3 w - -", posn.getFen());
 
-      Move m = Move.createMove(Square.b3, posn.pieceAt(Square.b3), Square.b8);
-      m.setCheck(new PieceSquareInfo(Piece.ROOK, Square.b8.index()));
+      IMove m = new CheckMove(Move.createMove(Square.b3, posn.pieceAt(Square.b3), Square.b8), new PieceSquareInfo(Piece.ROOK, Square.b8.index()));
       Position posn2 = posn.move(m);
       assertEquals("1R2k3/8/8/8/8/8/8/4K3 b - -", posn2.getFen());
       assertEquals(Piece.ROOK, Pieces.toPiece(posn2.pieceAt(Square.b8)));
@@ -300,9 +301,9 @@ public class PositionTest {
    @Test
    public void directAndDiscoveredCheck() {
       // 2 check moves in this position: one is a discovered check from the bishop
-      Move moveC6 = null, moveF6 = null;
+      IMove moveC6 = null, moveF6 = null;
       Position p = Fen.decode("8/1k6/3P4/2P3P1/KP2N2r/2P2BP1/3P1P2/8 w - - 0 0").getPosition();
-      for (Move m : new MoveGenerator().findMoves(p, Colour.WHITE)) {
+      for (IMove m : new MoveGenerator().findMoves(p, Colour.WHITE)) {
          if (m.isCheck()) {
             if (m.toString().equals("c5-c6+")) { moveC6 = m; }
             if (m.toString().equals("Ne4-f6+")) { moveF6 = m; }

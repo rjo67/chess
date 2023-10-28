@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.rjo.newchess.move.Move;
+import org.rjo.newchess.move.IMove;
 import org.rjo.newchess.piece.Colour;
 
 /**
@@ -40,10 +40,10 @@ public class Perft {
    private static final int REQD_DEPTH = 5;
 
    static class MoveResult {
-      Move move;
+      IMove move;
       int nbrMoves;
 
-      public MoveResult(Move move, int nbrMoves) {
+      public MoveResult(IMove move, int nbrMoves) {
          this.move = move;
          this.nbrMoves = nbrMoves;
       }
@@ -129,7 +129,7 @@ public class Perft {
       if (depth < 1) { throw new IllegalArgumentException("depth must be >= 1"); }
 
       Map<String, Integer> moveMap = new HashMap<>();
-      for (final Move move : posn.findMoves(sideToMove)) {
+      for (final IMove move : posn.findMoves(sideToMove)) {
          logMove(depth, move, posn);
          Position posnAfterMove = posn.move(move);
          moveMap.put(move.toString(), findMovesInternal(move, posnAfterMove, sideToMove.opposite(), depth - 1).nbrMoves);
@@ -143,7 +143,7 @@ public class Perft {
       List<Future<MoveResult>> futures = new ArrayList<>(200);
 
       Map<String, Integer> moveMap = new HashMap<>();
-      for (final Move move : posn.findMoves(sideToMove)) {
+      for (final IMove move : posn.findMoves(sideToMove)) {
          logMove(depth, move, posn);
          Position posnAfterMove = posn.move(move);
          Callable<MoveResult> callable = () -> findMovesInternal(move, posnAfterMove, sideToMove.opposite(), depth - 1);
@@ -178,10 +178,10 @@ public class Perft {
     * @param depth      the required depth to search
     * @return the total number of moves (leaf nodes) found from this position.
     */
-   private static MoveResult findMovesInternal(final Move move, final Position posn, Colour sideToMove, int depth) {
+   private static MoveResult findMovesInternal(final IMove move, final Position posn, Colour sideToMove, int depth) {
       if (depth == 0) { return new MoveResult(move, 1); }
       int totalMoves = 0;
-      for (Move newMove : posn.findMoves(sideToMove)) {
+      for (IMove newMove : posn.findMoves(sideToMove)) {
          logMove(depth, newMove, posn);
          Position posnAfterMove = posn.move(newMove);
          MoveResult moveResult = findMovesInternal(newMove, posnAfterMove, sideToMove.opposite(), depth - 1);
@@ -201,7 +201,7 @@ public class Perft {
       return nbrMoves;
    }
 
-   private static void logMove(int depth, Move move, Position posn) {
+   private static void logMove(int depth, IMove move, Position posn) {
       if (LOG_MOVES && MOVE_LOGGER.isDebugEnabled()) {
          // MOVE_LOGGER.debug(depth + " " + move + " " + Fen.encode(posn) + "\n" + posn.getCheckState()[0] + "\n" +
          // posn.getCheckState()[1]);
@@ -238,7 +238,7 @@ public class Perft {
       if (depth == 0) { return new ArrayList<>(); }
       // movesAtThisLevel and movesSoFar are only used for "logging"
       List<String> movesAtThisLevel = new ArrayList<>(10000);
-      for (Move move : posn.findMoves(sideToMove)) {
+      for (IMove move : posn.findMoves(sideToMove)) {
          if (MOVE_LOGGER.isTraceEnabled()) { movesSoFar.add(move.toString()); }
          Position posnAfterMove = posn.move(move);
 

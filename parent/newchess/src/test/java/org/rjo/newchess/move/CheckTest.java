@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -109,7 +108,7 @@ public class CheckTest {
       var NBR_ITERS = 100_000;
       var sw = StopWatch.createStarted();
       for (int i = 0; i < NBR_ITERS; i++) {
-         List<Move> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
+         List<IMove> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
          assertEquals(10, moves.size(), "found moves: " + moves);
       }
       System.out.println("kingInCheckMovesBlock: " + sw.getTime());
@@ -121,10 +120,7 @@ public class CheckTest {
       // after black's move ne4-d2: -
       Position p = Fen.decode("8/8/2k5/5q2/5n2/8/5K2/8 b - - 0 1").getPosition();
       assertFalse(p.isKingInCheck());
-      Move m = Move.createMove(Square.f4, p.pieceAt(Square.f4), Square.e2);
-      List<PieceSquareInfo> lsi = new ArrayList<>();
-      lsi.add(new PieceSquareInfo(Piece.QUEEN, Square.f5));
-      m.setCheck(lsi);
+      IMove m = new CheckMove(Move.createMove(Square.f4, p.pieceAt(Square.f4), Square.e2), new PieceSquareInfo(Piece.QUEEN, Square.f5));
       Position p2 = p.move(m);
       Map<String, Integer> moveMap = Perft.findMoves(p2, Colour.WHITE, 3, 1);
       int moves = Perft.countMoves(moveMap);
@@ -137,10 +133,7 @@ public class CheckTest {
       moves = Perft.countMoves(moveMap);
       // should be 142, was 143.
       // assertEquals(142, moves, String.format("wrong nbr of moves at depth 2\nmoveMap: %s\n", moveMap));
-      m = Move.createMove(Square.f5, p3.pieceAt(Square.f5), Square.f2);
-      lsi = new ArrayList<>();
-      lsi.add(new PieceSquareInfo(Piece.QUEEN, Square.f2));
-      m.setCheck(lsi);
+      m = new CheckMove(Move.createMove(Square.f5, p3.pieceAt(Square.f5), Square.f2), new PieceSquareInfo(Piece.QUEEN, Square.f2));
       Position p4 = p3.move(m);
       System.out.println(p4);
       // fen 8/8/2k5/8/8/8/4nqK1/8 w - -

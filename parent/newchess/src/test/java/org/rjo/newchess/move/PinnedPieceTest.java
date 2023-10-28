@@ -27,7 +27,7 @@ public class PinnedPieceTest {
       var NBR_ITERS = 100_000;
       var sw = StopWatch.createStarted();
       for (int i = 0; i < NBR_ITERS; i++) {
-         List<Move> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
+         List<IMove> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
          assertEquals(13, moves.size(), "found moves: " + moves);
       }
       System.out.println("noPin: " + sw.getTime());
@@ -93,7 +93,7 @@ public class PinnedPieceTest {
       var NBR_ITERS = 100000;
       var sw = StopWatch.createStarted();
       for (int i = 0; i < NBR_ITERS; i++) {
-         List<Move> moves = new MoveGenerator().findMoves(game.getPosition(), Colour.WHITE);
+         List<IMove> moves = new MoveGenerator().findMoves(game.getPosition(), Colour.WHITE);
          assertEquals(11, moves.size(), "found moves: " + moves);
       }
       System.out.println("pinnedPiece: " + sw.getTime());
@@ -108,7 +108,7 @@ public class PinnedPieceTest {
             "Qf5-f6", "Qf5-f7+", "Qf5-f4", "Qf5-f3", "Qf5xf2+");
       var sw = StopWatch.createStarted();
       for (int i = 0; i < NBR_ITERS; i++) {
-         List<Move> moves = new MoveGenerator().findMoves(game.getPosition(), Colour.WHITE);
+         List<IMove> moves = new MoveGenerator().findMoves(game.getPosition(), Colour.WHITE);
          assertEquals(11, moves.size(), "found moves: " + moves);
       }
       System.out.println("pinnedQueen: " + sw.getTime());

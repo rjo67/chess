@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.function.IntFunction;
 
@@ -204,7 +205,7 @@ public class MoveGenerator implements MoveGeneratorI {
    }
 
    @Override
-   public List<Move> findMoves(Position posn, Colour colour) {
+   public List<IMove> findMoves(Position posn, Colour colour) {
       /*
        * Instead of looking at all the squares from 0..63, starts at the kingsSquare and proceeds in ray order first. Then all other squares are
        * processed. This is done to reduce / simplify the amount of work needed later to see if a move left our king in check. The
@@ -283,7 +284,7 @@ public class MoveGenerator implements MoveGeneratorI {
       // ***
 
       // collect all the moves
-      List<Move> allMoves = new ArrayList<>(64);
+      List<IMove> allMoves = new ArrayList<>(64);
       if (!kingInDoubleCheck) {
          for (Ray ray : Ray.values()) {
             allMoves.addAll(movesWithStartSqOnRay[ray.ordinal()]);
@@ -299,9 +300,15 @@ public class MoveGenerator implements MoveGeneratorI {
       // ***
       RayCacheInfo[] squaresAttackingOpponentsKing = new RayCacheInfo[64]; // this stores the result of processed squares (for sliding pieces)
       int opponentsKingsSquare = posn.getKingsSquare(colour.opposite());
-      for (Move m : allMoves) {
+      ListIterator<IMove> iter = allMoves.listIterator();
+      while (iter.hasNext()) {
+         IMove m = iter.next();
+
          List<PieceSquareInfo> checkSquares = isOpponentsKingInCheckAfterMove(posn, m, opponentsKingsSquare, colour.opposite(), squaresAttackingOpponentsKing);
-         if (!checkSquares.isEmpty()) { m.setCheck(checkSquares); }
+         if (!checkSquares.isEmpty()) {
+            iter.remove();
+            iter.add(new CheckMove(m, checkSquares));
+         }
       }
 
       return allMoves;
@@ -452,7 +459,7 @@ public class MoveGenerator implements MoveGeneratorI {
     * @param squaresAttackingKing information about squares which attack the opponent's king
     * @return a list containing the squares which check the king (an empty list if not in check)
     */
-   /* package protected */ List<PieceSquareInfo> isOpponentsKingInCheckAfterMove(Position posn, Move m, int kingsSquare, Colour colour,
+   /* package protected */ List<PieceSquareInfo> isOpponentsKingInCheckAfterMove(Position posn, IMove m, int kingsSquare, Colour colour,
          RayCacheInfo[] squaresAttackingKing) {
       List<PieceSquareInfo> checkSquares = new ArrayList<>(2);
       boolean updateCache = squaresAttackingKing != null && !m.isCapture() && !m.isPromotion();
@@ -521,7 +528,7 @@ public class MoveGenerator implements MoveGeneratorI {
     * @param squaresWhichAttackTarget stores the result of processed squares (for sliding pieces). Can be null.
     * @return either null or an object detailing the piece and checking square
     */
-   private PieceSquareInfo moveAttacksSquare(Position posn, Move move, int targetSq, RayCacheInfo[] squaresWhichAttackTarget) {
+   private PieceSquareInfo moveAttacksSquare(Position posn, IMove move, int targetSq, RayCacheInfo[] squaresWhichAttackTarget) {
       byte movingPiece = move.getMovingPiece();
       if (Pieces.isKing(movingPiece)) {
          int slot = move.isKingssideCastling() ? 0 : move.isQueenssideCastling() ? 1 : -1;

@@ -1,14 +1,10 @@
 package org.rjo.newchess.move;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.rjo.newchess.board.Board.Square;
-import org.rjo.newchess.game.Position.PieceSquareInfo;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Pieces;
 
-public class Move {
+public class Move implements IMove {
 
    private static enum SpecialMove {
       KINGS_SIDE_CASTLING, QUEENS_SIDE_CASTLING, ENPASSANT, PAWN_TWO_SQUARES_FORWARD;
@@ -24,10 +20,6 @@ public class Move {
    private final boolean kingsSideCastling;
    private final boolean queensSideCastling;
    private final boolean pawnTwoSquaresForward; // marker field to indicate a pawn move of two squares (used in Position when performing a move)
-
-   // following fields are set after constructor call
-   private boolean check; // whether this move is a check
-   private List<PieceSquareInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
 
    /**
     * Base Constructor.
@@ -293,46 +285,44 @@ public class Move {
          sb.append(Square.toSquare(targetSq));
          if (promotedPiece != 0) { sb.append("=").append(Pieces.symbol(promotedPiece)); }
          if (enpassant) { sb.append(" ep"); }
-         if (isCheck()) { sb.append("+"); }
          return sb.toString();
       }
    }
 
+   @Override
    public boolean isCapture() { return capture; }
 
+   @Override
    public boolean isPromotion() { return promotedPiece != 0; }
 
+   @Override
    public boolean isEnpassant() { return enpassant; }
 
+   @Override
    public int getSquareOfPawnCapturedEnpassant() { return squareOfPawnCapturedEnpassant; }
 
+   @Override
    public boolean isKingssideCastling() { return kingsSideCastling; }
 
+   @Override
    public boolean isQueenssideCastling() { return queensSideCastling; }
 
+   @Override
    public byte getMovingPiece() { return originPiece; }
 
+   @Override
    public Colour getColourOfMovingPiece() { return Pieces.colourOf(originPiece); }
 
+   @Override
    public int getOrigin() { return originSq; }
 
+   @Override
    public int getTarget() { return targetSq; }
 
-   public void setCheck(List<PieceSquareInfo> checkSquares) {
-      check = true;
-      this.checkSquares = checkSquares;
-   }
-
-   public void setCheck(PieceSquareInfo... checkSquares) {
-      setCheck(Arrays.asList(checkSquares));
-   }
-
-   public boolean isCheck() { return check; }
-
-   public List<PieceSquareInfo> getCheckSquares() { return checkSquares; }
-
+   @Override
    public boolean isPawnTwoSquaresForward() { return pawnTwoSquaresForward; }
 
+   @Override
    public byte getPromotedPiece() { return promotedPiece; }
 
 }

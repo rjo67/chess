@@ -12,19 +12,19 @@ import java.util.function.Predicate;
 
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Position.PieceSquareInfo;
-import org.rjo.newchess.move.Move;
+import org.rjo.newchess.move.IMove;
 import org.rjo.newchess.piece.Pieces;
 
 public class TestUtil {
 
-   public final static Predicate<Move> NOOP_FILTER = move -> true;
-   public final static Predicate<Move> KING_FILTER = move -> Pieces.isKing(move.getMovingPiece());
-   public final static Predicate<Move> PAWN_FILTER = move -> Pieces.isPawn(move.getMovingPiece());
-   public final static Predicate<Move> KNIGHT_FILTER = move -> Pieces.isKnight(move.getMovingPiece());
-   public final static Predicate<Move> BISHOP_FILTER = move -> Pieces.isBishop(move.getMovingPiece());
-   public final static Predicate<Move> ROOK_FILTER = move -> Pieces.isRook(move.getMovingPiece());
-   public final static Predicate<Move> QUEEN_FILTER = move -> Pieces.isQueen(move.getMovingPiece());
-   public static final Predicate<Move> ONLY_CHECKS = move -> move.isCheck();
+   public final static Predicate<IMove> NOOP_FILTER = move -> true;
+   public final static Predicate<IMove> KING_FILTER = move -> Pieces.isKing(move.getMovingPiece());
+   public final static Predicate<IMove> PAWN_FILTER = move -> Pieces.isPawn(move.getMovingPiece());
+   public final static Predicate<IMove> KNIGHT_FILTER = move -> Pieces.isKnight(move.getMovingPiece());
+   public final static Predicate<IMove> BISHOP_FILTER = move -> Pieces.isBishop(move.getMovingPiece());
+   public final static Predicate<IMove> ROOK_FILTER = move -> Pieces.isRook(move.getMovingPiece());
+   public final static Predicate<IMove> QUEEN_FILTER = move -> Pieces.isQueen(move.getMovingPiece());
+   public static final Predicate<IMove> ONLY_CHECKS = move -> move.isCheck();
 
    private TestUtil() {
    }
@@ -36,11 +36,11 @@ public class TestUtil {
       return false;
    }
 
-   public static void checkMoves(List<Move> moves, String... requiredMoves) {
+   public static void checkMoves(List<IMove> moves, String... requiredMoves) {
       checkMoves(moves, NOOP_FILTER, requiredMoves);
    }
 
-   public static void checkMoves(List<Move> moves, Predicate<Move> moveFilter, String... requiredMoves) {
+   public static void checkMoves(List<IMove> moves, Predicate<IMove> moveFilter, String... requiredMoves) {
       checkMoves(moves, new HashSet<>(Arrays.asList(requiredMoves)), moveFilter);
    }
 
@@ -52,13 +52,13 @@ public class TestUtil {
     * @param requiredMoves the required moves
     * @param moveFilter    an optional predicate to further filter <code>moves</code>, e.g. in order to just concentrate on pawn moves
     */
-   private static void checkMoves(List<Move> moves, Set<String> requiredMoves, Predicate<Move> moveFilter) {
+   private static void checkMoves(List<IMove> moves, Set<String> requiredMoves, Predicate<IMove> moveFilter) {
 
       // clone moves so as to avoid losing the move list for later tests
-      List<Move> moveClone = new ArrayList<>(moves);
-      Iterator<Move> iter = moveClone.iterator();
+      List<IMove> moveClone = new ArrayList<>(moves);
+      Iterator<IMove> iter = moveClone.iterator();
       while (iter.hasNext()) {
-         Move m = iter.next();
+         IMove m = iter.next();
          if (requiredMoves.contains(m.toString())) {
             requiredMoves.remove(m.toString());
             iter.remove();

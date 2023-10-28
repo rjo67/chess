@@ -41,7 +41,7 @@ public class OpponentInCheckTest {
       var sw = StopWatch.createStarted();
       var NBR_ITERS = 300000;
       for (int i = 0; i < NBR_ITERS; i++) {
-         List<Move> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
+         List<IMove> moves = new MoveGenerator().findMoves(p, Colour.WHITE);
          assertEquals(7, moves.size(), "found moves: " + moves);
       }
       System.out.println("pawnPromotionChecksKing: " + sw.getTime()); // ~ 1160

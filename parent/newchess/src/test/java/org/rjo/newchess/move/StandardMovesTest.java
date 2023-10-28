@@ -19,7 +19,7 @@ public class StandardMovesTest {
    @Test
    public void startingPosn() {
       Game g = Game.create();
-      List<Move> moves = new MoveGenerator().findMoves(g.getPosition(), Colour.WHITE);
+      List<IMove> moves = new MoveGenerator().findMoves(g.getPosition(), Colour.WHITE);
       assertEquals(20, moves.size(), "error:" + moves);
    }
 

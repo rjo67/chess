@@ -11,6 +11,6 @@ import org.rjo.newchess.piece.Colour;
  * @author rich
  */
 public interface MoveGeneratorI {
-	List<Move> findMoves(Position posn, Colour colour);
+   List<IMove> findMoves(Position posn, Colour colour);
 
 }

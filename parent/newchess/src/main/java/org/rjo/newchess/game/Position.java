@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.board.Ray;
-import org.rjo.newchess.move.Move;
+import org.rjo.newchess.move.IMove;
 import org.rjo.newchess.move.MoveGenerator;
 import org.rjo.newchess.move.MoveGeneratorI;
 import org.rjo.newchess.piece.Colour;
@@ -107,7 +107,7 @@ public class Position {
    private List<PieceSquareInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
    // debugging info
    private Position previousPosn; // stores the previous position
-   private Move currentMove; // stores the move made from the previous position to get to this position
+   private IMove currentMove; // stores the move made from the previous position to get to this position
 
    // mainly for tests
    public Position(Square whiteKingsSquare, Square blackKingsSquare) {
@@ -143,7 +143,7 @@ public class Position {
     * @param prevPosn position to copy
     * @param move     move just been played in "prevPosn". Can be null.
     */
-   public Position(Position prevPosn, Move move) {
+   public Position(Position prevPosn, IMove move) {
       this.castlingRights = prevPosn.castlingRights;
       this.enpassantSquare = prevPosn.enpassantSquare;
       this.kingsSquare = prevPosn.kingsSquare;
@@ -281,14 +281,14 @@ public class Position {
       return sb.toString();
    }
 
-   public Position move(Move move) {
+   public Position move(IMove move) {
       Position newPosn = new Position(this, move); // clone current position
       newPosn.processMove(move);
       return newPosn;
    }
 
    // process the given move, updating internal structures
-   private void processMove(Move move) {
+   private void processMove(IMove move) {
       int sideToMoveOrdinal = this.sideToMove.ordinal();
 
       if (TEST_IF_VALID) {
@@ -480,7 +480,7 @@ public class Position {
       return new PieceSquareInfo(enemyPiece, squareOfInterest);
    }
 
-   public List<Move> findMoves(Colour sideToMove) {
+   public List<IMove> findMoves(Colour sideToMove) {
       return moveGenerator.findMoves(this, sideToMove);
    }
 
