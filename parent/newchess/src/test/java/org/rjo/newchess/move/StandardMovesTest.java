@@ -9,6 +9,7 @@ import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Game;
 import org.rjo.newchess.game.Position;
+import org.rjo.newchess.move.MoveGenerator.SlidingMoveNode;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
 import org.rjo.newchess.piece.Pieces;
@@ -32,6 +33,15 @@ public class StandardMovesTest {
    }
 
    @Test
+   public void slidingMoveNodes() {
+      SlidingMoveNode rookMove = MoveGenerator.slidingMoves[Piece.ROOK.ordinal()][Square.c2.index()];
+      do {
+         System.out.println("c2-" + Square.toSquare(rookMove.to));
+         rookMove = rookMove.next[0];
+      } while (rookMove != null);
+   }
+
+   @Test
    public void rookMoves() {
       Position p = new Position(Square.b1, Square.b8);
       p.addPiece(Colour.WHITE, Piece.ROOK, Square.d5);
@@ -42,6 +52,12 @@ public class StandardMovesTest {
       p.addPiece(Colour.WHITE, Piece.ROOK, Square.b7);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ROOK_FILTER, "Rb7-b8+", "Rb7-a7", "Rb7-c7", "Rb7-d7", "Rb7-e7+", "Rb7-f7",
             "Rb7-g7", "Rb7-h7", "Rb7-b6", "Rb7-b5", "Rb7-b4", "Rb7-b3", "Rb7-b2", "Rb7-b1");
+
+      // same again, with some extra pieces
+      p.addPiece(Colour.WHITE, Piece.PAWN, Square.e7);
+      p.addPiece(Colour.BLACK, Piece.QUEEN, Square.b3);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ROOK_FILTER, "Rb7-b8+", "Rb7-a7", "Rb7-c7", "Rb7-d7", "Rb7-b6", "Rb7-b5",
+            "Rb7-b4", "Rb7xb3");
 
    }
 

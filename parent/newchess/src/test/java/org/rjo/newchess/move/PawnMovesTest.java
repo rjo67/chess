@@ -58,6 +58,11 @@ public class PawnMovesTest {
       p = new Position(Square.e1, Square.g6);
       p.addPiece(Colour.BLACK, Piece.PAWN, Square.d5);
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.PAWN_FILTER, "d5-d4");
+
+      p = new Position(Square.e1, Square.e8);
+      p.addPiece(Colour.BLACK, Piece.PAWN, Square.a7);
+      p.addPiece(Colour.WHITE, Piece.PAWN, Square.a6);
+      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.PAWN_FILTER);
    }
 
    // ----------------------------------------------- promotion --------------------------------

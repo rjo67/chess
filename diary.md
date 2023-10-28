@@ -3,7 +3,11 @@
 ## TODOs ?
 
 - store Rays in a byte?
-- Move as int?
+- Separate Move up: (origin, target) can be pre-generated, the pieces involved are the variable part
+- this may save time since can store the origin,target pair in the static arrays, also eg for castling
+
+Interesting link: https://www.codeproject.com/Articles/5313417/Worlds-fastest-Bitboard-Chess-Movegenerator
+
 
 
 ## Overview of commits and performance
