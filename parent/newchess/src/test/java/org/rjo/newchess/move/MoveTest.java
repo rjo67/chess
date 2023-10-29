@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
@@ -19,7 +20,7 @@ public class MoveTest {
 
    @Test
    public void move() {
-      Move m = Move.createMove(Square.a5, WHITE_PAWN, Square.a6);
+      IMove m = TestUtil.createMove(Square.a5, WHITE_PAWN, Square.a6);
       assertFalse(m.isCapture());
       assertFalse(m.isEnpassant());
       assertFalse(m.isPromotion());
@@ -31,7 +32,7 @@ public class MoveTest {
 
    @Test
    public void capture() {
-      Move m = Move.createCapture(Square.a5, WHITE_PAWN, Square.b6, BLACK_PAWN);
+      IMove m = TestUtil.createCapture(Square.a5, WHITE_PAWN, Square.b6, BLACK_PAWN);
       assertTrue(m.isCapture());
       assertFalse(m.isEnpassant());
       assertFalse(m.isPromotion());
@@ -43,7 +44,7 @@ public class MoveTest {
 
    @Test
    public void enpassant() {
-      Move m = Move.createEnpassantMove(Square.b5, WHITE_PAWN, Square.c6);
+      Move m = Move.createEnpassantMove(Square.b5.index(), Square.c6.index(), Colour.WHITE);
       assertTrue(m.isCapture());
       assertTrue(m.isEnpassant());
       assertFalse(m.isPromotion());
@@ -52,7 +53,7 @@ public class MoveTest {
       assertFalse(m.isQueenssideCastling());
       assertEquals(Square.c5.index(), m.getSquareOfPawnCapturedEnpassant());
 
-      m = Move.createEnpassantMove(Square.b4, BLACK_PAWN, Square.a3);
+      m = Move.createEnpassantMove(Square.b4.index(), Square.a3.index(), Colour.BLACK);
       assertTrue(m.isCapture());
       assertTrue(m.isEnpassant());
       assertFalse(m.isPromotion());
@@ -71,7 +72,7 @@ public class MoveTest {
       boolean kingsCastling = Boolean.parseBoolean(kingsside);
       boolean queensCastling = Boolean.parseBoolean(queensside);
 
-      Move m = kingsCastling ? Move.createKingssideCastlingMove(col) : Move.createQueenssideCastlingMove(col);
+      IMove m = kingsCastling ? Move.KINGS_CASTLING_MOVE[col.ordinal()] : Move.QUEENS_CASTLING_MOVE[col.ordinal()];
       assertEquals(originSq.index(), m.getOrigin());
       assertEquals(targetSq.index(), m.getTarget());
       assertFalse(m.isCapture());
@@ -85,7 +86,7 @@ public class MoveTest {
 
    @Test
    public void promotion() {
-      Move m = Move.createPromotionMove(Square.e7, WHITE_PAWN, Square.e8, Pieces.generateQueen(null));
+      IMove m = Move.createPromotionMove(Square.e7.index(), Square.e8.index(), Pieces.generateQueen(null));
       assertFalse(m.isCapture());
       assertFalse(m.isEnpassant());
       assertTrue(m.isPromotion());
@@ -98,7 +99,7 @@ public class MoveTest {
 
    @Test
    public void promotionCapture() {
-      Move m = Move.createPromotionCaptureMove(Square.e7, WHITE_PAWN, Square.d8, BLACK_PAWN, Pieces.generateRook(null));
+      IMove m = Move.createPromotionCaptureMove(Square.e7.index(), Square.d8.index(), BLACK_PAWN, Pieces.generateRook(null));
       assertTrue(m.isCapture());
       assertFalse(m.isEnpassant());
       assertTrue(m.isPromotion());
@@ -111,7 +112,7 @@ public class MoveTest {
 
    @Test
    public void pawnTwoSquaresMove() {
-      Move m = Move.createPawnTwoSquaresForwardMove(Square.e2, WHITE_PAWN, Square.e4);
+      IMove m = MoveGenerator.pawnMoves[Colour.WHITE.ordinal()][Square.e2.index()].next[0].move;
       assertFalse(m.isCapture());
       assertFalse(m.isEnpassant());
       assertFalse(m.isPromotion());

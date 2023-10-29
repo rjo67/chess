@@ -3,8 +3,8 @@ package org.rjo.newchess.move;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.rjo.newchess.game.Position.PieceSquareInfo;
-import org.rjo.newchess.piece.Colour;
 
 public interface IMove {
 
@@ -12,7 +12,9 @@ public interface IMove {
 
    default List<PieceSquareInfo> getCheckSquares() { return new ArrayList<>(); }
 
-   byte getMovingPiece();
+   default byte getMovingPiece() {
+      throw new NotImplementedException("cannot call getMovingPiece on a normal move");
+   }
 
    int getOrigin();
 
@@ -21,8 +23,6 @@ public interface IMove {
    boolean isCapture();
 
    boolean isEnpassant();
-
-   Colour getColourOfMovingPiece();
 
    boolean isPromotion();
 
@@ -35,5 +35,7 @@ public interface IMove {
    int getSquareOfPawnCapturedEnpassant();
 
    boolean isPawnTwoSquaresForward();
+
+   public boolean moveCapturesPiece(int captureSquare);
 
 }

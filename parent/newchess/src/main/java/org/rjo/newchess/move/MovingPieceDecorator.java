@@ -1,36 +1,22 @@
 package org.rjo.newchess.move;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.rjo.newchess.game.Position.PieceSquareInfo;
-import org.rjo.newchess.piece.Colour;
+import org.rjo.newchess.piece.Pieces;
 
 /**
- * Wrapper for a Move, storing check information.
+ * Decorator for a Move, storing information of the moving piece.
  */
-public class CheckMove implements IMove {
+public class MovingPieceDecorator implements IMove {
 
    private final IMove move;
-   private final List<PieceSquareInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
+   private final byte movingPiece;
 
-   public CheckMove(IMove move, PieceSquareInfo... checkSquares) {
-      this(move, Arrays.asList(checkSquares));
-   }
-
-   public CheckMove(IMove move, List<PieceSquareInfo> checkSquares) {
+   public MovingPieceDecorator(IMove move, byte movingPiece) {
       this.move = move;
-      this.checkSquares = checkSquares;
+      this.movingPiece = movingPiece;
    }
 
    @Override
-   public boolean isCheck() { return true; }
-
-   @Override
-   public List<PieceSquareInfo> getCheckSquares() { return checkSquares; }
-
-   @Override
-   public byte getMovingPiece() { return move.getMovingPiece(); }
+   public byte getMovingPiece() { return movingPiece; }
 
    @Override
    public int getOrigin() { return move.getOrigin(); }
@@ -43,9 +29,6 @@ public class CheckMove implements IMove {
 
    @Override
    public boolean isEnpassant() { return move.isEnpassant(); }
-
-   @Override
-   public Colour getColourOfMovingPiece() { return move.getColourOfMovingPiece(); }
 
    @Override
    public boolean isPromotion() { return move.isPromotion(); }
@@ -67,6 +50,16 @@ public class CheckMove implements IMove {
 
    @Override
    public String toString() {
-      return move.toString() + "+";
+      // movingPiece is appended at the start of the move string (but not for castling)
+      if (isKingssideCastling() || isQueenssideCastling()) {
+         return move.toString();
+      } else {
+         return Pieces.symbol(movingPiece) + move.toString();
+      }
+   }
+
+   @Override
+   public boolean moveCapturesPiece(int captureSquare) {
+      return move.moveCapturesPiece(captureSquare);
    }
 }

@@ -15,7 +15,7 @@ import org.rjo.newchess.piece.Piece;
 public class MoveGeneratorTest {
 
    private MoveGenerator movegen;
-   private List<Move> moves;
+   private List<IMove> moves;
 
    @BeforeEach
    public void setup() {

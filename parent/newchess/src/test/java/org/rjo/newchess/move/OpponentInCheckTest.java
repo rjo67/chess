@@ -86,7 +86,7 @@ public class OpponentInCheckTest {
    })
    public void kingInDirectCheckAfterMove(String fen, String moveOrigin, String moveTarget) {
       Position posn = Fen.decode(fen).getPosition();
-      Move move = Move.createMove(Square.valueOf(moveOrigin), posn.pieceAt(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
+      IMove move = TestUtil.createMove(Square.valueOf(moveOrigin), posn.pieceAt(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
       List<PieceSquareInfo> checkSquares = new MoveGenerator().isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
             null);
       assertEquals(1, checkSquares.size());
@@ -100,7 +100,7 @@ public class OpponentInCheckTest {
    })
    public void kingInDiscoveredCheckAfterMove(String fen, String moveOrigin, String moveTarget, String checkSquare) {
       Position posn = Fen.decode(fen).getPosition();
-      Move move = Move.createMove(Square.valueOf(moveOrigin), posn.pieceAt(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
+      IMove move = TestUtil.createMove(Square.valueOf(moveOrigin), posn.pieceAt(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
 
       List<PieceSquareInfo> checkSquares = new MoveGenerator().isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
             null);
@@ -114,7 +114,7 @@ public class OpponentInCheckTest {
    })
    public void kingInDirectAndDiscoveredCheckAfterMove(String fen, String moveOrigin, String moveTarget, String discoverdCheckSquare) {
       Position posn = Fen.decode(fen).getPosition();
-      Move move = Move.createMove(Square.valueOf(moveOrigin), posn.pieceAt(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
+      IMove move = TestUtil.createMove(Square.valueOf(moveOrigin), posn.pieceAt(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
       List<PieceSquareInfo> checkSquares = new MoveGenerator().isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
             null);
       assertEquals(2, checkSquares.size());
@@ -126,7 +126,7 @@ public class OpponentInCheckTest {
    @Test
    public void kingInDirectAndDiscoveredCheckAfterMoveCache() {
       Position posn = Fen.decode("5K2/8/1Q5B/2N5/5P2/8/RB3k2/8 w - - 0 1").getPosition();
-      Move move = Move.createMove(Square.b2, posn.pieceAt(Square.b2), Square.d4);
+      IMove move = TestUtil.createMove(Square.b2, posn.pieceAt(Square.b2), Square.d4);
       RayCacheInfo[] cache = new RayCacheInfo[64];
       List<PieceSquareInfo> checkSquares = new MoveGenerator(true).isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
             cache);

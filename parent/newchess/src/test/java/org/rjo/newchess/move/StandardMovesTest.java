@@ -36,7 +36,7 @@ public class StandardMovesTest {
    public void slidingMoveNodes() {
       SlidingMoveNode rookMove = MoveGenerator.slidingMoves[Piece.ROOK.ordinal()][Square.c2.index()];
       do {
-         System.out.println("c2-" + Square.toSquare(rookMove.to));
+         System.out.println("c2-" + Square.toSquare(rookMove.getTo()));
          rookMove = rookMove.next[0];
       } while (rookMove != null);
    }

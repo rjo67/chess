@@ -120,20 +120,20 @@ public class CheckTest {
       // after black's move ne4-d2: -
       Position p = Fen.decode("8/8/2k5/5q2/5n2/8/5K2/8 b - - 0 1").getPosition();
       assertFalse(p.isKingInCheck());
-      IMove m = new CheckMove(Move.createMove(Square.f4, p.pieceAt(Square.f4), Square.e2), new PieceSquareInfo(Piece.QUEEN, Square.f5));
+      IMove m = new CheckMoveDecorator(TestUtil.createMove(Square.f4, p.pieceAt(Square.f4), Square.e2), new PieceSquareInfo(Piece.QUEEN, Square.f5));
       Position p2 = p.move(m);
       Map<String, Integer> moveMap = Perft.findMoves(p2, Colour.WHITE, 3, 1);
       int moves = Perft.countMoves(moveMap);
       // should be 544, was 545: Kf2-g2=143 should be 142
       // assertEquals(544, moves, String.format("wrong nbr of moves at depth 3\nmoveMap: %s\n", moveMap));
-      Position p3 = p2.move(Move.createMove(Square.f2, p2.pieceAt(Square.f2), Square.g2));
+      Position p3 = p2.move(TestUtil.createMove(Square.f2, p2.pieceAt(Square.f2), Square.g2));
       System.out.println(p3);
       System.out.println(p3);
       moveMap = Perft.findMoves(p3, Colour.BLACK, 2, 1);
       moves = Perft.countMoves(moveMap);
       // should be 142, was 143.
       // assertEquals(142, moves, String.format("wrong nbr of moves at depth 2\nmoveMap: %s\n", moveMap));
-      m = new CheckMove(Move.createMove(Square.f5, p3.pieceAt(Square.f5), Square.f2), new PieceSquareInfo(Piece.QUEEN, Square.f2));
+      m = new CheckMoveDecorator(TestUtil.createMove(Square.f5, p3.pieceAt(Square.f5), Square.f2), new PieceSquareInfo(Piece.QUEEN, Square.f2));
       Position p4 = p3.move(m);
       System.out.println(p4);
       // fen 8/8/2k5/8/8/8/4nqK1/8 w - -

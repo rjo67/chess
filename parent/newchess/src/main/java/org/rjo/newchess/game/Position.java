@@ -311,7 +311,7 @@ public class Position {
             throw new IllegalStateException(String.format("invalid non-capture move %s, target square is occupied with: %s %s", move,
                   colourOfPieceAt(move.getTarget()), pieceAt(move.getTarget())));
          }
-         if (move.getColourOfMovingPiece() != this.sideToMove) {
+         if (Pieces.colourOf(move.getMovingPiece()) != this.sideToMove) {
             throw new IllegalStateException(String.format("invalid move %s, sideToMove is %s", move, sideToMove));
          }
       }
@@ -338,7 +338,7 @@ public class Position {
             }
          }
          board[rookOriginSq] = UNOCCUPIED_SQUARE;
-         board[rookTargetSq] = Pieces.generateRook(move.getColourOfMovingPiece());
+         board[rookTargetSq] = Pieces.generateRook(Pieces.colourOf(move.getMovingPiece()));
       }
 
       // update enpassantSquare if pawn moved

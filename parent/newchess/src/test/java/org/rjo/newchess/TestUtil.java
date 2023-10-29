@@ -13,6 +13,8 @@ import java.util.function.Predicate;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Position.PieceSquareInfo;
 import org.rjo.newchess.move.IMove;
+import org.rjo.newchess.move.Move;
+import org.rjo.newchess.move.MovingPieceDecorator;
 import org.rjo.newchess.piece.Pieces;
 
 public class TestUtil {
@@ -27,6 +29,14 @@ public class TestUtil {
    public static final Predicate<IMove> ONLY_CHECKS = move -> move.isCheck();
 
    private TestUtil() {
+   }
+
+   public static IMove createCapture(Square origin, byte originPiece, Square target, byte targetPiece) {
+      return new MovingPieceDecorator(Move.createCapture(origin, target, targetPiece), originPiece);
+   }
+
+   public static IMove createMove(Square origin, byte originPiece, Square target) {
+      return new MovingPieceDecorator(Move.createMove(origin, target), originPiece);
    }
 
    public static boolean squareIsCheckSquare(Square square, List<PieceSquareInfo> checkSquares) {
