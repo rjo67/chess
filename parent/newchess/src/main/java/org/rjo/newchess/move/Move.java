@@ -77,17 +77,6 @@ public class Move implements IMove {
    }
 
    /**
-    * Normal move. Helper method using Square objects.
-    * 
-    * @param origin origin square
-    * @param target target square
-    * @return the new move object
-    */
-   public static Move createMove(Square origin, Square target) {
-      return new Move(origin.index(), target.index(), (byte) 0, (byte) 0);
-   }
-
-   /**
     * Capture move.
     * 
     * @param origin      origin square
@@ -98,18 +87,6 @@ public class Move implements IMove {
    public static Move createCapture(int origin, int target, byte targetPiece) {
       if (targetPiece == 0) { throw new IllegalStateException("cannot call createCapture with empty 'targetPiece'"); }
       return new Move(origin, target, targetPiece, (byte) 0);
-   }
-
-   /**
-    * Capture move. Helper method using Square objects.
-    * 
-    * @param origin      origin square
-    * @param target      target square
-    * @param targetPiece info about piece on target square; cannot be zero (empty square)
-    * @return the new move object
-    */
-   public static Move createCapture(Square origin, Square target, byte targetPiece) {
-      return createCapture(origin.index(), target.index(), targetPiece);
    }
 
    /**

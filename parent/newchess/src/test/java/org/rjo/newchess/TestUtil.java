@@ -32,11 +32,11 @@ public class TestUtil {
    }
 
    public static IMove createCapture(Square origin, byte originPiece, Square target, byte targetPiece) {
-      return new MovingPieceDecorator(Move.createCapture(origin, target, targetPiece), originPiece);
+      return new MovingPieceDecorator(Move.createCapture(origin.index(), target.index(), targetPiece), originPiece);
    }
 
    public static IMove createMove(Square origin, byte originPiece, Square target) {
-      return new MovingPieceDecorator(Move.createMove(origin, target), originPiece);
+      return new MovingPieceDecorator(Move.createMove(origin.index(), target.index()), originPiece);
    }
 
    public static boolean squareIsCheckSquare(Square square, List<PieceSquareInfo> checkSquares) {
