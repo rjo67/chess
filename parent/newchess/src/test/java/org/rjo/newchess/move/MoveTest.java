@@ -112,7 +112,7 @@ public class MoveTest {
 
    @Test
    public void pawnTwoSquaresMove() {
-      IMove m = MoveGenerator.pawnMoves[Colour.WHITE.ordinal()][Square.e2.index()].next[0].move;
+      IMove m = MoveGenerator.pawnMoves[Colour.WHITE.ordinal()][Square.e2.index()].getNext()[0].getMove();
       assertFalse(m.isCapture());
       assertFalse(m.isEnpassant());
       assertFalse(m.isPromotion());

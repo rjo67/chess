@@ -29,35 +29,36 @@ public class MoveGenerator implements MoveGeneratorI {
    private boolean verbose;
 
    /**
-    * Stores information about possible next moves.
+    * A MoveNode is an entry in a linked list which stores information about the possible next moves.
+    * 
+    * Because a move to a particular square could be a capture, both types of move are stored in the MoveNode instance.
+    * 
+    * The elements in the 'next' array are links to the next MoveNodes. In general, the linked list should be followed (node[0]) until the next
+    * target square is found to be occupied, which potentially generates a capture move. Then next[1] should be used.
     * 
     * <ul>
     * <li>For sliding pieces: next[0] gives the next move along the ray. If null, then next[1] gives the first move in the next direction.</li>
     * <li>For pawns: 'move' represents the one-sq-forward move, and next[0] is two-sqs-forward. (next[1] is null)</li>
     * <li>For knights: next[0] represents the next move. next[1] points to the same node</li>
     * </ul>
-    * In general, the linked list should be followed (node[0]) until the next target square is found to be occupied, perhaps generating a
-    * capture move. Then next[1] should be used.
     */
    public static class MoveNode {
-      // either specify 'to', or give the 'move'
-      private final int to;
+      // either specify 'to', or give the 'move'/'capture'
+      private final int to; // TODO candidate to be removed.... is also stored in move.getTarget() or captureMove.getTarget()
       private final Square toSq;
-      final IMove move;
-      final MoveNode[] next = new MoveNode[2];
+      private final IMove move;
+      private final IMove captureMove;
+      private final MoveNode[] next = new MoveNode[2];
 
       MoveNode(int to) {
-         this(to, null);
+         this(null, null, to);
       }
 
-      MoveNode(IMove move, int to) {
-         this(to, move);
-      }
-
-      private MoveNode(int to, IMove move) {
+      MoveNode(IMove move, IMove capture, int to) {
          this.to = to;
          this.toSq = Square.toSquare(to);
          this.move = move;
+         this.captureMove = capture;
       }
 
       void addNext(MoveNode next) {
@@ -72,11 +73,13 @@ public class MoveGenerator implements MoveGeneratorI {
 
       public IMove getMove() { return move; }
 
+      public IMove getCaptureMove() { return captureMove; }
+
       public MoveNode[] getNext() { return next; }
 
       @Override
       public String toString() {
-         return "(" + "to=" + toSq + ", m=" + move.toString() + ", " + next[0] + "/" + next[1] + ")";
+         return "(" + "to=" + toSq + ", m=" + move.toString() + ", n=" + next[0] + ", nd=" + next[1] + ")";
       }
    }
 
@@ -89,27 +92,28 @@ public class MoveGenerator implements MoveGeneratorI {
    // the first dimension of all these arrays is indexed on colour (w/b)
    // ****
 
-   // square where the king must be to be able to castle
+   /** square where the king must be to be able to castle */
    public final static int[] kingsCastlingSquareIndex = new int[] { Square.e1.index(), Square.e8.index() };
-   // square where the king ends up after castling kings or queensside, indexed on
-   // colour
+   /** square where the king ends up after castling kings or queensside, indexed on colour */
    public final static int[][] kingsSquareAfterCastling = new int[][] { { Square.g1.index(), Square.c1.index() }, { Square.g8.index(), Square.c8.index() } };
-   // square where the rook ends up after castling kings or queensside, indexed on colour and side of board
+   /** square where the rook ends up after castling kings or queensside, indexed on colour and side of board */
    public final static int[][] rooksSquareAfterCastling = new int[][] { { Square.f1.index(), Square.d1.index() }, { Square.f8.index(), Square.d8.index() } };
-   // stores the rook's squares for kingsside or queensside castling, indexed on colour and side of board
+   /** stores the rook's squares for kingsside or queensside castling, indexed on colour and side of board */
    public final static int[][] rooksCastlingSquareIndex = new int[][] { { Square.h1.index(), Square.a1.index() }, { Square.h8.index(), Square.a8.index() } };
-   // squares which must be unoccupied in order to castle kingsside
+   /** squares which must be unoccupied in order to castle kingsside */
    private final static int[][] unoccupiedSquaresKingssideCastling = new int[][]//
    { { Square.f1.index(), Square.g1.index() }, { Square.f8.index(), Square.g8.index() } };
-   // if an enemy knight is on these squares, then cannot castle kingsside
+   /** if an enemy knight is on these squares, then cannot castle kingsside */
    private final static int[][] knightSquaresKingssideCastling = new int[][]//
    { { Square.d2.index(), Square.e3.index(), Square.g3.index(), Square.h2.index(), Square.e2.index(), Square.f3.index(), Square.h3.index() },
          { Square.d7.index(), Square.e6.index(), Square.g6.index(), Square.h7.index(), Square.e7.index(), Square.f6.index(), Square.h6.index() } };
-   // squares which must be unoccupied in order to castle queensside
+   /** squares which must be unoccupied in order to castle queensside */
    private final static int[][] unoccupiedSquaresQueenssideCastling = new int[][]//
    { { Square.b1.index(), Square.c1.index(), Square.d1.index() }, { Square.b8.index(), Square.c8.index(), Square.d8.index() } };
-   // if an enemy knight is on these squares, then cannot castle queensside (not
-   // including c2/c7, since a knight on that square checks the king)
+   /**
+    * if an enemy knight is on these squares, then cannot castle queensside (not including c2/c7, since a knight on that square checks the
+    * king)
+    */
    private final static int[][] knightSquaresQueenssideCastling = new int[][]//
    { { Square.b3.index(), Square.c3.index(), Square.d3.index(), Square.e3.index(), Square.a2.index(), Square.b2.index(), Square.e2.index(), Square.f2.index() },
          { Square.b6.index(), Square.c6.index(), Square.d6.index(), Square.e6.index(), Square.a7.index(), Square.b7.index(), Square.e7.index(),
@@ -172,7 +176,7 @@ public class MoveGenerator implements MoveGeneratorI {
       enpassantSquares[Square.h3.index()] = new EnpassantInfo[] {
             new EnpassantInfo(Square.g4.index(), Move.createEnpassantMove(Square.g4.index(), Square.h3.index(), Colour.BLACK)) };
 
-      // pawn moves: first 'node' stores 'one sq forward', linking to 2nd node '2 squares forward' if applicable
+      // pawn moves: first MoveNode stores 'one sq forward', linking to 2nd node '2 squares forward' if applicable
       for (Colour col : new Colour[] { Colour.WHITE, Colour.BLACK }) {
          for (int startSq = 0; startSq < 64; startSq++) {
             int[] targetSquares = col == Colour.WHITE ? Ray.raysList[startSq][Ray.NORTH.ordinal()] : Ray.raysList[startSq][Ray.SOUTH.ordinal()];
@@ -182,7 +186,8 @@ public class MoveGenerator implements MoveGeneratorI {
                   // promotion moves
                   MoveNode current = null;
                   for (Piece pt : new Piece[] { Piece.ROOK, Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
-                     MoveNode promotion = new MoveNode(Move.createPromotionMove(startSq, targetSquares[0], Pieces.generatePiece(pt, col)), targetSquares[0]);
+                     MoveNode promotion = new MoveNode(Move.createPromotionMove(startSq, targetSquares[0], Pieces.generatePiece(pt, col)), null,
+                           targetSquares[0]);
                      if (current == null) {
                         pawnMoves[col.ordinal()][startSq] = promotion;
                      } else {
@@ -191,10 +196,10 @@ public class MoveGenerator implements MoveGeneratorI {
                      current = promotion;
                   }
                } else {
-                  MoveNode oneSqForwardMove = new MoveNode(new Move(startSq, targetSquares[0], (byte) 0, (byte) 0), targetSquares[0]);
+                  MoveNode oneSqForwardMove = new MoveNode(new Move(startSq, targetSquares[0], (byte) 0, (byte) 0), null, targetSquares[0]);
                   pawnMoves[col.ordinal()][startSq] = oneSqForwardMove;
                   if (onPawnStartRank(startSq, col)) {
-                     MoveNode twoSqForwardMove = new MoveNode(new Move(startSq, targetSquares[1], false, (byte) 0, false, 0, false, false, true),
+                     MoveNode twoSqForwardMove = new MoveNode(new Move(startSq, targetSquares[1], false, (byte) 0, false, 0, false, false, true), null,
                            targetSquares[1]);
                      oneSqForwardMove.addNext(twoSqForwardMove);
                   }
@@ -221,7 +226,7 @@ public class MoveGenerator implements MoveGeneratorI {
          }
       }
 
-      for (Piece piece : new Piece[] { Piece.ROOK, Piece.BISHOP, Piece.QUEEN }) {
+      for (Piece piece : new Piece[] { Piece.ROOK, Piece.BISHOP, Piece.QUEEN, Piece.KING }) {
          Ray[] raysToCheck;
          switch (piece) {
          case ROOK:
@@ -230,7 +235,7 @@ public class MoveGenerator implements MoveGeneratorI {
          case BISHOP:
             raysToCheck = Ray.RAY_TYPES_DIAGONAL;
             break;
-         case QUEEN:
+         case QUEEN, KING:
             raysToCheck = new Ray[] { Ray.NORTH, Ray.NORTHEAST, Ray.EAST, Ray.SOUTHEAST, Ray.SOUTH, Ray.SOUTHWEST, Ray.WEST, Ray.NORTHWEST };
             break;
          default:
@@ -240,16 +245,19 @@ public class MoveGenerator implements MoveGeneratorI {
             List<MoveNode> newlyCreatedNodes = new ArrayList<>();
             MoveNode prev = null;
             for (Ray ray : raysToCheck) {
-               int[] toSquares = Ray.raysList[fromSq][ray.ordinal()];
-               for (int toSquareIndex = 0; toSquareIndex < toSquares.length; toSquareIndex++) {
-                  MoveNode node = new MoveNode(toSquares[toSquareIndex]);
+               int[] targetSquares = Ray.raysList[fromSq][ray.ordinal()];
+               for (int targetSquareIndex = 0; targetSquareIndex < targetSquares.length; targetSquareIndex++) {
+                  MoveNode node = new MoveNode(//
+                        Move.createMove(fromSq, targetSquares[targetSquareIndex]), //
+                        new Move(fromSq, targetSquares[targetSquareIndex], (byte) 1, (byte) 0), // byte(1) indicates a capture
+                        targetSquares[targetSquareIndex]);
                   if (prev == null) {
                      moveNodes[piece.ordinal()][fromSq] = node;
                   } else {
                      prev.addNext(node);
                   }
                   prev = node;
-                  if (toSquareIndex == 0 && !newlyCreatedNodes.isEmpty()) {
+                  if (targetSquareIndex == 0 && !newlyCreatedNodes.isEmpty()) {
                      // update nextDir for all nodes created in the previous iteration
                      for (MoveNode n : newlyCreatedNodes) {
                         n.addNextDirection(node);
@@ -257,6 +265,9 @@ public class MoveGenerator implements MoveGeneratorI {
                      newlyCreatedNodes.clear();
                   }
                   newlyCreatedNodes.add(node);
+                  if (piece == Piece.KING) {
+                     break; // only process one square of each ray
+                  }
                }
             }
          }
@@ -271,13 +282,16 @@ public class MoveGenerator implements MoveGeneratorI {
          }
       }
 
-      // the knight moves are stored in 'moveNodes' as well so that the algorithm can deal with knights in the same way as other pieces
+      // the knight moves are also stored in 'moveNodes' so that the algorithm can deal with knights in the same way as other pieces
       Piece piece = Piece.KNIGHT;
       for (int fromSq = 0; fromSq < 64; fromSq++) {
          MoveNode prev = null;
          Integer[] moves = knightMoves[fromSq].toArray(new Integer[0]);
-         for (int toSquareIndex = 0; toSquareIndex < moves.length; toSquareIndex++) {
-            MoveNode node = new MoveNode(moves[toSquareIndex]);
+         for (int targetSquareIndex = 0; targetSquareIndex < moves.length; targetSquareIndex++) {
+            MoveNode node = new MoveNode(//
+                  Move.createMove(fromSq, moves[targetSquareIndex]), //
+                  new Move(fromSq, moves[targetSquareIndex], (byte) 1, (byte) 0), // byte(1) indicates a capture
+                  moves[targetSquareIndex]);
             if (prev == null) {
                moveNodes[piece.ordinal()][fromSq] = node;
             } else {
@@ -722,17 +736,49 @@ public class MoveGenerator implements MoveGeneratorI {
     * @param moves   king moves will be added to this list
     */
    /* package */ void processKingsSquare(Position posn, int startSq, Colour colour, List<IMove> moves) {
-      if (posn.colourOfPieceAt(startSq) == colour) {
-         if (!Pieces.isKing(posn.pieceAt(startSq))) {
-            throw new IllegalStateException(String.format("called processKingsSquare with piece %s, posn: %s", posn.pieceAt(startSq), posn));
+      byte pieceOnStartSq = posn.pieceAt(startSq);
+      if (Pieces.colourOf(pieceOnStartSq) == colour) {
+         if (!Pieces.isKing(pieceOnStartSq)) {
+            throw new IllegalStateException(String.format("called processKingsSquare with piece %s, posn: %s", pieceOnStartSq, posn));
          }
-         Square opponentsKing = Square.toSquare(posn.getKingsSquare(posn.getSideToMove().opposite()));
-         for (int offset : Piece.KING.getMoveOffsets()) { // process each square along the ray
-            int nextSq = Board.getMailboxSquare(startSq, offset);
-            if (nextSq != -1) {
-               if (!Square.toSquare(nextSq).adjacentTo(opponentsKing)) { // king would move adjacent to opponent's king?
-                  addIfNotNull(moves, generateEitherMoveOrCapture(posn, startSq, nextSq, colour));
+         final Square opponentsKing = Square.toSquare(posn.getKingsSquare(posn.getSideToMove().opposite()));
+
+         // @formatter:off
+//         for (int offset : Piece.KING.getMoveOffsets()) { // process each square along the ray
+//            int nextSq = Board.getMailboxSquare(startSq, offset);
+//            if (nextSq != -1) {
+//               if (!Square.toSquare(nextSq).adjacentTo(opponentsKing)) { // king would move adjacent to opponent's king?
+//                  addIfNotNull(moves, generateEitherMoveOrCapture(posn, startSq, nextSq, colour));
+//               }
+//            }
+//         }
+         // @formatter:on
+
+         // more or less a duplicate of processSquare :-( -- without 'check' logic, with adjacentSquare logic
+         // next[0] or next[1] doesn't matter, both are set to be the same
+
+         MoveNode targetNode = moveNodes[Piece.KING.ordinal()][startSq];
+         while (targetNode != null) {
+            IMove move = null;
+            // ignore square if king would move adjacent to opponent's king
+            if (targetNode.toSq.adjacentTo(opponentsKing)) {
+               targetNode = targetNode.next[1];
+            } else {
+               // a) generate a move if the target square is empty
+               // b) move to 'next direction' next[1] if a piece is occupying the square
+               byte targetSquareContents = posn.pieceAt(targetNode.to);
+               if (targetSquareContents == 0) {
+                  move = new MovingPieceDecorator(targetNode.move, pieceOnStartSq);
+                  targetNode = targetNode.next[0];
+               } else if (colour == Pieces.colourOf(targetSquareContents)) {
+                  // our own piece is blocking
+                  targetNode = targetNode.next[1];
+               } else {
+                  // capture
+                  move = new MovingPieceDecorator(targetNode.captureMove, pieceOnStartSq);
+                  targetNode = targetNode.next[1];
                }
+               if (move != null) { moves.add(move); }
             }
          }
       }
@@ -769,14 +815,14 @@ public class MoveGenerator implements MoveGeneratorI {
                // b) move to 'next direction' next[1] if a friendly piece is occupying the square or a capture
                byte targetSquareContents = posn.pieceAt(targetNode.to);
                if (targetSquareContents == 0) {
-                  move = new MovingPieceDecorator(new Move(startSq, targetNode.to, (byte) 0, (byte) 0), pieceOnStartSq);
+                  move = new MovingPieceDecorator(targetNode.move, pieceOnStartSq);
                   targetNode = targetNode.next[0];
                } else if (colour == Pieces.colourOf(targetSquareContents)) {
                   // our own piece is blocking
                   targetNode = targetNode.next[1];
                } else {
                   // capture
-                  move = new MovingPieceDecorator(new Move(startSq, targetNode.to, (byte) 1, (byte) 0), pieceOnStartSq); // byte 1 ==> capture
+                  move = new MovingPieceDecorator(targetNode.captureMove, pieceOnStartSq);
                   targetNode = targetNode.next[1];
                }
                if (move != null) {

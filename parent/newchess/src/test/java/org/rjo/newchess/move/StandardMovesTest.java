@@ -9,7 +9,6 @@ import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Game;
 import org.rjo.newchess.game.Position;
-import org.rjo.newchess.move.MoveGenerator.MoveNode;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
 import org.rjo.newchess.piece.Pieces;
@@ -30,15 +29,6 @@ public class StandardMovesTest {
       TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.QUEEN_FILTER, "Qd1-c2", "Qd1-b3", "Qd1-a4+", "Qd1-d2", "Qd1-d3", "Qd1-d4+",
             "Qd1-d5", "Qd1-d6", "Qd1-d7+", "Qd1-d8", "Qd1-e2", "Qd1-f3", "Qd1-g4", "Qd1-h5", "Qd1-c1", "Qd1-b1", "Qd1-a1+", "Qd1-e1", "Qd1-f1", "Qd1-g1",
             "Qd1-h1");
-   }
-
-   @Test
-   public void slidingMoveNodes() {
-      MoveNode rookMove = MoveGenerator.moveNodes[Piece.ROOK.ordinal()][Square.c2.index()];
-      do {
-         System.out.println("c2-" + Square.toSquare(rookMove.getTo()));
-         rookMove = rookMove.next[0];
-      } while (rookMove != null);
    }
 
    @Test
