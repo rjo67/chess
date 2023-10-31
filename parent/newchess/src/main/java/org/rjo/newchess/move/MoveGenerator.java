@@ -28,32 +28,43 @@ public class MoveGenerator implements MoveGeneratorI {
 
    private boolean verbose;
 
-   public static class SlidingMoveNode {
+   /**
+    * Stores information about possible next moves.
+    * 
+    * <ul>
+    * <li>For sliding pieces: next[0] gives the next move along the ray. If null, then next[1] gives the first move in the next direction.</li>
+    * <li>For pawns: 'move' represents the one-sq-forward move, and next[0] is two-sqs-forward. (next[1] is null)</li>
+    * <li>For knights: next[0] represents the next move. next[1] points to the same node</li>
+    * </ul>
+    * In general, the linked list should be followed (node[0]) until the next target square is found to be occupied, perhaps generating a
+    * capture move. Then next[1] should be used.
+    */
+   public static class MoveNode {
       // either specify 'to', or give the 'move'
       private final int to;
       private final Square toSq;
       final IMove move;
-      final SlidingMoveNode[] next = new SlidingMoveNode[2];
+      final MoveNode[] next = new MoveNode[2];
 
-      SlidingMoveNode(int to) {
+      MoveNode(int to) {
          this(to, null);
       }
 
-      SlidingMoveNode(IMove move, int to) {
+      MoveNode(IMove move, int to) {
          this(to, move);
       }
 
-      private SlidingMoveNode(int to, IMove move) {
+      private MoveNode(int to, IMove move) {
          this.to = to;
          this.toSq = Square.toSquare(to);
          this.move = move;
       }
 
-      void addNext(SlidingMoveNode next) {
+      void addNext(MoveNode next) {
          this.next[0] = next;
       }
 
-      void addNextDirection(SlidingMoveNode next) {
+      void addNextDirection(MoveNode next) {
          this.next[1] = next;
       }
 
@@ -61,12 +72,17 @@ public class MoveGenerator implements MoveGeneratorI {
 
       public IMove getMove() { return move; }
 
-      public SlidingMoveNode[] getNext() { return next; }
+      public MoveNode[] getNext() { return next; }
 
       @Override
       public String toString() {
          return "(" + "to=" + toSq + ", m=" + move.toString() + ", " + next[0] + "/" + next[1] + ")";
       }
+   }
+
+   /** Stores info about enpassant squares */
+   private static record EnpassantInfo(int squareOfPawnToBeTakenEnpassant, IMove enpassantMove) {
+      // empty
    }
 
    // **** Note
@@ -100,18 +116,14 @@ public class MoveGenerator implements MoveGeneratorI {
                Square.f7.index() } };
    /** Stores (for both colours) the squares (dim1) where a pawn must be in order to take a pawn on dim0 with e.p. */
    private final static EnpassantInfo[][] enpassantSquares = new EnpassantInfo[64][];
-   public final static Set<Integer>[] knightMoves; // stores set of possible knight moves for each square
+   /** Stores set of possible knight moves for each square) */
+   public final static Set<Integer>[] knightMoves; //
 
    public final static int[][][] pawnCaptures = new int[2][64][]; // dim0: w/b; dim1: squares; dim2: possible pawn captures (max 2)
 
-   public final static SlidingMoveNode[][] pawnMoves = new SlidingMoveNode[2][64]; // dim0: w/b; dim1: dim1=head of a linked list of possible moves
+   public final static MoveNode[][] pawnMoves = new MoveNode[2][64]; // dim0: w/b; dim1: dim1=head of a linked list of possible moves
 
-   /* package */ final static SlidingMoveNode[][] slidingMoves = new SlidingMoveNode[6][64]; // dim0=piece type; dim1=head of a linked list of possible squares
-                                                                                             // to move to
-
-   private static record EnpassantInfo(int squareOfPawnToBeTakenEnpassant, IMove enpassantMove) {
-      // empty
-   }
+   /* package */ final static MoveNode[][] moveNodes = new MoveNode[6][64]; // dim0=piece type; dim1=head of a linked list of possible squares to move to
 
    static {
       enpassantSquares[Square.a6.index()] = new EnpassantInfo[] {
@@ -160,28 +172,32 @@ public class MoveGenerator implements MoveGeneratorI {
       enpassantSquares[Square.h3.index()] = new EnpassantInfo[] {
             new EnpassantInfo(Square.g4.index(), Move.createEnpassantMove(Square.g4.index(), Square.h3.index(), Colour.BLACK)) };
 
-      knightMoves = new Set[64];
-      for (int sq = 0; sq < 64; sq++) {
-         knightMoves[sq] = new HashSet<>();
-         for (int offset : Piece.KNIGHT.getMoveOffsets()) {
-            int targetSq = Board.getMailboxSquare(sq, offset);
-            if (targetSq != -1) { knightMoves[sq].add(targetSq); }
-         }
-      }
-
       // pawn moves: first 'node' stores 'one sq forward', linking to 2nd node '2 squares forward' if applicable
       for (Colour col : new Colour[] { Colour.WHITE, Colour.BLACK }) {
          for (int startSq = 0; startSq < 64; startSq++) {
-            // ignore first rank for white / 8th rank for black
-            if ((col == Colour.WHITE && startSq > 55) || (col == Colour.BLACK && startSq < 8)) { continue; }
-            int[] toSquares = col == Colour.WHITE ? Ray.raysList[startSq][Ray.NORTH.ordinal()] : Ray.raysList[startSq][Ray.SOUTH.ordinal()];
-            if (toSquares.length != 0) {
-               SlidingMoveNode oneSqForwardMove = new SlidingMoveNode(new Move(startSq, toSquares[0], (byte) 0, (byte) 0), toSquares[0]);
-               pawnMoves[col.ordinal()][startSq] = oneSqForwardMove;
-               if (onPawnStartRank(startSq, col)) {
-                  SlidingMoveNode twoSqForwardMove = new SlidingMoveNode(new Move(startSq, toSquares[1], false, (byte) 0, false, 0, false, false, true),
-                        toSquares[1]);
-                  oneSqForwardMove.addNext(twoSqForwardMove);
+            int[] targetSquares = col == Colour.WHITE ? Ray.raysList[startSq][Ray.NORTH.ordinal()] : Ray.raysList[startSq][Ray.SOUTH.ordinal()];
+            // ignore pawn on first rank for white / 8th rank for black (ray is empty) which can't happen anyway
+            if (targetSquares.length != 0) {
+               if (Square.toSquare(targetSquares[0]).onLastRank(col)) {
+                  // promotion moves
+                  MoveNode current = null;
+                  for (Piece pt : new Piece[] { Piece.ROOK, Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
+                     MoveNode promotion = new MoveNode(Move.createPromotionMove(startSq, targetSquares[0], Pieces.generatePiece(pt, col)), targetSquares[0]);
+                     if (current == null) {
+                        pawnMoves[col.ordinal()][startSq] = promotion;
+                     } else {
+                        current.addNext(promotion);
+                     }
+                     current = promotion;
+                  }
+               } else {
+                  MoveNode oneSqForwardMove = new MoveNode(new Move(startSq, targetSquares[0], (byte) 0, (byte) 0), targetSquares[0]);
+                  pawnMoves[col.ordinal()][startSq] = oneSqForwardMove;
+                  if (onPawnStartRank(startSq, col)) {
+                     MoveNode twoSqForwardMove = new MoveNode(new Move(startSq, targetSquares[1], false, (byte) 0, false, 0, false, false, true),
+                           targetSquares[1]);
+                     oneSqForwardMove.addNext(twoSqForwardMove);
+                  }
                }
             }
          }
@@ -221,21 +237,21 @@ public class MoveGenerator implements MoveGeneratorI {
             throw new UnsupportedOperationException("piece " + piece + " not supported");
          }
          for (int fromSq = 0; fromSq < 64; fromSq++) {
-            List<SlidingMoveNode> newlyCreatedNodes = new ArrayList<>();
-            SlidingMoveNode prev = null;
+            List<MoveNode> newlyCreatedNodes = new ArrayList<>();
+            MoveNode prev = null;
             for (Ray ray : raysToCheck) {
                int[] toSquares = Ray.raysList[fromSq][ray.ordinal()];
                for (int toSquareIndex = 0; toSquareIndex < toSquares.length; toSquareIndex++) {
-                  SlidingMoveNode node = new SlidingMoveNode(toSquares[toSquareIndex]);
+                  MoveNode node = new MoveNode(toSquares[toSquareIndex]);
                   if (prev == null) {
-                     slidingMoves[piece.ordinal()][fromSq] = node;
+                     moveNodes[piece.ordinal()][fromSq] = node;
                   } else {
                      prev.addNext(node);
                   }
                   prev = node;
                   if (toSquareIndex == 0 && !newlyCreatedNodes.isEmpty()) {
                      // update nextDir for all nodes created in the previous iteration
-                     for (SlidingMoveNode n : newlyCreatedNodes) {
+                     for (MoveNode n : newlyCreatedNodes) {
                         n.addNextDirection(node);
                      }
                      newlyCreatedNodes.clear();
@@ -245,6 +261,35 @@ public class MoveGenerator implements MoveGeneratorI {
             }
          }
       }
+
+      knightMoves = new Set[64];
+      for (int sq = 0; sq < 64; sq++) {
+         knightMoves[sq] = new HashSet<>();
+         for (int offset : Piece.KNIGHT.getMoveOffsets()) {
+            int targetSq = Board.getMailboxSquare(sq, offset);
+            if (targetSq != -1) { knightMoves[sq].add(targetSq); }
+         }
+      }
+
+      // the knight moves are stored in 'moveNodes' as well so that the algorithm can deal with knights in the same way as other pieces
+      Piece piece = Piece.KNIGHT;
+      for (int fromSq = 0; fromSq < 64; fromSq++) {
+         MoveNode prev = null;
+         Integer[] moves = knightMoves[fromSq].toArray(new Integer[0]);
+         for (int toSquareIndex = 0; toSquareIndex < moves.length; toSquareIndex++) {
+            MoveNode node = new MoveNode(moves[toSquareIndex]);
+            if (prev == null) {
+               moveNodes[piece.ordinal()][fromSq] = node;
+            } else {
+               // knight moves are independent of whether target square is occupied; therefore store in both 'next' and 'next direction'.
+               // if the target square is empty, 'next' will be used. If occupied, 'nextDirection'.
+               prev.addNext(node);
+               prev.addNextDirection(node);
+            }
+            prev = node;
+         }
+      }
+
    }
 
    public MoveGenerator() {
@@ -714,12 +759,10 @@ public class MoveGenerator implements MoveGeneratorI {
          final byte pieceOnStartSq = posn.pieceAt(startSq);
          if (Pieces.isPawn(pieceOnStartSq)) {
             moves.addAll(generatePawnMoves(posn, startSq, colour, checkInfo, kingsSquare, blocksCheck));
-         } else if (Pieces.isKnight(pieceOnStartSq)) {
-            moves.addAll(generateKnightMoves(posn, startSq, kingsSquare, colour, checkInfo != null, blocksCheck));
          } else if (Pieces.isKing(pieceOnStartSq)) {
             throw new IllegalStateException(String.format("called processSquare with King, posn: %s", posn));
          } else {
-            SlidingMoveNode targetNode = slidingMoves[Pieces.toPiece(pieceOnStartSq).ordinal()][startSq];
+            MoveNode targetNode = moveNodes[Pieces.toPiece(pieceOnStartSq).ordinal()][startSq];
             while (targetNode != null) {
                IMove move = null;
                // a) generate a move if the target square is empty or is occupied by an enemy piece
@@ -766,29 +809,6 @@ public class MoveGenerator implements MoveGeneratorI {
 
       // the Move constructor will identify a capture if there's a piece on the targetSq
       return new MovingPieceDecorator(new Move(startSq, targetSq, posn.pieceAt(targetSq), (byte) 0), posn.pieceAt(startSq));
-   }
-
-   /**
-    * Generates moves for knight at 'startSq'. If our king is already in check, checks if the move blocks the check/captures at the checking
-    * square.
-    * 
-    * @param posn
-    * @param startSq
-    * @param colour
-    * @param kingInCheck true if our king is in check
-    * @param blocksCheck a cache of already processed squares, 1 if a sq blocks the check, 0 if not yet calculated
-    * @return all knight moves
-    */
-   private List<IMove> generateKnightMoves(Position posn, int startSq, int kingsSquare, Colour colour, boolean kingInCheck, int[] blocksCheck) {
-      List<IMove> moves = new ArrayList<>();
-      for (int targetSq : knightMoves[startSq]) {
-         IMove move = generateEitherMoveOrCapture(posn, startSq, targetSq, colour);
-         if (move != null) {
-            if (kingInCheck && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) { continue; }
-            moves.add(move);
-         }
-      }
-      return moves;
    }
 
    private <T> void addIfNotNull(List<T> list, T object) {
@@ -1095,30 +1115,30 @@ public class MoveGenerator implements MoveGeneratorI {
       // - pawn capture (including promotion capture or enpassant): captures checking piece or blocks ray
 
       // this cannot be null unless we're calling it for a pawn on the 1st or 8th rank -- which should be impossible
-      SlidingMoveNode currentNode = pawnMoves[colour.ordinal()][startSq];
-      // promotion?
-      if (onLastRank(currentNode.to, colour)) {
-         moves.addAll(generatePossibleNormalPromotionMoves(posn, startSq, currentNode.to, kingsSquare, checkInfo, colour, blocksCheck));
+      MoveNode currentNode = pawnMoves[colour.ordinal()][startSq];
+      boolean lastRank = currentNode.toSq.onLastRank(colour);
+      final byte pieceOnStartSq = Pieces.generatePawn(colour);
+      while (currentNode != null) {
+         byte targetSquareContents = posn.pieceAt(currentNode.to);
+         // generate a move if the target square is empty
+         if (targetSquareContents == 0) {
+            if (checkInfo != null && !moveToSquareBlocksCheck(checkInfo, currentNode.to, kingsSquare, blocksCheck)) {
+               // ignore, since move does not block the check
+            } else {
+               moves.add(new MovingPieceDecorator(currentNode.move, pieceOnStartSq));
+            }
+            currentNode = currentNode.next[0]; // process any further moves (2 squares forward, or promotion)
+         } else {
+            break; // blocked by a piece
+         }
+      }
+
+      // promotion captures?
+      if (lastRank) {
          for (int targetSq : pawnCaptures[colour.ordinal()][startSq]) {
             moves.addAll(generatePossibleCapturePromotionMoves(posn, startSq, targetSq, kingsSquare, checkInfo, colour, blocksCheck));
          }
       } else {
-         final byte pieceOnStartSq = Pieces.generatePawn(colour);
-         while (currentNode != null) {
-            byte targetSquareContents = posn.pieceAt(currentNode.to);
-            // generate a move if the target square is empty
-            if (targetSquareContents == 0) {
-               if (checkInfo != null && !moveToSquareBlocksCheck(checkInfo, currentNode.to, kingsSquare, blocksCheck)) {
-                  // ignore, since move does not block the check
-               } else {
-                  moves.add(new MovingPieceDecorator(currentNode.move, pieceOnStartSq));
-               }
-               currentNode = currentNode.next[0]; // handle 2 squares forward possibility
-            } else {
-               break;
-            }
-         }
-
          // captures
          for (int targetSq : pawnCaptures[colour.ordinal()][startSq]) {
             IMove move = generatePawnCaptureMoveIfPossible(posn, startSq, targetSq, colour);
@@ -1136,20 +1156,6 @@ public class MoveGenerator implements MoveGeneratorI {
                if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) { continue; }
                moves.add(move);
             }
-         }
-      }
-      return moves;
-   }
-
-   // caters for pawn advancing one square and promoting
-   private List<IMove> generatePossibleNormalPromotionMoves(Position posn, int origin, int target, int kingsSquare, PieceSquareInfo checkInfo, Colour myColour,
-         int[] blocksCheck) {
-      List<IMove> moves = new ArrayList<>();
-      if (posn.squareIsEmpty(target)) {
-         // ignore all promotion move candidates if they don't block the check
-         if (checkInfo != null && !moveToSquareBlocksCheck(checkInfo, target, kingsSquare, blocksCheck)) { return moves; }
-         for (Piece pt : new Piece[] { Piece.ROOK, Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
-            moves.add(new MovingPieceDecorator(Move.createPromotionMove(origin, target, Pieces.generatePiece(pt, myColour)), posn.pieceAt(origin)));
          }
       }
       return moves;
@@ -1195,17 +1201,6 @@ public class MoveGenerator implements MoveGeneratorI {
          return startSq >= 48 && startSq <= 55;
       } else {
          return startSq >= 8 && startSq <= 15;
-      }
-   }
-
-   /**
-    * @return if 'sq' is on the last rank (8th for white or 1st for black)
-    */
-   private boolean onLastRank(int sq, Colour colour) {
-      if (colour == Colour.WHITE) {
-         return sq < 8;
-      } else {
-         return sq > 55;
       }
    }
 

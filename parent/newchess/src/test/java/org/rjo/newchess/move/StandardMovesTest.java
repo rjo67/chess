@@ -9,7 +9,7 @@ import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Game;
 import org.rjo.newchess.game.Position;
-import org.rjo.newchess.move.MoveGenerator.SlidingMoveNode;
+import org.rjo.newchess.move.MoveGenerator.MoveNode;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
 import org.rjo.newchess.piece.Pieces;
@@ -34,7 +34,7 @@ public class StandardMovesTest {
 
    @Test
    public void slidingMoveNodes() {
-      SlidingMoveNode rookMove = MoveGenerator.slidingMoves[Piece.ROOK.ordinal()][Square.c2.index()];
+      MoveNode rookMove = MoveGenerator.moveNodes[Piece.ROOK.ordinal()][Square.c2.index()];
       do {
          System.out.println("c2-" + Square.toSquare(rookMove.getTo()));
          rookMove = rookMove.next[0];

@@ -1,16 +1,18 @@
 package org.rjo.newchess.board;
 
+import org.rjo.newchess.piece.Colour;
+
 /**
  * 
  * @author rich
  * @see "https://www.chessprogramming.org/10x12_Board#Square_Mapping"
  */
 public class Board {
-	/**
-	 * The board representation, 12x10, using sentinel values (-1) to mark 'out-of-bounds'.
-	 */
-	private final static int mailbox[] = new int[] {
-		//@formatter:off
+   /**
+    * The board representation, 12x10, using sentinel values (-1) to mark 'out-of-bounds'.
+    */
+   private final static int mailbox[] = new int[] {
+        //@formatter:off
 		     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		     -1,  0,  1,  2,  3,  4,  5,  6,  7, -1,
@@ -24,17 +26,17 @@ public class Board {
 		     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
         //@formatter:on
-	};
+   };
 
-	/** the start of the board in the mailbox array */
-	public final static int BOARD_OFFSET = 21;
+   /** the start of the board in the mailbox array */
+   public final static int BOARD_OFFSET = 21;
 
-	/**
-	 * Stores the offsets of the actual chess board contained in the definition of 'mailbox' above. i.e. square A8 is represented by
-	 * mailbox[mailbox64[0]].
-	 */
-	private final static int mailbox64[] = new int[] {
-		//@formatter:off
+   /**
+    * Stores the offsets of the actual chess board contained in the definition of 'mailbox' above. i.e. square A8 is represented by
+    * mailbox[mailbox64[0]].
+    */
+   private final static int mailbox64[] = new int[] {
+        //@formatter:off
 		    21, 22, 23, 24, 25, 26, 27, 28, //  0
 		    31, 32, 33, 34, 35, 36, 37, 38, //  8..15
 		    41, 42, 43, 44, 45, 46, 47, 48, // 16
@@ -44,43 +46,43 @@ public class Board {
 		    81, 82, 83, 84, 85, 86, 87, 88, // 48..55
 		    91, 92, 93, 94, 95, 96, 97, 98  // 56..63
 		//@formatter:on
-	};
+   };
 
-	// *** optimizations for various types of lookup
-	// e.g. for Pawn moves, need Board.mailbox(Board.mailbox64(square) + 10) (or -10)
-	// a lookup of mailBoxOffsetWhitePawnsOneSquareForward[Square.a4] returns the value for mailbox[Square.a5] directly ( -1 if out-of-bounds)
-	private final static int mailBoxOffsetWhitePawnsOneSquareForward[];
-	private final static int mailBoxOffsetBlackPawnsOneSquareForward[];
+   // *** optimizations for various types of lookup
+   // e.g. for Pawn moves, need Board.mailbox(Board.mailbox64(square) + 10) (or -10)
+   // a lookup of mailBoxOffsetWhitePawnsOneSquareForward[Square.a4] returns the value for mailbox[Square.a5] directly ( -1 if out-of-bounds)
+   private final static int mailBoxOffsetWhitePawnsOneSquareForward[];
+   private final static int mailBoxOffsetBlackPawnsOneSquareForward[];
 
-	static {
-		mailBoxOffsetWhitePawnsOneSquareForward = new int[64];
-		for (int i = 0; i < 64; i++) {
-			// first rank (i > 55): irrelevant for white pawns
-			// rank 7 -> rank 8 (i<16): must return -1 indicating promotion
-			if (i < 16 || i > 55) {
-				mailBoxOffsetWhitePawnsOneSquareForward[i] = -1;
-			} else {
-				mailBoxOffsetWhitePawnsOneSquareForward[i] = getMailboxSquare(i, -10);
-			}
-		}
-		mailBoxOffsetBlackPawnsOneSquareForward = new int[64];
-		for (int i = 0; i < 64; i++) {
-			// 'first' rank (i < 8): irrelevant for black pawns
-			// rank 2 -> rank 1 (i>47): must return -1 indicating promotion
-			if (i < 8 || i > 47) {
-				mailBoxOffsetBlackPawnsOneSquareForward[i] = -1;
-			} else {
-				mailBoxOffsetBlackPawnsOneSquareForward[i] = getMailboxSquare(i, 10);
-			}
-		}
-	}
+   static {
+      mailBoxOffsetWhitePawnsOneSquareForward = new int[64];
+      for (int i = 0; i < 64; i++) {
+         // first rank (i > 55): irrelevant for white pawns
+         // rank 7 -> rank 8 (i<16): must return -1 indicating promotion
+         if (i < 16 || i > 55) {
+            mailBoxOffsetWhitePawnsOneSquareForward[i] = -1;
+         } else {
+            mailBoxOffsetWhitePawnsOneSquareForward[i] = getMailboxSquare(i, -10);
+         }
+      }
+      mailBoxOffsetBlackPawnsOneSquareForward = new int[64];
+      for (int i = 0; i < 64; i++) {
+         // 'first' rank (i < 8): irrelevant for black pawns
+         // rank 2 -> rank 1 (i>47): must return -1 indicating promotion
+         if (i < 8 || i > 47) {
+            mailBoxOffsetBlackPawnsOneSquareForward[i] = -1;
+         } else {
+            mailBoxOffsetBlackPawnsOneSquareForward[i] = getMailboxSquare(i, 10);
+         }
+      }
+   }
 
-	/**
-	 * Maps between the array offset and the square notation.<br>
-	 * Slot 0 corresponds to a8, i.e. top left of the chessboard.
-	 */
-	public enum Square {
-		//@formatter:off
+   /**
+    * Maps between the array offset and the square notation.<br>
+    * Slot 0 corresponds to a8, i.e. top left of the chessboard.
+    */
+   public enum Square {
+      //@formatter:off
 	   a8( 0), b8( 1), c8( 2), d8( 3), e8( 4), f8( 5), g8( 6), h8( 7),
 	   a7( 8), b7( 9), c7(10), d7(11), e7(12), f7(13), g7(14), h7(15),
 	   a6(16), b6(17), c6(18), d6(19), e6(20), f6(21), g6(22), h6(23),
@@ -91,108 +93,115 @@ public class Board {
 	   a1(56), b1(57), c1(58), d1(59), e1(60), f1(61), g1(62), h1(63);
 	    //@formatter:on
 
-		private int index;
-		private int rank;// Rank of this square (0..7)
-		private int file;// File of this square (0..7)
+      private int index;
+      private int rank;// Rank of this square (0..7)
+      private int file;// File of this square (0..7)
 
-		// lookup int->Square
-		private final static Square[] indexToSquare = new Square[64];
-		static {
-			for (Square sq : Square.values()) {
-				indexToSquare[sq.index] = sq;
-			}
-		}
+      // lookup int->Square
+      private final static Square[] indexToSquare = new Square[64];
+      static {
+         for (Square sq : Square.values()) {
+            indexToSquare[sq.index] = sq;
+         }
+      }
 
-		Square(int index) {
-			this.index = index;
-			this.rank = 7 - index / 8;
-			this.file = index % 8;
-		}
+      Square(int index) {
+         this.index = index;
+         this.rank = 7 - index / 8;
+         this.file = index % 8;
+      }
 
-		public int index() {
-			return index;
-		}
+      public int index() {
+         return index;
+      }
 
-		public int rank() {
-			return rank;
-		}
+      public int rank() {
+         return rank;
+      }
 
-		public int file() {
-			return file;
-		}
+      public int file() {
+         return file;
+      }
 
-		public static Square toSquare(int index) {
-			return indexToSquare[index];
-		}
+      public static Square toSquare(int index) {
+         return indexToSquare[index];
+      }
 
-		public static Square fromRankAndFile(int rank, int file) {
-			if (rank < 0 || rank > 7 || file < 0 || file > 7) { throw new IllegalArgumentException(String.format("invalid values (%d, %d)", rank, file)); }
-			int sq = ((7 - rank) * 8) + file;
-			return Square.indexToSquare[sq];
-		}
+      public static Square fromRankAndFile(int rank, int file) {
+         if (rank < 0 || rank > 7 || file < 0 || file > 7) { throw new IllegalArgumentException(String.format("invalid values (%d, %d)", rank, file)); }
+         int sq = ((7 - rank) * 8) + file;
+         return Square.indexToSquare[sq];
+      }
 
-		/**
-		 * Returns the enpassant square, assuming a pawn move to the given square e.g. given b5, returns b6. Or a4, returns a3.
-		 *
-		 * @param sq the square where the pawn moved to (on the 5th rank for black or the 4th rank for white).
-		 * @return enpassant square. Must be either on the 6th rank (for a black move) or on the 3rd rank (for a white move).
-		 */
-		public static Square findEnpassantSquareFromMove(Square sq) {
-			if (sq.rank() == 4) {
-				return Square.fromRankAndFile(5, sq.file());
-			} else if (sq.rank() == 3) {
-				return Square.fromRankAndFile(2, sq.file());
-			} else {
-				throw new IllegalArgumentException("must specify a square on the 4th or 5th rank, but got: " + sq);
-			}
-		}
+      /**
+       * Returns the enpassant square, assuming a pawn move to the given square e.g. given b5, returns b6. Or a4, returns a3.
+       *
+       * @param sq the square where the pawn moved to (on the 5th rank for black or the 4th rank for white).
+       * @return enpassant square. Must be either on the 6th rank (for a black move) or on the 3rd rank (for a white move).
+       */
+      public static Square findEnpassantSquareFromMove(Square sq) {
+         if (sq.rank() == 4) {
+            return Square.fromRankAndFile(5, sq.file());
+         } else if (sq.rank() == 3) {
+            return Square.fromRankAndFile(2, sq.file());
+         } else {
+            throw new IllegalArgumentException("must specify a square on the 4th or 5th rank, but got: " + sq);
+         }
+      }
 
-		/**
-		 * Is this square adjacent to the given square?
-		 * 
-		 * @param other the other square
-		 * @return true when adjacent
-		 */
-		public boolean adjacentTo(Square other) {
-			// Chebyshev distance
-			return Math.max(Math.abs(this.rank - other.rank), Math.abs(this.file - other.file)) == 1;
-		}
+      /**
+       * Is this square adjacent to the given square?
+       * 
+       * @param other the other square
+       * @return true when adjacent
+       */
+      public boolean adjacentTo(Square other) {
+         // Chebyshev distance
+         return Math.max(Math.abs(this.rank - other.rank), Math.abs(this.file - other.file)) == 1;
+      }
 
-	}
+      /**
+       * @return true if this square is on the last rank (8th for white or 1st for black)
+       */
+      public boolean onLastRank(Colour colour) {
+         return ((colour == Colour.WHITE && rank == 7) || (colour == Colour.BLACK && rank == 0));
+      }
 
-	public static int mailbox(int offset) {
-		return mailbox[offset];
-	}
+   }
 
-	public static int mailbox64(int offset) {
-		return mailbox64[offset];
-	}
+   public static int mailbox(int offset) {
+      return mailbox[offset];
+   }
 
-	/**
-	 * Given a square e.g. 0, corresponding to a8, and an offset, e.g. +10, returns the corresponding square in the mailbox data type:
-	 * <ul>
-	 * <li>0 in mailbox64 == 21</li>
-	 * <li>21 + offset +10 == 31</li>
-	 * <li>31 in mailbox == 8 -- corresponds to a7</li>
-	 * </ul>
-	 */
-	public static int getMailboxSquare(int square, int offset) {
-		return Board.mailbox(Board.mailbox64(square) + offset);
-	}
+   public static int mailbox64(int offset) {
+      return mailbox64[offset];
+   }
 
-	/**
-	 * Optimzation of {@link #getMailboxSquare(int, int)} for white pawns. Returns the square one rank 'forward' (up) from the given square.
-	 * Note: the promotion rank 8 is returned as -1.
-	 */
-	public static int getMailboxSquareForWhitePawnsOneSquareForward(int square) {
-		return Board.mailBoxOffsetWhitePawnsOneSquareForward[square];
-	}
+   /**
+    * Given a square e.g. 0, corresponding to a8, and an offset, e.g. +10, returns the corresponding square in the mailbox data type:
+    * <ul>
+    * <li>0 in mailbox64 == 21</li>
+    * <li>21 + offset +10 == 31</li>
+    * <li>31 in mailbox == 8 -- corresponds to a7</li>
+    * </ul>
+    */
+   public static int getMailboxSquare(int square, int offset) {
+      return Board.mailbox(Board.mailbox64(square) + offset);
+   }
 
-	/**
-	 * Optimzation of {@link #getMailboxSquare(int, int)} for black pawns. Returns the square one rank 'forward' (down) from the given square.
-	 * Note: the promotion rank 1 is returned as -1.
-	 */
-	public static int getMailboxSquareForBlackPawnsOneSquareForward(int square) {
-		return Board.mailBoxOffsetBlackPawnsOneSquareForward[square];
-	}
+   /**
+    * Optimzation of {@link #getMailboxSquare(int, int)} for white pawns. Returns the square one rank 'forward' (up) from the given square.
+    * Note: the promotion rank 8 is returned as -1.
+    */
+   public static int getMailboxSquareForWhitePawnsOneSquareForward(int square) {
+      return Board.mailBoxOffsetWhitePawnsOneSquareForward[square];
+   }
+
+   /**
+    * Optimzation of {@link #getMailboxSquare(int, int)} for black pawns. Returns the square one rank 'forward' (down) from the given square.
+    * Note: the promotion rank 1 is returned as -1.
+    */
+   public static int getMailboxSquareForBlackPawnsOneSquareForward(int square) {
+      return Board.mailBoxOffsetBlackPawnsOneSquareForward[square];
+   }
 }
