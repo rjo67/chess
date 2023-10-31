@@ -79,7 +79,9 @@ public class MoveGenerator implements MoveGeneratorI {
 
       @Override
       public String toString() {
-         return "(" + "to=" + toSq + ", m=" + move.toString() + ", n=" + next[0] + ", nd=" + next[1] + ")";
+         return "(to=" + toSq + //
+               (move != null ? ", m=" + move.toString() : (captureMove != null ? ", c=" + captureMove.toString() : "null")) + //
+               ", n=" + next[0] + ", nd=" + next[1] + ")";
       }
    }
 
@@ -121,11 +123,12 @@ public class MoveGenerator implements MoveGeneratorI {
    /** Stores (for both colours) the squares (dim1) where a pawn must be in order to take a pawn on dim0 with e.p. */
    private final static EnpassantInfo[][] enpassantSquares = new EnpassantInfo[64][];
    /** Stores set of possible knight moves for each square) */
-   public final static Set<Integer>[] knightMoves; //
+   public final static Set<Integer>[] knightMoves;
 
    public final static int[][][] pawnCaptures = new int[2][64][]; // dim0: w/b; dim1: squares; dim2: possible pawn captures (max 2)
+   public final static MoveNode[][] pawnCaptureNodes = new MoveNode[2][64]; // dim0: w/b; dim1: head of a linked list of possible captures
 
-   public final static MoveNode[][] pawnMoves = new MoveNode[2][64]; // dim0: w/b; dim1: dim1=head of a linked list of possible moves
+   public final static MoveNode[][] pawnMoves = new MoveNode[2][64]; // dim0: w/b; dim1: head of a linked list of possible moves
 
    /* package */ final static MoveNode[][] moveNodes = new MoveNode[6][64]; // dim0=piece type; dim1=head of a linked list of possible squares to move to
 
@@ -198,7 +201,7 @@ public class MoveGenerator implements MoveGeneratorI {
                } else {
                   MoveNode oneSqForwardMove = new MoveNode(new Move(startSq, targetSquares[0], (byte) 0, (byte) 0), null, targetSquares[0]);
                   pawnMoves[col.ordinal()][startSq] = oneSqForwardMove;
-                  if (onPawnStartRank(startSq, col)) {
+                  if (Square.toSquare(startSq).onPawnStartRank(col)) {
                      MoveNode twoSqForwardMove = new MoveNode(new Move(startSq, targetSquares[1], false, (byte) 0, false, 0, false, false, true), null,
                            targetSquares[1]);
                      oneSqForwardMove.addNext(twoSqForwardMove);
@@ -222,6 +225,57 @@ public class MoveGenerator implements MoveGeneratorI {
             for (int i : tmpPawnCaptures) {
                pawnCaptures[col.ordinal()][sq][slot] = i;
                slot++;
+            }
+         }
+      }
+      // pawn captures: first MoveNode stores 'capture right' (potentially multiple promotion captures), 'nextDir' links to 'capture left'
+      for (Colour col : new Colour[] { Colour.WHITE, Colour.BLACK }) {
+         for (int startSq = 0; startSq < 64; startSq++) {
+            // pawnCaptures defines moves for pawns on first/last rank -- ignore these for this data structure
+            if (!Square.toSquare(startSq).onFirstRank(col)) {
+               int[] targetSquares = pawnCaptures[col.ordinal()][startSq];
+               if (targetSquares.length != 0) {
+                  if (Square.toSquare(targetSquares[0]).onLastRank(col)) {
+                     // promotion captures
+                     // next[0] links the moves together, to be safe all should set next[1]
+                     List<MoveNode> allPromotionMoves = new ArrayList<>();
+                     MoveNode current = null;
+                     for (Piece pt : new Piece[] { Piece.ROOK, Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
+                        MoveNode promotionCapture = new MoveNode(null, new Move(startSq, targetSquares[0], (byte) 1, Pieces.generatePiece(pt, col)),
+                              targetSquares[0]);
+                        if (current == null) {
+                           pawnCaptureNodes[col.ordinal()][startSq] = promotionCapture;
+                        } else {
+                           current.addNext(promotionCapture);
+                        }
+                        current = promotionCapture;
+                        allPromotionMoves.add(current);
+                     }
+                     current = null; // reset for next loop
+                     if (targetSquares.length > 1) {
+                        // process promotion capture right
+                        for (Piece pt : new Piece[] { Piece.ROOK, Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
+                           MoveNode promotionCapture = new MoveNode(null, new Move(startSq, targetSquares[1], (byte) 1, Pieces.generatePiece(pt, col)),
+                                 targetSquares[1]);
+                           if (current == null) {
+                              // set nextDir for all promotion moves to point to this one
+                              for (MoveNode node : allPromotionMoves) {
+                                 node.addNextDirection(promotionCapture);
+                              }
+                           } else {
+                              current.addNext(promotionCapture);
+                           }
+                           current = promotionCapture;
+                        }
+                     }
+                  } else {
+                     MoveNode captureRight = new MoveNode(null, new Move(startSq, targetSquares[0], (byte) 1, (byte) 0), targetSquares[0]);
+                     pawnCaptureNodes[col.ordinal()][startSq] = captureRight;
+                     if (targetSquares.length > 1) {
+                        captureRight.addNextDirection(new MoveNode(null, new Move(startSq, targetSquares[1], (byte) 1, (byte) 0), targetSquares[1]));
+                     }
+                  }
+               }
             }
          }
       }
@@ -743,18 +797,7 @@ public class MoveGenerator implements MoveGeneratorI {
          }
          final Square opponentsKing = Square.toSquare(posn.getKingsSquare(posn.getSideToMove().opposite()));
 
-         // @formatter:off
-//         for (int offset : Piece.KING.getMoveOffsets()) { // process each square along the ray
-//            int nextSq = Board.getMailboxSquare(startSq, offset);
-//            if (nextSq != -1) {
-//               if (!Square.toSquare(nextSq).adjacentTo(opponentsKing)) { // king would move adjacent to opponent's king?
-//                  addIfNotNull(moves, generateEitherMoveOrCapture(posn, startSq, nextSq, colour));
-//               }
-//            }
-//         }
-         // @formatter:on
-
-         // more or less a duplicate of processSquare :-( -- without 'check' logic, with adjacentSquare logic
+         // more or less a duplicate of processSquare -- but without 'check' logic, and with adjacentSquare logic
          // next[0] or next[1] doesn't matter, both are set to be the same
 
          MoveNode targetNode = moveNodes[Piece.KING.ordinal()][startSq];
@@ -835,26 +878,6 @@ public class MoveGenerator implements MoveGeneratorI {
             }
          }
       }
-   }
-
-   /**
-    * Generates either a move or a capture from startSq to targetSq. Null if the targetSq contains a piece of our colour.
-    * 
-    * NB: does not check for king adjacent to opponent king.
-    * 
-    * @param posn
-    * @param startSq
-    * @param targetSq targetSq. If empty, the object generated will be a plain move. If contains an enemy piece, the move will be a capture. If
-    *                 contains a friendly piece, no move object will be generated.
-    * @param colour
-    * @return a move object or null if the targetSq contains a piece of our colour
-    */
-   private IMove generateEitherMoveOrCapture(Position posn, int startSq, int targetSq, Colour colour) {
-      // TODO replace with method asking isPieceMyColour() ...
-      if (!posn.squareIsEmpty(targetSq) && colour == posn.colourOfPieceAt(targetSq)) { return null; }
-
-      // the Move constructor will identify a capture if there's a piece on the targetSq
-      return new MovingPieceDecorator(new Move(startSq, targetSq, posn.pieceAt(targetSq), (byte) 0), posn.pieceAt(startSq));
    }
 
    private <T> void addIfNotNull(List<T> list, T object) {
@@ -1162,7 +1185,6 @@ public class MoveGenerator implements MoveGeneratorI {
 
       // this cannot be null unless we're calling it for a pawn on the 1st or 8th rank -- which should be impossible
       MoveNode currentNode = pawnMoves[colour.ordinal()][startSq];
-      boolean lastRank = currentNode.toSq.onLastRank(colour);
       final byte pieceOnStartSq = Pieces.generatePawn(colour);
       while (currentNode != null) {
          byte targetSquareContents = posn.pieceAt(currentNode.to);
@@ -1180,20 +1202,30 @@ public class MoveGenerator implements MoveGeneratorI {
       }
 
       // promotion captures?
-      if (lastRank) {
-         for (int targetSq : pawnCaptures[colour.ordinal()][startSq]) {
-            moves.addAll(generatePossibleCapturePromotionMoves(posn, startSq, targetSq, kingsSquare, checkInfo, colour, blocksCheck));
-         }
-      } else {
-         // captures
-         for (int targetSq : pawnCaptures[colour.ordinal()][startSq]) {
-            IMove move = generatePawnCaptureMoveIfPossible(posn, startSq, targetSq, colour);
-            if (move != null) {
-               if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) { continue; }
+      currentNode = pawnCaptureNodes[colour.ordinal()][startSq];
+      while (currentNode != null) {
+         byte targetSquareContents = posn.pieceAt(currentNode.to);
+         if (targetSquareContents == 0 || colour == Pieces.colourOf(targetSquareContents)) {
+            // our own piece is blocking
+         } else {
+            // capture
+            IMove move = new MovingPieceDecorator(currentNode.captureMove, pieceOnStartSq);
+            // If the check still exists after this first promotion move, then it will for
+            // the other moves too and therefore we don't need to evaluate them
+            if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) {
+               // ignore move
+            } else {
                moves.add(move);
+               // add all further promotion moves if present -- leave 'currentNode' alone so as not to disturb the outer loop
+               var node = currentNode;
+               while ((node = node.next[0]) != null) {
+                  moves.add(new MovingPieceDecorator(node.captureMove, pieceOnStartSq));
+               }
             }
          }
+         currentNode = currentNode.next[1];
       }
+
       if (posn.getEnpassantSquare() != null) {
          final int epSquare = posn.getEnpassantSquare().index();
          for (EnpassantInfo info : enpassantSquares[epSquare]) {
@@ -1205,49 +1237,6 @@ public class MoveGenerator implements MoveGeneratorI {
          }
       }
       return moves;
-   }
-
-   // caters for pawn capturing a piece and promoting
-   private List<IMove> generatePossibleCapturePromotionMoves(Position posn, int origin, int target, int kingsSquare, PieceSquareInfo checkInfo, Colour myColour,
-         int[] blocksCheck) {
-      List<IMove> moves = new ArrayList<>();
-      if (!posn.squareIsEmpty(target) && myColour.opposes(posn.colourOfPieceAt(target))) {
-         BlockedCheckPossibility checkBlockedAfterMove = null;
-         // If the check still exists after this first promotion move, then it will for
-         // the other moves too and therefore we don't need to evaluate them
-         IMove move = new MovingPieceDecorator(Move.createPromotionCaptureMove(origin, target, posn.pieceAt(target), Pieces.generateRook(myColour)),
-               posn.pieceAt(origin));
-         if (checkInfo != null) {
-            checkBlockedAfterMove = moveBlocksCheck(posn, move, kingsSquare, blocksCheck);
-            if (checkBlockedAfterMove == BlockedCheckPossibility.NOT_BLOCKED) { return moves; }
-         }
-         moves.add(move);
-         // now process the other promotion moves without regarding any existing check
-         for (Piece pt : new Piece[] { Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN }) {
-            moves.add(new MovingPieceDecorator(Move.createPromotionCaptureMove(origin, target, posn.pieceAt(target), Pieces.generatePiece(pt, myColour)),
-                  posn.pieceAt(origin)));
-         }
-      }
-      return moves;
-   }
-
-   private IMove generatePawnCaptureMoveIfPossible(Position posn, int from, int to, Colour colour) {
-      if (!posn.squareIsEmpty(to)) {
-         byte pieceAtTarget = posn.pieceAt(to);
-         if (colour.opposes(Pieces.colourOf(pieceAtTarget))) {
-            return new MovingPieceDecorator(Move.createCapture(from, to, pieceAtTarget), posn.pieceAt(from));
-         }
-         // TODO posn.pieceAt(from) never changes, pass in as parameter?
-      }
-      return null;
-   }
-
-   private static boolean onPawnStartRank(int startSq, Colour colour) {
-      if (colour == Colour.WHITE) {
-         return startSq >= 48 && startSq <= 55;
-      } else {
-         return startSq >= 8 && startSq <= 15;
-      }
    }
 
    /**

@@ -161,12 +161,25 @@ public class Board {
       }
 
       /**
+       * @return true if this square is on the first rank (1st for white or 8th for black)
+       */
+      public boolean onFirstRank(Colour colour) {
+         return ((colour == Colour.WHITE && rank == 0) || (colour == Colour.BLACK && rank == 7));
+      }
+
+      /**
        * @return true if this square is on the last rank (8th for white or 1st for black)
        */
       public boolean onLastRank(Colour colour) {
          return ((colour == Colour.WHITE && rank == 7) || (colour == Colour.BLACK && rank == 0));
       }
 
+      /**
+       * @return true if this square is the pawn's starting rank (depending on colour)
+       */
+      public boolean onPawnStartRank(Colour colour) {
+         return ((colour == Colour.WHITE && rank == 1) || (colour == Colour.BLACK && rank == 6));
+      }
    }
 
    public static int mailbox(int offset) {

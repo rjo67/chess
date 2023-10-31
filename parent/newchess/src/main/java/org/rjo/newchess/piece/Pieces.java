@@ -54,6 +54,10 @@ public class Pieces {
    public final static int[] QUEEN_MOVE_OFFSETS = { -11, -10, -9, -1, 1, 9, 10, 11 };
    public final static int[] KING_MOVE_OFFSETS = { -11, -10, -9, -1, 1, 9, 10, 11 };
 
+   private Pieces() {
+      // cannot be instantiated
+   }
+
    public static boolean isWhitePiece(byte piece) {
       return (piece != 0) && (piece & COLOUR_MASK) == 0;
    }

@@ -39,14 +39,7 @@ public class Perft {
    private static int[] EXPECTED_MOVES = new int[] { 46, 2079, 89890, 3894594, 164075551 };
    private static final int REQD_DEPTH = 5;
 
-   static class MoveResult {
-      IMove move;
-      int nbrMoves;
-
-      public MoveResult(IMove move, int nbrMoves) {
-         this.move = move;
-         this.nbrMoves = nbrMoves;
-      }
+   static record MoveResult(IMove move, int nbrMoves) {
    }
 
    private Perft() {

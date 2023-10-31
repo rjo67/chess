@@ -63,7 +63,7 @@ public class Position {
       }
 
       /**
-       * Set the ray to the king along which we're are checking.
+       * Set the ray to the king along which we are checking.
        * 
        * <B>Do not call for knight checks</B>, since there is no ray in this case.
        */
