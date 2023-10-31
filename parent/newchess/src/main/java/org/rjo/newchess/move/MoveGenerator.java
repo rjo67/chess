@@ -431,12 +431,8 @@ public class MoveGenerator implements MoveGeneratorI {
          }
 
          if (!kingInCheck) {
-            if (canCastleKingsside(posn, colour)) {
-               kingMoves.add(new MovingPieceDecorator(Move.KINGS_CASTLING_MOVE[colour.ordinal()], Pieces.generateKing(colour)));
-            }
-            if (canCastleQueensside(posn, colour)) {
-               kingMoves.add(new MovingPieceDecorator(Move.QUEENS_CASTLING_MOVE[colour.ordinal()], Pieces.generateKing(colour)));
-            }
+            if (canCastleKingsside(posn, colour)) { kingMoves.add(Move.KINGS_CASTLING_MOVE[colour.ordinal()]); }
+            if (canCastleQueensside(posn, colour)) { kingMoves.add(Move.QUEENS_CASTLING_MOVE[colour.ordinal()]); }
          }
       }
 
@@ -697,7 +693,7 @@ public class MoveGenerator implements MoveGeneratorI {
     * @return either null or an object detailing the piece and checking square
     */
    private PieceSquareInfo moveAttacksSquare(Position posn, IMove move, int targetSq, RayCacheInfo[] squaresWhichAttackTarget) {
-      byte movingPiece = move.getMovingPiece();
+      byte movingPiece = posn.pieceAt(move.getOrigin());
       if (Pieces.isKing(movingPiece)) {
          int slot = move.isKingssideCastling() ? 0 : move.isQueenssideCastling() ? 1 : -1;
          if (slot != -1) {
@@ -811,14 +807,14 @@ public class MoveGenerator implements MoveGeneratorI {
                // b) move to 'next direction' next[1] if a piece is occupying the square
                byte targetSquareContents = posn.pieceAt(targetNode.to);
                if (targetSquareContents == 0) {
-                  move = new MovingPieceDecorator(targetNode.move, pieceOnStartSq);
+                  move = targetNode.move;
                   targetNode = targetNode.next[0];
                } else if (colour == Pieces.colourOf(targetSquareContents)) {
                   // our own piece is blocking
                   targetNode = targetNode.next[1];
                } else {
                   // capture
-                  move = new MovingPieceDecorator(targetNode.captureMove, pieceOnStartSq);
+                  move = targetNode.captureMove;
                   targetNode = targetNode.next[1];
                }
                if (move != null) { moves.add(move); }
@@ -858,14 +854,14 @@ public class MoveGenerator implements MoveGeneratorI {
                // b) move to 'next direction' next[1] if a friendly piece is occupying the square or a capture
                byte targetSquareContents = posn.pieceAt(targetNode.to);
                if (targetSquareContents == 0) {
-                  move = new MovingPieceDecorator(targetNode.move, pieceOnStartSq);
+                  move = targetNode.move;
                   targetNode = targetNode.next[0];
                } else if (colour == Pieces.colourOf(targetSquareContents)) {
                   // our own piece is blocking
                   targetNode = targetNode.next[1];
                } else {
                   // capture
-                  move = new MovingPieceDecorator(targetNode.captureMove, pieceOnStartSq);
+                  move = targetNode.captureMove;
                   targetNode = targetNode.next[1];
                }
                if (move != null) {
@@ -1185,7 +1181,6 @@ public class MoveGenerator implements MoveGeneratorI {
 
       // this cannot be null unless we're calling it for a pawn on the 1st or 8th rank -- which should be impossible
       MoveNode currentNode = pawnMoves[colour.ordinal()][startSq];
-      final byte pieceOnStartSq = Pieces.generatePawn(colour);
       while (currentNode != null) {
          byte targetSquareContents = posn.pieceAt(currentNode.to);
          // generate a move if the target square is empty
@@ -1193,7 +1188,7 @@ public class MoveGenerator implements MoveGeneratorI {
             if (checkInfo != null && !moveToSquareBlocksCheck(checkInfo, currentNode.to, kingsSquare, blocksCheck)) {
                // ignore, since move does not block the check
             } else {
-               moves.add(new MovingPieceDecorator(currentNode.move, pieceOnStartSq));
+               moves.add(currentNode.move);
             }
             currentNode = currentNode.next[0]; // process any further moves (2 squares forward, or promotion)
          } else {
@@ -1209,17 +1204,16 @@ public class MoveGenerator implements MoveGeneratorI {
             // our own piece is blocking
          } else {
             // capture
-            IMove move = new MovingPieceDecorator(currentNode.captureMove, pieceOnStartSq);
             // If the check still exists after this first promotion move, then it will for
             // the other moves too and therefore we don't need to evaluate them
-            if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) {
+            if (checkInfo != null && moveBlocksCheck(posn, currentNode.captureMove, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) {
                // ignore move
             } else {
-               moves.add(move);
+               moves.add(currentNode.captureMove);
                // add all further promotion moves if present -- leave 'currentNode' alone so as not to disturb the outer loop
                var node = currentNode;
                while ((node = node.next[0]) != null) {
-                  moves.add(new MovingPieceDecorator(node.captureMove, pieceOnStartSq));
+                  moves.add(node.captureMove);
                }
             }
          }
@@ -1230,9 +1224,10 @@ public class MoveGenerator implements MoveGeneratorI {
          final int epSquare = posn.getEnpassantSquare().index();
          for (EnpassantInfo info : enpassantSquares[epSquare]) {
             if (startSq == info.squareOfPawnToBeTakenEnpassant) {
-               IMove move = new MovingPieceDecorator(info.enpassantMove, posn.pieceAt(startSq));
-               if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) { continue; }
-               moves.add(move);
+               if (checkInfo != null && moveBlocksCheck(posn, info.enpassantMove, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) {
+                  continue;
+               }
+               moves.add(info.enpassantMove);
             }
          }
       }

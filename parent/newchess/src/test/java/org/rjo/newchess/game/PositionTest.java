@@ -16,7 +16,6 @@ import org.rjo.newchess.move.CheckMoveDecorator;
 import org.rjo.newchess.move.IMove;
 import org.rjo.newchess.move.Move;
 import org.rjo.newchess.move.MoveGenerator;
-import org.rjo.newchess.move.MovingPieceDecorator;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
 import org.rjo.newchess.piece.Pieces;
@@ -83,7 +82,7 @@ public class PositionTest {
       posn.addPiece(Colour.WHITE, Piece.ROOK, Square.b3);
       assertEquals("4k3/8/8/8/8/1R6/8/4K3 w - -", posn.getFen());
 
-      Position posn2 = posn.move(TestUtil.createMove(Square.b3, posn.pieceAt(Square.b3), Square.b5));
+      Position posn2 = posn.move(TestUtil.createMove(Square.b3, Square.b5));
       assertEquals("4k3/8/8/1R6/8/8/8/4K3 b - -", posn2.getFen());
       assertEquals(Piece.ROOK, Pieces.toPiece(posn2.pieceAt(Square.b5)));
       assertBoardClonedCorrectly(posn, posn2, Square.b3, Square.b5);
@@ -97,7 +96,7 @@ public class PositionTest {
       posn.addPiece(Colour.WHITE, Piece.ROOK, Square.b3);
       assertEquals("4k3/8/8/8/8/1R6/8/4K3 w - -", posn.getFen());
 
-      IMove m = new CheckMoveDecorator(TestUtil.createMove(Square.b3, posn.pieceAt(Square.b3), Square.b8), new PieceSquareInfo(Piece.ROOK, Square.b8.index()));
+      IMove m = new CheckMoveDecorator(TestUtil.createMove(Square.b3, Square.b8), new PieceSquareInfo(Piece.ROOK, Square.b8.index()));
       Position posn2 = posn.move(m);
       assertEquals("1R2k3/8/8/8/8/8/8/4K3 b - -", posn2.getFen());
       assertEquals(Piece.ROOK, Pieces.toPiece(posn2.pieceAt(Square.b8)));
@@ -114,7 +113,7 @@ public class PositionTest {
       posn.addPiece(Colour.BLACK, Piece.QUEEN, Square.d5);
       assertEquals("4k3/8/8/3q4/8/1B6/8/4K3 w - -", posn.getFen());
 
-      Position posn2 = posn.move(TestUtil.createCapture(Square.b3, posn.pieceAt(Square.b3), Square.d5, posn.pieceAt(Square.d5)));
+      Position posn2 = posn.move(TestUtil.createCapture(Square.b3, Square.d5, posn.pieceAt(Square.d5)));
       assertEquals("4k3/8/8/3B4/8/8/8/4K3 b - -", posn2.getFen());
       assertEquals(Piece.BISHOP, Pieces.toPiece(posn2.pieceAt(Square.d5)));
       assertBoardClonedCorrectly(posn, posn2, Square.b3, Square.d5);
@@ -129,7 +128,7 @@ public class PositionTest {
       posn.addPiece(Colour.WHITE, Piece.ROOK, Square.a1);
       assertEquals("4k3/8/8/8/8/8/8/R3K2R w KQ -", posn.getFen());
 
-      Position posn2 = posn.move(TestUtil.createMove(Square.h1, posn.pieceAt(Square.h1), Square.h2));
+      Position posn2 = posn.move(TestUtil.createMove(Square.h1, Square.h2));
       assertEquals("4k3/8/8/8/8/8/7R/R3K3 b Q -", posn2.getFen());
       assertFalse(posn2.canCastleKingsside(Colour.WHITE));
       assertTrue(posn2.canCastleQueensside(Colour.WHITE));
@@ -138,7 +137,7 @@ public class PositionTest {
 
       // now queensside rook moves
       posn2.setSideToMove(Colour.WHITE);
-      Position posn3 = posn2.move(TestUtil.createMove(Square.a1, posn2.pieceAt(Square.a1), Square.a2));
+      Position posn3 = posn2.move(TestUtil.createMove(Square.a1, Square.a2));
       assertEquals("4k3/8/8/8/8/8/R6R/4K3 b - -", posn3.getFen());
       assertFalse(posn3.canCastleKingsside(Colour.WHITE));
       assertFalse(posn3.canCastleQueensside(Colour.WHITE));
@@ -153,7 +152,7 @@ public class PositionTest {
       posn.addPiece(Colour.WHITE, Piece.ROOK, Square.h1);
       assertEquals("4k3/8/8/8/8/8/8/4K2R w KQ -", posn.getFen());
 
-      Position posn2 = posn.move(new MovingPieceDecorator(Move.KINGS_CASTLING_MOVE[Colour.WHITE.ordinal()], Pieces.generateKing(Colour.WHITE)));
+      Position posn2 = posn.move(Move.KINGS_CASTLING_MOVE[Colour.WHITE.ordinal()]);
       assertEquals("4k3/8/8/8/8/8/8/5RK1 b - -", posn2.getFen());
       assertEquals(Piece.KING, Pieces.toPiece(posn2.pieceAt(Square.g1)));
       assertEquals(Piece.ROOK, Pieces.toPiece(posn2.pieceAt(Square.f1)));
@@ -174,7 +173,7 @@ public class PositionTest {
       posn.addPiece(Colour.WHITE, Piece.ROOK, Square.a1);
       assertEquals("4k3/8/8/8/8/8/8/R3K3 w KQ -", posn.getFen());
 
-      Position posn2 = posn.move(new MovingPieceDecorator(Move.QUEENS_CASTLING_MOVE[Colour.WHITE.ordinal()], Pieces.generateKing(Colour.WHITE)));
+      Position posn2 = posn.move(Move.QUEENS_CASTLING_MOVE[Colour.WHITE.ordinal()]);
       assertCastlingrightsClonedCorrectly(posn, posn2);
       assertEquals("4k3/8/8/8/8/8/8/2KR4 b - -", posn2.getFen());
       assertEquals(Piece.KING, Pieces.toPiece(posn2.pieceAt(Square.c1)));
@@ -197,7 +196,7 @@ public class PositionTest {
       posn.setSideToMove(Colour.BLACK);
       assertEquals("4k2r/8/8/8/8/8/8/4K3 b kq -", posn.getFen());
 
-      Position posn2 = posn.move(new MovingPieceDecorator(Move.KINGS_CASTLING_MOVE[Colour.BLACK.ordinal()], Pieces.generateKing(Colour.BLACK)));
+      Position posn2 = posn.move(Move.KINGS_CASTLING_MOVE[Colour.BLACK.ordinal()]);
       assertEquals("5rk1/8/8/8/8/8/8/4K3 w - -", posn2.getFen());
       assertEquals(Piece.KING, Pieces.toPiece(posn2.pieceAt(Square.g8)));
       assertEquals(Piece.ROOK, Pieces.toPiece(posn2.pieceAt(Square.f8)));
@@ -219,7 +218,7 @@ public class PositionTest {
       posn.setSideToMove(Colour.BLACK);
       assertEquals("r3k3/8/8/8/8/8/8/4K3 b kq -", posn.getFen());
 
-      Position posn2 = posn.move(new MovingPieceDecorator(Move.QUEENS_CASTLING_MOVE[Colour.BLACK.ordinal()], Pieces.generateKing(Colour.BLACK)));
+      Position posn2 = posn.move(Move.QUEENS_CASTLING_MOVE[Colour.BLACK.ordinal()]);
       assertEquals("2kr4/8/8/8/8/8/8/4K3 w - -", posn2.getFen());
       assertEquals(Piece.KING, Pieces.toPiece(posn2.pieceAt(Square.c8)));
       assertEquals(Piece.ROOK, Pieces.toPiece(posn2.pieceAt(Square.d8)));
@@ -242,8 +241,7 @@ public class PositionTest {
       assertEquals("4k3/8/8/8/2p5/8/1P6/4K3 w - -", posn.getFen());
 
       // make pawn move, which sets the enpassant square in the position
-      Position posn2 = posn.move(new MovingPieceDecorator(MoveGenerator.pawnMoves[Colour.WHITE.ordinal()][Square.b2.index()].getNext()[0].getMove(),
-            Pieces.generatePawn(Colour.WHITE)));
+      Position posn2 = posn.move(MoveGenerator.pawnMoves[Colour.WHITE.ordinal()][Square.b2.index()].getNext()[0].getMove());
       assertEquals("4k3/8/8/8/1Pp5/8/8/4K3 b - b3", posn2.getFen());
       assertEquals(Piece.PAWN, Pieces.toPiece(posn2.pieceAt(Square.b4)));
       assertBoardClonedCorrectly(posn, posn2, Square.b4, Square.b2);
@@ -251,7 +249,7 @@ public class PositionTest {
       assertSame(posn.castlingRights, posn2.castlingRights);
       assertEquals(Square.b3, posn2.getEnpassantSquare());
 
-      IMove epMove = new MovingPieceDecorator(Move.createEnpassantMove(Square.c4.index(), Square.b3.index(), Colour.BLACK), Pieces.generatePawn(Colour.BLACK));
+      IMove epMove = Move.createEnpassantMove(Square.c4.index(), Square.b3.index(), Colour.BLACK);
       assertEquals(Square.b4.index(), epMove.getSquareOfPawnCapturedEnpassant());
       Position posn3 = posn2.move(epMove);
       assertBoardClonedCorrectly(posn2, posn3, Square.b3, Square.b4, Square.c4);
@@ -272,8 +270,7 @@ public class PositionTest {
       posn.addPiece(Colour.WHITE, Piece.PAWN, Square.c7);
       assertEquals("4k3/2P5/8/8/8/8/8/4K3 w - -", posn.getFen());
 
-      Position posn2 = posn.move(new MovingPieceDecorator(Move.createPromotionMove(Square.c7.index(), Square.c8.index(), Pieces.generateQueen(Colour.WHITE)),
-            Pieces.generatePawn(Colour.WHITE)));
+      Position posn2 = posn.move(Move.createPromotionMove(Square.c7.index(), Square.c8.index(), Pieces.generateQueen(Colour.WHITE)));
       assertEquals("2Q1k3/8/8/8/8/8/8/4K3 b - -", posn2.getFen());
       assertEquals(Piece.QUEEN, Pieces.toPiece(posn2.pieceAt(Square.c8)));
       assertEquals(Colour.WHITE, posn2.colourOfPieceAt(Square.c8));
@@ -290,9 +287,8 @@ public class PositionTest {
       posn.addPiece(Colour.BLACK, Piece.BISHOP, Square.b8);
       assertEquals("1b2k3/2P5/8/8/8/8/8/4K3 w - -", posn.getFen());
 
-      Position posn2 = posn.move(new MovingPieceDecorator(
-            Move.createPromotionCaptureMove(Square.c7.index(), Square.b8.index(), posn.pieceAt(Square.b8), Pieces.generateKnight(Colour.WHITE)),
-            Pieces.generatePawn(Colour.WHITE)));
+      Position posn2 = posn
+            .move(Move.createPromotionCaptureMove(Square.c7.index(), Square.b8.index(), posn.pieceAt(Square.b8), Pieces.generateKnight(Colour.WHITE)));
       assertEquals("1N2k3/8/8/8/8/8/8/4K3 b - -", posn2.getFen());
       assertEquals(Piece.KNIGHT, Pieces.toPiece(posn2.pieceAt(Square.b8)));
       assertEquals(Colour.WHITE, posn2.colourOfPieceAt(Square.b8));
@@ -310,7 +306,7 @@ public class PositionTest {
       for (IMove m : new MoveGenerator().findMoves(p, Colour.WHITE)) {
          if (m.isCheck()) {
             if (m.toString().equals("c5-c6+")) { moveC6 = m; }
-            if (m.toString().equals("Ne4-f6+")) { moveF6 = m; }
+            if (m.toString().equals("e4-f6+")) { moveF6 = m; } // Ne4-f6+
          }
       }
       assertNotNull(moveC6);

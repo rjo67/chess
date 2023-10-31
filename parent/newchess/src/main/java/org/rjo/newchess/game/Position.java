@@ -290,12 +290,9 @@ public class Position {
    // process the given move, updating internal structures
    private void processMove(IMove move) {
       int sideToMoveOrdinal = this.sideToMove.ordinal();
+      byte movingPiece = pieceAt(move.getOrigin());
 
       if (TEST_IF_VALID) {
-         if (move.getMovingPiece() != pieceAt(move.getOrigin())) {
-            throw new IllegalStateException(String.format("invalid move %s, piece at %s is %s %s", move, Square.toSquare(move.getOrigin()),
-                  colourOfPieceAt(move.getOrigin()), pieceAt(move.getOrigin())));
-         }
          if (move.isCapture()) {
             if (move.isEnpassant()) {
                if (!squareIsEmpty(move.getTarget())) {
@@ -311,13 +308,13 @@ public class Position {
             throw new IllegalStateException(String.format("invalid non-capture move %s, target square is occupied with: %s %s", move,
                   colourOfPieceAt(move.getTarget()), pieceAt(move.getTarget())));
          }
-         if (Pieces.colourOf(move.getMovingPiece()) != this.sideToMove) {
+         if (Pieces.colourOf(pieceAt(move.getOrigin())) != this.sideToMove) {
             throw new IllegalStateException(String.format("invalid move %s, sideToMove is %s", move, sideToMove));
          }
       }
       // remove piece at move.origin, place piece at move.target (implicitly removing piece at move.target)
       board[move.getOrigin()] = UNOCCUPIED_SQUARE;
-      board[move.getTarget()] = move.isPromotion() ? move.getPromotedPiece() : move.getMovingPiece();
+      board[move.getTarget()] = move.isPromotion() ? move.getPromotedPiece() : movingPiece;
       if (move.isEnpassant()) { board[move.getSquareOfPawnCapturedEnpassant()] = UNOCCUPIED_SQUARE; }
 
       // move rook too if castling
@@ -338,11 +335,11 @@ public class Position {
             }
          }
          board[rookOriginSq] = UNOCCUPIED_SQUARE;
-         board[rookTargetSq] = Pieces.generateRook(Pieces.colourOf(move.getMovingPiece()));
+         board[rookTargetSq] = Pieces.generateRook(Pieces.colourOf(movingPiece));
       }
 
       // update enpassantSquare if pawn moved
-      if (Pieces.isPawn(move.getMovingPiece()) && move.isPawnTwoSquaresForward()) {
+      if (Pieces.isPawn(movingPiece) && move.isPawnTwoSquaresForward()) {
          this.enpassantSquare = Square.findEnpassantSquareFromMove(Square.toSquare(move.getTarget()));
       } else {
          this.enpassantSquare = null;
@@ -357,7 +354,7 @@ public class Position {
       boolean opponentsQueensCastling = this.castlingRights[opponentsSideOrdinal][1];
 
       // update kingsSquare && castling rights if king moved
-      if (Pieces.isKing(move.getMovingPiece())) {
+      if (Pieces.isKing(movingPiece)) {
          this.kingsSquare = this.kingsSquare.clone();
          this.kingsSquare[sideToMoveOrdinal] = move.getTarget();
          castlingRightsChanged = true;
@@ -366,7 +363,7 @@ public class Position {
       }
 
       // check if a rook moved from its starting square, therefore invalidating castling rights
-      if (Pieces.isRook(move.getMovingPiece())) {
+      if (Pieces.isRook(movingPiece)) {
          if (move.getOrigin() == MoveGenerator.rooksCastlingSquareIndex[sideToMoveOrdinal][0] && canCastleKingsside(sideToMove)) {
             castlingRightsChanged = true;
             kingsCastling = false;

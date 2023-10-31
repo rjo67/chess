@@ -28,15 +28,15 @@ public class OpponentInCheckTest {
       Position p = new Position(Square.e1, Square.e8);
       p.addPiece(Colour.WHITE, Piece.PAWN, Square.d6);
       p.addPiece(Colour.BLACK, Piece.PAWN, Square.f3);
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "d6-d7+");
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.ONLY_CHECKS, "f3-f2+");
+      TestUtil.checkMoves(p, new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "d6-d7+");
+      TestUtil.checkMoves(p, new MoveGenerator().findMoves(p, Colour.BLACK), TestUtil.ONLY_CHECKS, "f3-f2+");
    }
 
    @Test
    public void pawnPromotionChecksKing() {
       Position p = new Position(Square.a1, Square.h8);
       p.addPiece(Colour.WHITE, Piece.PAWN, Square.c7);
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "c7-c8=R+", "c7-c8=Q+");
+      TestUtil.checkMoves(p, new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "c7-c8=R+", "c7-c8=Q+");
       // [c7-c8=R+, c7-c8=N, c7-c8=B, c7-c8=Q+, Ka1-a2, Ka1-b1, Ka1-b2]
       var sw = StopWatch.createStarted();
       var NBR_ITERS = 300000;
@@ -52,28 +52,28 @@ public class OpponentInCheckTest {
       Position p = new Position(Square.e1, Square.e8);
       p.addPiece(Colour.WHITE, Piece.KNIGHT, Square.b7);
       p.addPiece(Colour.WHITE, Piece.KNIGHT, Square.e4);
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Nb7-d6+", "Ne4-d6+", "Ne4-f6+");
+      TestUtil.checkMoves(p, new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Nb7-d6+", "Ne4-d6+", "Ne4-f6+");
    }
 
    @Test
    public void bishopMoveChecksKing() {
       Position p = new Position(Square.e1, Square.e8);
       p.addPiece(Colour.WHITE, Piece.BISHOP, Square.e4);
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Be4-c6+", "Be4-g6+");
+      TestUtil.checkMoves(p, new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Be4-c6+", "Be4-g6+");
    }
 
    @Test
    public void rookMoveChecksKing() {
       Position p = new Position(Square.e1, Square.e8);
       p.addPiece(Colour.WHITE, Piece.ROOK, Square.a7);
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Ra7-a8+", "Ra7-e7+");
+      TestUtil.checkMoves(p, new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Ra7-a8+", "Ra7-e7+");
    }
 
    @Test
    public void queenMoveChecksKing() {
       Position p = new Position(Square.e1, Square.e8);
       p.addPiece(Colour.WHITE, Piece.QUEEN, Square.b6);
-      TestUtil.checkMoves(new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Qb6-b8+", "Qb6-d8+", "Qb6-e6+", "Qb6-g6+", "Qb6-b5+",
+      TestUtil.checkMoves(p, new MoveGenerator().findMoves(p, Colour.WHITE), TestUtil.ONLY_CHECKS, "Qb6-b8+", "Qb6-d8+", "Qb6-e6+", "Qb6-g6+", "Qb6-b5+",
             "Qb6-c6+", "Qb6-e3+");
    }
 
@@ -86,7 +86,7 @@ public class OpponentInCheckTest {
    })
    public void kingInDirectCheckAfterMove(String fen, String moveOrigin, String moveTarget) {
       Position posn = Fen.decode(fen).getPosition();
-      IMove move = TestUtil.createMove(Square.valueOf(moveOrigin), posn.pieceAt(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
+      IMove move = TestUtil.createMove(Square.valueOf(moveOrigin), Square.valueOf(moveTarget));
       List<PieceSquareInfo> checkSquares = new MoveGenerator().isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
             null);
       assertEquals(1, checkSquares.size());
@@ -100,7 +100,7 @@ public class OpponentInCheckTest {
    })
    public void kingInDiscoveredCheckAfterMove(String fen, String moveOrigin, String moveTarget, String checkSquare) {
       Position posn = Fen.decode(fen).getPosition();
-      IMove move = TestUtil.createMove(Square.valueOf(moveOrigin), posn.pieceAt(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
+      IMove move = TestUtil.createMove(Square.valueOf(moveOrigin), Square.valueOf(moveTarget));
 
       List<PieceSquareInfo> checkSquares = new MoveGenerator().isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
             null);
@@ -114,7 +114,7 @@ public class OpponentInCheckTest {
    })
    public void kingInDirectAndDiscoveredCheckAfterMove(String fen, String moveOrigin, String moveTarget, String discoverdCheckSquare) {
       Position posn = Fen.decode(fen).getPosition();
-      IMove move = TestUtil.createMove(Square.valueOf(moveOrigin), posn.pieceAt(Square.valueOf(moveOrigin)), Square.valueOf(moveTarget));
+      IMove move = TestUtil.createMove(Square.valueOf(moveOrigin), Square.valueOf(moveTarget));
       List<PieceSquareInfo> checkSquares = new MoveGenerator().isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
             null);
       assertEquals(2, checkSquares.size());
@@ -126,7 +126,7 @@ public class OpponentInCheckTest {
    @Test
    public void kingInDirectAndDiscoveredCheckAfterMoveCache() {
       Position posn = Fen.decode("5K2/8/1Q5B/2N5/5P2/8/RB3k2/8 w - - 0 1").getPosition();
-      IMove move = TestUtil.createMove(Square.b2, posn.pieceAt(Square.b2), Square.d4);
+      IMove move = TestUtil.createMove(Square.b2, Square.d4);
       RayCacheInfo[] cache = new RayCacheInfo[64];
       List<PieceSquareInfo> checkSquares = new MoveGenerator(true).isOpponentsKingInCheckAfterMove(posn, move, posn.getKingsSquare(Colour.BLACK), Colour.BLACK,
             cache);

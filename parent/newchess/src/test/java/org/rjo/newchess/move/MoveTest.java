@@ -15,12 +15,11 @@ import org.rjo.newchess.piece.Pieces;
 
 public class MoveTest {
 
-   private static final byte WHITE_PAWN = Pieces.generatePawn(Colour.WHITE);
    private static final byte BLACK_PAWN = Pieces.generatePawn(Colour.BLACK);
 
    @Test
    public void move() {
-      IMove m = TestUtil.createMove(Square.a5, WHITE_PAWN, Square.a6);
+      IMove m = TestUtil.createMove(Square.a5, Square.a6);
       assertFalse(m.isCapture());
       assertFalse(m.isEnpassant());
       assertFalse(m.isPromotion());
@@ -32,7 +31,7 @@ public class MoveTest {
 
    @Test
    public void capture() {
-      IMove m = TestUtil.createCapture(Square.a5, WHITE_PAWN, Square.b6, BLACK_PAWN);
+      IMove m = TestUtil.createCapture(Square.a5, Square.b6, BLACK_PAWN);
       assertTrue(m.isCapture());
       assertFalse(m.isEnpassant());
       assertFalse(m.isPromotion());

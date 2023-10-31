@@ -28,8 +28,7 @@ public class CheckMoveDecorator implements IMove {
    @Override
    public List<PieceSquareInfo> getCheckSquares() { return checkSquares; }
 
-   @Override
-   public byte getMovingPiece() { return move.getMovingPiece(); }
+   // public byte getMovingPiece() { return move.getMovingPiece(); }
 
    @Override
    public int getOrigin() { return move.getOrigin(); }
