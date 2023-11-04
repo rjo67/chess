@@ -31,7 +31,7 @@ public class Position {
    private final static MoveGeneratorI moveGenerator = new MoveGenerator();
 
    /** enables sanity checks during move processing */
-   private static final boolean TEST_IF_VALID = true;
+   private static final boolean TEST_IF_VALID = false;
 
    /**
     * Stores information about a piece on a square.

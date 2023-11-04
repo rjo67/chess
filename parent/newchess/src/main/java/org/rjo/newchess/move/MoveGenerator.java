@@ -130,6 +130,7 @@ public class MoveGenerator implements MoveGeneratorI {
 
    public final static MoveNode[][] pawnMoves = new MoveNode[2][64]; // dim0: w/b; dim1: head of a linked list of possible moves
 
+   /** holds linked lists of moves for various pieces (e.g. sliding pieces, knights, king). Pawns are treated separately */
    /* package */ final static MoveNode[][] moveNodes = new MoveNode[6][64]; // dim0=piece type; dim1=head of a linked list of possible squares to move to
 
    static {

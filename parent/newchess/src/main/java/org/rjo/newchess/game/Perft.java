@@ -163,7 +163,7 @@ public class Perft {
    }
 
    /**
-    * Find the number of possible moves at the given depth, starting at the current position given by <code>game</code>. I.e., for a depth of 2
+    * Find the number of possible moves at the given depth, starting at the current position given by <code>posn</code>. I.e., for a depth of 2
     * and start colour white, all of black's moves will be returned for each of the possible white moves. NB: Only leaf nodes are counted.
     *
     * @param posn       the game position
