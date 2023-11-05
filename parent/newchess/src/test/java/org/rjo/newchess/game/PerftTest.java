@@ -1,20 +1,22 @@
 package org.rjo.newchess.game;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.rjo.newchess.piece.Colour;
 
 /**
- * Perft, (PERFormance Test, move path enumeration) is a debugging function to walk the move generation tree of strictly
- * legal moves to count all the leaf nodes of a certain depth. PERFT tests are usually pretty slow, therefore the
- * majority of tests do not run automatically.
+ * Perft, (PERFormance Test, move path enumeration) is a debugging function to walk the move generation tree of strictly legal moves to
+ * count all the leaf nodes of a certain depth. PERFT tests are usually pretty slow, therefore the majority of tests do not run
+ * automatically.
  * <p>
  * Results 08.04.2015:
  *
@@ -48,31 +50,30 @@ import org.rjo.newchess.piece.Colour;
  * Finished in     35 s
  * </pre>
  * <p>
- * <h1>Debugging tips</h1> If the Perft does not return the correct number of moves, one way of attacking the problem is
- * to use the excellent "JetChess" to calculate the perft scores. Then see which move(s) return the wrong number of
- * moves, and take it from there (at depth-1).
+ * <h1>Debugging tips</h1> If the Perft does not return the correct number of moves, one way of attacking the problem is to use the
+ * excellent "JetChess" to calculate the perft scores. Then see which move(s) return the wrong number of moves, and take it from there (at
+ * depth-1).
  *
  * @author rich
- * @see    'http://chessprogramming.wikispaces.com/Perft'
- * @see    'http://chessprogramming.wikispaces.com/Perft+Results'
- * @see    'http://wismuth.com/chess/statistics-games.html'
- * @see    'http://www.chessprogramming.net/perfect-perft/'
- * @see    'http://www.talkchess.com/forum/viewtopic.php?topic_view=threads&p=508921&t=47318'
- * @see    'http://www.rocechess.ch/perft.html'
- * @see    'https://sites.google.com/site/numptychess/perft'
+ * @see 'http://chessprogramming.wikispaces.com/Perft'
+ * @see 'http://chessprogramming.wikispaces.com/Perft+Results'
+ * @see 'http://wismuth.com/chess/statistics-games.html'
+ * @see 'http://www.chessprogramming.net/perfect-perft/'
+ * @see 'http://www.talkchess.com/forum/viewtopic.php?topic_view=threads&p=508921&t=47318'
+ * @see 'http://www.rocechess.ch/perft.html'
+ * @see 'https://sites.google.com/site/numptychess/perft'
  */
-//@EnabledIfEnvironmentVariable(named = "enablePerft", matches = "true")
+// @EnabledIfEnvironmentVariable(named = "enablePerft", matches = "true")
 public class PerftTest {
 
    /**
-    * performs perft(n) for n = 1..size of expectedNbrOfMoves. Fill expectedNbrOfMoves with -1 to avoid calling for this
-    * depth.
+    * performs perft(n) for n = 1..size of expectedNbrOfMoves. Fill expectedNbrOfMoves with -1 to avoid calling for this depth.
     */
    @ParameterizedTest
    @MethodSource("data")
    public void test(String testname, String fenString, Colour sideToMove, int[] expectedNbrOfMoves) {
       final int depthLimit = 5;
-//      if (testname.equals("numpty5")) {
+      // if (testname.equals("numpty5")) {
       for (int depth = 0; depth < Math.min(depthLimit, expectedNbrOfMoves.length); depth++) {
          if (expectedNbrOfMoves[depth] != -1) {
             Game game = Fen.decode(fenString);
@@ -88,7 +89,16 @@ public class PerftTest {
                   String.format("error in test '%s': wrong nbr of moves at depth %s\nfen: %s\nmoveMap: %s\n", testname, +depth + 1, fenString, moveMap));
          }
       }
-//      }
+      // }
+   }
+
+   @Test
+   public void quicktest() {
+      // taken from 'posn5', after white's move c2-c3.
+      Position p = Fen.decode("rnbqkb1r/pp1p1ppp/2p5/4P3/2B5/2P5/PP2NnPP/RNBQK2R b KQkq - 0 6").getPosition();
+      assertFalse(p.isKingInCheck());
+      Map<String, Integer> moveMap = Perft.findMoves(p, Colour.BLACK, 2, 1);
+      assertEquals(1362, Perft.countMoves(moveMap));
    }
 
    /**

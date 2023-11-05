@@ -5,6 +5,9 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.rjo.chess.base.bits.BitSetFactory;
+import org.rjo.chess.base.bits.BitSetUnifier;
+
 /**
  * @author rich
  *
@@ -67,10 +70,27 @@ public enum Ray {
     */
    public static final Ray[][] rayBetweenSquares;
 
+   /**
+    * Marks the squares between two given squares as a bitmask. This marks the squares which are on the 'check path' from s to t. s and t
+    * themselves are not included.
+    * 
+    * If there is no 'ray' between the two squares, then a bitset with all bits set is stored.
+    * 
+    * e.g. Ray.bitmaskBetweenSquares[s][t] is a long (64bits) where only the squares between s and t are set.
+    */
+   public static final BitSetUnifier[][] bitmaskBetweenSquares;
+
+   public static final BitSetUnifier fullysetBs = BitSetFactory.createBitSet(64);// . BitSet.valueOf(new long[] { -1L });
+
    static {
+      for (int i = 0; i < 64; i++) {
+         fullysetBs.set(i);
+      }
+
       raysSet = new Set[64][8];
       raysList = new int[64][8][];
       rayBetweenSquares = new Ray[64][64];
+
       int[] offset = new int[] { -10, -9, 1, 11, 10, 9, -1, -11 };
       for (int sq = 0; sq < 64; sq++) {
          for (Ray ray : Ray.values()) {
@@ -87,6 +107,24 @@ public enum Ray {
             for (Integer raySq : raysSet[sq][ray.ordinal()]) {
                raysList[sq][ray.ordinal()][slot++] = raySq;
             }
+         }
+      }
+
+      // 0 == top-left
+      bitmaskBetweenSquares = new BitSetUnifier[64][64];
+      for (int sq = 0; sq < 64; sq++) {
+         for (int targetSq = 0; targetSq < 64; targetSq++) {
+            if (sq == targetSq) { continue; }
+            Ray ray = rayBetweenSquares[sq][targetSq];
+            BitSetUnifier bs = BitSetFactory.createBitSet(64);
+            if (ray != null) {
+               for (int raySq : raysList[sq][ray.ordinal()]) {
+                  if (raySq == targetSq) { break; }
+                  bs.set(raySq);
+               }
+               // System.out.println(("sq=" + sq + ",targetSq=" + targetSq + ",ray=" + ray + ",bs=" + bs.toString()));
+            }
+            bitmaskBetweenSquares[sq][targetSq] = bs;
          }
       }
    }

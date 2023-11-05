@@ -8,39 +8,38 @@ package org.rjo.chess.base.bits;
  */
 public interface BitSetUnifier {
 
-	Object clone();
+   Object clone();
 
-	int size();
+   int size();
 
-	boolean isEmpty();
+   boolean isEmpty();
 
-	long[] toLongArray();
+   long[] toLongArray();
 
-	void flip(int bitIndex);
+   void flip(int bitIndex);
 
-	void flip(int fromIndex,
-			int toIndex);
+   void flip(int fromIndex, int toIndex);
 
-	boolean get(int bitIndex);
+   boolean get(int bitIndex);
 
-	void set(int bitIndex);
+   void set(int bitIndex);
 
-	void and(BitSetUnifier set);
+   void and(BitSetUnifier set);
 
-	void andNot(BitSetUnifier set);
+   void andNot(BitSetUnifier set);
 
-	void or(BitSetUnifier set);
+   void or(BitSetUnifier set);
 
-	void xor(BitSetUnifier set);
+   void xor(BitSetUnifier set);
 
-	boolean intersects(BitSetUnifier set);
+   boolean intersects(BitSetUnifier set);
 
-	int cardinality();
+   int cardinality();
 
-	void clear(int bitIndex);
+   void clear(int bitIndex);
 
-	int nextSetBit(int fromIndex);
+   int nextSetBit(int fromIndex);
 
-	int previousSetBit(int fromIndex);
+   int previousSetBit(int fromIndex);
 
 }

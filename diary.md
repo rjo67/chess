@@ -2,6 +2,7 @@
 
 ## TODOs ?
 
+- rewrite checking for a check; generate psuedo moves and then prune
 - store Rays in a byte?
 - Separate Move up: (origin, target) can be pre-generated, the pieces involved are the variable part
 - this may save time since can store the origin,target pair in the static arrays, also eg for castling
@@ -13,6 +14,7 @@ Interesting link: https://www.codeproject.com/Articles/5313417/Worlds-fastest-Bi
 ## Overview of commits and performance
 date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 ---- | ----------- | ------ | -----
+04.11.23 | 'Move' is now constant, no longer stores the moving piece and a 'check' is stored in CheckMoveDecorator. Can therefore pre-generate many moves | | average of 5 iterations: 3815,80 ms (42999,0 moves/ms)
 20.10.23 | Piece and Colour information stored in one byte, which allows bit operations and reduces object creation. | | average of 10 iterations: 3920,60 ms (41849,6 moves/ms)
 16.04.23 | Ray and pawn move optimizations (precaching various values which were previously being calculated) | | average of 10 iterations: 6021,40 ms (27248,7 moves/ms)
 12.04.23 | Now on faster PC, perft will now run with 6 threads per default. |  | For comparison: Perft from old design: 13.718 ms, 11960,6 moves/ms, 83,6 nanos/move. From "newchess" design: 7.299 ms, 22804,2 moves/ms, 43,9 nanos/move.

@@ -9,6 +9,9 @@ import java.util.ListIterator;
 import java.util.Set;
 import java.util.function.IntFunction;
 
+import org.rjo.chess.base.bits.BitSetFactory;
+import org.rjo.chess.base.bits.BitSetHelper;
+import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.newchess.board.Board;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.board.Ray;
@@ -132,6 +135,11 @@ public class MoveGenerator implements MoveGeneratorI {
 
    /** holds linked lists of moves for various pieces (e.g. sliding pieces, knights, king). Pawns are treated separately */
    /* package */ final static MoveNode[][] moveNodes = new MoveNode[6][64]; // dim0=piece type; dim1=head of a linked list of possible squares to move to
+
+   /**
+    * Valid squares for the king to move to, stored as bitsets for each square.
+    */
+   private static final BitSetUnifier[] KING_MOVES = new BitSetUnifier[64];
 
    static {
       enpassantSquares[Square.a6.index()] = new EnpassantInfo[] {
@@ -359,6 +367,30 @@ public class MoveGenerator implements MoveGeneratorI {
          }
       }
 
+      // 0 == top-left
+      for (int i = 0; i < 64; i++) {
+         BitSetUnifier myBitSet = BitSetFactory.createBitSet(64);
+         myBitSet.set(i);
+
+         /*
+          * calculate left and right attack then shift up and down one rank
+          */
+         BitSetUnifier combined = BitSetHelper.shiftOneWest(myBitSet);
+         BitSetUnifier east = BitSetHelper.shiftOneEast(myBitSet);
+         combined.or(east);
+
+         // save the current state
+         BitSetUnifier possibleMoves = (BitSetUnifier) combined.clone();
+         // now add the king's position again and shift up and down one rank
+         combined.or(myBitSet);
+         BitSetUnifier north = BitSetHelper.shiftOneNorth(combined);
+         BitSetUnifier south = BitSetHelper.shiftOneSouth(combined);
+         // add to result
+         possibleMoves.or(north);
+         possibleMoves.or(south);
+
+         KING_MOVES[i] = possibleMoves;
+      }
    }
 
    public MoveGenerator() {
@@ -377,49 +409,62 @@ public class MoveGenerator implements MoveGeneratorI {
        * 'squaresProcessed' array is used to keep track of which squares have been processed during the 'rays' loop.
        */
       boolean[] squaresProcessed = new boolean[64]; // false - not processed
-      // stores moves in the ray directions. Moves are stored in the direction of the
-      // ray, starting next to the kings square
+      // stores moves in the ray directions. Moves are stored in the direction of the ray, starting next to the kings square
       @SuppressWarnings("unchecked")
       List<IMove>[] movesWithStartSqOnRay = new List[Ray.values().length];
       List<IMove> otherMoves = new ArrayList<>(30); // stores moves from all other squares
       List<IMove> kingMoves = new LinkedList<>(); // stores king moves
 
-      var kingInCheck = posn.isKingInCheck();
-      var kingInDoubleCheck = kingInCheck && posn.getCheckSquares().size() == 2;
-
       int kingsSquare = posn.getKingsSquare(colour);
-      // does not include checking to see if the king is still in check after this move (happens later)
-      processKingsSquare(posn, kingsSquare, colour, kingMoves);
+      // this bitset stores info about squares which block the check (bit is set).
+      BitSetUnifier checkMask;
+      // the 'kingsForbiddenSquaresMask' serves as the set of squares the king _cannot_ move to. So starts off empty.
+      var kingsForbiddenSquaresMask = BitSetFactory.createBitSet(64);
+      PieceSquareInfo checkInfo = null;
+      var kingInDoubleCheck = posn.isKingInCheck() && posn.getCheckSquares().size() == 2;
+
+      if (posn.isKingInCheck()) {
+         checkInfo = posn.getCheckSquares().get(0);
+         // this mask will be all '0's if no ray between the squares exists
+         checkMask = (BitSetUnifier) Ray.bitmaskBetweenSquares[checkInfo.square()][kingsSquare].clone();
+         kingsForbiddenSquaresMask.or(checkMask);
+
+         Ray ray = Ray.findRayBetween(kingsSquare, checkInfo.square());
+         if (ray != null) {
+            checkInfo.setRayToKing(ray);
+            /*
+             * Because moves are generated along the ray, starting next to the king, we can keep track of the first piece that we find. Any further
+             * pieces along this ray cannot be pinned.
+             */
+         }
+         // *** always add square of checking piece to checkMask
+         // (a knight check is not on a ray to the king)
+         // this square does not get added to the kingsForbiddenSquaresMask
+         checkMask.set(posn.getCheckSquares().get(0).square());
+
+         if (kingInDoubleCheck) {
+            // extend check mask
+            checkMask.or(Ray.bitmaskBetweenSquares[posn.getCheckSquares().get(1).square()][kingsSquare]);
+            kingsForbiddenSquaresMask.or(Ray.bitmaskBetweenSquares[posn.getCheckSquares().get(1).square()][kingsSquare]);
+            checkMask.set(posn.getCheckSquares().get(1).square());
+         }
+      } else {
+         checkMask = Ray.fullysetBs; // all squares are OK
+      }
+      // the king' mask is now expanded to prevent moving adjacent to the opponents king.
+      final var opponentsKing = posn.getKingsSquare(posn.getSideToMove().opposite());
+      kingsForbiddenSquaresMask.or(KING_MOVES[opponentsKing]);
+      processKingsMove(posn, kingsSquare, colour, kingMoves, kingsForbiddenSquaresMask);
       squaresProcessed[kingsSquare] = true;
 
       if (!kingInDoubleCheck) {
-         // if our king is in check, this cache stores info about squares which block the
-         // check
-         int[] blocksCheck = new int[64]; // 0: not processed, 1: square blocks check; 2: not on ray to king or does
-         // not block
 
-         PieceSquareInfo checkInfo = null;
-         if (kingInCheck) {
-            checkInfo = posn.getCheckSquares().get(0);
-            Ray ray = Ray.findRayBetween(kingsSquare, checkInfo.square());
-            if (ray != null) {
-               checkInfo.setRayToKing(ray);
-               /*
-                * Because moves are generated along the ray, starting next to the king, we can keep track of the first piece that we find. Any further
-                * pieces along this ray cannot be pinned.
-                */
-               prefillCache(blocksCheck, checkInfo, kingsSquare); // squares between kingsSquare and checking piece
-               // can be marked as "1"
-            }
-         }
-
-         // generate all moves: only moves which get us out of check (if necessary) will
-         // be recorded
+         // generate all moves: only moves which get us out of check (if necessary) will be recorded
 
          for (Ray ray : Ray.values()) {
             movesWithStartSqOnRay[ray.ordinal()] = new LinkedList<>();
             for (int raySq : Ray.raysList[kingsSquare][ray.ordinal()]) {
-               processSquare(posn, raySq, colour, movesWithStartSqOnRay[ray.ordinal()], checkInfo, kingsSquare, blocksCheck);
+               processSquare(posn, raySq, colour, movesWithStartSqOnRay[ray.ordinal()], checkInfo, kingsSquare, checkMask);
                squaresProcessed[raySq] = true;
             }
          }
@@ -428,10 +473,10 @@ public class MoveGenerator implements MoveGeneratorI {
 
          // process all other squares
          for (int sq = 0; sq < 64; sq++) {
-            if (!squaresProcessed[sq]) { processSquare(posn, sq, colour, otherMoves, checkInfo, kingsSquare, blocksCheck); }
+            if (!squaresProcessed[sq]) { processSquare(posn, sq, colour, otherMoves, checkInfo, kingsSquare, checkMask); }
          }
 
-         if (!kingInCheck) {
+         if (!posn.isKingInCheck()) {
             if (canCastleKingsside(posn, colour)) { kingMoves.add(Move.KINGS_CASTLING_MOVE[colour.ordinal()]); }
             if (canCastleQueensside(posn, colour)) { kingMoves.add(Move.QUEENS_CASTLING_MOVE[colour.ordinal()]); }
          }
@@ -479,13 +524,6 @@ public class MoveGenerator implements MoveGeneratorI {
       return allMoves;
    }
 
-   private void prefillCache(int[] blocksCheck, PieceSquareInfo checkInfo, int kingsSquare) {
-      for (int sq : Ray.raysList[kingsSquare][checkInfo.rayToKing().ordinal()]) {
-         if (sq == checkInfo.square()) { break; }
-         blocksCheck[sq] = 1;
-      }
-   }
-
    /**
     * If the king is already in check, this enum details the possibilities after a certain move.
     */
@@ -496,60 +534,20 @@ public class MoveGenerator implements MoveGeneratorI {
    }
 
    /**
-    * Only called when the king is already in check. The given move must therefore either capture the checking piece or block the check.
-    * 
-    * Do not call for king moves.
-    * 
-    * @param posn        position. **King must be in check**
-    * @param move
-    * @param kingsSquare
-    * @param blocksCheck a cache of already processed squares, 1 if a sq blocks the check, 0 if not yet calculated
-    * @return true if the move successfully blocks the check (or captures the checking piece)
-    */
-   private BlockedCheckPossibility moveBlocksCheck(Position posn, IMove move, int kingsSquare, int[] blocksCheck) {
-      List<PieceSquareInfo> checkSquares = posn.getCheckSquares();
-      if (checkSquares.isEmpty()) { throw new IllegalStateException("no check squares specified, move " + move + ", posn: " + posn); }
-      if (checkSquares.size() == 2) { return BlockedCheckPossibility.NOT_BLOCKED; } // a double check cannot be blocked
-      PieceSquareInfo checkInfo = checkSquares.get(0);
-      // (1) does the move capture the piece?
-      if (move.moveCapturesPiece(checkInfo.square())) { return BlockedCheckPossibility.CHECKING_PIECE_CAPTURED; }
-      // (2) does the move block the check?
-      return moveToSquareBlocksCheck(checkInfo, move.getTarget(), kingsSquare, blocksCheck) ? BlockedCheckPossibility.RAY_BLOCKED
-            : BlockedCheckPossibility.NOT_BLOCKED;
-   }
-
-   /**
     * Would a move to 'targetSquareOfMove' block the given check, i.e. is it on the same ray and between the checker and the king?
+    * <p>
+    * Can be called when the king is not in check. In this case, checkInfo==null and true will be returned.
     * 
-    * @param checkInfo          info about the checking piece
+    * @param checkInfo          info about the checking piece. Can be null, in which case 'true' will always be returned.
     * @param targetSquareOfMove where our piece is moving to
     * @param kingsSquare
-    * @param blocksCheck        a cache of already processed squares, 2 if not on ray/does not block, 1 if a sq blocks the check, 0 if not yet
-    *                           calculated
-    * @return true if blocks the checker
+    * @param checkMask          if the square in the checkMask is set, then it blocks the check. Note: the check mask includes the square of
+    *                           the checking piece, i.e. this will return true if we're dealing with a capture of that piece
+    * @return true if blocks (or captures) the checker
     */
-   private boolean moveToSquareBlocksCheck(PieceSquareInfo checkInfo, int targetSquareOfMove, int kingsSquare, int[] blocksCheck) {
-      if (Pieces.isPawnOrKnight(checkInfo.piece())) { return false; } // cannot block these checks
-      if (blocksCheck[targetSquareOfMove] != 0) {
-         if (verbose) {
-            System.out.println("moveToSquareBlocksCheck, used cache for targetSq: " + targetSquareOfMove + ", result: " + blocksCheck[targetSquareOfMove]);
-         }
-         return blocksCheck[targetSquareOfMove] == 1;
-      }
-      if (verbose) { System.out.println("moveToSquareBlocksCheck, checkInfo: " + checkInfo + ", targetSq: " + targetSquareOfMove); }
-      Ray moveRay = Ray.findRayBetween(kingsSquare, targetSquareOfMove);
-      if (moveRay == null) { // can't block a check if there's no ray between the moved piece and the king
-         blocksCheck[targetSquareOfMove] = 2;
-         return false;
-      }
-      if (moveRay != checkInfo.rayToKing()) { // not on same ray
-         blocksCheck[targetSquareOfMove] = 2;
-         return false;
-      }
-      // should never get here if the blocksCheck cache has been setup correctly
-      boolean isBlocked = moveRay.squareBetween(targetSquareOfMove, kingsSquare, checkInfo.square());
-      blocksCheck[targetSquareOfMove] = isBlocked ? 1 : 2;
-      return isBlocked;
+   private boolean moveToSquareBlocksPossibleCheck(PieceSquareInfo checkInfo, int targetSquareOfMove, int kingsSquare, BitSetUnifier checkMask) {
+      // either not in check, in which case every move is allowed, or use the checkMask
+      return (checkInfo == null) || checkMask.get(targetSquareOfMove);
    }
 
    /**
@@ -782,28 +780,31 @@ public class MoveGenerator implements MoveGeneratorI {
     * Only for King moves.
     * 
     * @param posn
-    * @param startSq square to process
+    * @param startSq                   square to process
     * @param colour
-    * @param moves   king moves will be added to this list
+    * @param moves                     king moves will be added to this list
+    * @param kingsForbiddenSquaresMask defines the squares which would still leave the king in check; therefore cannot move to any of these
+    *                                  squares
     */
-   /* package */ void processKingsSquare(Position posn, int startSq, Colour colour, List<IMove> moves) {
+   /* package */ void processKingsMove(Position posn, int startSq, Colour colour, List<IMove> moves, BitSetUnifier kingsForbiddenSquaresMask) {
       byte pieceOnStartSq = posn.pieceAt(startSq);
       if (Pieces.colourOf(pieceOnStartSq) == colour) {
          if (!Pieces.isKing(pieceOnStartSq)) {
             throw new IllegalStateException(String.format("called processKingsSquare with piece %s, posn: %s", pieceOnStartSq, posn));
          }
-         final Square opponentsKing = Square.toSquare(posn.getKingsSquare(posn.getSideToMove().opposite()));
 
-         // more or less a duplicate of processSquare -- but without 'check' logic, and with adjacentSquare logic
+         var possibleMoves = (BitSetUnifier) KING_MOVES[startSq].clone();
+         possibleMoves.andNot(kingsForbiddenSquaresMask);
+
+         // more or less a duplicate of processSquare, using 'possibleMoves' to filter for in-check/adjacent to king moves.
          // next[0] or next[1] doesn't matter, both are set to be the same
+
+         // TODO one thing this doesn't check for, is the king moving away on the same checking ray e.g. Ra3 checks Kc3 and king moves to Kd3.
 
          MoveNode targetNode = moveNodes[Piece.KING.ordinal()][startSq];
          while (targetNode != null) {
-            IMove move = null;
-            // ignore square if king would move adjacent to opponent's king
-            if (targetNode.toSq.adjacentTo(opponentsKing)) {
-               targetNode = targetNode.next[1];
-            } else {
+            if (possibleMoves.get(targetNode.to)) {
+               IMove move = null;
                // a) generate a move if the target square is empty
                // b) move to 'next direction' next[1] if a piece is occupying the square
                byte targetSquareContents = posn.pieceAt(targetNode.to);
@@ -819,6 +820,8 @@ public class MoveGenerator implements MoveGeneratorI {
                   targetNode = targetNode.next[1];
                }
                if (move != null) { moves.add(move); }
+            } else {
+               targetNode = targetNode.next[0];
             }
          }
       }
@@ -831,22 +834,22 @@ public class MoveGenerator implements MoveGeneratorI {
     * 
     * King squares are not processed here, see processKingsSquare().
     * 
-    * @param posn
+    * @param posn        position
     * @param startSq     square to process
-    * @param colour
+    * @param colour      colour to move
     * @param moves       moves will be added to this list
     * @param checkInfo   non-null if our king is currently in check
     * @param kingsSquare position of our king; relevant if checkInfo!=null
-    * @param blocksCheck a cache of already processed squares, 2 if sq not on ray / does not block check, 1 if a sq blocks the check, 0 if not
-    *                    yet calculated
+    * @param checkMask   if the square in the checkMask is set, then it blocks the check.
     */
-   private void processSquare(Position posn, int startSq, Colour colour, List<IMove> moves, PieceSquareInfo checkInfo, int kingsSquare, int[] blocksCheck) {
+   private void processSquare(Position posn, int startSq, Colour colour, List<IMove> moves, PieceSquareInfo checkInfo, int kingsSquare,
+         BitSetUnifier checkMask) {
       if (!posn.squareIsEmpty(startSq) && posn.colourOfPieceAt(startSq) == colour) {
          final byte pieceOnStartSq = posn.pieceAt(startSq);
          if (Pieces.isPawn(pieceOnStartSq)) {
-            moves.addAll(generatePawnMoves(posn, startSq, colour, checkInfo, kingsSquare, blocksCheck));
+            moves.addAll(generatePawnMoves(posn, startSq, colour, checkInfo, kingsSquare, checkMask));
          } else if (Pieces.isKing(pieceOnStartSq)) {
-            throw new IllegalStateException(String.format("called processSquare with King, posn: %s", posn));
+            throw new IllegalStateException(String.format("called processSquare (sq=%s) with King:\n%s", Square.toSquare(startSq), posn));
          } else {
             MoveNode targetNode = moveNodes[Pieces.toPiece(pieceOnStartSq).ordinal()][startSq];
             while (targetNode != null) {
@@ -865,16 +868,11 @@ public class MoveGenerator implements MoveGeneratorI {
                   move = targetNode.captureMove;
                   targetNode = targetNode.next[1];
                }
-               if (move != null) {
-                  if (checkInfo != null && moveBlocksCheck(posn, move, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) {
-                     // ignore move since did not block the check
-                  } else {
-                     moves.add(move);
-                  }
-               }
+               if (move != null && moveToSquareBlocksPossibleCheck(checkInfo, move.getTarget(), kingsSquare, checkMask)) { moves.add(move); }
             }
          }
       }
+
    }
 
    private <T> void addIfNotNull(List<T> list, T object) {
@@ -1163,12 +1161,12 @@ public class MoveGenerator implements MoveGeneratorI {
     * 
     * @param posn
     * @param startSq
-    * @param colour      colour of moving side
-    * @param checkInfo   non-null if our king is in check
-    * @param blocksCheck a cache of already processed squares, 1 if a sq blocks the check, 0 if not yet calculated
+    * @param colour    colour of moving side
+    * @param checkInfo non-null if our king is in check
+    * @param checkMask if the square in the checkMask is set, then it blocks the check.
     * @return all pawn moves
     */
-   private List<IMove> generatePawnMoves(Position posn, int startSq, Colour colour, PieceSquareInfo checkInfo, int kingsSquare, int[] blocksCheck) {
+   private List<IMove> generatePawnMoves(Position posn, int startSq, Colour colour, PieceSquareInfo checkInfo, int kingsSquare, BitSetUnifier checkMask) {
       List<IMove> moves = new ArrayList<>();
       // following cases ('reverse' for black pawns):
       // - pawn on 2nd rank can move 1 or two squares forward
@@ -1186,29 +1184,25 @@ public class MoveGenerator implements MoveGeneratorI {
          byte targetSquareContents = posn.pieceAt(currentNode.to);
          // generate a move if the target square is empty
          if (targetSquareContents == 0) {
-            if (checkInfo != null && !moveToSquareBlocksCheck(checkInfo, currentNode.to, kingsSquare, blocksCheck)) {
-               // ignore, since move does not block the check
-            } else {
-               moves.add(currentNode.move);
-            }
+            if (moveToSquareBlocksPossibleCheck(checkInfo, currentNode.to, kingsSquare, checkMask)) { moves.add(currentNode.move); }
             currentNode = currentNode.next[0]; // process any further moves (2 squares forward, or promotion)
          } else {
             break; // blocked by a piece
          }
       }
 
-      // promotion captures?
+      // captures.
+      // NB a possible enpassant move will be rejected here (since target square is empty) but will be processed in the following block
       currentNode = pawnCaptureNodes[colour.ordinal()][startSq];
       while (currentNode != null) {
          byte targetSquareContents = posn.pieceAt(currentNode.to);
          if (targetSquareContents == 0 || colour == Pieces.colourOf(targetSquareContents)) {
             // our own piece is blocking
          } else {
-            // capture
             // If the check still exists after this first promotion move, then it will for
             // the other moves too and therefore we don't need to evaluate them
-            if (checkInfo != null && moveBlocksCheck(posn, currentNode.captureMove, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) {
-               // ignore move
+            if (!moveToSquareBlocksPossibleCheck(checkInfo, currentNode.captureMove.getTarget(), kingsSquare, checkMask)) {
+               // ignore move (and all further promotion moves if present)
             } else {
                moves.add(currentNode.captureMove);
                // add all further promotion moves if present -- leave 'currentNode' alone so as not to disturb the outer loop
@@ -1225,10 +1219,13 @@ public class MoveGenerator implements MoveGeneratorI {
          final int epSquare = posn.getEnpassantSquare().index();
          for (EnpassantInfo info : enpassantSquares[epSquare]) {
             if (startSq == info.squareOfPawnToBeTakenEnpassant) {
-               if (checkInfo != null && moveBlocksCheck(posn, info.enpassantMove, kingsSquare, blocksCheck) == BlockedCheckPossibility.NOT_BLOCKED) {
-                  continue;
+               // if in check, need to capture the checking piece
+               if (checkInfo != null) {
+                  if (info.enpassantMove.moveCapturesPiece(checkInfo.square()))
+                     moves.add(info.enpassantMove);
+               } else {
+                  moves.add(info.enpassantMove);
                }
-               moves.add(info.enpassantMove);
             }
          }
       }

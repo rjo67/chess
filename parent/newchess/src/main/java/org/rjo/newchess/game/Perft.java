@@ -180,6 +180,7 @@ public class Perft {
          MoveResult moveResult = findMovesInternal(newMove, posnAfterMove, sideToMove.opposite(), depth - 1);
          totalMoves += moveResult.nbrMoves;
       }
+      // System.out.println(move + "=" + totalMoves);
       return new MoveResult(move, totalMoves);
    }
 

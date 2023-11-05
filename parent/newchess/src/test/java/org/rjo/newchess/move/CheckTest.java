@@ -11,8 +11,11 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.rjo.chess.base.bits.BitSetFactory;
+import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.newchess.TestUtil;
 import org.rjo.newchess.board.Board.Square;
+import org.rjo.newchess.board.Ray;
 import org.rjo.newchess.game.Fen;
 import org.rjo.newchess.game.Perft;
 import org.rjo.newchess.game.Position;
@@ -21,6 +24,29 @@ import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
 
 public class CheckTest {
+
+   @Test
+   public void checkMask() {
+
+      int kingsSquare = Square.d5.index();
+      int checkingSquare = Square.a5.index(); // e.g. Rook on a5 checks king on d5
+
+      BitSetUnifier checkMask = Ray.bitmaskBetweenSquares[kingsSquare][checkingSquare];
+
+      BitSetUnifier nonInterceptingMove = BitSetFactory.createBitSet(64);
+      nonInterceptingMove.set(Square.b7.index());
+      BitSetUnifier interceptingMove = BitSetFactory.createBitSet(64);
+      interceptingMove.set(Square.c5.index());
+
+      var cm2 = ((BitSetUnifier) checkMask.clone());
+      cm2.and(nonInterceptingMove);
+      assertTrue(cm2.isEmpty());
+      var cm3 = ((BitSetUnifier) checkMask.clone());
+      cm3.and(interceptingMove);
+      assertFalse(cm3.isEmpty());
+
+      assertTrue(Ray.bitmaskBetweenSquares[Square.b2.index()][Square.c4.index()].isEmpty());
+   }
 
    @ParameterizedTest
    @CsvSource({ "BISHOP,d8", "ROOK,d5", "KNIGHT,b3", "PAWN,b6" })
@@ -43,6 +69,15 @@ public class CheckTest {
       p.setSideToMove(Colour.BLACK);
       p.addPiece(Colour.WHITE, pt, sq);
       TestUtil.checkMoves(p, new MoveGenerator().findMoves(p, Colour.BLACK), "Ke7-e8", "Ke7-f8", "Ke7-f7", "Ke7-f6", "Ke7-e6", "Ke7-d6", "Ke7-d7");
+   }
+
+   @Test
+   public void kingInCheckEnpassantPossibleButDoesNotClearCheck() {
+      // black has just moved f7-f5, leading to a discovered check from the bishop on g8
+      Position p = Fen.decode("6b1/8/8/2k2pP1/8/1K6/8/8 w - f6 0 10").getPosition();
+      assertTrue(p.isKingInCheck());
+      assertEquals(Square.f6, p.getEnpassantSquare());
+      TestUtil.checkMoves(p, new MoveGenerator().findMoves(p, Colour.WHITE), "Kb3-a3", "Kb3-a4", "Kb3-c3", "Kb3-c2", "Kb3-b2");
    }
 
    @Test

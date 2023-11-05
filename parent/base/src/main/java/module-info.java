@@ -3,11 +3,11 @@
  * @since 2019-02-27
  */
 module org.rjo.chess.base {
-	exports org.rjo.chess.base;
-	exports org.rjo.chess.base.bits;
-	exports org.rjo.chess.base.eval;
-	exports org.rjo.chess.base.ray;
+   exports org.rjo.chess.base;
+   exports org.rjo.chess.base.bits;
+   exports org.rjo.chess.base.eval;
+   exports org.rjo.chess.base.ray;
 
-//	requires javolution;
-	requires lucene.core;
+   // requires javolution;
+   requires org.apache.lucene.core;
 }

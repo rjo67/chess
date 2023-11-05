@@ -86,7 +86,7 @@ public class Position {
 
       @Override
       public String toString() {
-         return piece + "@" + Square.toSquare(square) + (rayToKing == null ? "" : " on ray " + rayToKing);
+         return Pieces.toPiece(piece) + "@" + Square.toSquare(square) + (rayToKing == null ? "" : " on ray " + rayToKing);
       }
    }
 
