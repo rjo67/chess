@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.piece.Colour;
 import org.rjo.newchess.piece.Piece;
+import org.rjo.newchess.piece.Pieces;
 
 public class GameTest {
 
@@ -16,15 +17,15 @@ public class GameTest {
       Position posn = g.getPosition();
       int sqIndex = Square.d1.index();
 
-      assertTrue(!posn.isEmpty(sqIndex));
+      assertTrue(!posn.squareIsEmpty(sqIndex));
       assertEquals(Colour.WHITE, posn.colourOfPieceAt(sqIndex));
-      assertEquals(Piece.QUEEN, posn.pieceAt(sqIndex));
+      assertEquals(Piece.QUEEN, Pieces.toPiece(posn.pieceAt(sqIndex)));
 
       sqIndex = Square.d8.index();
 
-      assertTrue(!posn.isEmpty(sqIndex));
+      assertTrue(!posn.squareIsEmpty(sqIndex));
       assertEquals(Colour.BLACK, posn.colourOfPieceAt(sqIndex));
-      assertEquals(Piece.QUEEN, posn.pieceAt(sqIndex));
+      assertEquals(Piece.QUEEN, Pieces.toPiece(posn.pieceAt(sqIndex)));
    }
 
 }

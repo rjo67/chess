@@ -5,207 +5,248 @@ import java.util.List;
 
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.game.Position.PieceSquareInfo;
-import org.rjo.newchess.game.Position.SquareInfo;
 import org.rjo.newchess.piece.Colour;
-import org.rjo.newchess.piece.Piece;
+import org.rjo.newchess.piece.Pieces;
 
 public class Move {
-   private final SquareInfo originSquareInfo; // which piece is moving...
+
+   private static enum SpecialMove {
+      KINGS_SIDE_CASTLING, QUEENS_SIDE_CASTLING, ENPASSANT, PAWN_TWO_SQUARES_FORWARD;
+   }
+
+   private final byte originPiece; // which piece is moving...
    private final int originSq; // ... and where it's moving from
    private final int targetSq; // where piece is moving to
-   private final SquareInfo targetSquareInfo; // !null for captures
    private final boolean capture;
-   private final boolean promotion;
-   private final Piece promotedPiece;
+   private final byte promotedPiece; // !=0 if a promotion
+   private final boolean enpassant; // whether this move is an enpassant capture
+   private final int squareOfPawnCapturedEnpassant; // the square of the pawn which was captured enpassant, **defaults to 0**
+   private final boolean kingsSideCastling;
+   private final boolean queensSideCastling;
+   private final boolean pawnTwoSquaresForward; // marker field to indicate a pawn move of two squares (used in Position when performing a move)
 
    // following fields are set after constructor call
-   private boolean kingsSideCastling;
-   private boolean queensSideCastling;
    private boolean check; // whether this move is a check
    private List<PieceSquareInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
-   private boolean enpassant; // whether this move is an enpassant capture
-   private int squareOfPawnCapturedEnpassant; // the square of the pawn which was captured enpassant, **defaults to 0**
-   private boolean pawnTwoSquaresForward; // marker field to indicate a pawn move of two squares (used in Position when performing a move)
 
    /**
-    * @param origin           origin square
-    * @param originSquareInfo 'raw' info of origin square
-    * @param target           target square
-    * @param targetSquareInfo 'raw' info of target square; null if not a capture
-    * @param promotedPiece    promoted piece, set if promotion
-    * @param castling         set if a castling move (kings/queensside)
+    * Base Constructor.
+    * 
+    * @param originSq                      origin square
+    * @param originPiece                   info about piece on origin square
+    * @param targetSq                      target square
+    * @param capture                       true if capture
+    * @param enpassant                     true if enpassant
+    * @param squareOfPawnCapturedEnpassant enpassant square (only set if enpassant=true)
+    * @param kingsSideCastling             true if king's-side castling
+    * @param queensSideCastling            true if queen's-side castling
+    * @param pawnTwoSquaresForward         true if pawn move two-squares forward
     */
-   private Move(int origin, SquareInfo originSquareInfo, int target, SquareInfo targetSquareInfo, Piece promotedPiece) {
-      this.originSq = origin;
-      this.targetSq = target;
-      this.originSquareInfo = originSquareInfo;
-      this.capture = targetSquareInfo != null;
-      this.targetSquareInfo = targetSquareInfo;
-      this.promotion = promotedPiece != null;
+   private Move(int originSq, byte originPiece, int targetSq, boolean capture, byte promotedPiece, boolean enpassant, int squareOfPawnCapturedEnpassant,
+         boolean kingsSideCastling, boolean queensSideCastling, boolean pawnTwoSquaresForward) {
+      this.originSq = originSq;
+      this.originPiece = originPiece;
+      this.targetSq = targetSq;
+      this.capture = capture;
       this.promotedPiece = promotedPiece;
+      this.enpassant = enpassant;
+      this.squareOfPawnCapturedEnpassant = squareOfPawnCapturedEnpassant;
+      this.kingsSideCastling = kingsSideCastling;
+      this.queensSideCastling = queensSideCastling;
+      this.pawnTwoSquaresForward = pawnTwoSquaresForward;
+   }
+
+   /**
+    * Constructor for most moves (but NOT enpassant). A 'capture' is recognised when targetPiece!=0.
+    * 
+    * @param originSq      origin square
+    * @param originPiece   info about piece on origin square
+    * @param targetSq      target square
+    * @param targetPiece   info about piece on target square; 0 (empty square) == no piece == not a capture
+    * @param promotedPiece promoted piece, !=0 if promotion
+    */
+   public Move(int originSq, byte originPiece, int targetSq, byte targetPiece, byte promotedPiece) {
+      this(originSq, originPiece, targetSq, targetPiece != 0, promotedPiece, false, (byte) 0, false, false, false);
+   }
+
+   /**
+    * Constructor for special moves like castling or enpassant.
+    * <p>
+    * 
+    * @param originSq    origin square
+    * @param originPiece info about piece on origin square
+    * @param targetSq    target square
+    * @param specialMove determines the type of special move
+    */
+   private static Move createMove(int originSq, byte originPiece, int targetSq, SpecialMove specialMove) {
+      switch (specialMove) {
+      case KINGS_SIDE_CASTLING:
+      case QUEENS_SIDE_CASTLING:
+         return new Move(originSq, originPiece, targetSq, false, (byte) 0, false, (byte) 0, specialMove == SpecialMove.KINGS_SIDE_CASTLING,
+               specialMove == SpecialMove.QUEENS_SIDE_CASTLING, false);
+      case ENPASSANT:
+         // explicitly set 'capture', since e.p. moves are captures although the target square is 'empty'
+         return new Move(originSq, originPiece, targetSq, true, (byte) 0, true, targetSq + (Pieces.isWhitePiece(originPiece) ? 8 : -8), false, false, false);
+      case PAWN_TWO_SQUARES_FORWARD:
+         return new Move(originSq, originPiece, targetSq, false, (byte) 0, false, 0, false, false, true);
+      default:
+         throw new IllegalStateException("unhandled value of specialMove: " + specialMove);
+      }
    }
 
    /**
     * Normal move.
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @return                  the new move object
+    * @param origin      origin square
+    * @param originPiece info about piece on origin square
+    * @param target      target square
+    * @return the new move object
     */
-   public static Move createMove(int origin, SquareInfo originSquareInfo, int target) {
-      return new Move(origin, originSquareInfo, target, null, null);
+   public static Move createMove(int origin, byte originPiece, int target) {
+      return new Move(origin, originPiece, target, (byte) 0, (byte) 0);
    }
 
    /**
     * Normal move. Helper method using Square objects.
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @return                  the new move object
+    * @param origin           origin square
+    * @param originSquareInfo info about origin square
+    * @param target           target square
+    * @return the new move object
     */
-   public static Move createMove(Square origin, SquareInfo originSquareInfo, Square target) {
-      return createMove(origin.index(), originSquareInfo, target.index());
+   public static Move createMove(Square origin, byte originPiece, Square target) {
+      return new Move(origin.index(), originPiece, target.index(), (byte) 0, (byte) 0);
    }
 
    /**
     * Capture move.
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @param  targetSquareInfo info about target square (capture)
-    * @return                  the new move object
+    * @param origin      origin square
+    * @param originPiece info about piece on origin square
+    * @param target      target square
+    * @param targetPiece info about piece on target square; cannot be zero (empty square)
+    * @return the new move object
     */
-   public static Move createCapture(int origin, SquareInfo originSquareInfo, int target, SquareInfo targetSquareInfo) {
-      return new Move(origin, originSquareInfo, target, targetSquareInfo, null);
+   public static Move createCapture(int origin, byte originPiece, int target, byte targetPiece) {
+      if (targetPiece == 0) { throw new IllegalStateException("cannot call createCapture with empty 'targetPiece'"); }
+      return new Move(origin, originPiece, target, targetPiece, (byte) 0);
    }
 
    /**
     * Capture move. Helper method using Square objects.
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @param  targetSquareInfo info about target square (capture)
-    * @return                  the new move object
+    * @param origin      origin square
+    * @param originPiece info about piece on origin square
+    * @param target      target square
+    * @param targetPiece info about piece on target square; cannot be zero (empty square)
+    * @return the new move object
     */
-   public static Move createCapture(Square origin, SquareInfo originSquareInfo, Square target, SquareInfo targetSquareInfo) {
-      return createCapture(origin.index(), originSquareInfo, target.index(), targetSquareInfo);
+   public static Move createCapture(Square origin, byte originPiece, Square target, byte targetPiece) {
+      return createCapture(origin.index(), originPiece, target.index(), targetPiece);
    }
 
    /**
     * Promotion (without capture).
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @param  promotedPiece    the promoted piece
-    * @return                  the new move object
+    * @param origin        origin square
+    * @param originPiece   info about piece on origin square
+    * @param target        target square
+    * @param promotedPiece the promoted piece
+    * @return the new move object
     */
-   public static Move createPromotionMove(int origin, SquareInfo originSquareInfo, int target, Piece promotedPiece) {
-      return new Move(origin, originSquareInfo, target, null, promotedPiece);
+   public static Move createPromotionMove(int origin, byte originPiece, int target, byte promotedPiece) {
+      return new Move(origin, originPiece, target, (byte) 0, promotedPiece);
    }
 
    /**
     * Promotion (without capture). Helper-Method using Square objects.
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @param  promotedPiece    the promoted piece
-    * @return                  the new move object
+    * @param origin        origin square
+    * @param originPiece   info about piece on origin square
+    * @param target        target square
+    * @param promotedPiece the promoted piece
+    * @return the new move object
     */
-   public static Move createPromotionMove(Square origin, SquareInfo originSquareInfo, Square target, Piece promotedPiece) {
-      return createPromotionMove(origin.index(), originSquareInfo, target.index(), promotedPiece);
+   public static Move createPromotionMove(Square origin, byte originPiece, Square target, byte promotedPiece) {
+      return new Move(origin.index(), originPiece, target.index(), (byte) 0, promotedPiece);
    }
 
    /**
-    * Promotion with capture.
+    * Promotion, optionally with capture.
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @param  targetSquareInfo info about target square/captured piece, null if not a capture
-    * @param  promotedPiece    the promoted piece
-    * @return                  the new move object
+    * @param origin        origin square
+    * @param originPiece   info about piece on origin square
+    * @param target        target square
+    * @param targetPiece   info about piece on target square/captured piece, 0 if not a capture
+    * @param promotedPiece the promoted piece
+    * @return the new move object
     */
-   public static Move createPromotionCaptureMove(int origin, SquareInfo originSquareInfo, int target, SquareInfo targetSquareInfo, Piece promotedPiece) {
-      return new Move(origin, originSquareInfo, target, targetSquareInfo, promotedPiece);
+   public static Move createPromotionCaptureMove(int origin, byte originPiece, int target, byte targetPiece, byte promotedPiece) {
+      return new Move(origin, originPiece, target, targetPiece, promotedPiece);
    }
 
-   public static Move createPromotionCaptureMove(Square origin, SquareInfo originSquareInfo, Square target, SquareInfo targetSquareInfo, Piece promotedPiece) {
-      return createPromotionCaptureMove(origin.index(), originSquareInfo, target.index(), targetSquareInfo, promotedPiece);
+   public static Move createPromotionCaptureMove(Square origin, byte originPiece, Square target, byte targetPiece, byte promotedPiece) {
+      return new Move(origin.index(), originPiece, target.index(), targetPiece, promotedPiece);
    }
 
    /**
     * Kingsside castling. Origin and target squares are set to those of the king.
+    * <p>
+    * Cannot use a static Move object here, since the 'check' attribute is not set at construction time.
     * 
-    * @param  colour colour of moving side
-    * @return        the new move object
+    * @param colour colour of moving side
+    * @return the new move object
     */
    public static Move createKingssideCastlingMove(Colour colour) {
-      Move move = new Move(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], new SquareInfo(Piece.KING, colour),
-            MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][0], null, null);
-      move.kingsSideCastling = true;
-      return move;
+      return createMove(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], Pieces.generateKing(colour),
+            MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][0], SpecialMove.KINGS_SIDE_CASTLING);
    }
 
    /**
     * Queensside castling. Origin and target squares are set to those of the king.
     * 
-    * @param  colour colour of moving side
-    * @return        the new move object
+    * @param colour colour of moving side
+    * @return the new move object
     */
    public static Move createQueenssideCastlingMove(Colour colour) {
-      Move move = new Move(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], new SquareInfo(Piece.KING, colour),
-            MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][1], null, null);
-      move.queensSideCastling = true;
-      return move;
+      return createMove(MoveGenerator.kingsCastlingSquareIndex[colour.ordinal()], Pieces.generateKing(colour),
+            MoveGenerator.kingsSquareAfterCastling[colour.ordinal()][1], SpecialMove.QUEENS_SIDE_CASTLING);
    }
 
    /**
     * Enpassant.
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @param  targetSquareInfo info about target square/captured piece
-    * @return                  the new move object
+    * @param originSq    origin square
+    * @param originPiece info about piece on origin square
+    * @param epSquare    e.p. square
+    * @return the new move object
     */
-   public static Move createEnpassantMove(int origin, SquareInfo originSquareInfo, int epSquare, SquareInfo targetSquareInfo) {
-      Move move = new Move(origin, originSquareInfo, epSquare, targetSquareInfo, null);
-      move.enpassant = true;
-      move.squareOfPawnCapturedEnpassant = move.getTarget() + (originSquareInfo.colour() == Colour.WHITE ? 8 : -8);
-      return move;
+   public static Move createEnpassantMove(int originSq, byte originPiece, int epSquare) {
+      return createMove(originSq, originPiece, epSquare, SpecialMove.ENPASSANT);
    }
 
    /**
     * Enpassant. Helper method using Square objects.
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @param  targetSquareInfo info about target square/captured piece
-    * @return                  the new move object
+    * @param origin      origin square
+    * @param originPiece info about piece on origin square
+    * @param target      target square
+    * @return the new move object
     */
-   public static Move createEnpassantMove(Square origin, SquareInfo originSquareInfo, Square epSquare, SquareInfo targetSquareInfo) {
-      return createEnpassantMove(origin.index(), originSquareInfo, epSquare.index(), targetSquareInfo);
+   public static Move createEnpassantMove(Square origin, byte originPiece, Square epSquare) {
+      return createMove(origin.index(), originPiece, epSquare.index(), SpecialMove.ENPASSANT);
    }
 
    /**
     * Special method for two square pawn moves, in order to set the flag {@link #pawnTwoSquaresForward}.
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @return                  the new move object
+    * @param origin      origin square
+    * @param originPiece info about piece on origin square
+    * @param target      target square
+    * @return the new move object
     */
-   public static Move createPawnTwoSquaresForwardMove(int origin, SquareInfo originSquareInfo, int target) {
-      Move move = createMove(origin, originSquareInfo, target);
-      move.pawnTwoSquaresForward = true;
-      return move;
+   public static Move createPawnTwoSquaresForwardMove(int origin, byte originPiece, int target) {
+      return createMove(origin, originPiece, target, SpecialMove.PAWN_TWO_SQUARES_FORWARD);
    }
 
    /**
@@ -213,13 +254,29 @@ public class Move {
     * 
     * Helper method using Square objects.
     * 
-    * @param  origin           origin square
-    * @param  originSquareInfo info about origin square
-    * @param  target           target square
-    * @return                  the new move object
+    * @param origin      origin square
+    * @param originPiece info about piece on origin square
+    * @param target      target square
+    * @return the new move object
     */
-   public static Move createPawnTwoSquaresForwardMove(Square origin, SquareInfo originSquareInfo, Square target) {
-      return createPawnTwoSquaresForwardMove(origin.index(), originSquareInfo, target.index());
+   public static Move createPawnTwoSquaresForwardMove(Square origin, byte originPiece, Square target) {
+      return createMove(origin.index(), originPiece, target.index(), SpecialMove.PAWN_TWO_SQUARES_FORWARD);
+   }
+
+   /**
+    * Does this move instance represent a capture of a piece at 'captureSquare'? Also copes with enpassant, where the pawn taken e.p. is on
+    * 'captureSquare'.
+    * 
+    * @param captureSquare the square to inspect
+    * @return true if piece captured.on 'captureSquare'
+    */
+   public boolean moveCapturesPiece(int captureSquare) {
+      if (isCapture()) {
+         if (getTarget() == captureSquare) { return true; }
+         // enpassant
+         if (isEnpassant() && getSquareOfPawnCapturedEnpassant() == captureSquare) { return true; }
+      }
+      return false;
    }
 
    @Override
@@ -230,56 +287,36 @@ public class Move {
          return "O-O-O";
       } else {
          StringBuilder sb = new StringBuilder(10);
-         sb.append(originSquareInfo.piece().symbol(originSquareInfo.colour()));
+         sb.append(Pieces.symbol(originPiece));
          sb.append(Square.toSquare(originSq));
          sb.append(isCapture() ? "x" : "-");
          sb.append(Square.toSquare(targetSq));
-         if (promotion) { sb.append("=").append(promotedPiece.symbol(originSquareInfo.colour())); }
+         if (promotedPiece != 0) { sb.append("=").append(Pieces.symbol(promotedPiece)); }
          if (enpassant) { sb.append(" ep"); }
          if (isCheck()) { sb.append("+"); }
          return sb.toString();
       }
    }
 
-   public boolean isCapture() {
-      return capture;
-   }
+   public boolean isCapture() { return capture; }
 
-   public boolean isPromotion() {
-      return promotion;
-   }
+   public boolean isPromotion() { return promotedPiece != 0; }
 
-   public boolean isEnpassant() {
-      return enpassant;
-   }
+   public boolean isEnpassant() { return enpassant; }
 
-   public int getSquareOfPawnCapturedEnpassant() {
-      return squareOfPawnCapturedEnpassant;
-   }
+   public int getSquareOfPawnCapturedEnpassant() { return squareOfPawnCapturedEnpassant; }
 
-   public boolean isKingssideCastling() {
-      return kingsSideCastling;
-   }
+   public boolean isKingssideCastling() { return kingsSideCastling; }
 
-   public boolean isQueenssideCastling() {
-      return queensSideCastling;
-   }
+   public boolean isQueenssideCastling() { return queensSideCastling; }
 
-   public Piece getMovingPiece() {
-      return originSquareInfo.piece();
-   }
+   public byte getMovingPiece() { return originPiece; }
 
-   public Colour getColourOfMovingPiece() {
-      return originSquareInfo.colour();
-   }
+   public Colour getColourOfMovingPiece() { return Pieces.colourOf(originPiece); }
 
-   public int getOrigin() {
-      return originSq;
-   }
+   public int getOrigin() { return originSq; }
 
-   public int getTarget() {
-      return targetSq;
-   }
+   public int getTarget() { return targetSq; }
 
    public void setCheck(List<PieceSquareInfo> checkSquares) {
       check = true;
@@ -290,20 +327,12 @@ public class Move {
       setCheck(Arrays.asList(checkSquares));
    }
 
-   public boolean isCheck() {
-      return check;
-   }
+   public boolean isCheck() { return check; }
 
-   public List<PieceSquareInfo> getCheckSquares() {
-      return checkSquares;
-   }
+   public List<PieceSquareInfo> getCheckSquares() { return checkSquares; }
 
-   public boolean isPawnTwoSquaresForward() {
-      return pawnTwoSquaresForward;
-   }
+   public boolean isPawnTwoSquaresForward() { return pawnTwoSquaresForward; }
 
-   public Piece getPromotedPiece() {
-      return promotedPiece;
-   }
+   public byte getPromotedPiece() { return promotedPiece; }
 
 }
