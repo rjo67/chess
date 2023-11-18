@@ -81,11 +81,11 @@ public class Move implements IMove {
     * 
     * @param origin      origin square
     * @param target      target square
-    * @param targetPiece info about piece on target square; cannot be zero (empty square)
+    * @param targetPiece info about piece on target square; if zero then will create a move instead of a capture
     * @return the new move object
     */
    public static Move createCapture(int origin, int target, byte targetPiece) {
-      if (targetPiece == 0) { throw new IllegalStateException("cannot call createCapture with empty 'targetPiece'"); }
+      // if (targetPiece == 0) { throw new IllegalStateException("cannot call createCapture with empty 'targetPiece'"); }
       return new Move(origin, target, targetPiece, (byte) 0);
    }
 

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.rjo.chess.base.bits.BitSetFactory;
+import org.rjo.chess.base.bits.BitSetUnifier;
 import org.rjo.newchess.board.Board.Square;
 import org.rjo.newchess.board.Ray;
 import org.rjo.newchess.move.IMove;
@@ -93,16 +95,19 @@ public class Position {
    /**
     * Stores information about a piece (type, colour) on a particular square.
     */
-   byte[] board;// package protected for tests
+   /* package */ byte[] board;
+   // stores a bitset of white pieces and a bitset of black pieces
+   /* package */ BitSetUnifier[] piecesBitset;
 
    // keeps track on who can still castle
    // 1st dimension: W/B, 2nd dimension: 0 - king's side, 1 - queen's side
    boolean[][] castlingRights; // package protected for tests
 
-   private Square enpassantSquare; // set if previous move was a pawn moving 2 squares forward
-   int[] kingsSquare; // keep track of where the kings are (package protected for tests)
+   // set if previous move was a pawn moving 2 squares forward
+   private Square enpassantSquare;
+   /* package */ int[] kingsSquare; // keep track of where the kings are (package protected for tests)
    private Colour sideToMove;
-   // if kingInCheck==TRUE, then either directCheckSquare or discoveredCheckSquare (or both) will be set
+   // if kingInCheck==TRUE, then checkSquares will be filled
    private boolean kingInCheck; // TRUE if the king is now in check (i.e. the move leading to this posn has checked the king)
    private List<PieceSquareInfo> checkSquares; // set to the square(s) of the piece(s) delivering a check
    // debugging info
@@ -127,6 +132,9 @@ public class Position {
 
    public Position(boolean[][] castlingRights) {
       this.board = new byte[64];
+      this.piecesBitset = new BitSetUnifier[2];
+      this.piecesBitset[0] = BitSetFactory.createBitSet(64);
+      this.piecesBitset[1] = BitSetFactory.createBitSet(64);
       this.kingsSquare = new int[] { -1, -1 };
       for (int i = 0; i < 64; i++) {
          board[i] = UNOCCUPIED_SQUARE;
@@ -153,6 +161,9 @@ public class Position {
       this.board = prevPosn.board.clone();
       this.previousPosn = prevPosn;
       this.currentMove = move;
+      this.piecesBitset = new BitSetUnifier[2];
+      piecesBitset[0] = BitSetFactory.createBitSet(prevPosn.piecesBitset[0].toLongArray());// (BitSetUnifier) prevPosn.piecesBitset[0].clone();
+      piecesBitset[1] = BitSetFactory.createBitSet(prevPosn.piecesBitset[1].toLongArray());// (BitSetUnifier) prevPosn.piecesBitset[1].clone();
    }
 
    public void addPiece(byte piece, int square) {
@@ -165,6 +176,7 @@ public class Position {
          kingsSquare[colour.ordinal()] = square;
       }
       board[square] = piece;
+      piecesBitset[colour.ordinal()].set(square);
    }
 
    // convert from Piece to byte
@@ -231,6 +243,14 @@ public class Position {
 
    public int getKingsSquare(Colour col) {
       return kingsSquare[col.ordinal()];
+   }
+
+   public BitSetUnifier getPiecesBitset(Colour colour) {
+      return piecesBitset[colour.ordinal()];
+   }
+
+   public BitSetUnifier getPiecesBitset(int colour) {
+      return piecesBitset[colour];
    }
 
    public Colour getSideToMove() { return sideToMove; }
@@ -312,10 +332,17 @@ public class Position {
             throw new IllegalStateException(String.format("invalid move %s, sideToMove is %s", move, sideToMove));
          }
       }
+
       // remove piece at move.origin, place piece at move.target (implicitly removing piece at move.target)
       board[move.getOrigin()] = UNOCCUPIED_SQUARE;
       board[move.getTarget()] = move.isPromotion() ? move.getPromotedPiece() : movingPiece;
-      if (move.isEnpassant()) { board[move.getSquareOfPawnCapturedEnpassant()] = UNOCCUPIED_SQUARE; }
+      piecesBitset[sideToMoveOrdinal].clear(move.getOrigin());
+      piecesBitset[sideToMoveOrdinal].set(move.getTarget());
+      if (move.isCapture()) { piecesBitset[sideToMove.opposite().ordinal()].clear(move.getTarget()); }
+      if (move.isEnpassant()) {
+         board[move.getSquareOfPawnCapturedEnpassant()] = UNOCCUPIED_SQUARE;
+         piecesBitset[sideToMove.opposite().ordinal()].clear(move.getSquareOfPawnCapturedEnpassant());
+      }
 
       // move rook too if castling
       if (move.isKingssideCastling() || move.isQueenssideCastling()) {
@@ -336,6 +363,9 @@ public class Position {
          }
          board[rookOriginSq] = UNOCCUPIED_SQUARE;
          board[rookTargetSq] = Pieces.generateRook(Pieces.colourOf(movingPiece));
+         piecesBitset[sideToMoveOrdinal].clear(rookOriginSq);
+         piecesBitset[sideToMoveOrdinal].set(rookTargetSq);
+
       }
 
       // update enpassantSquare if pawn moved

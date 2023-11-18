@@ -40,6 +40,7 @@ public class PositionTest {
             assertTrue(!posn.squareIsEmpty(sq));
             assertEquals(col, posn.colourOfPieceAt(sq));
             assertEquals(pt, Pieces.toPiece(posn.pieceAt(sq)));
+            assertTrue(posn.piecesBitset[col.ordinal()].get(sq));
             sq++;
          }
       }
@@ -74,6 +75,9 @@ public class PositionTest {
       assertSame(oldPosn.pieceAt(Square.e1), newPosn.pieceAt(Square.e1));
       // blank squares use the same object
       assertSame(oldPosn.pieceAt(Square.a2), newPosn.pieceAt(Square.a2));
+      // bitmaps
+      assertEquals(oldPosn.piecesBitset[0], newPosn.piecesBitset[0]);
+      assertEquals(oldPosn.piecesBitset[1], newPosn.piecesBitset[1]);
    }
 
    @Test
@@ -88,6 +92,12 @@ public class PositionTest {
       assertBoardClonedCorrectly(posn, posn2, Square.b3, Square.b5);
       assertSame(posn.kingsSquare, posn2.kingsSquare);
       assertSame(posn.castlingRights, posn2.castlingRights);
+
+      assertTrue(posn.piecesBitset[Colour.WHITE.ordinal()].get(Square.b3.index()));
+      assertFalse(posn.piecesBitset[Colour.WHITE.ordinal()].get(Square.b5.index()));
+      // after move
+      assertFalse(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.b3.index()));
+      assertTrue(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.b5.index()));
    }
 
    @Test
@@ -119,6 +129,13 @@ public class PositionTest {
       assertBoardClonedCorrectly(posn, posn2, Square.b3, Square.d5);
       assertSame(posn.kingsSquare, posn2.kingsSquare);
       assertSame(posn.castlingRights, posn2.castlingRights);
+
+      assertTrue(posn.piecesBitset[Colour.WHITE.ordinal()].get(Square.b3.index()));
+      assertTrue(posn.piecesBitset[Colour.BLACK.ordinal()].get(Square.d5.index()));
+      // after move
+      assertFalse(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.b3.index()));
+      assertTrue(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.d5.index()));
+      assertFalse(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.d5.index()));
    }
 
    @Test
@@ -165,6 +182,14 @@ public class PositionTest {
       assertKingsSquareClonedCorrectly(posn, posn2);
       assertEquals(Square.g1.index(), posn2.kingsSquare[Colour.WHITE.ordinal()]);
       assertEquals(Square.e8.index(), posn2.kingsSquare[Colour.BLACK.ordinal()]);
+
+      assertTrue(posn.piecesBitset[Colour.WHITE.ordinal()].get(Square.h1.index()));
+      assertTrue(posn.piecesBitset[Colour.WHITE.ordinal()].get(Square.e1.index()));
+      // after move
+      assertFalse(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.h1.index()));
+      assertFalse(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.e1.index()));
+      assertTrue(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.f1.index()));
+      assertTrue(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.g1.index()));
    }
 
    @Test
@@ -187,6 +212,14 @@ public class PositionTest {
       assertKingsSquareClonedCorrectly(posn, posn2);
       assertEquals(Square.c1.index(), posn2.kingsSquare[Colour.WHITE.ordinal()]);
       assertEquals(Square.e8.index(), posn2.kingsSquare[Colour.BLACK.ordinal()]);
+
+      assertTrue(posn.piecesBitset[Colour.WHITE.ordinal()].get(Square.a1.index()));
+      assertTrue(posn.piecesBitset[Colour.WHITE.ordinal()].get(Square.e1.index()));
+      // after move
+      assertFalse(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.a1.index()));
+      assertFalse(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.e1.index()));
+      assertTrue(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.c1.index()));
+      assertTrue(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.d1.index()));
    }
 
    @Test
@@ -209,6 +242,14 @@ public class PositionTest {
       assertKingsSquareClonedCorrectly(posn, posn2);
       assertEquals(Square.e1.index(), posn2.kingsSquare[Colour.WHITE.ordinal()]);
       assertEquals(Square.g8.index(), posn2.kingsSquare[Colour.BLACK.ordinal()]);
+
+      assertTrue(posn.piecesBitset[Colour.BLACK.ordinal()].get(Square.h8.index()));
+      assertTrue(posn.piecesBitset[Colour.BLACK.ordinal()].get(Square.e8.index()));
+      // after move
+      assertFalse(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.h8.index()));
+      assertFalse(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.e8.index()));
+      assertTrue(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.f8.index()));
+      assertTrue(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.g8.index()));
    }
 
    @Test
@@ -231,6 +272,14 @@ public class PositionTest {
       assertKingsSquareClonedCorrectly(posn, posn2);
       assertEquals(Square.e1.index(), posn2.kingsSquare[Colour.WHITE.ordinal()]);
       assertEquals(Square.c8.index(), posn2.kingsSquare[Colour.BLACK.ordinal()]);
+
+      assertTrue(posn.piecesBitset[Colour.BLACK.ordinal()].get(Square.a8.index()));
+      assertTrue(posn.piecesBitset[Colour.BLACK.ordinal()].get(Square.e8.index()));
+      // after move
+      assertFalse(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.a8.index()));
+      assertFalse(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.e8.index()));
+      assertTrue(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.c8.index()));
+      assertTrue(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.d8.index()));
    }
 
    @Test
@@ -239,6 +288,9 @@ public class PositionTest {
       posn.addPiece(Colour.WHITE, Piece.PAWN, Square.b2);
       posn.addPiece(Colour.BLACK, Piece.PAWN, Square.c4);
       assertEquals("4k3/8/8/8/2p5/8/1P6/4K3 w - -", posn.getFen());
+
+      assertTrue(posn.piecesBitset[Colour.WHITE.ordinal()].get(Square.b2.index()));
+      assertTrue(posn.piecesBitset[Colour.BLACK.ordinal()].get(Square.c4.index()));
 
       // make pawn move, which sets the enpassant square in the position
       Position posn2 = posn.move(MoveGenerator.pawnMoves[Colour.WHITE.ordinal()][Square.b2.index()].getNext()[0].getMove());
@@ -249,10 +301,16 @@ public class PositionTest {
       assertSame(posn.castlingRights, posn2.castlingRights);
       assertEquals(Square.b3, posn2.getEnpassantSquare());
 
+      // after 1st move
+      assertFalse(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.b2.index()));
+      assertTrue(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.b4.index()));
+      assertTrue(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.c4.index()));
+
       IMove epMove = Move.createEnpassantMove(Square.c4.index(), Square.b3.index(), Colour.BLACK);
       assertEquals(Square.b4.index(), epMove.getSquareOfPawnCapturedEnpassant());
       Position posn3 = posn2.move(epMove);
       assertBoardClonedCorrectly(posn2, posn3, Square.b3, Square.b4, Square.c4);
+
       posn2 = null; // avoid typos referencing the wrong posn
       assertEquals("4k3/8/8/8/8/1p6/8/4K3 w - -", posn3.getFen());
       assertTrue(posn3.squareIsEmpty(Square.b4));
@@ -262,6 +320,10 @@ public class PositionTest {
       assertNull(posn3.getEnpassantSquare()); // after move, the ep square should be null again
       assertSame(posn3.kingsSquare, posn3.kingsSquare);
       assertSame(posn3.castlingRights, posn3.castlingRights);
+
+      assertFalse(posn3.piecesBitset[Colour.WHITE.ordinal()].get(Square.b4.index()));
+      assertTrue(posn3.piecesBitset[Colour.BLACK.ordinal()].get(Square.b3.index()));
+      assertFalse(posn3.piecesBitset[Colour.BLACK.ordinal()].get(Square.c4.index()));
    }
 
    @Test
@@ -278,6 +340,11 @@ public class PositionTest {
       assertBoardClonedCorrectly(posn, posn2, Square.c7, Square.c8);
       assertSame(posn.kingsSquare, posn2.kingsSquare);
       assertSame(posn.castlingRights, posn2.castlingRights);
+
+      assertTrue(posn.piecesBitset[Colour.WHITE.ordinal()].get(Square.c7.index()));
+      // after move
+      assertFalse(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.c7.index()));
+      assertTrue(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.c8.index()));
    }
 
    @Test
@@ -296,6 +363,13 @@ public class PositionTest {
       assertBoardClonedCorrectly(posn, posn2, Square.c7, Square.b8);
       assertSame(posn.kingsSquare, posn2.kingsSquare);
       assertSame(posn.castlingRights, posn2.castlingRights);
+
+      assertTrue(posn.piecesBitset[Colour.WHITE.ordinal()].get(Square.c7.index()));
+      assertTrue(posn.piecesBitset[Colour.BLACK.ordinal()].get(Square.b8.index()));
+      // after move
+      assertFalse(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.c7.index()));
+      assertTrue(posn2.piecesBitset[Colour.WHITE.ordinal()].get(Square.b8.index()));
+      assertFalse(posn2.piecesBitset[Colour.BLACK.ordinal()].get(Square.b8.index()));
    }
 
    @Test

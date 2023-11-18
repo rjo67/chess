@@ -141,6 +141,12 @@ public class MoveGenerator implements MoveGeneratorI {
     */
    private static final BitSetUnifier[] KING_MOVES = new BitSetUnifier[64];
 
+   /**
+    * Valid squares for the knight to move to, stored as bitsets for each square.
+    */
+   private static final BitSetUnifier[] KNIGHT_MOVES = new BitSetUnifier[64];
+   private static final boolean USE_BIT_MAP = true;
+
    static {
       enpassantSquares[Square.a6.index()] = new EnpassantInfo[] {
             new EnpassantInfo(Square.b5.index(), Move.createEnpassantMove(Square.b5.index(), Square.a6.index(), Colour.WHITE)) };
@@ -338,10 +344,14 @@ public class MoveGenerator implements MoveGeneratorI {
 
       knightMoves = new Set[64];
       for (int sq = 0; sq < 64; sq++) {
+         KNIGHT_MOVES[sq] = BitSetFactory.createBitSet(64);
          knightMoves[sq] = new HashSet<>();
          for (int offset : Piece.KNIGHT.getMoveOffsets()) {
             int targetSq = Board.getMailboxSquare(sq, offset);
-            if (targetSq != -1) { knightMoves[sq].add(targetSq); }
+            if (targetSq != -1) {
+               knightMoves[sq].add(targetSq);
+               KNIGHT_MOVES[sq].set(targetSq);
+            }
          }
       }
 
@@ -449,12 +459,15 @@ public class MoveGenerator implements MoveGeneratorI {
             checkMask.set(posn.getCheckSquares().get(1).square());
          }
       } else {
-         checkMask = Ray.fullysetBs; // all squares are OK
+         checkMask = (BitSetUnifier) Ray.fullysetBs.clone(); // all squares are OK
       }
+      // remove target squares occupied by my own pieces -- TODO only necesary if not in check (i.e. preceding else?)
+      checkMask.andNot(posn.getPiecesBitset(colour));
+
       // the king' mask is now expanded to prevent moving adjacent to the opponents king.
       final var opponentsKing = posn.getKingsSquare(posn.getSideToMove().opposite());
       kingsForbiddenSquaresMask.or(KING_MOVES[opponentsKing]);
-      processKingsMove(posn, kingsSquare, colour, kingMoves, kingsForbiddenSquaresMask);
+      generateKingMoves(posn, kingsSquare, colour, kingMoves, kingsForbiddenSquaresMask);
       squaresProcessed[kingsSquare] = true;
 
       if (!kingInDoubleCheck) {
@@ -786,12 +799,10 @@ public class MoveGenerator implements MoveGeneratorI {
     * @param kingsForbiddenSquaresMask defines the squares which would still leave the king in check; therefore cannot move to any of these
     *                                  squares
     */
-   /* package */ void processKingsMove(Position posn, int startSq, Colour colour, List<IMove> moves, BitSetUnifier kingsForbiddenSquaresMask) {
+   /* package */ void generateKingMoves(Position posn, int startSq, Colour colour, List<IMove> moves, BitSetUnifier kingsForbiddenSquaresMask) {
       byte pieceOnStartSq = posn.pieceAt(startSq);
       if (Pieces.colourOf(pieceOnStartSq) == colour) {
-         if (!Pieces.isKing(pieceOnStartSq)) {
-            throw new IllegalStateException(String.format("called processKingsSquare with piece %s, posn: %s", pieceOnStartSq, posn));
-         }
+         if (!Pieces.isKing(pieceOnStartSq)) { throw new IllegalStateException(String.format("called with wrong piece %s, posn: %s", pieceOnStartSq, posn)); }
 
          var possibleMoves = (BitSetUnifier) KING_MOVES[startSq].clone();
          possibleMoves.andNot(kingsForbiddenSquaresMask);
@@ -828,6 +839,68 @@ public class MoveGenerator implements MoveGeneratorI {
    }
 
    /**
+    * Finds all pseudo-legal moves (i.e. not checked for pins) for a knight at 'startSq'.
+    *
+    * @param posn
+    * @param startSq   square to process
+    * @param colour
+    * @param moves     moves will be added to this list
+    * @param checkMask if the square in the checkMask is set, then it blocks the check.
+    */
+   /* package */ void generateKnightMoves(Position posn, int startSq, Colour colour, List<IMove> moves, BitSetUnifier checkMask) {
+      byte pieceOnStartSq = posn.pieceAt(startSq);
+      if (Pieces.colourOf(pieceOnStartSq) == colour) {
+         if (!Pieces.isKnight(pieceOnStartSq)) { throw new IllegalStateException(String.format("called with wrong piece %s, posn: %s", pieceOnStartSq, posn)); }
+         var possibleMoves = (BitSetUnifier) KNIGHT_MOVES[startSq].clone();
+         possibleMoves.and(checkMask); // only moves blocking check and not to squares occupied by my own pieces
+
+         if (USE_BIT_MAP) {
+
+            // alternative algorithm:
+            // - read next bit set in possibleMoves
+            // - if occupied by enemy, generate capture
+            // - if empty, generate move
+            // disadvantage: creates new move objects
+
+            int nextBit = possibleMoves.nextSetBit(0);
+            while (nextBit != -1) {
+               // a) generate a move if the target square is empty
+               // b) or generate a capture if an (enemy) piece is occupying the square
+               moves.add(Move.createCapture(startSq, nextBit, posn.pieceAt(nextBit)));
+
+               nextBit = possibleMoves.nextSetBit(nextBit + 1);
+            }
+         } else {
+            MoveNode targetNode = moveNodes[Piece.KNIGHT.ordinal()][startSq];
+            while (targetNode != null) {
+               if (possibleMoves.get(targetNode.to)) {
+                  IMove move = null;
+                  // a) generate a move if the target square is empty
+                  // b) move to 'next direction' next[1] if a piece is occupying the square
+                  byte targetSquareContents = posn.pieceAt(targetNode.to);
+                  if (targetSquareContents == 0) {
+                     move = targetNode.move;
+                     targetNode = targetNode.next[0];
+                     // don't need this else, since possibleMoves does not contain squares with our pieces
+                     // } else if (colour == Pieces.colourOf(targetSquareContents)) {
+                     // // our own piece is blocking
+                     // targetNode = targetNode.next[1];
+                  } else {
+                     // capture
+                     move = targetNode.captureMove;
+                     targetNode = targetNode.next[1];
+                  }
+                  moves.add(move);
+               } else {
+                  targetNode = targetNode.next[0];
+                  // next[0] or next[1] doesn't matter, both are set to be the same
+               }
+            }
+         }
+      }
+   }
+
+   /**
     * Finds all pseudo-legal moves (i.e. not checked for pins) for a piece at 'startSq'.
     * 
     * If our king is currently in check, the move has to block the check or capture the checking piece.
@@ -848,6 +921,8 @@ public class MoveGenerator implements MoveGeneratorI {
          final byte pieceOnStartSq = posn.pieceAt(startSq);
          if (Pieces.isPawn(pieceOnStartSq)) {
             moves.addAll(generatePawnMoves(posn, startSq, colour, checkInfo, kingsSquare, checkMask));
+         } else if (Pieces.isKnight(pieceOnStartSq)) {
+            generateKnightMoves(posn, startSq, colour, moves, checkMask);
          } else if (Pieces.isKing(pieceOnStartSq)) {
             throw new IllegalStateException(String.format("called processSquare (sq=%s) with King:\n%s", Square.toSquare(startSq), posn));
          } else {
@@ -1157,7 +1232,7 @@ public class MoveGenerator implements MoveGeneratorI {
 
    /**
     * Generates moves for pawn at 'startSq'. If our king is already in check, then the move must capture at the checking square or block the
-    * ray.
+    * ray. This information is stored in the 'checkMask'.
     * 
     * @param posn
     * @param startSq

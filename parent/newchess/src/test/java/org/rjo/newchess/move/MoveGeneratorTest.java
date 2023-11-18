@@ -35,7 +35,7 @@ public class MoveGeneratorTest {
       long start = System.currentTimeMillis();
       for (int i = 0; i < 1_000_000; i++) {
          moves = new ArrayList<>();
-         movegen.processKingsMove(posn, Square.e3.index(), Colour.WHITE, moves, forbiddenMoves);
+         movegen.generateKingMoves(posn, Square.e3.index(), Colour.WHITE, moves, forbiddenMoves);
          assertEquals(8, moves.size());
       }
       System.out.println("kingsMove: " + (System.currentTimeMillis() - start)); // 1_000_000 times: 100-140ms

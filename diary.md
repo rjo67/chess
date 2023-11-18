@@ -14,6 +14,7 @@ Interesting link: https://www.codeproject.com/Articles/5313417/Worlds-fastest-Bi
 ## Overview of commits and performance
 date | description | commit | perft (posn6, 5ply: 164.075.551 moves)
 ---- | ----------- | ------ | -----
+13.11.23 | use bitmaps to calculate legal king moves, esp. check if adjacent to opponent's king |  | average of 5 iterations: 3839,20 ms (42736,9 moves/ms)
 04.11.23 | 'Move' is now constant, no longer stores the moving piece and a 'check' is stored in CheckMoveDecorator. Can therefore pre-generate many moves | | average of 5 iterations: 3815,80 ms (42999,0 moves/ms)
 20.10.23 | Piece and Colour information stored in one byte, which allows bit operations and reduces object creation. | | average of 10 iterations: 3920,60 ms (41849,6 moves/ms)
 16.04.23 | Ray and pawn move optimizations (precaching various values which were previously being calculated) | | average of 10 iterations: 6021,40 ms (27248,7 moves/ms)

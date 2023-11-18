@@ -57,20 +57,17 @@ public final class LuceneBitSet implements BitSetUnifier, Cloneable {
 
    @Override
    public void or(BitSetUnifier set) {
-      LuceneBitSet set2 = (LuceneBitSet) set;
-      bs.or(set2.bs);
+      bs.or(((LuceneBitSet) set).bs);
    }
 
    @Override
    public void xor(BitSetUnifier set) {
-      LuceneBitSet set2 = (LuceneBitSet) set;
-      bs.xor(set2.bs);
+      bs.xor(((LuceneBitSet) set).bs);
    }
 
    @Override
    public void and(BitSetUnifier set) {
-      LuceneBitSet set2 = (LuceneBitSet) set;
-      bs.and(set2.bs);
+      bs.and(((LuceneBitSet) set).bs);
    }
 
    @Override
@@ -80,14 +77,12 @@ public final class LuceneBitSet implements BitSetUnifier, Cloneable {
 
    @Override
    public void andNot(BitSetUnifier set) {
-      LuceneBitSet set2 = (LuceneBitSet) set;
-      bs.andNot(set2.bs);
+      bs.andNot(((LuceneBitSet) set).bs);
    }
 
    @Override
    public boolean intersects(BitSetUnifier set) {
-      LuceneBitSet set2 = (LuceneBitSet) set;
-      return bs.intersects(set2.bs);
+      return bs.intersects(((LuceneBitSet) set).bs);
    }
 
    @Override
