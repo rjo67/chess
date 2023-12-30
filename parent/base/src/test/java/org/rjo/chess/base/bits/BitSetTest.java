@@ -67,6 +67,8 @@ public class BitSetTest {
       repeat("or", bs, (a) -> a.or(bs2));
       repeat("xor", bs, (a) -> a.xor(bs2));
       repeat("cardinality", bs, BitSetUnifier::cardinality);
+      repeat("clone", bs, (a) -> a.clone());
+      create(v -> BitSetFactory.createBitSet(v));
    }
 
    @Test
@@ -85,6 +87,8 @@ public class BitSetTest {
       repeat("or", bs, (a) -> a.or(bs2));
       repeat("xor", bs, (a) -> a.xor(bs2));
       repeat("cardinality", bs, BitSetUnifier::cardinality);
+      repeat("clone", bs, (a) -> a.clone());
+      create(v -> BitSetFactory.createBitSet(v));
    }
 
    @Test
@@ -103,6 +107,8 @@ public class BitSetTest {
       repeat("or", bs, (a) -> a.or(bs2));
       repeat("xor", bs, (a) -> a.xor(bs2));
       repeat("cardinality", bs, BitSetUnifier::cardinality);
+      repeat("clone", bs, (a) -> a.clone());
+      create(v -> BitSetFactory.createBitSet(v));
    }
 
    @Test
@@ -132,6 +138,18 @@ public class BitSetTest {
       }
       long duration = sw.getTime();
       System.out.println("operation: " + name + ", time: " + duration);
+   }
+
+   private void create(Consumer<Long> fn) {
+      long nbrIters = 10000000;
+      Long bitsetValue = 12345L;
+      StopWatch sw = new StopWatch();
+      sw.start();
+      for (int i = 0; i < nbrIters; i++) {
+         fn.accept(bitsetValue);
+      }
+      long duration = sw.getTime();
+      System.out.println("operation: create, time: " + duration);
    }
 
    @Test

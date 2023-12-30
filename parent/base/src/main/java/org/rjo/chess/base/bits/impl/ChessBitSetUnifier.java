@@ -24,6 +24,10 @@ public final class ChessBitSetUnifier implements BitSetUnifier, Cloneable {
       bs = new ChessBitSet(longarray[0]);
    }
 
+   public ChessBitSetUnifier(long longval) {
+      bs = new ChessBitSet(longval);
+   }
+
    @Override
    public boolean equals(Object obj) {
       if (obj == null) { return false; }
